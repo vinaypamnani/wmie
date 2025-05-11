@@ -1,0 +1,84 @@
+<UserControl
+    x:Class="WmiExplorer.Presentation.Views.ConnectionOptionsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
+    xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
+    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+    mc:Ignorable="d"
+    d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+        <converters:EnumFlagsToBooleanConverter x:Key="EnumFlagsToBooleanConverter" />
+    </UserControl.Resources>
+
+    <Grid Name="OptionsGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <GroupBox Grid.Column="0" Header="Computer Name">
+            <StackPanel Orientation="Horizontal">
+                <TextBox
+                    MinWidth="120"
+                    Margin="5"
+                    VerticalContentAlignment="Center"
+                    Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}"
+                    Tag="Enter computer name..." />
+                <Button
+                    MinWidth="75"
+                    Margin="5"
+                    Command="{Binding ConnectCommand}"
+                    Content="Connect" />
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Grid.Column="1" Header="Mode">
+            <StackPanel Orientation="Vertical">
+                <RadioButton Content="Asynchronous"
+                             IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" />
+                <RadioButton Content="Synchronous"
+                             IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" />
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Grid.Column="2" Header="Class Enumeration">
+            <Grid Margin="2,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="5,3"
+                    Content="Include System Classes"
+                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=System}" />
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="5,3"
+                    Content="Include CIM Classes"
+                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}" />
+                <CheckBox
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Margin="5,3"
+                    Content="Include MSFT Classes"
+                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}" />
+                <CheckBox
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Margin="5,3"
+                    Content="Include Perf Classes"
+                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}" />
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>

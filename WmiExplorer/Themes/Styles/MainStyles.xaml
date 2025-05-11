@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+
+    <ResourceDictionary.MergedDictionaries>
+        <!-- Include theme-specific resources (will be loaded by your theme system) -->
+        <!-- <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Light.xaml" /> -->
+
+        <!-- Include all of our modular style files -->
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/ButtonStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/TextControlStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/ListStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/TreeStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/NavigationStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/LayoutStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/IndicatorStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/TooltipStyles.xaml" />
+        <!-- PropertyGrid styles moved to Presentation/Controls/PropertyGrid/Styles folder -->
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Styles/ScrollBarStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

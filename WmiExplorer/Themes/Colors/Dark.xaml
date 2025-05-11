@@ -1,0 +1,87 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Base Colors -->
+    <Color x:Key="PrimaryBackgroundColor">#FF1E1E1E</Color>
+    <Color x:Key="SecondaryBackgroundColor">#FF252526</Color>
+    <Color x:Key="PrimaryForegroundColor">#FFF0F0F0</Color>
+    <Color x:Key="AccentColor">#FF3C8ED0</Color>
+    <Color x:Key="SecondaryAccentColor">#FF5B7EC7</Color>
+    <Color x:Key="BorderColor">#FF454545</Color>
+    <Color x:Key="NoFocusColor">#FF707070</Color>
+
+    <!-- Base Brushes -->
+    <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
+    <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
+    <SolidColorBrush x:Key="PrimaryForegroundBrush" Color="{StaticResource PrimaryForegroundColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource SecondaryAccentColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+
+    <!-- Menu -->
+    <SolidColorBrush x:Key="MenuItemForegroundBrush" Color="#F0F0F0" />
+    <SolidColorBrush x:Key="MenuItemBackgroundBrush" Color="#333333" />
+    <SolidColorBrush x:Key="MenuItemBorderBrush" Color="#4A4A4A" />
+
+    <!-- GridSplitter -->
+    <SolidColorBrush x:Key="GridSplitterBackground" Color="#444444" />
+    <SolidColorBrush x:Key="GridSplitterHoverBackground" Color="{StaticResource SecondaryAccentColor}" />
+    <SolidColorBrush x:Key="GridSplitterDraggingBackground" Color="{StaticResource AccentColor}" />
+
+    <!-- ListView -->
+    <SolidColorBrush x:Key="ListViewItemSelectedBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="ListViewItemHoverBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="ListViewItemHoverBorderBrush" Color="#FF8ABFED" />
+    <SolidColorBrush x:Key="ListViewItemUnfocusedSelectedBackgroundBrush" Color="{StaticResource NoFocusColor}" />
+    <SolidColorBrush x:Key="ListViewItemUnfocusedSelectedBorderBrush" Color="{StaticResource NoFocusColor}" />
+
+    <!-- ScrollBar Brushes -->
+    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="#FF333333" />
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="#FF686868" />
+    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource SecondaryAccentColor}" />
+    <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="{StaticResource AccentColor}" />
+
+    <!-- Status Colors -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#FF36B536" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="#FFEC4D39" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#FFFFC14F" />
+    <SolidColorBrush x:Key="IndeterminateBrush" Color="#FFA0A0A0" />
+    <SolidColorBrush x:Key="BusyBrush" Color="#FFFFB347" />
+
+    <!-- PropertyGrid Colors -->
+    <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="#FF1E1E1E" />
+    <SolidColorBrush x:Key="PropertyGridBorderBrush" Color="#FF454545" />
+    <SolidColorBrush x:Key="PropertyGridForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridCategoryBackgroundBrush" Color="#FF333333" />
+    <SolidColorBrush x:Key="PropertyGridCategoryForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridAccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="#FF3C8ED0" />
+    <SolidColorBrush x:Key="PropertyGridSelectedForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridInputBackgroundBrush" Color="#FF2D2D2D" />
+    <SolidColorBrush x:Key="PropertyGridInputForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridInputBorderBrush" Color="#FF555555" />
+    <SolidColorBrush x:Key="PropertyGridSearchBackgroundBrush" Color="#FF2D2D2D" />
+    <SolidColorBrush x:Key="PropertyGridSearchForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridSearchBorderBrush" Color="#FF555555" />
+    <SolidColorBrush x:Key="PropertyGridSearchPlaceholderBrush" Color="#FF808080" />
+    <SolidColorBrush x:Key="PropertyGridSearchFocusBackgroundBrush" Color="#FF3C3C3C" />
+    <SolidColorBrush x:Key="PropertyGridCaretBrush" Color="#FFFFFFFF" />
+
+    <!-- Additional PropertyGrid resources -->
+    <SolidColorBrush x:Key="PropertyGridHeaderBackgroundBrush" Color="#FF252526" />
+    <SolidColorBrush x:Key="PropertyGridHeaderForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridHeaderBorderBrush" Color="#FF555555" />
+    <SolidColorBrush x:Key="PropertyGridCategoryHeaderBackgroundBrush" Color="#FF3C3C3C" />
+    <SolidColorBrush x:Key="PropertyGridCategoryHeaderForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridCategoryExpanderBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridNameColumnBackgroundBrush" Color="#FF252526" />
+    <SolidColorBrush x:Key="PropertyGridValueColumnBackgroundBrush" Color="#FF1E1E1E" />
+    <SolidColorBrush x:Key="PropertyGridDescriptionBackgroundBrush" Color="#FF252526" />
+    <SolidColorBrush x:Key="PropertyGridDescriptionForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="PropertyGridReadOnlyBackgroundBrush" Color="#FF292929" />
+    <SolidColorBrush x:Key="PropertyGridReadOnlyForegroundBrush" Color="#FFB0B0B0" />
+
+    <!-- Help pane brushes -->
+    <SolidColorBrush x:Key="PropertyGridHelpPaneBackgroundBrush" Color="#FF252526" />
+    <SolidColorBrush x:Key="PropertyGridHelpPaneTextBrush" Color="#FFF0F0F0" />
+</ResourceDictionary>

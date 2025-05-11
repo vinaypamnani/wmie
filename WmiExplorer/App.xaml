@@ -1,0 +1,20 @@
+<Application x:Class="WmiExplorer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:WmiExplorer"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Load modular styles -->
+                <ResourceDictionary Source="Themes/Styles/MainStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Controls/PropertyGrid/Styles/PropertyGridTheme.xaml" />
+                <!-- Theme will be loaded dynamically by ThemeManager from the Themes folder -->
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Boolean to Visibility Converter -->
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

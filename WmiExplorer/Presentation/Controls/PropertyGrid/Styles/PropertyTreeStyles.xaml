@@ -1,0 +1,290 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid"
+                    xmlns:conv="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid.Converters">
+
+    <!-- Converters -->
+    <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+
+    <!-- Common style for property text -->
+    <Style x:Key="PropertyTextBlockStyle"
+            TargetType="TextBlock">
+        <Setter Property="Margin"
+                Value="0,2" />
+        <Setter Property="VerticalAlignment"
+                Value="Center" />
+        <Setter Property="Foreground"
+                Value="{DynamicResource PropertyGridForegroundBrush}" />
+        <Setter Property="TextTrimming"
+                Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- Common template for property description tooltips -->
+    <DataTemplate x:Key="PropertyDescriptionTooltip">
+        <TextBlock Text="{Binding Description}"
+                   TextWrapping="Wrap"
+                   MaxWidth="300" />
+    </DataTemplate>
+
+    <!-- Common template for property expand/collapse arrows -->
+    <ControlTemplate x:Key="ExpandCollapseToggleButtonTemplate"
+            TargetType="ToggleButton">
+        <Border Background="Transparent"
+                Cursor="Hand"
+                VerticalAlignment="Center">
+            <Grid Width="16"
+                    Height="16"
+                    VerticalAlignment="Center">
+                <Path x:Name="ExpandPath"
+                      Stroke="{DynamicResource PropertyGridForegroundBrush}"
+                      StrokeThickness="1"
+                      Data="M 4,2 L 9,8 L 4,14"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
+                    <Path.RenderTransform>
+                        <RotateTransform x:Name="ExpandPathRotation"
+                                Angle="0"
+                                CenterX="6.5"
+                                CenterY="8" />
+                    </Path.RenderTransform>
+                </Path>
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked"
+                    Value="True">
+                <Setter TargetName="ExpandPath"
+                        Property="RenderTransform">
+                    <Setter.Value>
+                        <RotateTransform Angle="90"
+                                CenterX="6.5"
+                                CenterY="8" />
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="IsMouseOver"
+                    Value="True">
+                <Setter TargetName="ExpandPath"
+                        Property="Opacity"
+                        Value="0.8" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Style for TreeViewItem in PropertyGrid -->
+    <Style x:Key="PropertyTreeViewItemStyle"
+            TargetType="TreeViewItem">
+        <Setter Property="IsExpanded"
+                Value="{Binding IsExpanded, Mode=TwoWay}" />
+        <Setter Property="IsSelected"
+                Value="{Binding IsSelected, Mode=TwoWay}" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="Stretch" />
+        <Setter Property="Foreground"
+                Value="{DynamicResource PropertyGridForegroundBrush}" />
+        <Setter Property="Margin"
+                Value="0,1,0,1" />
+        <!-- Override the HasItems property to ensure expanders are always shown for collections -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="19" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <!-- Expander Button - Make sure it appears for collections -->
+                        <ToggleButton
+                            x:Name="Expander"
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            ClickMode="Press"
+                            IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ToggleButton.Style>
+                                <Style TargetType="{x:Type ToggleButton}">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Width" Value="16" />
+                                    <Setter Property="Height" Value="16" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                <Border Background="Transparent">
+                                                    <Path
+                                                        x:Name="ExpandPath"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Data="M 0 2 L 4 6 L 0 10 Z"
+                                                        Fill="Transparent"
+                                                        Stroke="{DynamicResource PrimaryForegroundBrush}" />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="ExpandPath" Property="Data" Value="M 0 2 L 4 6 L 8 2 Z" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+
+                        <!-- Content -->
+                        <Border
+                            x:Name="OuterBd"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="0,0,5,0"
+                            Padding="{TemplateBinding Padding}"
+                            Background="Transparent"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                            <Border
+                                x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="0">
+                                <ContentPresenter
+                                    x:Name="PART_Header"
+                                    ContentSource="Header" />
+                            </Border>
+                        </Border>
+
+                        <!-- ItemsPresenter (Children) -->
+                        <ItemsPresenter
+                            x:Name="ItemsHost"
+                            Grid.Row="1"
+                            Grid.Column="1" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="false">
+                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <!-- Use custom check for collection items -->
+                        <DataTrigger Binding="{Binding IsExpandable}" Value="False">
+                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+                        </DataTrigger>
+                        <!-- Highlight selected item on the OUTER border for full width -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True" />
+                                <Condition Property="IsSelectionActive" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedItemBrush}" />
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True" />
+                                <Condition Property="IsSelectionActive" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedItemBrush}" />
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Category Text Style -->
+    <Style x:Key="CategoryTextStyle"
+            TargetType="TextBlock">
+        <Setter Property="Margin"
+                Value="5,3,5,3" />
+        <Setter Property="FontWeight"
+                Value="SemiBold" />
+        <Setter Property="FontFamily"
+                Value="Segoe UI" />
+        <Setter Property="FontSize"
+                Value="12" />
+        <Setter Property="TextTrimming"
+                Value="CharacterEllipsis" />
+        <Setter Property="Foreground"
+                Value="{DynamicResource PropertyGridCategoryHeaderForegroundBrush}" />
+        <Setter Property="Cursor"
+                Value="Hand" />
+    </Style>
+
+    <!-- Property Item Template -->
+    <HierarchicalDataTemplate x:Key="PropertyItemTemplate"
+                              ItemsSource="{Binding Children}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding NameColumnWidth, RelativeSource={RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}}" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Property Name - using column 0 now -->
+            <Border Grid.Column="0"
+                    Background="Transparent"
+                    BorderThickness="0,0,1,0"
+                    BorderBrush="{DynamicResource PropertyGridBorderBrush}">
+                <TextBlock Text="{Binding DisplayName}"
+                           Style="{StaticResource PropertyTextBlockStyle}">
+                    <TextBlock.ToolTip>
+                        <ToolTip ContentTemplate="{StaticResource PropertyDescriptionTooltip}"
+                                 Content="{Binding}"
+                                 Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
+                    </TextBlock.ToolTip>
+                </TextBlock>
+            </Border>
+
+            <!-- Property Value - using column 1 now -->
+            <Border Grid.Column="1"
+                    Background="Transparent">
+                <TextBlock Text="{Binding FormattedValue}"
+                           Style="{StaticResource PropertyTextBlockStyle}" />
+            </Border>
+        </Grid>
+    </HierarchicalDataTemplate>
+
+    <!-- Category Item Template -->
+    <HierarchicalDataTemplate x:Key="CategoryItemTemplate"
+                              ItemsSource="{Binding Children}">
+        <!-- Use DockPanel to ensure full width spanning -->
+        <DockPanel LastChildFill="True"
+                   Margin="0,5,0,5"
+                   HorizontalAlignment="Stretch">
+            <!-- Background that will span the full width because it's in a DockPanel -->
+            <Border Background="{DynamicResource PropertyGridCategoryHeaderBackgroundBrush}"
+                    DockPanel.Dock="Top"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch">
+                <!-- Content grid -->
+                <Grid Cursor="Hand">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left accent border -->
+                    <Rectangle Grid.Column="0"
+                               Width="4"
+                               Fill="{DynamicResource PropertyGridAccentBrush}" />
+
+                    <!-- Category header text - moved to column 1 -->
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding DisplayName}"
+                               Style="{StaticResource CategoryTextStyle}" />
+                </Grid>
+            </Border>
+        </DockPanel>
+    </HierarchicalDataTemplate>
+
+    <!-- Property Item Template Selector -->
+    <local:PropertyItemTemplateSelector x:Key="PropertyItemTemplateSelector"
+                                        PropertyItemTemplate="{StaticResource PropertyItemTemplate}"
+                                        CategoryItemTemplate="{StaticResource CategoryItemTemplate}" />
+</ResourceDictionary>

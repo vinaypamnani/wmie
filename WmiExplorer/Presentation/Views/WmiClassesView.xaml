@@ -1,0 +1,244 @@
+<UserControl
+    x:Class="WmiExplorer.Presentation.Views.WmiClassesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+    xmlns:views="clr-namespace:WmiExplorer.Presentation.Views"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <Grid x:Name="ClassesGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="{Binding WindowPosition.ClassesGridWidth, Mode=TwoWay}" />
+            <ColumnDefinition Width="Auto" />  <!-- Changed from fixed 15px to Auto -->
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Classes View Content -->
+        <Grid Grid.Column="0" Grid.Row="0">
+            <Expander
+                Name="ExpanderClasses"
+                Padding="0,3,0,0"
+                BorderThickness="0"
+                ExpandDirection="Right"
+                Style="{StaticResource VerticalHeaderExpanderStyle}"
+                IsExpanded="{Binding WindowPosition.IsClassesExpanded, Mode=TwoWay}">
+                <Expander.Header>
+                    <Border Width="25">
+                        <TextBlock
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            Text="Classes">
+                            <TextBlock.LayoutTransform>
+                                <RotateTransform Angle="90" />
+                            </TextBlock.LayoutTransform>
+                        </TextBlock>
+                    </Border>
+                </Expander.Header>
+                <Expander.Content>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBox
+                            Grid.Row="0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource TextBoxWithPlaceholder}"
+                            Tag="Quick Filter Classes..."
+                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />
+                        <ListView
+                            Grid.Row="1"
+                            behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
+                            behaviors:ListViewAutoScrollBehavior.DisableVirtualization="True"
+                            behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedNamespace.SelectedClass}"
+                            behaviors:ListViewSortBehavior.EnableSorting="True"
+                            BorderThickness="0"
+                            ItemsSource="{Binding SelectedNamespace.ClassesView}"
+                            SelectedItem="{Binding SelectedNamespace.SelectedClass}"
+                            SelectionMode="Single">
+                            <ListView.ItemContainerStyle>
+                                <Style BasedOn="{StaticResource BaseListViewItemStyle}" TargetType="{x:Type ListViewItem}">
+                                    <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
+                                    <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Copy Relative Path" Command="{Binding CopyRelativePathCommand}" />
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="{Binding Path=View.Columns[0].ActualWidth, RelativeSource={RelativeSource AncestorType=ListView}}" />
+                                            <ColumnDefinition Width="{Binding Path=View.Columns[1].ActualWidth, RelativeSource={RelativeSource AncestorType=ListView}}" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid
+                                            Grid.Column="0"
+                                            Width="16"
+                                            Height="16"
+                                            Margin="3,1">
+                                            <Ellipse
+                                                Width="10"
+                                                Height="10"
+                                                RenderTransformOrigin="0.5,0.5"
+                                                Style="{DynamicResource StatusIndicatorStyle}" />
+                                        </Grid>
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="5,0"
+                                            Text="{Binding ClassName}" />
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            Margin="5,0"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap"
+                                            MaxHeight="20"
+                                            ToolTip="{Binding Description}"
+                                            Text="{Binding Description}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.View>
+                                <GridView AllowsColumnReorder="True">
+                                    <GridView.ColumnHeaderContainerStyle>
+                                        <Style BasedOn="{StaticResource GridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader">
+                                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                            <Setter Property="Padding" Value="5,3,5,3" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="GridViewColumnHeader">
+                                                        <Grid>
+                                                            <Border x:Name="HeaderBorder"
+                                                                    Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <ContentPresenter Grid.Column="0"
+                                                                                      Margin="{TemplateBinding Padding}"
+                                                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                                                      RecognizesAccessKey="True"
+                                                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                                                    <Path x:Name="SortArrow"
+                                                                          Grid.Column="1"
+                                                                          Width="8"
+                                                                          Height="10"
+                                                                          Margin="0,0,8,0"
+                                                                          HorizontalAlignment="Center"
+                                                                          VerticalAlignment="Center"
+                                                                          Opacity="0.5"
+                                                                          Fill="{TemplateBinding Foreground}"
+                                                                          Stretch="Fill"
+                                                                          Visibility="Collapsed" />
+                                                                </Grid>
+                                                            </Border>
+                                                            <Thumb x:Name="PART_HeaderGripper"
+                                                                   HorizontalAlignment="Right"
+                                                                   Cursor="SizeWE" />
+                                                        </Grid>
+                                                        <ControlTemplate.Triggers>
+                                                            <!-- Sort Direction Indicator Triggers -->
+                                                            <Trigger Property="behaviors:ListViewSortBehavior.IsSorted" Value="True">
+                                                                <Setter TargetName="SortArrow" Property="Visibility" Value="Visible" />
+                                                            </Trigger>
+                                                            <Trigger Property="behaviors:ListViewSortBehavior.SortDirection" Value="Ascending">
+                                                                <Setter TargetName="SortArrow" Property="Data" Value="M0,10 L8,10 L4,0 Z" />
+                                                            </Trigger>
+                                                            <Trigger Property="behaviors:ListViewSortBehavior.SortDirection" Value="Descending">
+                                                                <Setter TargetName="SortArrow" Property="Data" Value="M0,0 L8,0 L4,10 Z" />
+                                                            </Trigger>
+
+                                                            <!-- Add back hover effect -->
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource ListViewItemHoverBrush}" />
+                                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource ListViewItemHoverBorderBrush}" />
+                                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsPressed" Value="True">
+                                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource AccentBrush}" />
+                                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </GridView.ColumnHeaderContainerStyle>
+                                    <GridViewColumn
+                                        Width="150"
+                                        behaviors:ListViewSortBehavior.SortProperty="ClassName"
+                                        Header="Class Name" />
+                                    <GridViewColumn
+                                        Width="150"
+                                        behaviors:ListViewSortBehavior.SortProperty="Description"
+                                        Header="Description" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </Expander.Content>
+            </Expander>
+        </Grid>
+
+        <GridSplitter
+            Grid.Column="1"
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Stretch"
+            Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+        <TabControl Grid.Column="2" Grid.Row="0">
+            <TabItem Header="Instances">
+                <!-- Instances View -->
+                <views:WmiInstancesView />
+            </TabItem>
+            <TabItem Header="Properties">
+                <!-- Properties View -->
+                <views:WmiPropertiesView />
+            </TabItem>
+            <TabItem Header="Methods">
+                <!-- Methods View -->
+                <views:WmiMethodsView />
+            </TabItem>
+        </TabControl>
+
+        <!-- Query GroupBox spanning all columns -->
+        <GroupBox Grid.Row="1" Grid.ColumnSpan="3" Header="Query" Margin="0,5,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    Grid.Column="0"
+                    Margin="5"
+                    IsEnabled="False"
+                    Style="{StaticResource TextBoxWithPlaceholder}"
+                    Tag="Query"
+                    Text="Automatically created query here" />
+                <Button
+                    Grid.Column="1"
+                    MinWidth="75"
+                    Margin="5"
+                    Content="Execute" />
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>

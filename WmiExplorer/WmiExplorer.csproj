@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>False</UseWindowsForms>
+    <!-- Adding nullability settings -->
+    <!-- <WarningsAsErrors>nullable</WarningsAsErrors> -->
+    
+    <!-- Single file publishing settings -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>embedded</DebugType>
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
+    <PackageReference Include="System.Management" Version="9.0.4" />
+  </ItemGroup>  
+
+  <ItemGroup>    
+    <Resource Include="Resources\AppIcon.ico" />
+    <Resource Include="Themes\Colors\Dark.xaml" />
+    <Resource Include="Themes\Colors\Light.xaml" />
+    <Resource Include="Themes\Styles\MainStyles.xaml" />
+  </ItemGroup>
+
+</Project>
