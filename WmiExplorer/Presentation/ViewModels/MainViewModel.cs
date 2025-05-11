@@ -248,9 +248,7 @@ namespace WmiExplorer.Presentation.ViewModels
             string input = _temporaryComputerName.Trim();
             
             // Parse the input to determine what type of connection we're making
-            string displayName;
             string effectivePath;
-            string effectiveComputerName;
             
             try
             {
@@ -258,38 +256,27 @@ namespace WmiExplorer.Presentation.ViewModels
                 if (string.IsNullOrEmpty(input) || input == "." || input.Equals("localhost", StringComparison.OrdinalIgnoreCase))
                 {
                     // Case 1: Local machine - display as \\COMPUTERNAME\ROOT
-                    effectiveComputerName = Environment.MachineName;
                     effectivePath = @"\\.\ROOT";
-                    displayName = $@"\\{effectiveComputerName}\ROOT";
                 }
                 else if (input.StartsWith(@"\\", StringComparison.OrdinalIgnoreCase))
                 {
                     // Case 4: Full WMI path with computer - use as is
                     // Format: \\computer\namespace (e.g., \\computer\root\cimv2)
                     effectivePath = input;
-                    displayName = input;
-                    
-                    // Extract computer name from the path
-                    var parts = input.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                    effectiveComputerName = parts.Length > 0 ? parts[0] : Environment.MachineName;
                 }
                 else if (input.Contains("\\"))
                 {
                     // Case 3: Namespace path without computer - assume local computer
                     // Format: root\namespace (e.g., root\cimv2)
                     effectivePath = $@"\\.\{input}";
-                    displayName = input;
-                    effectiveComputerName = Environment.MachineName;
                 }
                 else
                 {
                     // Case 2: Computer name only - display as \\COMPUTERNAME\ROOT
-                    effectiveComputerName = input;
                     effectivePath = $@"\\{input}\ROOT";
-                    displayName = effectivePath;
                 }
 
-                PublishBusyState($"Connecting to {displayName}...");
+                PublishBusyState($"Connecting to {effectivePath}...");
 
                 // Check if we're already connected to this path
                 var existingRoot = Namespaces.FirstOrDefault(n => 
@@ -299,7 +286,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 {
                     // Just select the existing root namespace
                     SelectedNamespace = existingRoot;
-                    PublishSuccessState($"Connected to {displayName}");
+                    PublishSuccessState($"Connected to {effectivePath}");
                     return;
                 }
 
@@ -309,14 +296,12 @@ namespace WmiExplorer.Presentation.ViewModels
                 
                 // Create the root namespace view model using the async method
                 var rootViewModel = await WmiNamespacesViewModel.CreateRootAsync(
-                    effectiveComputerName,
+                    effectivePath,
                     _wmiService,
                     MessageService!,
                     _applicationService,
                     _settingsService,
-                    _cts.Token,
-                    effectivePath,
-                    displayName);
+                    _cts.Token);
 
                 // Load initial children
                 await rootViewModel.ExpandAsync();
@@ -329,7 +314,7 @@ namespace WmiExplorer.Presentation.ViewModels
                     return Task.CompletedTask;
                 });
 
-                PublishSuccessState($"Connected to {displayName}");
+                PublishSuccessState($"Connected to {effectivePath}");
             }
             catch (Exception ex)
             {

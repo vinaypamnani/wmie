@@ -266,7 +266,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Returns the string representation of the class
         /// </summary>
-        public override string ToString() => _model.ToString();
+        public override string ToString() => _model.ClassName;
 
         /// <summary>
         /// Override to clean up additional resources
@@ -304,16 +304,18 @@ namespace WmiExplorer.Presentation.ViewModels
 
                 // Call the service directly instead of going through the model
                 var wmiInstances = await _wmiService.GetInstancesAsync(
-                    ClassPath, 
-                    ClassName, 
+                    ParentNamespace?.ManagementScope ?? throw new InvalidOperationException("ParentNamespace is required for ManagementScope."),
+                    ClassName,
                     _cts.Token);
 
                 if (_cts.IsCancellationRequested)
                     return;
 
+                // Map ManagementObject to WmiInstance
+                var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo));
                 // Use the factory method to create view models for all instances at once
                 var instanceViewModels = WmiInstancesViewModel.CreateFromCollection(
-                    wmiInstances,
+                    instanceModels,
                     _wmiService,
                     MessageService!,
                     _applicationService);

@@ -8,43 +8,50 @@ namespace WmiExplorer.Core.Models
     public class WmiNamespace
     {
         /// <summary>
-        /// Constructor that takes the WMI object
+        /// Constructor for a WMI namespace, optionally with ConnectionOptions (root if specified)
         /// </summary>
-        public WmiNamespace(ManagementBaseObject? actualObject, string fullPath)
+        public WmiNamespace(ManagementObject? actualObject, string namespacePath, ConnectionOptions? connectionOptions = null)
         {
             ActualObject = actualObject;
-            FullPath = fullPath ?? throw new ArgumentNullException(nameof(fullPath));
-            IsRoot = false; // Default to false
+            NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
+            ConnectionOptions = connectionOptions;
+            IsRoot = true;
         }
 
         /// <summary>
-        /// Constructor that takes the WMI object and specifies if it's a root namespace
+        /// Constructor for a child WMI namespace, propagating ConnectionOptions from the parent
         /// </summary>
-        public WmiNamespace(ManagementBaseObject? actualObject, string fullPath, bool isRoot)
+        public WmiNamespace(ManagementObject? actualObject, string namespacePath, WmiNamespace parent)
         {
             ActualObject = actualObject;
-            FullPath = fullPath ?? throw new ArgumentNullException(nameof(fullPath));
-            IsRoot = isRoot;
+            NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
+            ConnectionOptions = parent?.ConnectionOptions;
+            IsRoot = false;
         }
 
         /// <summary>
         /// The underlying WMI object, if available
         /// </summary>
-        public ManagementBaseObject? ActualObject { get; }
-        
-        /// <summary>
-        /// The full path of the namespace (needed for root namespace which has no ActualObject)
-        /// </summary>
-        public string FullPath { get; }
+        public ManagementObject? ActualObject { get; }
 
         /// <summary>
-        /// Indicates whether this namespace is the root namespace
+        /// The path of the namespace (e.g., "root\\cimv2")
         /// </summary>
-        public bool IsRoot { get; set; }
+        public string NamespacePath { get; }
+
+        /// <summary>
+        /// The ConnectionOptions used for this namespace (can be null)
+        /// </summary>
+        public ConnectionOptions? ConnectionOptions { get; }
+
+        /// <summary>
+        /// Indicates whether this namespace is the root namespace (if ConnectionOptions is specified)
+        /// </summary>
+        public bool IsRoot { get; }
 
         /// <summary>
         /// Returns the string representation
         /// </summary>
-        public override string ToString() => FullPath;
+        public override string ToString() => NamespacePath;
     }
 }

@@ -51,35 +51,6 @@ namespace WmiExplorer.Services
         }
 
         /// <summary>
-        /// Gets the display name for an instance
-        /// </summary>
-        private string GetInstanceName(ManagementObject instanceObject, string className)
-        {
-            try
-            {
-                // Different WMI classes have different identifying properties
-                // Try to get a meaningful name from common identifying properties
-                string[] nameProperties = { "Name", "Caption", "DeviceID", "InstanceName", "ProcessId" };
-
-                foreach (var prop in nameProperties)
-                {
-                    var property = instanceObject.Properties[prop];
-                    if (property?.Value != null)
-                    {
-                        return property.Value.ToString() ?? $"{className}_Property";
-                    }
-                }
-
-                // Fall back to the class name with a unique identifier
-                return $"{className}_{Guid.NewGuid().ToString()[..8]}";
-            }
-            catch
-            {
-                return $"{className}_{Guid.NewGuid().ToString()[..8]}";
-            }
-        }
-
-        /// <summary>
         /// Disposes of the managed and unmanaged resources
         /// </summary>
         protected virtual void Dispose(bool disposing)
@@ -100,11 +71,11 @@ namespace WmiExplorer.Services
         }
 
         /// <summary>
-        /// Creates a connected ManagementScope for a namespace path
+        /// Creates a connected ManagementScope for a namespace path and optional connection options
         /// </summary>
-        public ManagementScope CreateManagementScope(string namespacePath)
+        public ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions? options = null)
         {
-            var scope = new ManagementScope(namespacePath);
+            var scope = options != null ? new ManagementScope(namespacePath, options) : new ManagementScope(namespacePath);
             scope.Connect();
             return scope;
         }
@@ -121,13 +92,14 @@ namespace WmiExplorer.Services
         /// <summary>
         /// Asynchronously gets child namespaces for a given WMI namespace
         /// </summary>
-        public async Task<IEnumerable<WmiNamespace>> GetChildNamespacesAsync(string namespacePath, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var result = new List<WmiNamespace>();
-                var scope = CreateManagementScope(namespacePath);
+                var result = new List<ManagementObject>();
+                if (!scope.IsConnected)
+                    scope.Connect();
 
                 var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
                 _disposables.Add(nsClass);
@@ -138,11 +110,7 @@ namespace WmiExplorer.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     _disposables.Add(m);
-                    var childName = m["Name"]?.ToString() ?? "";
-                    var fullPath = $"{namespacePath}\\{childName}";
-                    
-                    // Create simplified WmiNamespace just with ActualObject and FullPath
-                    result.Add(new WmiNamespace(m, fullPath));
+                    result.Add(m);
                 }
 
                 return result;
@@ -152,18 +120,18 @@ namespace WmiExplorer.Services
         /// <summary>
         /// Asynchronously gets classes for a given WMI namespace
         /// </summary>
-        public async Task<IEnumerable<WmiClass>> GetClassesAsync(string namespacePath, WmiClassTypeFlags classTypeFilter = WmiClassTypeFlags.All, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassTypeFlags classTypeFilter = WmiClassTypeFlags.All, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var result = new List<WmiClass>();
-
-                var scope = CreateManagementScope(namespacePath);
+                var result = new List<ManagementObject>();
+                if (!scope.IsConnected)
+                    scope.Connect();
 
                 // Build the WQL query based on the class type filter
                 string queryString = BuildClassQueryFromFilter(classTypeFilter);
-                var query = new ObjectQuery(queryString);                
+                var query = new ObjectQuery(queryString);
                 var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
                 _disposables.Add(searcher);
 
@@ -171,11 +139,7 @@ namespace WmiExplorer.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     _disposables.Add(classObject);
-                    string? className = classObject["__Class"]?.ToString();
-                    if (className != null)
-                    {
-                        result.Add(new WmiClass(className, namespacePath, classObject));
-                    }
+                    result.Add(classObject);
                 }
 
                 return result;
@@ -185,15 +149,15 @@ namespace WmiExplorer.Services
         /// <summary>
         /// Asynchronously gets instances for a given WMI class
         /// </summary>
-        public async Task<IEnumerable<WmiInstance>> GetInstancesAsync(string namespacePath, string className, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<ManagementObject>> GetInstancesAsync(ManagementScope scope, string className, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var result = new List<WmiInstance>();
-
-                var scope = CreateManagementScope(namespacePath);
-                var query = new ObjectQuery($"SELECT * FROM {className}");                
+                var result = new List<ManagementObject>();
+                if (!scope.IsConnected)
+                    scope.Connect();
+                var query = new ObjectQuery($"SELECT * FROM {className}");
                 var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
                 _disposables.Add(searcher);
 
@@ -201,8 +165,7 @@ namespace WmiExplorer.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     _disposables.Add(instanceObject);
-                    string instanceName = GetInstanceName(instanceObject, className);
-                    result.Add(new WmiInstance(instanceName, instanceObject));
+                    result.Add(instanceObject);
                 }
 
                 return result;
@@ -210,39 +173,27 @@ namespace WmiExplorer.Services
         }
 
         /// <summary>
-        /// Gets a root WmiNamespace object for a given namespace path
+        /// Gets a root ManagementObject for a given namespace path
         /// </summary>
-        public async Task<WmiNamespace> GetRootNamespaceAsync(string namespacePath, CancellationToken cancellationToken = default)
+        public async Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                
                 try
                 {
-                    // Create a direct ManagementObject for the root namespace
                     ManagementPath mPath = new ManagementPath(namespacePath);
                     ManagementScope mScope = new ManagementScope(mPath);
                     mScope.Connect();
-                    
-                    // Create ManagementObject for the namespace
                     ObjectGetOptions oOptions = new ObjectGetOptions();
-                    ManagementObject mObject = new ManagementObject(mScope, mPath, oOptions);
-                    _disposables.Add(mObject);
-                    
-                    // Create WmiNamespace with the root flag set to true
-                    var rootNamespace = new WmiNamespace(mObject, namespacePath);
-                    rootNamespace.IsRoot = true;
-                    
-                    return rootNamespace;
+                    ManagementObject mObject = new ManagementObject(mScope, mPath, oOptions);                    
+                    //_disposables.Add(mObject);
+                    return mObject;
                 }
                 catch (Exception ex)
                 {
-                    // Log the error and return a basic namespace
                     System.Diagnostics.Debug.WriteLine($"Error creating root namespace: {ex.Message}");
-                    var rootNamespace = new WmiNamespace(null, namespacePath);
-                    rootNamespace.IsRoot = true;
-                    return rootNamespace;
+                    return null;
                 }
             }, cancellationToken);
         }

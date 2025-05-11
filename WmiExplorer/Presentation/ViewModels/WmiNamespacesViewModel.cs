@@ -35,7 +35,7 @@ namespace WmiExplorer.Presentation.ViewModels
         Success,
         Failed
     }
-    
+
     /// <summary>
     /// Combined load state for UI binding that represents the overall state
     /// </summary>
@@ -47,7 +47,7 @@ namespace WmiExplorer.Presentation.ViewModels
         PartialSuccess,
         Failed
     }
-    
+
     /// <summary>
     /// ViewModel for WMI namespaces that handles both UI presentation and data operations
     /// </summary>
@@ -60,10 +60,10 @@ namespace WmiExplorer.Presentation.ViewModels
         private readonly ISettingsService _settingsService;
         private string _computerName = string.Empty;
         private string _displayName = string.Empty;
-        
+
         // Parent reference
         private WmiNamespacesViewModel? _parentNamespace;
-        
+
         // State fields 
         private bool _hasLoadedChildren;
         private bool _isExpanded;
@@ -76,14 +76,29 @@ namespace WmiExplorer.Presentation.ViewModels
         private DispatcherTimer? _filterTimer;
         private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
         private ClassLoadState _classLoadState = ClassLoadState.Unknown;
-        private CancellationTokenSource _cts = new();
+        private CancellationTokenSource _cts = new();        
+
+        // ManagementScope for WMI operations (created on demand)
         private ManagementScope? _managementScope;
-        
+        public ManagementScope ManagementScope
+        {
+            get
+            {
+                if (_managementScope == null)
+                {
+                    var options = _model.ConnectionOptions;
+                    var scopePath = _model.NamespacePath;
+                    _managementScope = _wmiService.CreateManagementScope(scopePath, options);
+                }
+                return _managementScope;
+            }
+        }
+
         // Commands
         private ICommand? _loadClassesCommand;
         private ICommand? _expandCommand;
         private ICommand? _copyRelativePathCommand;
-        
+
         // Children collection for the hierarchical tree view
         public ObservableCollection<WmiNamespacesViewModel> Children { get; } = new();
 
@@ -103,45 +118,50 @@ namespace WmiExplorer.Presentation.ViewModels
             _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
             _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-            
+
             // Initialize messaging
             InitializeMessaging(messagingService);
-            
+
             // Initialize the collection view for classes
             _classesView = CollectionViewSource.GetDefaultView(_classes);
-            
+
             // Set up filtering
             if (_classesView != null)
             {
                 _classesView.Filter = QuickFilterClassesPredicate;
             }
-            
+
             // Initialize filter timer for debouncing
             _filterTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _filterTimer.Tick += OnFilterTimerTick;
-            
+
             // Subscribe to messages using StrongSubscribe
             StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
             StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChanged, true); // Run on UI thread
         }
-        
+
         /// <summary>
-        /// Factory method to create a collection of WmiNamespacesViewModels from a collection of WmiNamespace models
+        /// Factory method to create a collection of WmiNamespacesViewModels from a collection of ManagementObject
         /// </summary>
         public static ObservableCollection<WmiNamespacesViewModel> CreateFromCollection(
-            IEnumerable<WmiNamespace> models,
+            IEnumerable<ManagementObject> mboCollection,
             IWmiService wmiService,
             IMessagingService messagingService,
             IApplicationService applicationService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            WmiNamespace parent)
         {
-            if (models == null)
-                throw new ArgumentNullException(nameof(models));
-                
+            if (mboCollection == null)
+                throw new ArgumentNullException(nameof(mboCollection));
+
             var viewModels = new ObservableCollection<WmiNamespacesViewModel>();
-            
-            foreach (var model in models)
+
+            foreach (var mo in mboCollection)
             {
+                string nsPath = mo.Properties["Name"]?.Value is string name && mo.Scope != null && mo.Scope.Path != null
+                    ? $"{mo.Scope.Path.Path}\\{name}"
+                    : string.Empty;
+                var model = new WmiNamespace(mo, nsPath, parent);
                 viewModels.Add(new WmiNamespacesViewModel(
                     model,
                     wmiService,
@@ -149,7 +169,7 @@ namespace WmiExplorer.Presentation.ViewModels
                     applicationService,
                     settingsService));
             }
-            
+
             return viewModels;
         }
 
@@ -160,18 +180,18 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Gets the full path of the namespace
         /// </summary>
-        public string FullPath => _model?.FullPath ?? string.Empty;
+        public string FullPath => _model?.NamespacePath ?? string.Empty;
 
         /// <summary>
-        /// Gets the ManagementBaseObject of the namespace if available
+        /// Gets the ManagementObject of the namespace if available
         /// </summary>
-        public ManagementBaseObject? ActualObject => _model?.ActualObject;
+        public ManagementObject? ActualObject => _model?.ActualObject;
 
         /// <summary>
         /// Gets the name of the namespace
         /// </summary>
-        public string Name 
-        { 
+        public string Name
+        {
             get
             {
                 // For root namespace, use the display name if it's set
@@ -179,44 +199,15 @@ namespace WmiExplorer.Presentation.ViewModels
                 {
                     return _displayName;
                 }
-                
+
                 if (ActualObject != null && ActualObject.Properties["Name"]?.Value is string name)
                 {
                     return name;
                 }
-                
-                // For root or when property isn't available, extract from path
-                var path = FullPath;
-                if (string.IsNullOrEmpty(path))
-                    return string.Empty;
-                    
-                // For root namespace, show the full path including server name
-                if (path.EndsWith("\\ROOT", StringComparison.OrdinalIgnoreCase))
-                {
-                    return path;
-                }
-                
-                // For other namespaces, show just the name part
-                return path.Substring(path.LastIndexOf('\\') + 1);
-            }
-        }
 
-        /// <summary>
-        /// Gets the ManagementScope for this namespace
-        /// </summary>
-        public ManagementScope ManagementScope
-        {
-            get
-            {
-                if (_managementScope == null && !string.IsNullOrEmpty(FullPath))
-                {
-                    _managementScope = new ManagementScope(FullPath);
-                    // Optionally connect here if needed
-                    // _managementScope.Connect();
-                }
-                return _managementScope ?? new ManagementScope();
+                return FullPath;
             }
-        }
+        }        
 
         /// <summary>
         /// Gets or sets the computer name for this namespace
@@ -244,7 +235,7 @@ namespace WmiExplorer.Presentation.ViewModels
             get => _hasLoadedChildren;
             set => SetProperty(ref _hasLoadedChildren, value);
         }
-        
+
         /// <summary>
         /// Gets or sets whether this namespace is expanded in the tree view
         /// </summary>
@@ -267,7 +258,7 @@ namespace WmiExplorer.Presentation.ViewModels
         public bool IsSelected
         {
             get => _isSelected;
-            set 
+            set
             {
                 if (SetProperty(ref _isSelected, value) && value)
                 {
@@ -283,8 +274,8 @@ namespace WmiExplorer.Presentation.ViewModels
         public NamespaceLoadState NamespaceLoadState
         {
             get => _namespaceLoadState;
-            set 
-            { 
+            set
+            {
                 if (SetProperty(ref _namespaceLoadState, value))
                 {
                     // Notify that LoadState has changed
@@ -299,8 +290,8 @@ namespace WmiExplorer.Presentation.ViewModels
         public ClassLoadState ClassLoadState
         {
             get => _classLoadState;
-            set 
-            { 
+            set
+            {
                 if (SetProperty(ref _classLoadState, value))
                 {
                     // Notify that LoadState has changed
@@ -308,7 +299,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 }
             }
         }
-        
+
         /// <summary>
         /// Collection of classes in this namespace
         /// </summary>
@@ -317,19 +308,19 @@ namespace WmiExplorer.Presentation.ViewModels
             get => _classes;
             set => SetProperty(ref _classes, value);
         }
-        
+
         /// <summary>
         /// The filtered view of classes
         /// </summary>
         public ICollectionView ClassesView => _classesView ?? (_classesView = CollectionViewSource.GetDefaultView(Classes));
-        
+
         /// <summary>
         /// Currently selected class in this namespace
         /// </summary>
         public WmiClassesViewModel? SelectedClass
         {
             get => _selectedClass;
-            set 
+            set
             {
                 if (SetProperty(ref _selectedClass, value) && value != null)
                 {
@@ -338,7 +329,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 }
             }
         }
-        
+
         /// <summary>
         /// Quick filter text for filtering classes
         /// </summary>
@@ -375,22 +366,22 @@ namespace WmiExplorer.Presentation.ViewModels
                 // If either state is loading, the combined state is loading
                 if (_namespaceLoadState == NamespaceLoadState.Loading || _classLoadState == ClassLoadState.Loading)
                     return LoadState.Loading;
-                
+
                 // If both states are successful, combined state is success
                 if (_namespaceLoadState == NamespaceLoadState.Success && _classLoadState == ClassLoadState.Success)
                     return LoadState.Success;
-                
+
                 // If one state is successful but the other isn't, it's partial success
                 // (as long as neither is in the Failed state)
-                if ((_namespaceLoadState == NamespaceLoadState.Success || _classLoadState == ClassLoadState.Success) 
-                    && _namespaceLoadState != NamespaceLoadState.Failed 
+                if ((_namespaceLoadState == NamespaceLoadState.Success || _classLoadState == ClassLoadState.Success)
+                    && _namespaceLoadState != NamespaceLoadState.Failed
                     && _classLoadState != ClassLoadState.Failed)
                     return LoadState.PartialSuccess;
-                
+
                 // If either state is failed, the combined state is failed
                 if (_namespaceLoadState == NamespaceLoadState.Failed || _classLoadState == ClassLoadState.Failed)
                     return LoadState.Failed;
-                
+
                 // Default is unknown if both states are unknown
                 return LoadState.Unknown;
             }
@@ -401,21 +392,21 @@ namespace WmiExplorer.Presentation.ViewModels
         #region Commands
 
         // Commands for UI interaction
-        public ICommand LoadClassesCommand 
-        { 
+        public ICommand LoadClassesCommand
+        {
             get => _loadClassesCommand ?? (_loadClassesCommand = new AsyncRelayCommand(LoadClassesAsync));
             set => _loadClassesCommand = value;
         }
-        
-        public ICommand ExpandCommand 
-        { 
-            get => _expandCommand ?? (_expandCommand = new AsyncRelayCommand(ExpandAsync)); 
+
+        public ICommand ExpandCommand
+        {
+            get => _expandCommand ?? (_expandCommand = new AsyncRelayCommand(ExpandAsync));
             set => _expandCommand = value;
         }
-        
-        public ICommand CopyRelativePathCommand 
-        { 
-            get => _copyRelativePathCommand ?? (_copyRelativePathCommand = new RelayCommand(_ => CopyRelativePath())); 
+
+        public ICommand CopyRelativePathCommand
+        {
+            get => _copyRelativePathCommand ?? (_copyRelativePathCommand = new RelayCommand(_ => CopyRelativePath()));
             set => _copyRelativePathCommand = value;
         }
 
@@ -427,43 +418,45 @@ namespace WmiExplorer.Presentation.ViewModels
         /// Create a root namespace view model for the main hierarchy
         /// </summary>
         public static async Task<WmiNamespacesViewModel> CreateRootAsync(
-            string computerName,
+            string namespacePath,
             IWmiService wmiService,
             IMessagingService messagingService,
             IApplicationService applicationService,
             ISettingsService settingsService,
-            CancellationToken cancellationToken = default,
-            string? rootPath = null,
-            string? displayName = null)
+            CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(computerName))
-                throw new ArgumentException("Computer name cannot be empty", nameof(computerName));
-
-            // Use default root path if not specified
-            string effectiveRootPath = rootPath ?? 
-                (computerName == "." ? @"\\.\ROOT" : $@"\\{computerName}\ROOT");
+            if (string.IsNullOrEmpty(namespacePath))
+                throw new ArgumentException("Namespace path cannot be empty", nameof(namespacePath));
 
             // Use the WmiService to get the actual namespace object with real management object
-            var rootNamespace = await wmiService.GetRootNamespaceAsync(effectiveRootPath, cancellationToken);
-            
+            var rootMbo = await wmiService.GetRootNamespaceAsync(namespacePath, cancellationToken);
+            var rootModel = new WmiNamespace(rootMbo, namespacePath, new ConnectionOptions());
             // Create the view model with all services
             var rootViewModel = new WmiNamespacesViewModel(
-                rootNamespace,
-                wmiService, 
-                messagingService, 
+                rootModel,
+                wmiService,
+                messagingService,
                 applicationService,
                 settingsService);
-            
-            // Set the computer name property
-            rootViewModel.ComputerName = computerName;
-            
-            // Set the display name property if provided
-            if (!string.IsNullOrEmpty(displayName))
-            {
-                rootViewModel.DisplayName = displayName;
-            }
-                
+
+            // Optionally set ComputerName and DisplayName from the namespacePath
+            if (rootMbo?.Scope?.Path != null)
+                rootViewModel.ComputerName = rootMbo.Scope.Path.Server;
+            rootViewModel.DisplayName = namespacePath;
+
             return rootViewModel;
+        }
+
+        private static string ExtractComputerNameFromPath(string namespacePath)
+        {
+            // Expecting format: \\COMPUTER\root... or \\.\root...
+            if (namespacePath.StartsWith("\\"))
+            {
+                var parts = namespacePath.Split('\\');
+                if (parts.Length > 2)
+                    return parts[2];
+            }
+            return string.Empty;
         }
 
         #endregion
@@ -478,7 +471,7 @@ namespace WmiExplorer.Presentation.ViewModels
             // Publish the message about the selection
             PublishMessage(new SelectedNamespaceChangedMessage(this));
         }
-        
+
         /// <summary>
         /// Force selection notification even when already selected
         /// </summary>
@@ -487,7 +480,7 @@ namespace WmiExplorer.Presentation.ViewModels
             // Always publish the message even if already selected
             NotifyNamespaceSelected();
         }
-        
+
         /// <summary>
         /// Handle class selection message and update selected class if needed
         /// </summary>
@@ -496,20 +489,20 @@ namespace WmiExplorer.Presentation.ViewModels
             if (message?.ClassViewModel == null) return;
 
             // If this namespace contains the selected class, select it
-            if (Classes.Contains(message.ClassViewModel) && 
+            if (Classes.Contains(message.ClassViewModel) &&
                 SelectedClass != message.ClassViewModel)
             {
                 SelectedClass = message.ClassViewModel;
             }
         }
-        
+
         /// <summary>
         /// Handle class filter changes from settings and reload as needed
         /// </summary>
         private void HandleClassTypeFilterChanged(ClassTypeFilterChangedMessage message)
         {
-            if (message == null) return;            
-            
+            if (message == null) return;
+
             // If this namespace is selected and classes were previously loaded (regardless of count),
             // reload them with the new filter
             if (_classLoadState != ClassLoadState.Unknown && _isSelected)
@@ -519,7 +512,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
                 // Clear existing classes
                 Classes.Clear();
-                
+
                 // Reload classes with the new filter
                 _ = LoadClassesAsync();
             }
@@ -532,11 +525,11 @@ namespace WmiExplorer.Presentation.ViewModels
         {
             if (string.IsNullOrEmpty(FullPath))
                 return;
-                
+
             _applicationService.CopyToClipboard(FullPath);
             PublishSuccessState($"Copied path: {FullPath}");
         }
-        
+
         /// <summary>
         /// Filter timer tick handler
         /// </summary>
@@ -550,7 +543,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 _classesView?.Refresh();
             }
         }
-        
+
         /// <summary>
         /// Predicate for filtering classes based on quick filter text
         /// </summary>
@@ -590,9 +583,9 @@ namespace WmiExplorer.Presentation.ViewModels
                 NamespaceLoadState = NamespaceLoadState.Loading;
                 PublishBusyState($"Loading {FullPath}...");
 
-                // Directly use the service to get child namespaces
+                // Use the ViewModel's ManagementScope for the service call
                 var childNamespaces = await _wmiService.GetChildNamespacesAsync(
-                    FullPath, 
+                    ManagementScope,
                     _cts.Token);
 
                 if (_cts.IsCancellationRequested)
@@ -604,7 +597,8 @@ namespace WmiExplorer.Presentation.ViewModels
                     _wmiService,
                     MessageService!,
                     _applicationService,
-                    _settingsService);
+                    _settingsService,
+                    _model);
 
                 await RunOnUIThreadAsync(() =>
                 {
@@ -649,22 +643,23 @@ namespace WmiExplorer.Presentation.ViewModels
                 // Get the class type filter from settings
                 var classTypeFilter = _settingsService.ClassTypeFilter;
 
-                // Directly use the service to get classes
+                // Use the ViewModel's ManagementScope for the service call
                 var wmiClasses = await _wmiService.GetClassesAsync(
-                    FullPath, 
-                    classTypeFilter, 
+                    ManagementScope,
+                    classTypeFilter,
                     _cts.Token);
 
                 if (_cts.IsCancellationRequested)
                     return;
 
                 // Use the factory method to create view models for all classes at once
+                var classModels = wmiClasses.Select(mo => new WmiClass(mo));
                 var classViewModels = WmiClassesViewModel.CreateFromCollection(
-                    wmiClasses,
+                    classModels,
                     _wmiService,
                     MessageService!,
                     _applicationService);
-                
+
                 // Sort the collection by class name
                 var sortedClassViewModels = new ObservableCollection<WmiClassesViewModel>(
                     classViewModels.OrderBy(vm => vm.ClassName)
@@ -705,7 +700,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// Returns the namespace's string representation
         /// </summary>
         public override string ToString() => _model?.ToString() ?? string.Empty;
-        
+
         /// <summary>
         /// Override to clean up additional resources
         /// </summary>
@@ -715,7 +710,7 @@ namespace WmiExplorer.Presentation.ViewModels
             {
                 _cts.Cancel();
                 _cts.Dispose();
-                
+
                 // Clean up timer
                 if (_filterTimer != null)
                 {
@@ -723,11 +718,12 @@ namespace WmiExplorer.Presentation.ViewModels
                     _filterTimer.Tick -= OnFilterTimerTick;
                     _filterTimer = null;
                 }
+                // No need to dispose _managementScope; ManagementScope does not implement IDisposable
             }
-            
+
             base.Dispose(disposing);
         }
-        
+
         #endregion
     }
 }

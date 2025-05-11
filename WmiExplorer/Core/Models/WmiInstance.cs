@@ -10,11 +10,9 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// Constructor that takes required instance information
         /// </summary>
-        /// <param name="instanceName">The display name for this instance</param>
         /// <param name="actualObject">The underlying WMI object</param>
-        public WmiInstance(string instanceName, ManagementObject actualObject)
+        public WmiInstance(ManagementObject actualObject)
         {
-            InstanceName = instanceName ?? throw new ArgumentNullException(nameof(instanceName));
             ActualObject = actualObject ?? throw new ArgumentNullException(nameof(actualObject));
         }
 
@@ -26,7 +24,14 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// Gets the display name of the instance
         /// </summary>
-        public string InstanceName { get; }
+        public string InstanceName =>
+            ActualObject["Name"]?.ToString()
+            ?? ActualObject["Caption"]?.ToString()
+            ?? ActualObject["DeviceID"]?.ToString()
+            ?? ActualObject["InstanceName"]?.ToString()
+            ?? ActualObject["ProcessId"]?.ToString()
+            ?? ActualObject.ToString()
+            ?? string.Empty;
 
         /// <summary>
         /// Returns the instance's string representation
