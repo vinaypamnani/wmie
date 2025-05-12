@@ -230,9 +230,8 @@
                     Grid.Column="0"
                     Margin="5"
                     IsEnabled="False"
-                    Style="{StaticResource TextBoxWithPlaceholder}"
-                    Tag="Query"
-                    Text="Automatically created query here" />
+                    Style="{StaticResource TextBoxWithPlaceholder}"                    
+                    Tag="Automatically created query here" />                
                 <Button
                     Grid.Column="1"
                     MinWidth="75"

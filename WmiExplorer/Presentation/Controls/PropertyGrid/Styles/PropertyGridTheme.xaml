@@ -168,34 +168,19 @@
                                     VerticalAlignment="Center"
                                     Opacity="0.7" />
 
-                    <!-- TextBox and Placeholder layered in a Border for correct border rendering -->
+                    <!-- TextBoxWithPlaceholder for Search -->
                     <Grid Grid.Column="1">
-                        <Border Background="{DynamicResource PropertyGridSearchBoxBackgroundBrush}"
-                                BorderBrush="{DynamicResource PropertyGridBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                VerticalAlignment="Center">
-                            <Grid>
-                                <TextBox x:Name="PART_SearchBox"
-                                         MinWidth="80"
-                                         FontSize="13"
-                                         Padding="4,4,4,4"
-                                         VerticalContentAlignment="Center"
-                                         Foreground="{DynamicResource PropertyGridForegroundBrush}"
-                                         CaretBrush="{DynamicResource PropertyGridForegroundBrush}"
-                                         Background="Transparent"
-                                         BorderThickness="0"
-                                         ToolTip="Search properties by name or description" />
-                                <TextBlock Text="Search properties..."
-                                           Foreground="{DynamicResource PropertyGridSearchPlaceholderBrush}"
-                                           IsHitTestVisible="False"
-                                           VerticalAlignment="Center"
-                                           Margin="12,0,4,0"
-                                           Padding="0"
-                                           FontSize="13"
-                                           Visibility="{Binding Text.IsEmpty, ElementName=PART_SearchBox, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            </Grid>
-                        </Border>
+                        <TextBox x:Name="PART_SearchBox"
+                                 Style="{StaticResource PropertyGridTextBoxWithPlaceholder}"
+                                 MinWidth="80"
+                                 FontSize="13"
+                                 Tag="Search properties..."
+                                 ToolTip="Search properties by name or description"
+                                 VerticalContentAlignment="Center"
+                                 Padding="4,4,4,4"
+                                 Margin="0"
+                                 Foreground="{DynamicResource PropertyGridForegroundBrush}"
+                                 CaretBrush="{DynamicResource PropertyGridForegroundBrush}" />
                     </Grid>
 
                     <!-- Clear Button OUTSIDE TextBox border -->

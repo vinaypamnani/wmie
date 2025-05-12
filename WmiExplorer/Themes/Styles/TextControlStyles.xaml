@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
     <!--  TextBox  -->
     <Style TargetType="TextBox">
@@ -12,32 +13,36 @@
 
     <!-- TextBoxWithPlaceholder Style -->
     <Style x:Key="TextBoxWithPlaceholder" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="CaretBrush" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Grid>
-                        <TextBox x:Name="PART_TextBox"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                Padding="{TemplateBinding Padding}"
-                                Margin="0"
-                                Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                IsReadOnly="{TemplateBinding IsReadOnly}"
-                                Foreground="{TemplateBinding Foreground}" />
-                        <TextBlock x:Name="PlaceholderText"
-                                Margin="{TemplateBinding Padding}"
-                                Padding="2,0,0,0"
-                                Text="{TemplateBinding Tag}"
-                                Foreground="Gray"
-                                VerticalAlignment="Center"
-                                Visibility="Collapsed" />
-                    </Grid>
+                    <Border x:Name="TextBorder"
+                            BorderBrush="{DynamicResource AccentBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Background="{TemplateBinding Background}">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Background="Transparent"
+                                          Focusable="false"/>
+                            <TextBlock x:Name="PlaceholderText"
+                                       Margin="{TemplateBinding Padding}"
+                                       Padding="2,0,0,0"
+                                       Text="{TemplateBinding Tag}"
+                                       Foreground="Gray"
+                                       VerticalAlignment="Center"
+                                       IsHitTestVisible="False"
+                                       Visibility="Collapsed" />
+                        </Grid>
+                    </Border>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
                             <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
                         </DataTrigger>
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed" />

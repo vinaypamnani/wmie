@@ -27,6 +27,48 @@
                    MaxWidth="300" />
     </DataTemplate>
 
+    <!-- TextBoxWithPlaceholder Style -->
+    <Style x:Key="PropertyGridTextBoxWithPlaceholder" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="CaretBrush" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="TextBorder"
+                            BorderBrush="{DynamicResource AccentBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Background="{TemplateBinding Background}">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Background="Transparent"
+                                          Focusable="false"/>
+                            <TextBlock x:Name="PlaceholderText"
+                                       Margin="{TemplateBinding Padding}"
+                                       Padding="2,0,0,0"
+                                       Text="{TemplateBinding Tag}"
+                                       Foreground="Gray"
+                                       VerticalAlignment="Center"
+                                       IsHitTestVisible="False"
+                                       Visibility="Collapsed" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
+                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                        </DataTrigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ================================================================ -->
     <!-- STYLES                                                           -->
     <!-- ================================================================ -->
