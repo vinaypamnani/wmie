@@ -138,14 +138,14 @@
                                 <Condition Property="IsSelected" Value="True" />
                                 <Condition Property="IsSelectionActive" Value="True" />
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedItemBrush}" />
+                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedBackgroundBrush}" />                            
                         </MultiTrigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsSelected" Value="True" />
                                 <Condition Property="IsSelectionActive" Value="False" />
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedItemBrush}" />
+                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedBackgroundBrush}" />
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -213,7 +213,7 @@
                    Margin="0,5,0,5"
                    HorizontalAlignment="Stretch">
             <!-- Background that will span the full width because it's in a DockPanel -->
-            <Border Background="{DynamicResource PropertyGridCategoryHeaderBackgroundBrush}"
+            <Border Background="{DynamicResource PropertyGridCategoryBackgroundBrush}"
                     DockPanel.Dock="Top"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch">

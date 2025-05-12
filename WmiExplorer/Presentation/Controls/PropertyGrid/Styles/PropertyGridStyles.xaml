@@ -29,7 +29,7 @@
 
     <!-- TextBoxWithPlaceholder Style -->
     <Style x:Key="PropertyGridTextBoxWithPlaceholder" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-        <Setter Property="CaretBrush" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource PropertyGridCaretBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -45,7 +45,7 @@
                                        Margin="{TemplateBinding Padding}"
                                        Padding="2,0,0,0"
                                        Text="{TemplateBinding Tag}"
-                                       Foreground="Gray"
+                                       Foreground="{DynamicResource PropertyGridReadOnlyForegroundBrush}"
                                        VerticalAlignment="Center"
                                        IsHitTestVisible="False"
                                        Visibility="Collapsed" />

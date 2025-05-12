@@ -9,6 +9,7 @@
     <Color x:Key="SecondaryAccentColor">#FF5B7EC7</Color>
     <Color x:Key="BorderColor">#FF454545</Color>
     <Color x:Key="NoFocusColor">#FF707070</Color>
+    <Color x:Key="ReadOnlyForegroundColor">#FFB0B0B0</Color>
 
     <!-- Base Brushes -->
     <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
@@ -48,40 +49,13 @@
     <SolidColorBrush x:Key="IndeterminateBrush" Color="#FFA0A0A0" />
     <SolidColorBrush x:Key="BusyBrush" Color="#FFFFB347" />
 
-    <!-- PropertyGrid Colors -->
-    <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="#FF1E1E1E" />
-    <SolidColorBrush x:Key="PropertyGridBorderBrush" Color="#FF454545" />
-    <SolidColorBrush x:Key="PropertyGridForegroundBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridCategoryBackgroundBrush" Color="#FF333333" />
-    <SolidColorBrush x:Key="PropertyGridCategoryForegroundBrush" Color="#FFFFFFFF" />
+    <!-- PropertyGrid Colors (Consolidated, only used brushes) -->
+    <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
+    <SolidColorBrush x:Key="PropertyGridForegroundBrush" Color="{StaticResource PrimaryForegroundColor}" />
+    <SolidColorBrush x:Key="PropertyGridBorderBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="PropertyGridAccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="#FF3C8ED0" />
-    <SolidColorBrush x:Key="PropertyGridSelectedForegroundBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridInputBackgroundBrush" Color="#FF2D2D2D" />
-    <SolidColorBrush x:Key="PropertyGridInputForegroundBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridInputBorderBrush" Color="#FF555555" />
-    <SolidColorBrush x:Key="PropertyGridSearchBackgroundBrush" Color="#FF2D2D2D" />
-    <SolidColorBrush x:Key="PropertyGridSearchForegroundBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridSearchBorderBrush" Color="#FF555555" />
-    <SolidColorBrush x:Key="PropertyGridSearchPlaceholderBrush" Color="#FF808080" />
-    <SolidColorBrush x:Key="PropertyGridSearchFocusBackgroundBrush" Color="#FF3C3C3C" />
-    <SolidColorBrush x:Key="PropertyGridCaretBrush" Color="#FFFFFFFF" />
-
-    <!-- Additional PropertyGrid resources -->
-    <SolidColorBrush x:Key="PropertyGridHeaderBackgroundBrush" Color="#FF252526" />
-    <SolidColorBrush x:Key="PropertyGridHeaderForegroundBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridHeaderBorderBrush" Color="#FF555555" />
-    <SolidColorBrush x:Key="PropertyGridCategoryHeaderBackgroundBrush" Color="#FF3C3C3C" />
-    <SolidColorBrush x:Key="PropertyGridCategoryHeaderForegroundBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridCategoryExpanderBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridNameColumnBackgroundBrush" Color="#FF252526" />
-    <SolidColorBrush x:Key="PropertyGridValueColumnBackgroundBrush" Color="#FF1E1E1E" />
-    <SolidColorBrush x:Key="PropertyGridDescriptionBackgroundBrush" Color="#FF252526" />
-    <SolidColorBrush x:Key="PropertyGridDescriptionForegroundBrush" Color="#FFFFFFFF" />
-    <SolidColorBrush x:Key="PropertyGridReadOnlyBackgroundBrush" Color="#FF292929" />
-    <SolidColorBrush x:Key="PropertyGridReadOnlyForegroundBrush" Color="#FFB0B0B0" />
-
-    <!-- Help pane brushes -->
-    <SolidColorBrush x:Key="PropertyGridHelpPaneBackgroundBrush" Color="#FF252526" />
-    <SolidColorBrush x:Key="PropertyGridHelpPaneTextBrush" Color="#FFF0F0F0" />
+    <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="{StaticResource AccentColor}" Opacity="0.20" />    
+    <SolidColorBrush x:Key="PropertyGridCategoryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
+    <SolidColorBrush x:Key="PropertyGridReadOnlyForegroundBrush" Color="{StaticResource ReadOnlyForegroundColor}" />
+    <SolidColorBrush x:Key="PropertyGridCaretBrush" Color="{StaticResource PrimaryForegroundColor}" />
 </ResourceDictionary>
