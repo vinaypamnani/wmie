@@ -40,12 +40,12 @@ namespace WmiExplorer.Services
     /// </summary>
     public class SelectedClassChangedMessage : MessageBase
     {
-        public SelectedClassChangedMessage(WmiClassesViewModel classViewModel)
+        public SelectedClassChangedMessage(WmiClassViewModel classViewModel)
         {
             ClassViewModel = classViewModel;
         }
 
-        public WmiClassesViewModel ClassViewModel { get; }
+        public WmiClassViewModel ClassViewModel { get; }
     }
 
     /// <summary>
@@ -53,12 +53,12 @@ namespace WmiExplorer.Services
     /// </summary>
     public class SelectedInstanceChangedMessage : MessageBase
     {
-        public SelectedInstanceChangedMessage(WmiInstancesViewModel instanceViewModel)
+        public SelectedInstanceChangedMessage(WmiInstanceViewModel instanceViewModel)
         {
             InstanceViewModel = instanceViewModel;
         }
 
-        public WmiInstancesViewModel InstanceViewModel { get; }
+        public WmiInstanceViewModel InstanceViewModel { get; }
     }
 
     /// <summary>
@@ -66,12 +66,12 @@ namespace WmiExplorer.Services
     /// </summary>
     public class SelectedNamespaceChangedMessage : MessageBase
     {
-        public SelectedNamespaceChangedMessage(WmiNamespacesViewModel namespaceViewModel)
+        public SelectedNamespaceChangedMessage(WmiNamespaceViewModel namespaceViewModel)
         {
             NamespaceViewModel = namespaceViewModel;
         }
 
-        public WmiNamespacesViewModel NamespaceViewModel { get; }
+        public WmiNamespaceViewModel NamespaceViewModel { get; }
     }
 
     /// <summary>

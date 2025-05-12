@@ -44,23 +44,23 @@ namespace WmiExplorer.Presentation.ViewModels
     /// <summary>
     /// ViewModel for a WMI namespace, supports async loading, filtering, and selection.
     /// </summary>
-    public class WmiNamespacesViewModel : MessagingViewModelBase
+    public class WmiNamespaceViewModel : MessagingViewModelBase
     {
-        private readonly WmiNamespace _model;
+        private readonly WmiNamespace _wmiNamespace;
         private readonly IWmiService _wmiService;
         private readonly IApplicationService _applicationService;
         private readonly ISettingsService _settingsService;
-        private readonly ObservableCollection<WmiNamespacesViewModel> _children = new();
-        private readonly ObservableCollection<WmiClassesViewModel> _classes = new();
+        private readonly ObservableCollection<WmiNamespaceViewModel> _children = new();
+        private readonly ObservableCollection<WmiClassViewModel> _classes = new();
         private readonly DebounceDispatcher _debouncer = new();
         private readonly CancellationTokenSource _cts = new();
         private readonly object _collectionLock = new();
-        private WmiNamespacesViewModel? _parentNamespace;
+        private WmiNamespaceViewModel? _parentNamespaceViewModel;
         private bool _hasLoadedChildren;
         private bool _isExpanded;
         private bool _isSelected;
         private ICollectionView? _classesView;
-        private WmiClassesViewModel? _selectedClass;
+        private WmiClassViewModel? _selectedClass;
         private string _quickFilterClasses = string.Empty;
         private string _pendingQuickFilter = string.Empty;
         private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
@@ -74,21 +74,22 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Children namespaces (read-only).
         /// </summary>
-        public ReadOnlyObservableCollection<WmiNamespacesViewModel> Children { get; }
+        public ReadOnlyObservableCollection<WmiNamespaceViewModel> Children { get; }
         /// <summary>
         /// Classes in this namespace (read-only).
         /// </summary>
-        public ReadOnlyObservableCollection<WmiClassesViewModel> Classes { get; }
+        public ReadOnlyObservableCollection<WmiClassViewModel> Classes { get; }
 
-        public WmiNamespacesViewModel(
-            WmiNamespace model,
+        public WmiNamespaceViewModel(
+            WmiNamespace wmiNamespace,
             IWmiService wmiService,
             IMessagingService messagingService,
             IApplicationService applicationService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            WmiNamespaceViewModel? parentNamespaceViewModel = null)
         {
             // All dependencies are required for correct operation and messaging.
-            _model = model ?? throw new ArgumentNullException(nameof(model));
+            _wmiNamespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
             _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
             _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
@@ -99,51 +100,60 @@ namespace WmiExplorer.Presentation.ViewModels
             _classesView = CollectionViewSource.GetDefaultView(_classes);
             _classesView.Filter = QuickFilterClassesPredicate;
 
-            Children = new ReadOnlyObservableCollection<WmiNamespacesViewModel>(_children);
-            Classes = new ReadOnlyObservableCollection<WmiClassesViewModel>(_classes);
+            Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
+            Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
 
             // StrongSubscribe ensures message handlers are not garbage collected.
             StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
             StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChanged, true);
+
+            // Set parent namespace if provided
+            ParentNamespaceViewModel = parentNamespaceViewModel;
         }
 
-        public static ObservableCollection<WmiNamespacesViewModel> CreateFromCollection(
+        public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
             IEnumerable<ManagementObject> mboCollection,
-            WmiNamespace parent,
+            WmiNamespace parentNamespaceModel,
             IWmiService wmiService,
             IMessagingService messagingService,
             IApplicationService applicationService,
-            ISettingsService settingsService)
+            ISettingsService settingsService,
+            WmiNamespaceViewModel? parentNamespaceViewModel = null)
         {
             if (mboCollection == null)
                 throw new ArgumentNullException(nameof(mboCollection));
 
-            var viewModels = new ObservableCollection<WmiNamespacesViewModel>();
+            var viewModels = new ObservableCollection<WmiNamespaceViewModel>();
 
             foreach (var mo in mboCollection)
             {
                 // Throws if the ManagementObject does not have a valid name or scope path.
                 if (!(mo.Properties["Name"]?.Value is string name) || mo.Scope?.Path == null)
                     throw new InvalidOperationException("Unable to determine child namespace path from ManagementObject.");
+
                 string nsPath = $"{mo.Scope.Path.Path}\\{name}";
-                var model = new WmiNamespace(mo, nsPath, parent);
-                var vm = new WmiNamespacesViewModel(
-                    model,
+                var wmiNamespace = new WmiNamespace(mo, nsPath, parentNamespaceModel);
+
+                var vm = new WmiNamespaceViewModel(
+                    wmiNamespace,
                     wmiService,
                     messagingService,
                     applicationService,
-                    settingsService);
+                    settingsService,
+                    parentNamespaceViewModel);
+
                 if (mo.Scope?.Path != null)
                     vm.ComputerName = mo.Scope.Path.Server;
+                    
                 viewModels.Add(vm);
             }
 
             return viewModels;
         }
 
-        public string NamespacePath => _model.NamespacePath;
-        public ManagementObject? ActualObject => _model.ActualObject;
-        public string Name => _model.IsRoot ? _model.NamespacePath : _model.NamespaceName;
+        public string NamespacePath => _wmiNamespace.NamespacePath;
+        public ManagementObject? ActualObject => _wmiNamespace.ActualObject;
+        public string Name => _wmiNamespace.IsRoot ? _wmiNamespace.NamespacePath : _wmiNamespace.NamespaceName;
 
         public string ComputerName
         {
@@ -160,8 +170,8 @@ namespace WmiExplorer.Presentation.ViewModels
             {
                 if (_managementScope == null)
                 {
-                    var options = _model.ConnectionOptions;
-                    var scopePath = _model.NamespacePath;
+                    var options = _wmiNamespace.ConnectionOptions;
+                    var scopePath = _wmiNamespace.NamespacePath;
                     _managementScope = _wmiService.CreateManagementScope(scopePath, options);
                 }
                 return _managementScope;
@@ -224,7 +234,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
         public ICollectionView ClassesView => _classesView ?? (_classesView = CollectionViewSource.GetDefaultView(Classes));
 
-        public WmiClassesViewModel? SelectedClass
+        public WmiClassViewModel? SelectedClass
         {
             get => _selectedClass;
             set
@@ -255,10 +265,10 @@ namespace WmiExplorer.Presentation.ViewModels
             }
         }
 
-        public WmiNamespacesViewModel? ParentNamespace
+        public WmiNamespaceViewModel? ParentNamespaceViewModel
         {
-            get => _parentNamespace;
-            set => SetProperty(ref _parentNamespace, value);
+            get => _parentNamespaceViewModel;
+            set => SetProperty(ref _parentNamespaceViewModel, value);
         }
 
         public LoadState LoadState
@@ -301,7 +311,7 @@ namespace WmiExplorer.Presentation.ViewModels
             set => _copyRelativePathCommand = value;
         }
 
-        public static async Task<WmiNamespacesViewModel> CreateRootAsync(
+        public static async Task<WmiNamespaceViewModel> CreateRootAsync(
             string namespacePath,
             IWmiService wmiService,
             IMessagingService messagingService,
@@ -313,9 +323,9 @@ namespace WmiExplorer.Presentation.ViewModels
                 throw new ArgumentException("Namespace path cannot be empty", nameof(namespacePath));
 
             var rootMbo = await wmiService.GetRootNamespaceAsync(namespacePath, cancellationToken);
-            var rootModel = new WmiNamespace(rootMbo, namespacePath, new ConnectionOptions());
-            var rootViewModel = new WmiNamespacesViewModel(
-                rootModel,
+            var rootNamespace = new WmiNamespace(rootMbo, namespacePath, new ConnectionOptions());
+            var rootViewModel = new WmiNamespaceViewModel(
+                rootNamespace,
                 wmiService,
                 messagingService,
                 applicationService,
@@ -354,7 +364,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
             if (_classLoadState != ClassLoadState.Unknown && _isSelected)
             {
-                System.Diagnostics.Debug.WriteLine($"WmiNamespacesViewModel ({NamespacePath}) received ClassTypeFilterChanged: {message.ClassTypeFilter}");
+                System.Diagnostics.Debug.WriteLine($"WmiNamespaceViewModel ({NamespacePath}) received ClassTypeFilterChanged: {message.ClassTypeFilter}");
 
                 _classes.Clear();
                 _ = LoadClassesAsync();
@@ -376,7 +386,7 @@ namespace WmiExplorer.Presentation.ViewModels
             if (string.IsNullOrWhiteSpace(_quickFilterClasses))
                 return true;
 
-            if (item is WmiClassesViewModel classVm)
+            if (item is WmiClassViewModel classVm)
             {
                 return classVm.ClassName.IndexOf(_quickFilterClasses, StringComparison.OrdinalIgnoreCase) >= 0;
             }
@@ -408,20 +418,24 @@ namespace WmiExplorer.Presentation.ViewModels
                 // Factory method creates child view models and sets up parent references.
                 var childViewModels = CreateFromCollection(
                     childNamespaces,
-                    _model,
+                    _wmiNamespace,
                     _wmiService,
                     MessageService!,
                     _applicationService,
-                    _settingsService);
+                    _settingsService,
+                    this);
+                    
+                var sortedChildViewModels = new ObservableCollection<WmiNamespaceViewModel>(
+                    childViewModels.OrderBy(vm => vm.Name)
+                );
 
                 await RunOnUIThreadAsync(() =>
                 {
                     lock (_collectionLock)
                     {
                         _children.Clear();
-                        foreach (var childViewModel in childViewModels)
+                        foreach (var childViewModel in sortedChildViewModels)
                         {
-                            childViewModel.ParentNamespace = this;
                             _children.Add(childViewModel);
                         }
                     }
@@ -465,14 +479,14 @@ namespace WmiExplorer.Presentation.ViewModels
 
                 // Map ManagementObject to WmiClass and create view models for all classes at once.
                 var classModels = wmiClasses.Select(mo => new WmiClass(mo));
-                var classViewModels = WmiClassesViewModel.CreateFromCollection(
+                var classViewModels = WmiClassViewModel.CreateFromCollection(
                     classModels,
                     this,
                     _wmiService,
                     MessageService!,
                     _applicationService);
 
-                var sortedClassViewModels = new ObservableCollection<WmiClassesViewModel>(
+                var sortedClassViewModels = new ObservableCollection<WmiClassViewModel>(
                     classViewModels.OrderBy(vm => vm.ClassName)
                 );
 
@@ -506,7 +520,7 @@ namespace WmiExplorer.Presentation.ViewModels
             }
         }
 
-        public override string ToString() => _model.ToString();
+        public override string ToString() => _wmiNamespace.ToString();
 
         protected override void Dispose(bool disposing)
         {

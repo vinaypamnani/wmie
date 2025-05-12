@@ -3,11 +3,11 @@ using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels
 {
-    public class WmiPropertiesViewModel : MessagingViewModelBase
+    public class WmiPropertyViewModel : MessagingViewModelBase
     {
         private readonly IWmiService _wmiService;
 
-        public WmiPropertiesViewModel(IMessagingService messagingService, IWmiService wmiService)
+        public WmiPropertyViewModel(IMessagingService messagingService, IWmiService wmiService)
         {
             _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
 

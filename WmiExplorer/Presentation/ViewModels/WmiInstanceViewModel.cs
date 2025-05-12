@@ -11,17 +11,17 @@ namespace WmiExplorer.Presentation.ViewModels
     /// <summary>
     /// ViewModel for a WMI instance. Exposes instance properties and supports selection messaging.
     /// </summary>
-    public class WmiInstancesViewModel : MessagingViewModelBase
+    public class WmiInstanceViewModel : MessagingViewModelBase
     {
         private readonly IApplicationService _applicationService;
-        private readonly WmiInstance _model;
+        private readonly WmiInstance _wmiInstance;
         private readonly IWmiService _wmiService;
-        private readonly WmiClassesViewModel _parentClass;
+        private readonly WmiClassViewModel _parentClass;
 
         /// <summary>
         /// The underlying ManagementObject for this instance.
         /// </summary>
-        public ManagementObject ActualObject => _model.ActualObject;
+        public ManagementObject ActualObject => _wmiInstance.ActualObject;
 
         /// <summary>
         /// The WMI path for this instance.
@@ -31,7 +31,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// The display name for this instance.
         /// </summary>
-        public string InstanceName => _model.InstanceName;
+        public string InstanceName => _wmiInstance.InstanceName;
 
         /// <summary>
         /// Command to copy the instance path to clipboard.
@@ -41,35 +41,35 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// The parent class ViewModel.
         /// </summary>
-        public WmiClassesViewModel ParentClass => _parentClass;
+        public WmiClassViewModel ParentClass => _parentClass;
 
         /// <summary>
         /// The parent namespace ViewModel.
         /// </summary>
-        public WmiNamespacesViewModel? ParentNamespace => ParentClass.ParentNamespace;
+        public WmiNamespaceViewModel? ParentNamespace => ParentClass.ParentNamespaceViewModel;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WmiInstancesViewModel"/> class.
+        /// Initializes a new instance of the <see cref="WmiInstanceViewModel"/> class.
         /// </summary>
-        /// <param name="model">The WMI instance model.</param>
+        /// <param name="wmiInstance">The WMI instance model.</param>
         /// <param name="parentClass">The parent class ViewModel.</param>
         /// <param name="wmiService">The WMI service.</param>
         /// <param name="messagingService">The messaging service.</param>
         /// <param name="applicationService">The application service.</param>
-        public WmiInstancesViewModel(
-            WmiInstance model,
-            WmiClassesViewModel parentClass,
+        public WmiInstanceViewModel(
+            WmiInstance wmiInstance,
+            WmiClassViewModel parentClass,
             IWmiService wmiService,
             IMessagingService messagingService,
             IApplicationService applicationService)
         {
-            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (wmiInstance == null) throw new ArgumentNullException(nameof(wmiInstance));
             if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
             if (wmiService == null) throw new ArgumentNullException(nameof(wmiService));
             if (messagingService == null) throw new ArgumentNullException(nameof(messagingService));
             if (applicationService == null) throw new ArgumentNullException(nameof(applicationService));
 
-            _model = model;
+            _wmiInstance = wmiInstance;
             _wmiService = wmiService;
             _applicationService = applicationService;
             _parentClass = parentClass;
@@ -90,30 +90,30 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
-        /// Creates a collection of WmiInstancesViewModel from a collection of WmiInstance models.
+        /// Creates a collection of WmiInstanceViewModel from a collection of WmiInstance models.
         /// </summary>
-        /// <param name="models">The collection of WMI instance models.</param>
+        /// <param name="wmiInstances">The collection of WMI instance models.</param>
         /// <param name="wmiService">The WMI service.</param>
         /// <param name="messagingService">The messaging service.</param>
         /// <param name="applicationService">The application service.</param>
         /// <param name="parentClass">The parent class ViewModel.</param>
-        /// <returns>A collection of WmiInstancesViewModel.</returns>
-        public static ObservableCollection<WmiInstancesViewModel> CreateFromCollection(
-            IEnumerable<WmiInstance> models,
+        /// <returns>A collection of WmiInstanceViewModel.</returns>
+        public static ObservableCollection<WmiInstanceViewModel> CreateFromCollection(
+            IEnumerable<WmiInstance> wmiInstances,
             IWmiService wmiService,
             IMessagingService messagingService,
             IApplicationService applicationService,
-            WmiClassesViewModel parentClass)
+            WmiClassViewModel parentClass)
         {
-            if (models == null)
-                throw new ArgumentNullException(nameof(models));
+            if (wmiInstances == null)
+                throw new ArgumentNullException(nameof(wmiInstances));
 
-            var viewModels = new ObservableCollection<WmiInstancesViewModel>();
+            var viewModels = new ObservableCollection<WmiInstanceViewModel>();
 
-            foreach (var model in models)
+            foreach (var wmiInstance in wmiInstances)
             {
-                viewModels.Add(new WmiInstancesViewModel(
-                    model,
+                viewModels.Add(new WmiInstanceViewModel(
+                    wmiInstance,
                     parentClass,
                     wmiService,
                     messagingService,
@@ -136,6 +136,6 @@ namespace WmiExplorer.Presentation.ViewModels
         /// Returns a string representation of the instance.
         /// </summary>
         /// <returns>A string representation of the instance.</returns>
-        public override string ToString() => _model.ToString();
+        public override string ToString() => _wmiInstance.ToString();
     }
 }

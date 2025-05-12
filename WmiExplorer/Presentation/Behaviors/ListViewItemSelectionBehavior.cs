@@ -40,11 +40,11 @@ namespace WmiExplorer.Presentation.Behaviors
                 if (e.ClickCount == 1)
                 {
                     // Handle different types of view models
-                    if (item.DataContext is WmiClassesViewModel classViewModel)
+                    if (item.DataContext is WmiClassViewModel classViewModel)
                     {
                         classViewModel.ForceSelection();
                     }
-                    else if (item.DataContext is WmiInstancesViewModel instanceViewModel)
+                    else if (item.DataContext is WmiInstanceViewModel instanceViewModel)
                     {
                         instanceViewModel.ForceSelection();
                     }

@@ -57,7 +57,7 @@ namespace WmiExplorer.Presentation.Behaviors
             if (sender is TreeViewItem item && item.IsSelected && e.LeftButton == MouseButtonState.Released)
             {
                 // Only handle single clicks to avoid interfering with double-click behavior
-                if (e.ClickCount == 1 && item.DataContext is WmiNamespacesViewModel viewModel)
+                if (e.ClickCount == 1 && item.DataContext is WmiNamespaceViewModel viewModel)
                 {
                     viewModel.ForceSelection();
                     // Don't mark as handled - this allows double-click to still work

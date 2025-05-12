@@ -21,9 +21,9 @@ namespace WmiExplorer.Presentation.ViewModels
         
         private string _temporaryComputerName = Environment.MachineName; // Temporary field for initial connection
         private ApplicationState _currentApplicationState = ApplicationState.Ready();
-        private WmiNamespacesViewModel? _selectedNamespace;
-        private WmiClassesViewModel? _selectedClass;
-        private WmiInstancesViewModel? _selectedInstance;
+        private WmiNamespaceViewModel? _selectedNamespace;
+        private WmiClassViewModel? _selectedClass;
+        private WmiInstanceViewModel? _selectedInstance;
         private object? _selectedObject; // The selected object to show in the property grid
         private MainWindowPosition _windowPosition;
         private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
@@ -142,12 +142,12 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Collection of WMI namespaces in the tree
         /// </summary>
-        public ObservableCollection<WmiNamespacesViewModel> Namespaces { get; } = new();
+        public ObservableCollection<WmiNamespaceViewModel> Namespaces { get; } = new();
 
         /// <summary>
         /// Currently selected namespace in the tree
         /// </summary>
-        public WmiNamespacesViewModel? SelectedNamespace
+        public WmiNamespaceViewModel? SelectedNamespace
         {
             get => _selectedNamespace;
             set
@@ -168,7 +168,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Currently selected class in the tree
         /// </summary>
-        public WmiClassesViewModel? SelectedClass
+        public WmiClassViewModel? SelectedClass
         {
             get => _selectedClass;
             set => SetProperty(ref _selectedClass, value);
@@ -177,7 +177,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Currently selected instance in the property grid
         /// </summary>
-        public WmiInstancesViewModel? SelectedInstance
+        public WmiInstanceViewModel? SelectedInstance
         {
             get => _selectedInstance;
             set => SetProperty(ref _selectedInstance, value);
@@ -209,13 +209,13 @@ namespace WmiExplorer.Presentation.ViewModels
                 if (_selectedObject == null)
                     return "No Selection";
                 
-                if (_selectedObject is WmiNamespacesViewModel namespaceVm)
+                if (_selectedObject is WmiNamespaceViewModel namespaceVm)
                     return $"Namespace: {namespaceVm.Name}";
                 
-                if (_selectedObject is WmiClassesViewModel classVm)
+                if (_selectedObject is WmiClassViewModel classVm)
                     return $"Class: {classVm.ClassName}";
                 
-                if (_selectedObject is WmiInstancesViewModel instanceVm)
+                if (_selectedObject is WmiInstanceViewModel instanceVm)
                     return $"Instance: {instanceVm.InstanceName}";
                 
                 return _selectedObject.GetType().Name;
@@ -311,7 +311,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 GC.WaitForPendingFinalizers();
                 
                 // Create the root namespace view model using the async method
-                var rootViewModel = await WmiNamespacesViewModel.CreateRootAsync(
+                var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
                     effectivePath,
                     _wmiService,
                     MessageService!,
