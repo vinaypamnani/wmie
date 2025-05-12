@@ -12,9 +12,6 @@
                 <ResourceDictionary Source="Presentation/Controls/PropertyGrid/Styles/PropertyGridTheme.xaml" />
                 <!-- Theme will be loaded dynamically by ThemeManager from the Themes folder -->
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- Boolean to Visibility Converter -->
-            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
