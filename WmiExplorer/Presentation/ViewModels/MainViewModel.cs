@@ -280,7 +280,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
                 // Check if we're already connected to this path
                 var existingRoot = Namespaces.FirstOrDefault(n => 
-                    n.FullPath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase));
+                    n.NamespacePath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase));
                 
                 if (existingRoot != null)
                 {

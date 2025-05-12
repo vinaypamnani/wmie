@@ -50,6 +50,13 @@ namespace WmiExplorer.Core.Models
         public bool IsRoot { get; }
 
         /// <summary>
+        /// The name of the namespace (last segment after the last backslash)
+        /// </summary>
+        public string NamespaceName =>
+            string.IsNullOrEmpty(NamespacePath) ? string.Empty :
+            NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
+
+        /// <summary>
         /// Returns the string representation
         /// </summary>
         public override string ToString() => NamespacePath;

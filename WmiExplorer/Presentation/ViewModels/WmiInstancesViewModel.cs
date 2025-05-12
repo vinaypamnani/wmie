@@ -2,93 +2,108 @@
 using System.Management;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels
 {
+    /// <summary>
+    /// ViewModel for a WMI instance. Exposes instance properties and supports selection messaging.
+    /// </summary>
     public class WmiInstancesViewModel : MessagingViewModelBase
     {
         private readonly IApplicationService _applicationService;
         private readonly WmiInstance _model;
         private readonly IWmiService _wmiService;
-
-        // Parent references
-        private WmiClassesViewModel? _parentClass;
+        private readonly WmiClassesViewModel _parentClass;
 
         /// <summary>
-        /// Constructor for a single WmiInstance
+        /// The underlying ManagementObject for this instance.
         /// </summary>
+        public ManagementObject ActualObject => _model.ActualObject;
+
+        /// <summary>
+        /// The WMI path for this instance.
+        /// </summary>
+        public string NamespacePath => ActualObject.Path.Path;
+
+        /// <summary>
+        /// The display name for this instance.
+        /// </summary>
+        public string InstanceName => _model.InstanceName;
+
+        /// <summary>
+        /// Command to copy the instance path to clipboard.
+        /// </summary>
+        public ICommand CopyRelativePathCommand { get; }
+
+        /// <summary>
+        /// The parent class ViewModel.
+        /// </summary>
+        public WmiClassesViewModel ParentClass => _parentClass;
+
+        /// <summary>
+        /// The parent namespace ViewModel.
+        /// </summary>
+        public WmiNamespacesViewModel? ParentNamespace => ParentClass.ParentNamespace;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WmiInstancesViewModel"/> class.
+        /// </summary>
+        /// <param name="model">The WMI instance model.</param>
+        /// <param name="parentClass">The parent class ViewModel.</param>
+        /// <param name="wmiService">The WMI service.</param>
+        /// <param name="messagingService">The messaging service.</param>
+        /// <param name="applicationService">The application service.</param>
         public WmiInstancesViewModel(
             WmiInstance model,
+            WmiClassesViewModel parentClass,
             IWmiService wmiService,
             IMessagingService messagingService,
             IApplicationService applicationService)
         {
-            _model = model ?? throw new ArgumentNullException(nameof(model));
-            _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-            _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
+            if (model == null) throw new ArgumentNullException(nameof(model));
+            if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
+            if (wmiService == null) throw new ArgumentNullException(nameof(wmiService));
+            if (messagingService == null) throw new ArgumentNullException(nameof(messagingService));
+            if (applicationService == null) throw new ArgumentNullException(nameof(applicationService));
 
-            // Initialize messaging
+            _model = model;
+            _wmiService = wmiService;
+            _applicationService = applicationService;
+            _parentClass = parentClass;
+
             InitializeMessaging(messagingService);
 
             CopyRelativePathCommand = new RelayCommand(CopyRelativePath);
         }
 
-        /// <summary>
-        /// Gets the underlying WMI object
-        /// </summary>
-        public ManagementObject ActualObject => _model.ActualObject;
-
-        /// <summary>
-        /// Command to copy the relative path to clipboard
-        /// </summary>
-        public ICommand CopyRelativePathCommand { get; }
-
-        /// <summary>
-        /// Gets the full path of the instance
-        /// </summary>
-        public string FullPath => ActualObject.Path.Path;
-
-        /// <summary>
-        /// Gets the display name of the instance
-        /// </summary>
-        public string InstanceName => _model.InstanceName;
-
-        /// <summary>
-        /// Gets or sets the parent class
-        /// </summary>
-        public WmiClassesViewModel? ParentClass
-        {
-            get => _parentClass;
-            set => _parentClass = value;
-        }
-
-        /// <summary>
-        /// Gets the parent namespace through the parent class reference
-        /// </summary>
-        public WmiNamespacesViewModel? ParentNamespace => ParentClass?.ParentNamespace;
-
-        /// <summary>
-        /// Copies the relative path of this instance to the clipboard
-        /// </summary>
         private void CopyRelativePath(object? parameter)
         {
-            if (string.IsNullOrEmpty(FullPath))
+            // Copies the instance path to clipboard and notifies the user.
+            if (string.IsNullOrEmpty(NamespacePath))
                 return;
 
-            _applicationService.CopyToClipboard(FullPath);
-            PublishSuccessState($"Copied path: {FullPath}");
+            _applicationService.CopyToClipboard(NamespacePath);
+            PublishSuccessState($"Copied path: {NamespacePath}");
         }
 
         /// <summary>
-        /// Factory method to create a collection of WmiInstancesViewModels from a collection of WmiInstance models
+        /// Creates a collection of WmiInstancesViewModel from a collection of WmiInstance models.
         /// </summary>
+        /// <param name="models">The collection of WMI instance models.</param>
+        /// <param name="wmiService">The WMI service.</param>
+        /// <param name="messagingService">The messaging service.</param>
+        /// <param name="applicationService">The application service.</param>
+        /// <param name="parentClass">The parent class ViewModel.</param>
+        /// <returns>A collection of WmiInstancesViewModel.</returns>
         public static ObservableCollection<WmiInstancesViewModel> CreateFromCollection(
             IEnumerable<WmiInstance> models,
             IWmiService wmiService,
             IMessagingService messagingService,
-            IApplicationService applicationService)
+            IApplicationService applicationService,
+            WmiClassesViewModel parentClass)
         {
             if (models == null)
                 throw new ArgumentNullException(nameof(models));
@@ -99,6 +114,7 @@ namespace WmiExplorer.Presentation.ViewModels
             {
                 viewModels.Add(new WmiInstancesViewModel(
                     model,
+                    parentClass,
                     wmiService,
                     messagingService,
                     applicationService));
@@ -108,17 +124,18 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
-        /// Force selection notification even when already selected
+        /// Forces selection of this instance and publishes a selection message.
         /// </summary>
         public void ForceSelection()
         {
-            // Always publish the message even if already selected
+            // Always publish the message even if already selected (for UI refresh scenarios).
             PublishMessage(new SelectedInstanceChangedMessage(this));
         }
 
         /// <summary>
-        /// Returns the instance's string representation
+        /// Returns a string representation of the instance.
         /// </summary>
+        /// <returns>A string representation of the instance.</returns>
         public override string ToString() => _model.ToString();
     }
 }
