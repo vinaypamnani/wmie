@@ -12,7 +12,9 @@ namespace WmiExplorer.Services
         {
             UseAmendedQualifiers = true,
             EnumerateDeep = true
-        };        
+        };
+
+        public WmiOperationMode OperationMode { get; set; } = WmiOperationMode.Asynchronous;
 
         /// <summary>
         /// Finalizer to ensure resources are cleaned up
@@ -71,12 +73,41 @@ namespace WmiExplorer.Services
         }
 
         /// <summary>
+        /// Optimized: Ensures scope is connected only if not already connected
+        /// </summary>
+        private void EnsureScopeConnected(ManagementScope scope)
+        {
+            if (!scope.IsConnected)
+            {
+                try
+                {
+                    scope.Connect();
+                }
+                catch (ManagementException mex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"WMI ManagementException connecting scope: {mex.Message}");
+                    throw;
+                }
+                catch (UnauthorizedAccessException uex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"WMI UnauthorizedAccessException connecting scope: {uex.Message}");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"WMI Exception connecting scope: {ex.Message}");
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
         /// Creates a connected ManagementScope for a namespace path and optional connection options
         /// </summary>
         public ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions? options = null)
         {
             var scope = options != null ? new ManagementScope(namespacePath, options) : new ManagementScope(namespacePath);
-            scope.Connect();
+            EnsureScopeConnected(scope);
             return scope;
         }
 
@@ -90,31 +121,91 @@ namespace WmiExplorer.Services
         }
 
         /// <summary>
+        /// Helper for async WMI queries returning a list
+        /// </summary>
+        private async Task<List<ManagementObject>> RunWmiListAsync(Action<ManagementOperationObserver> startAction, CancellationToken cancellationToken)
+        {
+            var result = new List<ManagementObject>();
+            var tcs = new TaskCompletionSource<List<ManagementObject>>();
+            var observer = new ManagementOperationObserver();
+
+            observer.ObjectReady += (sender, e) =>
+            {
+                if (e.NewObject is ManagementObject obj)
+                {
+                    _disposables.Add(obj);
+                    result.Add(obj);
+                }
+            };
+            observer.Completed += (sender, e) =>
+            {
+                if (e.Status == ManagementStatus.NoError)
+                    tcs.TrySetResult(result);
+                else
+                    tcs.TrySetException(new ManagementException($"WMI async query failed: {e.Status}"));
+            };
+            observer.Progress += (sender, e) =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    observer.Cancel();
+                    tcs.TrySetCanceled(cancellationToken);
+                }
+            };
+
+            using (cancellationToken.Register(() => {
+                observer.Cancel();
+                tcs.TrySetCanceled(cancellationToken);
+            }))
+            {
+                try
+                {
+                    startAction(observer);
+                }
+                catch (Exception ex)
+                {
+                    tcs.TrySetException(ex);
+                }
+                return await tcs.Task.ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Asynchronously gets child namespaces for a given WMI namespace
         /// </summary>
         public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            EnsureScopeConnected(scope);
+            return await Task.Run(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+
+            // if (OperationMode == WmiOperationMode.Synchronous)
+            //     return await Task.Run(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+            // else
+            //     return await GetChildNamespacesAsyncInternal(scope, cancellationToken);
+        }
+
+        private IEnumerable<ManagementObject> GetChildNamespacesSync(ManagementScope scope, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = new List<ManagementObject>();
+            var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
+            _disposables.Add(nsClass);
+            var instances = nsClass.GetInstances();
+            _disposables.Add(instances);
+            foreach (ManagementObject m in instances)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var result = new List<ManagementObject>();
-                if (!scope.IsConnected)
-                    scope.Connect();
+                _disposables.Add(m);
+                result.Add(m);
+            }
+            return result;
+        }
 
-                var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
-                _disposables.Add(nsClass);
-                var instances = nsClass.GetInstances();
-                _disposables.Add(instances);
-
-                foreach (ManagementObject m in instances)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    _disposables.Add(m);
-                    result.Add(m);
-                }
-
-                return result;
-            }, cancellationToken);
+        private async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsyncInternal(ManagementScope scope, CancellationToken cancellationToken)
+        {
+            var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
+            _disposables.Add(nsClass);
+            return await RunWmiListAsync(obs => nsClass.GetInstances(obs), cancellationToken);
         }
 
         /// <summary>
@@ -122,28 +213,37 @@ namespace WmiExplorer.Services
         /// </summary>
         public async Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassTypeFlags classTypeFilter = WmiClassTypeFlags.All, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            EnsureScopeConnected(scope);
+            if (OperationMode == WmiOperationMode.Synchronous)
+                return await Task.Run(() => GetClassesSync(scope, classTypeFilter, cancellationToken), cancellationToken);
+            else
+                return await GetClassesAsyncInternal(scope, classTypeFilter, cancellationToken);
+        }
+
+        private IEnumerable<ManagementObject> GetClassesSync(ManagementScope scope, WmiClassTypeFlags classTypeFilter, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = new List<ManagementObject>();
+            string queryString = BuildClassQueryFromFilter(classTypeFilter);
+            var query = new ObjectQuery(queryString);
+            var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
+            _disposables.Add(searcher);
+            foreach (ManagementObject classObject in searcher.Get())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var result = new List<ManagementObject>();
-                if (!scope.IsConnected)
-                    scope.Connect();
+                _disposables.Add(classObject);
+                result.Add(classObject);
+            }
+            return result;
+        }
 
-                // Build the WQL query based on the class type filter
-                string queryString = BuildClassQueryFromFilter(classTypeFilter);
-                var query = new ObjectQuery(queryString);
-                var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
-                _disposables.Add(searcher);
-
-                foreach (ManagementObject classObject in searcher.Get())
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    _disposables.Add(classObject);
-                    result.Add(classObject);
-                }
-
-                return result;
-            }, cancellationToken);
+        private async Task<IEnumerable<ManagementObject>> GetClassesAsyncInternal(ManagementScope scope, WmiClassTypeFlags classTypeFilter, CancellationToken cancellationToken)
+        {
+            string queryString = BuildClassQueryFromFilter(classTypeFilter);
+            var query = new ObjectQuery(queryString);
+            var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
+            _disposables.Add(searcher);
+            return await RunWmiListAsync(obs => searcher.Get(obs), cancellationToken);
         }
 
         /// <summary>
@@ -151,25 +251,35 @@ namespace WmiExplorer.Services
         /// </summary>
         public async Task<IEnumerable<ManagementObject>> GetInstancesAsync(ManagementScope scope, string className, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            EnsureScopeConnected(scope);
+            if (OperationMode == WmiOperationMode.Synchronous)
+                return await Task.Run(() => GetInstancesSync(scope, className, cancellationToken), cancellationToken);
+            else
+                return await GetInstancesAsyncInternal(scope, className, cancellationToken);
+        }
+
+        private IEnumerable<ManagementObject> GetInstancesSync(ManagementScope scope, string className, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = new List<ManagementObject>();
+            var query = new ObjectQuery($"SELECT * FROM {className}");
+            var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
+            _disposables.Add(searcher);
+            foreach (ManagementObject instanceObject in searcher.Get())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var result = new List<ManagementObject>();
-                if (!scope.IsConnected)
-                    scope.Connect();
-                var query = new ObjectQuery($"SELECT * FROM {className}");
-                var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
-                _disposables.Add(searcher);
+                _disposables.Add(instanceObject);
+                result.Add(instanceObject);
+            }
+            return result;
+        }
 
-                foreach (ManagementObject instanceObject in searcher.Get())
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    _disposables.Add(instanceObject);
-                    result.Add(instanceObject);
-                }
-
-                return result;
-            }, cancellationToken);
+        private async Task<IEnumerable<ManagementObject>> GetInstancesAsyncInternal(ManagementScope scope, string className, CancellationToken cancellationToken)
+        {
+            var query = new ObjectQuery($"SELECT * FROM {className}");
+            var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
+            _disposables.Add(searcher);
+            return await RunWmiListAsync(obs => searcher.Get(obs), cancellationToken);
         }
 
         /// <summary>
@@ -177,25 +287,27 @@ namespace WmiExplorer.Services
         /// </summary>
         public async Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            // Always use sync for root namespace, even in async mode
+            return await Task.Run(() => GetRootNamespaceSync(namespacePath, cancellationToken), cancellationToken);
+        }
+
+        private ManagementObject? GetRootNamespaceSync(string namespacePath, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                try
-                {
-                    ManagementPath mPath = new ManagementPath(namespacePath);
-                    ManagementScope mScope = new ManagementScope(mPath);
-                    mScope.Connect();
-                    ObjectGetOptions oOptions = new ObjectGetOptions();
-                    ManagementObject mObject = new ManagementObject(mScope, mPath, oOptions);                    
-                    //_disposables.Add(mObject);
-                    return mObject;
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error creating root namespace: {ex.Message}");
-                    return null;
-                }
-            }, cancellationToken);
+                var mPath = new ManagementPath(namespacePath);
+                var mScope = new ManagementScope(mPath);
+                EnsureScopeConnected(mScope);
+                var oOptions = new ObjectGetOptions();
+                var mObject = new ManagementObject(mScope, mPath, oOptions);
+                return mObject;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating root namespace: {ex.Message}");
+                return null;
+            }
         }
     }
 }

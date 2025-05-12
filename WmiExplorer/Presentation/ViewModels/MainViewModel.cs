@@ -26,6 +26,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private WmiInstancesViewModel? _selectedInstance;
         private object? _selectedObject; // The selected object to show in the property grid
         private MainWindowPosition _windowPosition;
+        private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
 
         public MainViewModel(
             IMessagingService messagingService,
@@ -238,6 +239,21 @@ namespace WmiExplorer.Presentation.ViewModels
         {
             get => _windowPosition;
             set => SetProperty(ref _windowPosition, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the operation mode for WMI operations
+        /// </summary>
+        public WmiOperationMode OperationMode
+        {
+            get => _operationMode;
+            set
+            {
+                if (SetProperty(ref _operationMode, value))
+                {
+                    _wmiService.OperationMode = value; // Propagate to service
+                }
+            }
         }
 
         /// <summary>

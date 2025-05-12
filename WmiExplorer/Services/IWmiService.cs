@@ -47,5 +47,10 @@ namespace WmiExplorer.Services
         /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
         /// <returns>A ManagementObject</returns>
         Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets or sets the operation mode for WMI service
+        /// </summary>
+        WmiOperationMode OperationMode { get; set; }
     }
 }
