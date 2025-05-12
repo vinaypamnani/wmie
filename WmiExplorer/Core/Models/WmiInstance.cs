@@ -25,12 +25,7 @@ namespace WmiExplorer.Core.Models
         /// Gets the display name of the instance
         /// </summary>
         public string InstanceName =>
-            ActualObject["Name"]?.ToString()
-            ?? ActualObject["Caption"]?.ToString()
-            ?? ActualObject["DeviceID"]?.ToString()
-            ?? ActualObject["InstanceName"]?.ToString()
-            ?? ActualObject["ProcessId"]?.ToString()
-            ?? ActualObject.ToString()
+            ActualObject.Path.RelativePath.ToString().Replace("\\\\", "\\") // TODO: Extract friendly name from known "Name" properties
             ?? string.Empty;
 
         /// <summary>
