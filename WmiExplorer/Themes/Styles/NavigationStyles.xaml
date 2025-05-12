@@ -2,23 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters">
 
-    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-
-    <!--  Menu  -->
-    <Style TargetType="Menu">
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
-    </Style>
-
-    <!--  MenuItem  -->
-    <Style TargetType="MenuItem">
-        <Setter Property="Padding" Value="5" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-    </Style>
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />    
 
     <!--  TabControl  -->
     <Style TargetType="TabControl">

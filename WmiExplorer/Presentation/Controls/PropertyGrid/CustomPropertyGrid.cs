@@ -69,7 +69,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 nameof(NameColumnWidth),
                 typeof(double),
                 typeof(CustomPropertyGrid),
-                new PropertyMetadata(150.0));
+                new PropertyMetadata(200.0));
 
         /// <summary>
         /// Gets or sets the currently selected property hierarchy item.
@@ -345,10 +345,11 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         /// </summary>
         private void AutoAdjustHelpPaneHeight(string description)
         {
+            // Assume 80 chars per line for wrapping, 20px per line, 16px padding
             int lineCount = description.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
             int wrapLines = description.Length / 80;
-            double calculatedHeight = Math.Min(200, Math.Max(60, (lineCount + wrapLines) * 20 + 16));
-
+            int totalLines = 1 + lineCount + wrapLines; // 1 for DisplayName
+            double calculatedHeight = Math.Min(300, Math.Max(60, totalLines * 20 + 16));
             if (Math.Abs(HelpPaneHeight - calculatedHeight) > 20)
             {
                 HelpPaneHeight = calculatedHeight;

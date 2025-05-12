@@ -26,51 +26,6 @@
                    MaxWidth="300" />
     </DataTemplate>
 
-    <!-- Common template for property expand/collapse arrows -->
-    <ControlTemplate x:Key="ExpandCollapseToggleButtonTemplate"
-            TargetType="ToggleButton">
-        <Border Background="Transparent"
-                Cursor="Hand"
-                VerticalAlignment="Center">
-            <Grid Width="16"
-                    Height="16"
-                    VerticalAlignment="Center">
-                <Path x:Name="ExpandPath"
-                      Stroke="{DynamicResource PropertyGridForegroundBrush}"
-                      StrokeThickness="1"
-                      Data="M 4,2 L 9,8 L 4,14"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center">
-                    <Path.RenderTransform>
-                        <RotateTransform x:Name="ExpandPathRotation"
-                                Angle="0"
-                                CenterX="6.5"
-                                CenterY="8" />
-                    </Path.RenderTransform>
-                </Path>
-            </Grid>
-        </Border>
-        <ControlTemplate.Triggers>
-            <Trigger Property="IsChecked"
-                    Value="True">
-                <Setter TargetName="ExpandPath"
-                        Property="RenderTransform">
-                    <Setter.Value>
-                        <RotateTransform Angle="90"
-                                CenterX="6.5"
-                                CenterY="8" />
-                    </Setter.Value>
-                </Setter>
-            </Trigger>
-            <Trigger Property="IsMouseOver"
-                    Value="True">
-                <Setter TargetName="ExpandPath"
-                        Property="Opacity"
-                        Value="0.8" />
-            </Trigger>
-        </ControlTemplate.Triggers>
-    </ControlTemplate>
-
     <!-- Style for TreeViewItem in PropertyGrid -->
     <Style x:Key="PropertyTreeViewItemStyle"
             TargetType="TreeViewItem">
@@ -244,7 +199,7 @@
             <!-- Property Value - using column 1 now -->
             <Border Grid.Column="1"
                     Background="Transparent">
-                <TextBlock Text="{Binding FormattedValue}"
+                <TextBlock Text="{Binding FormattedValue}" Margin="5,0,0,0"
                            Style="{StaticResource PropertyTextBlockStyle}" />
             </Border>
         </Grid>

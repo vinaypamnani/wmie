@@ -13,8 +13,7 @@
     <!-- CONVERTERS                                                        -->
     <!-- ================================================================ -->
     <pgConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-    <pgConverters:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />
-    <pgConverters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    <pgConverters:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />    
     <pgConverters:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter" />
 
     <!-- ================================================================ -->
@@ -276,7 +275,7 @@
                 <Border Grid.Row="4"
                         Background="{DynamicResource PropertyGridHelpPaneBackgroundBrush}"
                         BorderBrush="{DynamicResource PropertyGridBorderBrush}"
-                        BorderThickness="1,1,1,0"
+                        BorderThickness="1,1,1,1"
                         Visibility="{Binding ShowHelpPane, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">

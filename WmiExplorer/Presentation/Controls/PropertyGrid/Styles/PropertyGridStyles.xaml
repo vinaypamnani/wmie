@@ -3,9 +3,6 @@
                     xmlns:local="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid"
                     xmlns:converters="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid.Converters">
 
-    <!-- Tooltip visibility converter -->
-    <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
-
     <!-- ================================================================ -->
     <!-- COMMON STYLES AND RESOURCES                                       -->
     <!-- ================================================================ -->
@@ -29,63 +26,6 @@
                    TextWrapping="Wrap"
                    MaxWidth="300" />
     </DataTemplate>
-
-    <!-- Common style for property name toggle buttons -->
-    <ControlTemplate x:Key="PropertyNameToggleButtonTemplate"
-            TargetType="ToggleButton">
-        <Border Background="{TemplateBinding Background}"
-                BorderThickness="{TemplateBinding BorderThickness}"
-                BorderBrush="{TemplateBinding BorderBrush}">
-            <ContentPresenter Margin="0,2"
-                              HorizontalAlignment="Left"
-                              VerticalAlignment="Center" />
-        </Border>
-    </ControlTemplate>
-
-    <!-- Common template for property expand/collapse arrows -->
-    <ControlTemplate x:Key="ExpandCollapseToggleButtonTemplate"
-            TargetType="ToggleButton">
-        <Border Background="Transparent"
-                Cursor="Hand"
-                VerticalAlignment="Center">
-            <Grid Width="16"
-                    Height="16"
-                    VerticalAlignment="Center">
-                <Path x:Name="ExpandPath"
-                      Stroke="{DynamicResource PropertyGridForegroundBrush}"
-                      StrokeThickness="1"
-                      Data="M 4,2 L 9,8 L 4,14"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center">
-                    <Path.RenderTransform>
-                        <RotateTransform x:Name="ExpandPathRotation"
-                                Angle="0"
-                                CenterX="6.5"
-                                CenterY="8" />
-                    </Path.RenderTransform>
-                </Path>
-            </Grid>
-        </Border>
-        <ControlTemplate.Triggers>
-            <Trigger Property="IsChecked"
-                    Value="True">
-                <Setter TargetName="ExpandPath"
-                        Property="RenderTransform">
-                    <Setter.Value>
-                        <RotateTransform Angle="90"
-                                CenterX="6.5"
-                                CenterY="8" />
-                    </Setter.Value>
-                </Setter>
-            </Trigger>
-            <Trigger Property="IsMouseOver"
-                    Value="True">
-                <Setter TargetName="ExpandPath"
-                        Property="Opacity"
-                        Value="0.8" />
-            </Trigger>
-        </ControlTemplate.Triggers>
-    </ControlTemplate>
 
     <!-- ================================================================ -->
     <!-- STYLES                                                           -->

@@ -45,6 +45,7 @@
                             <Setter.Value>
                                 <ContextMenu>
                                     <MenuItem Header="Copy Relative Path" Command="{Binding CopyRelativePathCommand}" />
+                                    <MenuItem Header="Copy Relative Path (Test)" Command="{Binding CopyRelativePathCommand}" />
                                 </ContextMenu>
                             </Setter.Value>
                         </Setter>
