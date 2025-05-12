@@ -22,6 +22,8 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         private Type _propertyType = typeof(object);
         private object? _value;
         private Visibility _visibility = Visibility.Visible;
+        private readonly bool _includeSystemProperties = true;
+        private readonly bool _includeNullValues = true;
 
         /// <summary>
         /// Creates a new instance of PropertyHierarchyItem.
@@ -33,7 +35,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         /// <summary>
         /// Creates a new instance of PropertyHierarchyItem from a property descriptor.
         /// </summary>
-        public PropertyHierarchyItem(IPropertyDescriptor descriptor, int level = 0)
+        public PropertyHierarchyItem(IPropertyDescriptor descriptor, int level = 0, bool includeSystemProperties = true, bool includeNullValues = true)
         {
             PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
 
@@ -46,6 +48,8 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
             Category = descriptor.Category;
             Description = descriptor.Description;
             Level = level;
+            _includeSystemProperties = includeSystemProperties;
+            _includeNullValues = includeNullValues;
 
             // Check if this property is expandable
             HasItems = PropertyTypeProviderRegistry.Instance.IsExpandable(Value, PropertyType);
@@ -163,7 +167,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                     // When expanded, ensure child items are loaded
                     if (_isExpanded && HasItems && Children.Count == 0)
                     {
-                        LoadChildren();
+                        LoadChildren(_includeSystemProperties, _includeNullValues);
                     }
                 }
             }
@@ -287,7 +291,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         /// <summary>
         /// Loads child items when the property is expandable.
         /// </summary>
-        protected virtual void LoadChildren()
+        protected virtual void LoadChildren(bool includeSystemProperties = true, bool includeNullValues = true)
         {
             if (Value == null || !HasItems)
                 return;
@@ -301,9 +305,12 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
 
                 foreach (var descriptor in childDescriptors)
                 {
+                    if (!includeSystemProperties && descriptor.Name != null && descriptor.Name.StartsWith("__"))
+                        continue;
+                    if (!includeNullValues && descriptor.Value == null)
+                        continue;
                     // Create child item with incremented level
-                    var childItem = new PropertyHierarchyItem(descriptor, Level + 1);
-
+                    var childItem = new PropertyHierarchyItem(descriptor, Level + 1, includeSystemProperties, includeNullValues);
                     // Add to children collection
                     Children.Add(childItem);
                 }

@@ -441,7 +441,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 {
                     descriptors = descriptors.Where(p => p.Value != null).ToList();
                 }
-                // Filter out system properties if IncludeSystemProperties is false
+                // Filter out system properties at the top level if IncludeSystemProperties is false
                 if (!IncludeSystemProperties)
                 {
                     descriptors = descriptors.Where(p => !(p.Name?.StartsWith("__") ?? false)).ToList();
@@ -471,7 +471,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
 
                     foreach (var descriptor in category.OrderBy(p => p.DisplayName))
                     {
-                        var propertyItem = new PropertyHierarchyItem(descriptor, 1);
+                        var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, IncludeNullValues);
                         categoryItem.Children.Add(propertyItem);
                     }
                 }
