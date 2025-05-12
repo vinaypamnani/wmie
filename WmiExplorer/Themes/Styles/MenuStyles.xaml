@@ -1,16 +1,16 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- Menu brushes now reference shared theme brushes -->
-    <!-- Uses MenuItemBackgroundBrush, MenuItemBorderBrush, MenuItemForegroundBrush, AccentBrush, SecondaryAccentBrush -->
+    <!-- Uses SecondaryBackgroundBrush, BorderBrush, PrimaryForegroundBrush, AccentBrush, SecondaryAccentBrush -->
     
     <!--  Menu  -->
     <Style TargetType="Menu">
         <Setter Property="Foreground"
-                Value="{DynamicResource MenuItemForegroundBrush}"/>
+                Value="{DynamicResource PrimaryForegroundBrush}"/>
         <Setter Property="Background"
-                Value="{DynamicResource MenuItemBackgroundBrush}"/>
+                Value="{DynamicResource SecondaryBackgroundBrush}"/>
         <Setter Property="BorderBrush"
-                Value="{DynamicResource MenuItemBorderBrush}"/>
+                Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness"
                 Value="0"/>
         <Setter Property="Padding"
@@ -70,9 +70,9 @@
                        HorizontalOffset="0"
                        IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
                     <Border x:Name="SubMenuBorder"
-                            Background="{DynamicResource MenuItemBackgroundBrush}"
+                            Background="{DynamicResource SecondaryBackgroundBrush}"
                             BorderThickness="0"
-                            BorderBrush="{DynamicResource MenuItemBorderBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
                             Padding="2,3"
                             MinWidth="175"
                             SnapsToDevicePixels="True"
@@ -104,13 +104,13 @@
             <Trigger Property="IsMouseOver" Value="true">
                 <Setter Property="Background" TargetName="templateRoot" Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="BorderBrush" TargetName="templateRoot" Value="{DynamicResource AccentBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource MenuItemForegroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}"/>
             </Trigger>
             <!-- Change appearance when menu item is pressed -->
             <Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" TargetName="templateRoot" Value="{DynamicResource SecondaryAccentBrush}"/>
                 <Setter Property="BorderBrush" TargetName="templateRoot" Value="{DynamicResource SecondaryAccentBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource MenuItemForegroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}"/>
             </Trigger>
             <!-- Change appearance when menu item is enabled/disabled -->
             <Trigger Property="IsEnabled" Value="False">
@@ -142,23 +142,23 @@
                 </MultiTrigger.Conditions>
                 <Setter Property="Background" TargetName="templateRoot" Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="BorderBrush" TargetName="templateRoot" Value="{DynamicResource AccentBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource MenuItemForegroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}"/>
             </MultiTrigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
     <!-- Style for ContextMenu to remove border -->
     <Style TargetType="ContextMenu">
-        <Setter Property="Background" Value="{DynamicResource MenuItemBackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="2"/>
         <Setter Property="MinWidth" Value="175"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContextMenu">
-                    <Border Background="{DynamicResource MenuItemBackgroundBrush}"
+                    <Border Background="{DynamicResource SecondaryBackgroundBrush}"
                             BorderThickness="0"
-                            BorderBrush="{DynamicResource MenuItemBorderBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
                             Padding="2,3"
                             UseLayoutRounding="True">
                         <Border.Effect>
@@ -178,9 +178,9 @@
     <!-- Style for all MenuItem elements -->
     <Style TargetType="MenuItem">
         <Setter Property="Padding" Value="12,6"/>
-        <Setter Property="Foreground" Value="{DynamicResource MenuItemForegroundBrush}"/>
-        <Setter Property="Background" Value="{DynamicResource MenuItemBackgroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource MenuItemBorderBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Template" Value="{StaticResource MenuItemControlTemplate}"/>
         <Setter Property="Margin" Value="0,0,3,0"/>

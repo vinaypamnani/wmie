@@ -11,42 +11,31 @@
     <Color x:Key="NoFocusColor">#FFD0D0D0</Color>
     <Color x:Key="ReadOnlyForegroundColor">#FFB0B0B0</Color>
 
+    <!-- Status Brushes -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#FF107C10" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="#FFD13438" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#FFFF8C00" />
+    <SolidColorBrush x:Key="IndeterminateBrush" Color="#FF767676" />
+    <SolidColorBrush x:Key="BusyBrush" Color="#FF0063B1" />
+
     <!-- Base Brushes -->
     <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
     <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
     <SolidColorBrush x:Key="PrimaryForegroundBrush" Color="{StaticResource PrimaryForegroundColor}" />
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
     <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource SecondaryAccentColor}" />
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
-
-    <!-- Menu -->
-    <SolidColorBrush x:Key="MenuItemForegroundBrush" Color="#202020" />
-    <SolidColorBrush x:Key="MenuItemBackgroundBrush" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="MenuItemBorderBrush" Color="#E0E0E0" />
-
-    <!-- GridSplitter -->
-    <SolidColorBrush x:Key="GridSplitterBackground" Color="#E5E5E5" />
-    <SolidColorBrush x:Key="GridSplitterHoverBackground" Color="#C0C0C0" />
-
-    <!-- ListView -->
-    <SolidColorBrush x:Key="ListViewItemSelectedBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="ListViewItemHoverBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="ListViewItemHoverBorderBrush" Color="#FF6DB0E6" />
-    <SolidColorBrush x:Key="ListViewItemUnfocusedSelectedBackgroundBrush" Color="{StaticResource NoFocusColor}" />
-    <SolidColorBrush x:Key="ListViewItemUnfocusedSelectedBorderBrush" Color="{StaticResource NoFocusColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />    
+    <SolidColorBrush x:Key="SelectedItemBackgroundBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="SelectedUnfocusedBackgroundBrush" Color="{StaticResource NoFocusColor}" />        
+    <SolidColorBrush x:Key="ReadOnlyForegroundBrush" Color="{StaticResource ReadOnlyForegroundColor}" />
+    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="{StaticResource AccentColor}" Opacity="0.50" />
+    <SolidColorBrush x:Key="ItemPressedBrush" Color="{StaticResource SecondaryAccentColor}" Opacity="0.50" />
 
     <!-- ScrollBar Brushes -->
-    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="#FFF0F0F0" />
-    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="#FFB8B8B8" />
-    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="{StaticResource SecondaryAccentColor}" />
-
-    <!-- Status Colors -->
-    <SolidColorBrush x:Key="SuccessBrush" Color="#FF107C10" />
-    <SolidColorBrush x:Key="ErrorBrush" Color="#FFD13438" />
-    <SolidColorBrush x:Key="WarningBrush" Color="#FFFF8C00" />
-    <SolidColorBrush x:Key="IndeterminateBrush" Color="#FF767676" />
-    <SolidColorBrush x:Key="BusyBrush" Color="#FF0063B1" />
+    <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="{StaticResource SecondaryBackgroundColor}" />
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource AccentColor}" Opacity="0.50" />
+    <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="{StaticResource AccentColor}" />
 
     <!-- PropertyGrid Colors (Consolidated, only used brushes) -->
     <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />

@@ -22,8 +22,7 @@
                             <Setter Property="Background" Value="{DynamicResource SecondaryAccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="#FF3700B3" />
-                            <!--  Darker color for pressed state  -->
+                            <Setter Property="Background" Value="{DynamicResource ItemPressedBrush}" />                            
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

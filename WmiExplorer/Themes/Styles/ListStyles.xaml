@@ -69,25 +69,29 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListViewItemSelectedBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ListViewItemSelectedBrush}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SelectedItemBackgroundBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SelectedItemBackgroundBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListViewItemHoverBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ListViewItemHoverBorderBrush}" />
-                        </Trigger>
+                        </Trigger>                        
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="Gray" />
                         </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="False" />                                
+                                <Condition Property="IsMouseOver" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource HoverBackgroundBrush}" />
+                        </MultiTrigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsSelected" Value="True" />
                                 <Condition Property="IsFocused" Value="False" />
                                 <Condition Property="IsMouseOver" Value="False" />
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListViewItemUnfocusedSelectedBackgroundBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource ListViewItemUnfocusedSelectedBorderBrush}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SelectedUnfocusedBackgroundBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SelectedUnfocusedBackgroundBrush}" />
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -130,8 +134,8 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource ListViewItemHoverBrush}" />
-                            <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource ListViewItemHoverBorderBrush}" />
+                            <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                            <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource HoverBackgroundBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">

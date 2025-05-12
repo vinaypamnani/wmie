@@ -167,8 +167,8 @@
 
                                                             <!-- Add back hover effect -->
                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource ListViewItemHoverBrush}" />
-                                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource ListViewItemHoverBorderBrush}" />
+                                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource HoverBackgroundBrush}" />
                                                                 <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
                                                             </Trigger>
                                                             <Trigger Property="IsPressed" Value="True">
