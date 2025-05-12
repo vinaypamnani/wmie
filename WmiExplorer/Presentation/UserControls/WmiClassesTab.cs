@@ -1,11 +1,11 @@
-namespace WmiExplorer.Presentation.Views
+namespace WmiExplorer.Presentation.UserControls
 {
     /// <summary>
-    /// Interaction logic for WmiClassesView.xaml
+    /// Interaction logic for WmiClassesTab.xaml
     /// </summary>
-    public partial class WmiClassesView : System.Windows.Controls.UserControl
+    public partial class WmiClassesTab : System.Windows.Controls.UserControl
     {
-        public WmiClassesView()
+        public WmiClassesTab()
         {
             InitializeComponent();
 

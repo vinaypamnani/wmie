@@ -10,7 +10,7 @@
     xmlns:services="clr-namespace:WmiExplorer.Services"
     xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
     xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
-    xmlns:views="clr-namespace:WmiExplorer.Presentation.Views"
+    xmlns:userControls="clr-namespace:WmiExplorer.Presentation.UserControls"
     xmlns:pg="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid"
     Title="WmiExplorer"
     Width="1280"
@@ -76,7 +76,7 @@
                 Grid.Row="0"
                 Margin="5,0,5,0"
                 VerticalAlignment="Top">
-                <views:ConnectionOptionsView />
+                <userControls:OptionsPanel />
             </DockPanel>
             <DockPanel Grid.Row="1" Margin="5,0,5,0">
                 <Grid Name="ContentGrid">
@@ -89,7 +89,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Namespace View -->
-                    <views:WmiNamespacesView Grid.Column="0" />
+                    <userControls:WmiNamespacesPane Grid.Column="0" />
 
                     <GridSplitter
                         Grid.Column="1"
@@ -99,12 +99,12 @@
 
                     <TabControl Grid.Column="2">
                         <TabItem Header="Classes">
-                            <!-- All the grid content has been moved to WmiClassesView -->
-                            <views:WmiClassesView />
+                            <!-- All the grid content has been moved to WmiClassesTab -->
+                            <userControls:WmiClassesTab />
                         </TabItem>
                         <TabItem Header="Search">
                             <!-- Search View -->
-                            <views:WmiSearchView />
+                            <userControls:WmiSearchTab />
                         </TabItem>
                     </TabControl>
 
@@ -190,7 +190,7 @@
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Margin="0,0,5,0" Orientation="Horizontal">
                     <!-- <TextBlock Text="{Binding ComputerName}" Margin="0,0,8,0" VerticalAlignment="Center" /> -->
-                    <controls:StatusIndicator DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
+                    <userControls:StatusIndicator DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

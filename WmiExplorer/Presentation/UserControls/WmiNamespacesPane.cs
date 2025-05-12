@@ -1,11 +1,11 @@
-namespace WmiExplorer.Presentation.Views
+namespace WmiExplorer.Presentation.UserControls
 {
     /// <summary>
-    /// Interaction logic for WmiNamespacesView.xaml
+    /// Interaction logic for WmiNamespacesPane.xaml
     /// </summary>
-    public partial class WmiNamespacesView : System.Windows.Controls.UserControl
+    public partial class WmiNamespacesPane : System.Windows.Controls.UserControl
     {
-        public WmiNamespacesView()
+        public WmiNamespacesPane()
         {
             InitializeComponent();
 
