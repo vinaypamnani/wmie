@@ -28,9 +28,10 @@ namespace WmiExplorer
             var messagingService = serviceLocator.Get<IMessagingService>();
             serviceLocator.Register<ISettingsService, SettingsService>(new SettingsService(messagingService));
 
-            // Register theme manager with settings service
             var settingsService = serviceLocator.Get<ISettingsService>();
-            serviceLocator.Register<ThemeManager, ThemeManager>(new ThemeManager(settingsService));
+
+            // Register theme manager with messaging and settings service
+            serviceLocator.Register<ThemeManager, ThemeManager>(new ThemeManager(messagingService, settingsService));
 
             // Register WmiService
             serviceLocator.Register<IWmiService, WmiService>(new WmiService());

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
@@ -48,12 +49,17 @@ namespace WmiExplorer.Presentation.ViewModels
             ExitCommand = new RelayCommand(_ => Environment.Exit(0));
             ToggleThemeCommand = new RelayCommand(_ => _themeManager.ToggleTheme());
 
-            // Subscribe to messages - MainViewModel only cares about application state and namespace changes
+            // Subscribe to messages
             StrongSubscribe<ApplicationStateMessage>(HandleApplicationStateMessage);
             StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
             StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
             StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
             StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
+            // Subscribe to theme change messages
+            StrongSubscribe<ThemeChangedMessage>(_ => {
+                OnPropertyChanged(nameof(CurrentTheme)); // To update color-picker color on theme change.
+                OnPropertyChanged(nameof(ThemeToggleText)); // To update theme toggle text on theme change.
+            });
 
             // Initialize window position from settings
             _windowPosition = _settingsService.MainWindowPosition;
@@ -130,9 +136,9 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
-        /// Gets the current theme name
+        /// Gets the current theme object
         /// </summary>
-        public string CurrentTheme => _themeManager.CurrentTheme;
+        public Theme CurrentTheme => _themeManager.CurrentThemeObject!;
 
         /// <summary>
         /// Command to exit the application
@@ -225,7 +231,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Gets the text for the theme toggle button
         /// </summary>
-        public string ThemeToggleText => _themeManager.ThemeToggleText;
+        public string ThemeToggleText => _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
 
         /// <summary>
         /// Command to toggle between light and dark theme
@@ -252,24 +258,6 @@ namespace WmiExplorer.Presentation.ViewModels
                 if (SetProperty(ref _operationMode, value))
                 {
                     _wmiService.OperationMode = value; // Propagate to service
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the primary accent color
-        /// </summary>
-        public string PrimaryAccentColor
-        {
-            get => _settingsService.PrimaryAccentColor;
-            set
-            {
-                if (_settingsService.PrimaryAccentColor != value)
-                {
-                    _settingsService.PrimaryAccentColor = value;
-                    _settingsService.SaveSettings();
-                    _themeManager.ApplyTheme(_settingsService.CurrentTheme);
-                    OnPropertyChanged(nameof(PrimaryAccentColor));
                 }
             }
         }

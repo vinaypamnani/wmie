@@ -14,8 +14,6 @@ namespace WmiExplorer.Services
 
         string CurrentTheme { get; set; }
 
-        string PrimaryAccentColor { get; set; }
-
         // Main window position and size as a single property
         MainWindowPosition MainWindowPosition { get; set; }
 

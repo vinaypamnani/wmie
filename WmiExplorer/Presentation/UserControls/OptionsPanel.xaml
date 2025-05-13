@@ -89,7 +89,7 @@
                     ShowRecentColors="True"
                     DisplayColorTooltip="False"
                     DisplayColorAndName="False"
-                    SelectedColor="{Binding PrimaryAccentColor, Mode=TwoWay}"
+                    SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
                     Background="{DynamicResource SecondaryBackgroundBrush}"
                     Foreground="{DynamicResource PrimaryForegroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"

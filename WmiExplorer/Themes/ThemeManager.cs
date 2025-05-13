@@ -1,7 +1,10 @@
 using System.Windows;
 using System.Windows.Media;
 using WmiExplorer.Services;
+using WmiExplorer.Common.Shared;
 using Application = System.Windows.Application;
+using System.IO;
+using System.Text.Json;
 
 namespace WmiExplorer.Themes
 {
@@ -23,17 +26,75 @@ namespace WmiExplorer.Themes
     /// </summary>
     public class ThemeManager
     {
-        private readonly ISettingsService? _settingsService;
-        private string _currentTheme;
-        private string _themeToggleText;
+        private readonly IMessagingService _messagingService;
+        private readonly ISettingsService _settingsService;
+        private string _currentThemeName;
 
-        public ThemeManager(ISettingsService? settingsService = null)
+        private static readonly ThemeCollection Themes = new ThemeCollection
         {
+            ["Dark"] = new Theme("Dark")
+            {
+                ThemeColors = new Dictionary<string, Color>
+                {
+                    ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF181818"),
+                    ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1F1F1F"),
+                    ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1F1F1F"),
+                    ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F0F0"),
+                    ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F0F0"),
+                    ["ReadOnlyForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFB0B0B0"),
+                    ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF0078D4"),                    
+                    ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF5B7EC7"),
+                    ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FF454545"),
+                    ["SuccessColor"] = (Color)ColorConverter.ConvertFromString("#FF36B536"),
+                    ["ErrorColor"] = (Color)ColorConverter.ConvertFromString("#FFEC4D39"),
+                    ["WarningColor"] = (Color)ColorConverter.ConvertFromString("#FFFFC14F"),
+                    ["IndeterminateColor"] = (Color)ColorConverter.ConvertFromString("#FFA0A0A0"),
+                    ["BusyColor"] = (Color)ColorConverter.ConvertFromString("#FFFFB347"),
+                    ["NoFocusColor"] = (Color)ColorConverter.ConvertFromString("#FF2A2A2A")
+                }
+            },
+            ["Light"] = new Theme("Light")
+            {
+                ThemeColors = new Dictionary<string, Color>
+                {
+                    ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFFFFFFF"),
+                    ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF8F9FA"),
+                    ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F1F3"),
+                    ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF202020"),
+                    ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF202020"),
+                    ["ReadOnlyForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFB0B0B0"),
+                    ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF0078D4"),                    
+                    ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF5B87C5"),
+                    ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FFD8D8D8"),
+                    ["SuccessColor"] = (Color)ColorConverter.ConvertFromString("#FF107C10"),
+                    ["ErrorColor"] = (Color)ColorConverter.ConvertFromString("#FFD13438"),
+                    ["WarningColor"] = (Color)ColorConverter.ConvertFromString("#FFFF8C00"),
+                    ["IndeterminateColor"] = (Color)ColorConverter.ConvertFromString("#FF767676"),
+                    ["BusyColor"] = (Color)ColorConverter.ConvertFromString("#FF0063B1"),
+                    ["NoFocusColor"] = (Color)ColorConverter.ConvertFromString("#FFD0D0D0")
+                }
+            }
+        };
+
+        static ThemeManager()
+        {
+            // No need to set ThemeBrushes here; ThemeColors setter handles it
+        }
+
+        public ThemeManager(IMessagingService messagingService, ISettingsService settingsService)
+        {
+            _messagingService = messagingService;
             _settingsService = settingsService;
 
-            // Initialize with default values
-            _currentTheme = _settingsService?.CurrentTheme ?? "Dark";
-            _themeToggleText = _currentTheme == "Dark" ? "🌙 Dark" : "🌞 Light";
+            // Load themes from file (creates file with defaults if missing)
+            LoadThemesFromFile();
+
+            // Load theme name from settings
+            _currentThemeName = _settingsService.CurrentTheme ?? "Dark";
+
+            // Subscribe to color changes for the current theme
+            if (CurrentThemeObject != null)
+                CurrentThemeObject.PropertyChanged += OnThemeColorChanged;
         }
 
         /// <summary>
@@ -44,12 +105,12 @@ namespace WmiExplorer.Themes
         /// <summary>
         /// Gets the current theme name
         /// </summary>
-        public string CurrentTheme => _currentTheme;
+        public string CurrentThemeName => _currentThemeName;
 
         /// <summary>
-        /// Gets the text to display for the theme toggle button
+        /// Gets the current Theme object instance
         /// </summary>
-        public string ThemeToggleText => _themeToggleText;
+        public Theme? CurrentThemeObject => Themes.TryGetValue(_currentThemeName, out var theme) ? theme : null;
 
         /// <summary>
         /// Raises the ThemeChanged event
@@ -64,85 +125,35 @@ namespace WmiExplorer.Themes
         /// </summary>
         public void ApplyTheme(string themeName)
         {
-            if (string.IsNullOrEmpty(themeName) || (themeName != "Dark" && themeName != "Light"))
-            {
-                themeName = "Dark"; // Default to Dark if invalid theme name
-            }
+            if (!Themes.ContainsKey(themeName))
+                themeName = "Dark";
 
-            // Update internal state
-            _currentTheme = themeName;
-            _themeToggleText = _currentTheme == "Dark" ? "🌙 Dark" : "🌞 Light";
+            // Unsubscribe from previous theme color changes
+            if (CurrentThemeObject != null)
+                CurrentThemeObject.PropertyChanged -= OnThemeColorChanged;
 
-            var appResources = Application.Current.Resources.MergedDictionaries;
+            _currentThemeName = themeName;
+            _settingsService.CurrentTheme = themeName;
 
-            // Find existing theme dictionary
-            var existingTheme = appResources.FirstOrDefault(d =>
-                d.Source != null &&
-                ((d.Source.OriginalString.Contains("Colors/Dark.xaml") || d.Source.OriginalString.Contains("Colors/Light.xaml"))));
+            var appResources = Application.Current.Resources;
+            // Remove all theme brushes/colors
+            foreach (var key in Themes[themeName].ThemeColors.Keys)
+                if (appResources.Contains(key)) appResources.Remove(key);
+            foreach (var key in Themes[themeName].ThemeBrushes.Keys)
+                if (appResources.Contains(key)) appResources.Remove(key);
 
-            // Remove existing theme dictionary
-            if (existingTheme != null)
-            {
-                appResources.Remove(existingTheme);
-            }
+            // Add new theme colors
+            foreach (var kvp in Themes[themeName].ThemeColors)
+                appResources[kvp.Key] = kvp.Value;
+            foreach (var kvp in Themes[themeName].ThemeBrushes)
+                appResources[kvp.Key] = kvp.Value;
 
-            // Add new theme dictionary with the correct path to Themes folder
-            var newTheme = new ResourceDictionary
-            {
-                Source = new Uri($"Themes/Colors/{themeName}.xaml", UriKind.Relative)
-            };
-            appResources.Add(newTheme);
+            // Subscribe to new theme color changes
+            if (CurrentThemeObject != null)
+                CurrentThemeObject.PropertyChanged += OnThemeColorChanged;
 
-            // Apply user accent color if set
-            string? userAccent = null;
-            if (_settingsService != null)
-            {
-                var property = _settingsService.GetType().GetProperty("PrimaryAccentColor");
-                if (property != null)
-                {
-                    userAccent = property.GetValue(_settingsService) as string;
-                }
-            }
-            if (!string.IsNullOrWhiteSpace(userAccent))
-            {
-                var color = (Color)ColorConverter.ConvertFromString(userAccent);
-                Application.Current.Resources["PrimaryAccentColor"] = color;
-                // Generate a secondary accent color (darker shade)
-                var secondaryAccent = Color.FromArgb(
-                    color.A,
-                    (byte)(color.R * 0.7),
-                    (byte)(color.G * 0.7),
-                    (byte)(color.B * 0.7));
-                Application.Current.Resources["SecondaryAccentColor"] = secondaryAccent;
-
-                // If transparent, use fallback for selected item brushes
-                bool isTransparent = color.A == 0;
-                Color fallbackSelected = _currentTheme == "Dark"
-                    ? (Color)ColorConverter.ConvertFromString("#FF444444") // dark gray
-                    : (Color)ColorConverter.ConvertFromString("#FFD0D0D0"); // light gray
-                SolidColorBrush selectedBrush = isTransparent ? new SolidColorBrush(fallbackSelected) : new SolidColorBrush(color);
-
-                Application.Current.Resources["PrimaryAccentBrush"] = new SolidColorBrush(color);                
-                Application.Current.Resources["SelectedItemBackgroundBrush"] = selectedBrush;
-                Application.Current.Resources["HoverBackgroundBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
-                Application.Current.Resources["ScrollBarThumbHoverBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
-                Application.Current.Resources["ScrollBarThumbPressedBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
-                Application.Current.Resources["PropertyGridAccentBrush"] = selectedBrush;
-                Application.Current.Resources["PropertyGridSelectedBackgroundBrush"] = selectedBrush;
-                Application.Current.Resources["PropertyGridHoverBackgroundBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
-
-                Application.Current.Resources["SecondaryAccentBrush"] = new SolidColorBrush(secondaryAccent);
-                Application.Current.Resources["ItemPressedBrush"] = new SolidColorBrush(secondaryAccent) { Opacity = 0.5 };
-            }
-
-            // Save theme preference if settings service is available
-            if (_settingsService != null)
-            {
-                _settingsService.CurrentTheme = themeName;
-            }
-
-            // Raise theme changed event
-            OnThemeChanged(new ThemeChangedEventArgs(themeName));
+            // Notify via messaging
+            _messagingService.Publish(new ThemeChangedMessage(themeName));
         }
 
         /// <summary>
@@ -150,17 +161,7 @@ namespace WmiExplorer.Themes
         /// </summary>
         public string GetCurrentThemeFromResources()
         {
-            var appResources = Application.Current.Resources.MergedDictionaries;
-
-            // Check for an existing theme dictionary (either Dark.xaml or Light.xaml)
-            var existingTheme = appResources.FirstOrDefault(d =>
-                d.Source != null &&
-                ((d.Source.OriginalString.Contains("Colors/Dark.xaml") || d.Source.OriginalString.Contains("Colors/Light.xaml"))));
-
-            // If a theme is found, return the theme name (Dark or Light), else return default
-            return existingTheme != null && existingTheme.Source.OriginalString.Contains("Dark.xaml")
-                ? "Dark"
-                : (existingTheme != null ? "Light" : "Dark");
+            return _currentThemeName;
         }
 
         /// <summary>
@@ -171,10 +172,10 @@ namespace WmiExplorer.Themes
             try
             {
                 // Apply the theme from settings
-                ApplyTheme(_currentTheme);
+                ApplyTheme(_currentThemeName);
 
                 // Log initialization
-                System.Diagnostics.Debug.WriteLine($"Theme initialized: {_currentTheme}");
+                System.Diagnostics.Debug.WriteLine($"Theme initialized: {_currentThemeName}");
             }
             catch (Exception ex)
             {
@@ -189,7 +190,94 @@ namespace WmiExplorer.Themes
         /// </summary>
         public void ToggleTheme()
         {
-            ApplyTheme(_currentTheme == "Dark" ? "Light" : "Dark");
+            ApplyTheme(_currentThemeName == "Dark" ? "Light" : "Dark");
+        }
+
+        private static string GetThemesFilePath()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string dir = Path.Combine(appData, "WmiExplorer");
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            return Path.Combine(dir, "themes.json");
+        }
+
+        public static void SaveThemesToFile()
+        {
+            var themesToSave = Themes.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.ThemeColors.ToDictionary(
+                    c => c.Key,
+                    c => c.Value.ToString() // Store as hex string
+                )
+            );
+            string json = JsonSerializer.Serialize(themesToSave, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(GetThemesFilePath(), json);
+        }
+
+        public static void LoadThemesFromFile()
+        {
+            string path = GetThemesFilePath();
+            if (!File.Exists(path))
+            {
+                SaveThemesToFile(); // Save defaults if not present
+                return;
+            }
+            string json = File.ReadAllText(path);
+            Dictionary<string, Dictionary<string, string>>? loaded = null;
+            bool invalid = false;
+            try
+            {
+                loaded = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json);
+                if (loaded == null)
+                    invalid = true;
+            }
+            catch
+            {
+                invalid = true;
+            }
+            if (invalid)
+            {
+                // Backup corrupt file
+                string bakPath = path + ".bak";
+                if (File.Exists(bakPath)) File.Delete(bakPath);
+                File.Move(path, bakPath);
+                // Restore defaults
+                SaveThemesToFile();
+                return;
+            }
+            if (loaded == null) return;
+            foreach (var themeKvp in loaded)
+            {
+                var colorDict = new Dictionary<string, Color>();
+                foreach (var colorKvp in themeKvp.Value)
+                {
+                    colorDict[colorKvp.Key] = (Color)ColorConverter.ConvertFromString(colorKvp.Value);
+                }
+                if (Themes.ContainsKey(themeKvp.Key))
+                {
+                    Themes[themeKvp.Key].ThemeColors = colorDict;
+                }
+                else
+                {
+                    Themes[themeKvp.Key] = new Theme(themeKvp.Key)
+                    {
+                        ThemeColors = colorDict
+                    };
+                }
+            }
+        }
+
+        private void OnThemeColorChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != null && e.PropertyName.StartsWith("Item["))
+            {
+                // Extract color key from property name
+                var key = e.PropertyName.Substring(5, e.PropertyName.Length - 6);
+                var color = CurrentThemeObject?[key].ToString() ?? string.Empty;
+                SaveThemesToFile();
+                ApplyTheme(_currentThemeName); // Refresh theme
+            }
         }
     }
 }
