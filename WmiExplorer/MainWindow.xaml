@@ -139,8 +139,8 @@
                                 <Grid>
                                     <!-- Border around both header and property grid -->
                                     <Border
-                                        BorderBrush="{DynamicResource AccentBrush}"
-                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource PrimaryAccentBrush}"
+                                        BorderThickness="0"
                                         CornerRadius="3">
                                         <Grid>
                                             <Grid.RowDefinitions>
@@ -151,7 +151,7 @@
                                             <!-- Header for selected object -->
                                             <Border
                                                 Grid.Row="0"
-                                                Background="{DynamicResource AccentBrush}"
+                                                Background="{DynamicResource PrimaryAccentBrush}"
                                                 BorderThickness="0"
                                                 Padding="10,5"
                                                 Margin="0">
@@ -159,7 +159,7 @@
                                                     Text="{Binding SelectedObject.ActualObject.Path.RelativePath}"
                                                     FontWeight="SemiBold"
                                                     Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                                    Background="{DynamicResource AccentBrush}"
+                                                    Background="{DynamicResource PrimaryAccentBrush}"
                                                     TextTrimming="CharacterEllipsis" />
                                             </Border>
 

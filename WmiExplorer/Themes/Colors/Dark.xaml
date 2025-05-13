@@ -5,7 +5,7 @@
     <Color x:Key="PrimaryBackgroundColor">#FF1E1E1E</Color>
     <Color x:Key="SecondaryBackgroundColor">#FF252526</Color>
     <Color x:Key="PrimaryForegroundColor">#FFF0F0F0</Color>
-    <Color x:Key="AccentColor">#FF3C8ED0</Color>
+    <Color x:Key="PrimaryAccentColor">#FF1E90FF</Color>
     <Color x:Key="SecondaryAccentColor">#FF5B7EC7</Color>
     <Color x:Key="BorderColor">#FF454545</Color>
     <Color x:Key="NoFocusColor">#FF707070</Color>
@@ -22,20 +22,22 @@
     <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
     <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
     <SolidColorBrush x:Key="PrimaryForegroundBrush" Color="{StaticResource PrimaryForegroundColor}" />
-    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="PrimaryAccentBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource SecondaryAccentColor}" />
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />    
-    <SolidColorBrush x:Key="SelectedItemBackgroundBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+
+    <!-- Variations -->
+    <SolidColorBrush x:Key="SelectedItemBackgroundBrush" Color="{StaticResource PrimaryAccentColor}"/>
     <SolidColorBrush x:Key="SelectedUnfocusedBackgroundBrush" Color="{StaticResource NoFocusColor}" />        
     <SolidColorBrush x:Key="ReadOnlyForegroundBrush" Color="{StaticResource ReadOnlyForegroundColor}" />
-    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="{StaticResource AccentColor}" Opacity="0.50" />
+    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.50" />
     <SolidColorBrush x:Key="ItemPressedBrush" Color="{StaticResource SecondaryAccentColor}" Opacity="0.50" />
 
     <!-- ScrollBar Brushes -->
     <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="{StaticResource SecondaryBackgroundColor}" />
     <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="{StaticResource BorderColor}" />
-    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource AccentColor}" Opacity="0.50" />
-    <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="{StaticResource AccentColor}" />    
+    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.50" />
+    <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="{StaticResource PrimaryAccentColor}" />    
 
     <!-- PropertyGrid Colors (Consolidated, only used brushes) -->
     <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
@@ -43,10 +45,10 @@
     <SolidColorBrush x:Key="PropertyGridSecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
     <SolidColorBrush x:Key="PropertyGridCategoryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
     <SolidColorBrush x:Key="PropertyGridBorderBrush" Color="{StaticResource BorderColor}" />
-    <SolidColorBrush x:Key="PropertyGridAccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="{StaticResource AccentColor}" />        
+    <SolidColorBrush x:Key="PropertyGridAccentBrush" Color="{StaticResource PrimaryAccentColor}" />
+    <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />        
     <SolidColorBrush x:Key="PropertyGridReadOnlyForegroundBrush" Color="{StaticResource ReadOnlyForegroundColor}" />
     <SolidColorBrush x:Key="PropertyGridCaretBrush" Color="{StaticResource PrimaryForegroundColor}" />
-    <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource AccentColor}" Opacity="0.50" />
+    <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.50" />
 
 </ResourceDictionary>

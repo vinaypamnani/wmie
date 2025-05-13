@@ -139,8 +139,8 @@
                             <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource AccentBrush}" />
-                            <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

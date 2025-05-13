@@ -3,7 +3,7 @@
 
     <!--  Button  -->
     <Style TargetType="Button">
-        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="Padding" Value="8,4" />

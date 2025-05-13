@@ -34,7 +34,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="TextBorder"
-                            BorderBrush="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource PrimaryAccentBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Background="{TemplateBinding Background}">
                         <Grid>
