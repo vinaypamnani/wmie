@@ -9,6 +9,7 @@
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
     </Style>
 
     <!--  TabItem  -->

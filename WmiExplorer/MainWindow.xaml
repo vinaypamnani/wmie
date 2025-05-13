@@ -180,7 +180,7 @@
                 </Grid>
             </DockPanel>
         </Grid>
-        <StatusBar Grid.Row="2">
+        <StatusBar Grid.Row="2" Margin="0,5,0,0">
             <StatusBarItem>
                 <TextBlock
                     x:Name="StatusBarText"
