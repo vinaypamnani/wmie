@@ -32,10 +32,30 @@ namespace WmiExplorer.Themes
                 if (!ThemeColors.ContainsKey(key) || ThemeColors[key] != value)
                 {
                     ThemeColors[key] = value;
+                    // Auto-generate SecondaryAccentColor if PrimaryAccentColor is changed
+                    if (key == "PrimaryAccentColor")
+                    {
+                        ThemeColors["SecondaryAccentColor"] = GenerateSecondaryAccentColor(value, ThemeColors);
+                    }
                     RegenerateBrushes();
                     OnPropertyChanged($"Item[{key}]");
                 }
             }
+        }
+
+        // Generates a secondary accent color based on the primary and current theme background
+        private static Color GenerateSecondaryAccentColor(Color primary, Dictionary<string, Color> themeColors)
+        {
+            // Try to get background color for contrast
+            Color bg = themeColors.TryGetValue("PrimaryBackgroundColor", out var b) ? b : Colors.White;
+            // Simple algorithm: blend primary with background (60% primary, 40% bg)
+            byte Blend(byte a, byte b, double t) => (byte)(a * t + b * (1 - t));
+            return Color.FromArgb(
+                255,
+                Blend(primary.R, bg.R, 0.6),
+                Blend(primary.G, bg.G, 0.6),
+                Blend(primary.B, bg.B, 0.6)
+            );
         }
 
         public Theme(string name)
@@ -54,7 +74,7 @@ namespace WmiExplorer.Themes
                 return fallbackColor ?? Colors.Transparent;
             }
 
-            return new Dictionary<string, SolidColorBrush>
+            var brushes = new Dictionary<string, SolidColorBrush>
             {
                 ["SuccessBrush"] = new SolidColorBrush(GetColor("SuccessColor", fallbackColor: Colors.Green)),
                 ["ErrorBrush"] = new SolidColorBrush(GetColor("ErrorColor", fallbackColor: Colors.Red)),
@@ -64,30 +84,35 @@ namespace WmiExplorer.Themes
                 ["PrimaryBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryBackgroundColor", fallbackColor: Colors.White)),
                 ["SecondaryBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
                 ["TertiaryBackgroundBrush"] = new SolidColorBrush(GetColor("TertiaryBackgroundColor", fallbackKey: "SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
+                ["DisabledBackgroundBrush"] = new SolidColorBrush(GetColor("DisabledBackgroundColor", fallbackColor: Colors.LightGray)),
                 ["PrimaryForegroundBrush"] = new SolidColorBrush(GetColor("PrimaryForegroundColor", fallbackColor: Colors.Black)),
-                ["SecondaryForegroundBrush"] = new SolidColorBrush(GetColor("SecondaryForegroundColor", fallbackKey: "PrimaryForegroundColor", fallbackColor: Colors.Black)),
-                ["ReadOnlyForegroundBrush"] = new SolidColorBrush(GetColor("ReadOnlyForegroundColor", fallbackKey: "PrimaryForegroundColor", fallbackColor: Colors.Gray)),
+                ["SecondaryForegroundBrush"] = new SolidColorBrush(GetColor("SecondaryForegroundColor", fallbackKey: "PrimaryForegroundColor", fallbackColor: Colors.Black)),                
+                ["DisabledForegroundBrush"] = new SolidColorBrush(GetColor("DisabledForegroundColor", fallbackColor: Colors.Gray)),
                 ["PrimaryAccentBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),
                 ["SecondaryAccentBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)),
                 ["BorderBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)),
-                ["SelectedItemBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),
-                ["SelectedUnfocusedBackgroundBrush"] = new SolidColorBrush(GetColor("NoFocusColor", fallbackKey: "PrimaryAccentColor", fallbackColor: Colors.LightBlue)),
+                ["SelectedItemBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.7 },
+                ["SelectedUnfocusedBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackKey: "PrimaryAccentColor", fallbackColor: Colors.LightBlue)) { Opacity = 0.3},
                 ["HoverBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.5 },
                 ["ItemPressedBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)) { Opacity = 0.5 },
                 ["ScrollBarTrackBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
                 ["ScrollBarThumbBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)),
                 ["ScrollBarThumbHoverBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.5 },
-                ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),
-                ["PropertyGridBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryBackgroundColor", fallbackColor: Colors.White)),
-                ["PropertyGridForegroundBrush"] = new SolidColorBrush(GetColor("PrimaryForegroundColor", fallbackColor: Colors.Black)),
-                ["PropertyGridSecondaryBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
-                ["PropertyGridCategoryBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
-                ["PropertyGridBorderBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)),
-                ["PropertyGridAccentBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),
-                ["PropertyGridSelectedBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),
-                ["PropertyGridReadOnlyForegroundBrush"] = new SolidColorBrush(GetColor("ReadOnlyForegroundColor", fallbackKey: "PrimaryForegroundColor", fallbackColor: Colors.Gray)),
-                ["PropertyGridHoverBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.5 },
+                ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),                
             };
+
+            // PropertyGrid* brushes are aliases to existing brushes
+            brushes["PropertyGridBackgroundBrush"] = brushes["PrimaryBackgroundBrush"];
+            brushes["PropertyGridForegroundBrush"] = brushes["PrimaryForegroundBrush"];
+            brushes["PropertyGridSecondaryBackgroundBrush"] = brushes["SecondaryBackgroundBrush"];
+            brushes["PropertyGridCategoryBackgroundBrush"] = brushes["SecondaryBackgroundBrush"];
+            brushes["PropertyGridBorderBrush"] = brushes["BorderBrush"];
+            brushes["PropertyGridAccentBrush"] = brushes["PrimaryAccentBrush"];
+            brushes["PropertyGridSelectedBackgroundBrush"] = brushes["SelectedItemBackgroundBrush"];            
+            brushes["PropertyGridDisabledForegroundBrush"] = brushes["DisabledForegroundBrush"];
+            brushes["PropertyGridHoverBackgroundBrush"] = brushes["HoverBackgroundBrush"];
+
+            return brushes;
         }
     }
 

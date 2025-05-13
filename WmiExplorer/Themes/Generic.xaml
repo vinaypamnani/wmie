@@ -84,6 +84,6 @@
     <SolidColorBrush x:Key="PropertyGridBorderBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="PropertyGridAccentBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
-    <SolidColorBrush x:Key="PropertyGridReadOnlyForegroundBrush" Color="{StaticResource ReadOnlyForegroundColor}" />
+    <SolidColorBrush x:Key="PropertyGridDisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.50" />
 </ResourceDictionary>

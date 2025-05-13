@@ -45,7 +45,7 @@
                                        Margin="{TemplateBinding Padding}"
                                        Padding="2,0,0,0"
                                        Text="{TemplateBinding Tag}"
-                                       Foreground="{DynamicResource PropertyGridReadOnlyForegroundBrush}"
+                                       Foreground="{DynamicResource PropertyGridDisabledForegroundBrush}"
                                        VerticalAlignment="Center"
                                        IsHitTestVisible="False"
                                        Visibility="Collapsed" />

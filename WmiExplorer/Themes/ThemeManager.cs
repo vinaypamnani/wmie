@@ -9,19 +9,6 @@ using System.Text.Json;
 namespace WmiExplorer.Themes
 {
     /// <summary>
-    /// Event arguments for theme changes
-    /// </summary>
-    public class ThemeChangedEventArgs : EventArgs
-    {
-        public ThemeChangedEventArgs(string theme)
-        {
-            Theme = theme;
-        }
-
-        public string Theme { get; }
-    }
-
-    /// <summary>
     /// Manager for application themes
     /// </summary>
     public class ThemeManager
@@ -39,9 +26,10 @@ namespace WmiExplorer.Themes
                     ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF181818"),
                     ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1F1F1F"),
                     ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1F1F1F"),
+                    ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F0F0"),
                     ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F0F0"),
                     ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F0F0"),
-                    ["ReadOnlyForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFB0B0B0"),
+                    ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF6D6D6D"),
                     ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF0078D4"),                    
                     ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF5B7EC7"),
                     ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FF454545"),
@@ -60,9 +48,10 @@ namespace WmiExplorer.Themes
                     ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFFFFFFF"),
                     ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF8F9FA"),
                     ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F1F3"),
+                    ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF232323"),
                     ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF202020"),
                     ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF202020"),
-                    ["ReadOnlyForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFB0B0B0"),
+                    ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFB0B0B0"),
                     ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF0078D4"),                    
                     ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF5B87C5"),
                     ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FFD8D8D8"),
@@ -98,11 +87,6 @@ namespace WmiExplorer.Themes
         }
 
         /// <summary>
-        /// Event raised when the theme changes
-        /// </summary>
-        public event EventHandler<ThemeChangedEventArgs>? ThemeChanged;
-
-        /// <summary>
         /// Gets the current theme name
         /// </summary>
         public string CurrentThemeName => _currentThemeName;
@@ -111,14 +95,6 @@ namespace WmiExplorer.Themes
         /// Gets the current Theme object instance
         /// </summary>
         public Theme? CurrentThemeObject => Themes.TryGetValue(_currentThemeName, out var theme) ? theme : null;
-
-        /// <summary>
-        /// Raises the ThemeChanged event
-        /// </summary>
-        protected virtual void OnThemeChanged(ThemeChangedEventArgs e)
-        {
-            ThemeChanged?.Invoke(this, e);
-        }
 
         /// <summary>
         /// Applies the specified theme to the application
@@ -133,18 +109,20 @@ namespace WmiExplorer.Themes
                 CurrentThemeObject.PropertyChanged -= OnThemeColorChanged;
 
             _currentThemeName = themeName;
-            _settingsService.CurrentTheme = themeName;
-
-            var appResources = Application.Current.Resources;
-            // Remove all theme brushes/colors
+            _settingsService.CurrentTheme = themeName;            var appResources = Application.Current.Resources;
+            
+            // Clear existing theme resources
             foreach (var key in Themes[themeName].ThemeColors.Keys)
                 if (appResources.Contains(key)) appResources.Remove(key);
+                
             foreach (var key in Themes[themeName].ThemeBrushes.Keys)
                 if (appResources.Contains(key)) appResources.Remove(key);
 
-            // Add new theme colors
+            // First add all color resources
             foreach (var kvp in Themes[themeName].ThemeColors)
                 appResources[kvp.Key] = kvp.Value;
+                
+            // Then add all brush resources
             foreach (var kvp in Themes[themeName].ThemeBrushes)
                 appResources[kvp.Key] = kvp.Value;
 
@@ -271,10 +249,7 @@ namespace WmiExplorer.Themes
         private void OnThemeColorChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName != null && e.PropertyName.StartsWith("Item["))
-            {
-                // Extract color key from property name
-                var key = e.PropertyName.Substring(5, e.PropertyName.Length - 6);
-                var color = CurrentThemeObject?[key].ToString() ?? string.Empty;
+            {                
                 SaveThemesToFile();
                 ApplyTheme(_currentThemeName); // Refresh theme
             }

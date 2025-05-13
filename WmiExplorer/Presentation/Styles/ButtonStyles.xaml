@@ -20,9 +20,16 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="{DynamicResource SecondaryAccentBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ItemPressedBrush}" />                            
+                            <Setter Property="Background" Value="{DynamicResource ItemPressedBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource ItemPressedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -36,6 +43,45 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="Margin" Value="4" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <DockPanel LastChildFill="True">
+                        <Border x:Name="Border"
+                                Width="16" Height="16"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Margin="0,0,6,0"
+                                VerticalAlignment="Center">
+                            <Ellipse x:Name="RadioDot"
+                                     Width="10" Height="10"
+                                     Fill="{DynamicResource PrimaryForegroundBrush}"
+                                     Visibility="Collapsed"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </DockPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="RadioDot" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!--  CheckBox  -->
@@ -46,34 +92,57 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <DockPanel LastChildFill="True">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <Border x:Name="Border"
+                                Grid.Column="0"
                                 Width="16" Height="16"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="1"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="3"
-                                Margin="0,0,6,0"
-                                VerticalAlignment="Center">
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="1"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left">
                             <Path x:Name="CheckMark"
-                                  Data="M 3 8 L 7 12 L 13 4"
-                                  StrokeThickness="2"
-                                  Stroke="{DynamicResource PrimaryForegroundBrush}"
+                                  Data="M 2 8 L 6 12 L 12 4"
+                                  StrokeThickness="1"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeStartLineCap="Square"
+                                  StrokeEndLineCap="Square"
+                                  StrokeLineJoin="Miter"
                                   Visibility="Collapsed"
-                                  SnapsToDevicePixels="True" />
+                                  SnapsToDevicePixels="True"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
                         </Border>
-                        <ContentPresenter VerticalAlignment="Center" />
-                    </DockPanel>
+                        <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Margin="6,0,0,0" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
                         </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsChecked" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                        </MultiTrigger>
                         <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                             <Setter Property="Opacity" Value="0.5" />
                         </Trigger>
                     </ControlTemplate.Triggers>
