@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Media;
 using WmiExplorer.Services;
 using Application = System.Windows.Application;
 
@@ -91,6 +92,48 @@ namespace WmiExplorer.Themes
                 Source = new Uri($"Themes/Colors/{themeName}.xaml", UriKind.Relative)
             };
             appResources.Add(newTheme);
+
+            // Apply user accent color if set
+            string? userAccent = null;
+            if (_settingsService != null)
+            {
+                var property = _settingsService.GetType().GetProperty("PrimaryAccentColor");
+                if (property != null)
+                {
+                    userAccent = property.GetValue(_settingsService) as string;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(userAccent))
+            {
+                var color = (Color)ColorConverter.ConvertFromString(userAccent);
+                Application.Current.Resources["PrimaryAccentColor"] = color;
+                // Generate a secondary accent color (darker shade)
+                var secondaryAccent = Color.FromArgb(
+                    color.A,
+                    (byte)(color.R * 0.7),
+                    (byte)(color.G * 0.7),
+                    (byte)(color.B * 0.7));
+                Application.Current.Resources["SecondaryAccentColor"] = secondaryAccent;
+
+                // If transparent, use fallback for selected item brushes
+                bool isTransparent = color.A == 0;
+                Color fallbackSelected = _currentTheme == "Dark"
+                    ? (Color)ColorConverter.ConvertFromString("#FF444444") // dark gray
+                    : (Color)ColorConverter.ConvertFromString("#FFD0D0D0"); // light gray
+                SolidColorBrush selectedBrush = isTransparent ? new SolidColorBrush(fallbackSelected) : new SolidColorBrush(color);
+
+                Application.Current.Resources["PrimaryAccentBrush"] = new SolidColorBrush(color);                
+                Application.Current.Resources["SelectedItemBackgroundBrush"] = selectedBrush;
+                Application.Current.Resources["HoverBackgroundBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
+                Application.Current.Resources["ScrollBarThumbHoverBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
+                Application.Current.Resources["ScrollBarThumbPressedBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
+                Application.Current.Resources["PropertyGridAccentBrush"] = selectedBrush;
+                Application.Current.Resources["PropertyGridSelectedBackgroundBrush"] = selectedBrush;
+                Application.Current.Resources["PropertyGridHoverBackgroundBrush"] = isTransparent ? new SolidColorBrush(fallbackSelected) { Opacity = 0.5 } : new SolidColorBrush(color) { Opacity = 0.5 };
+
+                Application.Current.Resources["SecondaryAccentBrush"] = new SolidColorBrush(secondaryAccent);
+                Application.Current.Resources["ItemPressedBrush"] = new SolidColorBrush(secondaryAccent) { Opacity = 0.5 };
+            }
 
             // Save theme preference if settings service is available
             if (_settingsService != null)

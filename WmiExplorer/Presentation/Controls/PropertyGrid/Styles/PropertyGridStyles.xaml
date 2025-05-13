@@ -29,7 +29,7 @@
 
     <!-- TextBoxWithPlaceholder Style -->
     <Style x:Key="PropertyGridTextBoxWithPlaceholder" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-        <Setter Property="CaretBrush" Value="{DynamicResource PropertyGridCaretBrush}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource PropertyGridForegroundBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">

@@ -7,6 +7,7 @@
     xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
     xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
     xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     mc:Ignorable="d"
     d:DesignWidth="800">
 
@@ -20,6 +21,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <GroupBox Grid.Column="0" Header="Computer Name">
             <StackPanel Orientation="Horizontal">
@@ -79,6 +81,24 @@
                     Content="Include Perf Classes"
                     IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}" />
             </Grid>
+        </GroupBox>
+        <GroupBox Grid.Column="3" Header="Accent Color">
+            <StackPanel Orientation="Horizontal">
+                <xctk:ColorPicker 
+                    Width="150" Height="28" Margin="5,0,0,0"
+                    ShowRecentColors="True"
+                    DisplayColorTooltip="False"
+                    DisplayColorAndName="False"
+                    SelectedColor="{Binding PrimaryAccentColor, Mode=TwoWay}"
+                    Background="{DynamicResource SecondaryBackgroundBrush}"
+                    Foreground="{DynamicResource PrimaryForegroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    DropDownBackground="{DynamicResource PrimaryBackgroundBrush}"
+                    HeaderBackground="{DynamicResource SecondaryBackgroundBrush}"
+                    HeaderForeground="{DynamicResource PrimaryForegroundBrush}"
+                    TabBackground="{DynamicResource SecondaryBackgroundBrush}"
+                    TabForeground="{DynamicResource PrimaryForegroundBrush}" />
+            </StackPanel>
         </GroupBox>
     </Grid>
 </UserControl>

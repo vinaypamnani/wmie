@@ -57,7 +57,7 @@
                 <MenuItem Header="Copy" />
                 <MenuItem Header="Paste" />
             </MenuItem>
-            <TextBlock><Hyperlink>Version</Hyperlink></TextBlock>
+            <TextBlock><Hyperlink>Version</Hyperlink></TextBlock>            
             <MenuItem
                 x:Name="ThemeToggle"
                 Margin="10,0"

@@ -257,6 +257,24 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
+        /// Gets or sets the primary accent color
+        /// </summary>
+        public string PrimaryAccentColor
+        {
+            get => _settingsService.PrimaryAccentColor;
+            set
+            {
+                if (_settingsService.PrimaryAccentColor != value)
+                {
+                    _settingsService.PrimaryAccentColor = value;
+                    _settingsService.SaveSettings();
+                    _themeManager.ApplyTheme(_settingsService.CurrentTheme);
+                    OnPropertyChanged(nameof(PrimaryAccentColor));
+                }
+            }
+        }
+
+        /// <summary>
         /// Connects to the specified computer or namespace path
         /// </summary>
         private async Task ConnectAsync()

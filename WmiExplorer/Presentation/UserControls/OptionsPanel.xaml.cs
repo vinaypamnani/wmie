@@ -1,3 +1,9 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using WmiExplorer.Services;
+using WmiExplorer.Themes;
+
 namespace WmiExplorer.Presentation.UserControls
 {
     /// <summary>

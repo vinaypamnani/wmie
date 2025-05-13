@@ -15,6 +15,7 @@ namespace WmiExplorer.Services
 
         private string _currentTheme = "Dark";
         private MainWindowPosition _mainWindowPosition = new MainWindowPosition();
+        private string _primaryAccentColor = "#FF1E90FF";
 
         public SettingsService(IMessagingService messagingService)
         {
@@ -77,6 +78,20 @@ namespace WmiExplorer.Services
                 _mainWindowPosition = value;
                 // Note: We do not automatically save settings here anymore
                 // Settings will be saved explicitly on app exit
+            }
+        }
+
+        // PrimaryAccentColor property
+        public string PrimaryAccentColor
+        {
+            get => _primaryAccentColor;
+            set
+            {
+                if (_primaryAccentColor != value)
+                {
+                    _primaryAccentColor = value;
+                    // Optionally, raise an event if you want to notify listeners
+                }
             }
         }
 
@@ -146,6 +161,11 @@ namespace WmiExplorer.Services
                             Debug.WriteLine($"Error migrating window position settings: {ex.Message}");
                         }
                     }
+
+                    if (settings.TryGetProperty("PrimaryAccentColor", out var primaryAccentColor))
+                    {
+                        _primaryAccentColor = primaryAccentColor.GetString() ?? "#FF1E90FF";
+                    }
                 }
                 else
                 {
@@ -192,7 +212,8 @@ namespace WmiExplorer.Services
                 {
                     ClassTypeFilter = _classTypeFilter,
                     CurrentTheme = _currentTheme,
-                    MainWindowPosition = _mainWindowPosition
+                    MainWindowPosition = _mainWindowPosition,
+                    PrimaryAccentColor = _primaryAccentColor
                 };
 
                 // Create directory if it doesn't exist
