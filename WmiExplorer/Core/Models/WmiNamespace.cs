@@ -1,4 +1,5 @@
-﻿using System.Management;
+﻿using System.ComponentModel;
+using System.Management;
 
 namespace WmiExplorer.Core.Models
 {
@@ -7,12 +8,14 @@ namespace WmiExplorer.Core.Models
     /// </summary>
     public class WmiNamespace
     {
+        private ManagementObject? _actualObject;
+
         /// <summary>
         /// Constructor for a WMI namespace, optionally with ConnectionOptions (root if specified)
         /// </summary>
         public WmiNamespace(ManagementObject? actualObject, string namespacePath, ConnectionOptions? connectionOptions = null)
         {
-            ActualObject = actualObject;
+            _actualObject = actualObject;
             NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
             ConnectionOptions = connectionOptions;
             IsRoot = true;
@@ -23,20 +26,16 @@ namespace WmiExplorer.Core.Models
         /// </summary>
         public WmiNamespace(ManagementObject? actualObject, string namespacePath, WmiNamespace parent)
         {
-            ActualObject = actualObject;
+            _actualObject = actualObject;
             NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
             ConnectionOptions = parent?.ConnectionOptions;
             IsRoot = false;
-        }
-
-        /// <summary>
-        /// The underlying WMI object, if available
-        /// </summary>
-        public ManagementObject? ActualObject { get; }
+        }        
 
         /// <summary>
         /// The path of the namespace (e.g., "root\\cimv2")
         /// </summary>
+        [Category("Namespace")]
         public string NamespacePath { get; }
 
         /// <summary>
@@ -47,11 +46,14 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// Indicates whether this namespace is the root namespace (if ConnectionOptions is specified)
         /// </summary>
+        [Category("WmiExplorer.Internal")]        
+        [Description("Indicates whether this namespace is the root namespace")]
         public bool IsRoot { get; }
 
         /// <summary>
         /// The name of the namespace (last segment after the last backslash)
         /// </summary>
+        [Category("Namespace")]
         public string NamespaceName =>
             string.IsNullOrEmpty(NamespacePath) ? string.Empty :
             NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;

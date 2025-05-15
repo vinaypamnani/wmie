@@ -98,14 +98,16 @@ namespace WmiExplorer.Presentation.ViewModels
             return viewModels;
         }
 
-        public string ClassName => _wmiClass.ClassName;
-        public string ClassPath => _wmiClass.ClassPath;
-        public ManagementBaseObject ActualObject => _wmiClass.ActualObject;
+        public WmiClass WmiClass => _wmiClass;
+
+        public string ClassName => _wmiClass.ClassName;        
+
         public string Description => _wmiClass.Description;
 
         public ICollectionView WmiInstancesView => _wmiInstancesView ?? (_wmiInstancesView = CollectionViewSource.GetDefaultView(Instances));
 
         public ICommand LoadInstancesCommand { get; }
+
         public ICommand CopyRelativePathCommand { get; }
 
         public string QuickFilterInstances
@@ -151,8 +153,9 @@ namespace WmiExplorer.Presentation.ViewModels
 
         private void CopyRelativePath(object? parameter)
         {
-            _applicationService.CopyToClipboard(ClassPath);
-            PublishSuccessState($"Copied path: {ClassPath}");
+            var classPath = _wmiClass.ClassPath.RelativePath;
+            _applicationService.CopyToClipboard(classPath);
+            PublishSuccessState($"Copied path: {classPath}");
         }
 
         private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)

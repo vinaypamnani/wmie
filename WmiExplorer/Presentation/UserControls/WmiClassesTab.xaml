@@ -106,8 +106,18 @@
                                             TextTrimming="CharacterEllipsis"
                                             TextWrapping="NoWrap"
                                             MaxHeight="20"
-                                            ToolTip="{Binding Description}"
-                                            Text="{Binding Description}" />
+                                            Text="{Binding Description}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="ToolTip" Value="{Binding Description}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Description}" Value="">
+                                                            <Setter Property="ToolTip" Value="{x:Null}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>

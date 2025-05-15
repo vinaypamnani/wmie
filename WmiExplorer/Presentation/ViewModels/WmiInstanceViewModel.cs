@@ -21,12 +21,12 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// The underlying ManagementObject for this instance.
         /// </summary>
-        public ManagementObject ActualObject => _wmiInstance.ActualObject;
+        public WmiInstance WmiInstance => _wmiInstance;
 
         /// <summary>
         /// The WMI path for this instance.
         /// </summary>
-        public string NamespacePath => ActualObject.Path.Path;
+        public string NamespacePath => _wmiInstance.Path.Path;
 
         /// <summary>
         /// The display name for this instance.

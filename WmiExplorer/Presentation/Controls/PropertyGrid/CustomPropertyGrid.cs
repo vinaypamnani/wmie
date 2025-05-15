@@ -472,7 +472,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
 
                     foreach (var descriptor in category.OrderBy(p => p.DisplayName))
                     {
-                        var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, IncludeNullValues);
+                        var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, true);
                         categoryItem.Children.Add(propertyItem);
                     }
                 }

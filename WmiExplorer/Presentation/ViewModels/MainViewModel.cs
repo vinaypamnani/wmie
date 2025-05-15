@@ -380,7 +380,7 @@ namespace WmiExplorer.Presentation.ViewModels
             }
 
             // Update the selected object for the property grid
-            SelectedObject = message.NamespaceViewModel;
+            SelectedObject = message.NamespaceViewModel.WmiNamespace;
         }
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace WmiExplorer.Presentation.ViewModels
             SelectedClass = message.ClassViewModel;
 
             // Update the selected object for the property grid
-            SelectedObject = message.ClassViewModel;
+            SelectedObject = message.ClassViewModel.WmiClass;
         }
 
         /// <summary>
@@ -410,7 +410,7 @@ namespace WmiExplorer.Presentation.ViewModels
             SelectedInstance = message.InstanceViewModel;            
 
             // Update the selected object for the property grid
-            SelectedObject = message.InstanceViewModel;
+            SelectedObject = message.InstanceViewModel.WmiInstance;
         }
 
         /// <summary>

@@ -152,7 +152,9 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         public string NamespacePath => _wmiNamespace.NamespacePath;
-        public ManagementObject? ActualObject => _wmiNamespace.ActualObject;
+
+        public WmiNamespace? WmiNamespace => _wmiNamespace;
+        
         public string Name => _wmiNamespace.IsRoot ? _wmiNamespace.NamespacePath : _wmiNamespace.NamespaceName;
 
         public string ComputerName
@@ -520,7 +522,7 @@ namespace WmiExplorer.Presentation.ViewModels
             }
         }
 
-        public override string ToString() => _wmiNamespace.ToString();
+        public override string ToString() => _wmiNamespace.NamespacePath;
 
         protected override void Dispose(bool disposing)
         {

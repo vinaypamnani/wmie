@@ -156,7 +156,7 @@
                                                 Padding="10,5"
                                                 Margin="0">
                                                 <TextBlock
-                                                    Text="{Binding SelectedObject.ActualObject.Path.RelativePath}"
+                                                    Text="{Binding SelectedObject}"
                                                     FontWeight="SemiBold"
                                                     Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                     Background="{DynamicResource PrimaryAccentBrush}"
@@ -170,7 +170,7 @@
                                                 NameColumnWidth="150"
                                                 ShowSearchBox="True"
                                                 EnableVirtualization="True"
-                                                SelectedObject="{Binding SelectedObject.ActualObject, Mode=OneWay}" />
+                                                SelectedObject="{Binding SelectedObject, Mode=OneWay}" />
                                         </Grid>
                                     </Border>
                                 </Grid>
