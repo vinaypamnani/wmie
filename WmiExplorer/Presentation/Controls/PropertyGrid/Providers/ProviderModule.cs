@@ -1,5 +1,5 @@
 using WmiExplorer.Presentation.Controls.PropertyGrid.Abstractions;
-using WmiExplorer.Presentation.Controls.PropertyGrid.Converters;
+using WmiExplorer.Presentation.PropertyTypeProvider;
 
 namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
 {
@@ -10,60 +10,36 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
     /// </summary>
     public static class ProviderModule
     {
-        private static bool _isRegistered = false;
+        private static readonly PropertyTypeProviderRegistry registry = PropertyTypeProviderRegistry.Instance;
 
         /// <summary>
-        /// Registers all WMI-specific providers and converters with the registry.
-        /// This method should be called during application initialization.
+        /// Registers a custom property type provider and optional value converter.
         /// </summary>
-        public static void RegisterBaseWmiProviders()
+        /// <param name="provider">The property type provider to register.</param>
+        /// <param name="converter">Optional value converter to register.</param>
+        public static void RegisterProvider(IPropertyTypeProvider provider, IPropertyValueConverter? converter = null)
         {
-            if (_isRegistered)
-                return;
-
-            try
+            registry.RegisterProvider(provider);
+            if (converter != null)
             {
-                var registry = PropertyTypeProviderRegistry.Instance;
-
-                // Register WMI-specific provider
-                registry.RegisterProvider(new BaseWmiPropertyTypeProvider());
-
-                // Register WMI-specific value converter
-                registry.RegisterConverter(new WmiPropertyValueConverter());
-
-                _isRegistered = true;
-
-                System.Diagnostics.Debug.WriteLine("Base WMI providers and converters registered successfully");
+                registry.RegisterConverter(converter);
             }
-            catch (Exception ex)
+            System.Diagnostics.Debug.WriteLine($"{provider.GetType().Name} registered{(converter != null ? " with converter" : "")}");
+        }
+
+        /// <summary>
+        /// Unregisters a custom property type provider and optional value converter.
+        /// </summary>
+        /// <param name="provider">The property type provider to unregister.</param>
+        /// <param name="converter">Optional value converter to unregister.</param>
+        public static void UnregisterProvider(IPropertyTypeProvider provider, IPropertyValueConverter? converter = null)
+        {
+            registry.UnregisterProvider(provider);
+            if (converter != null)
             {
-                System.Diagnostics.Debug.WriteLine($"Error registering Base WMI providers: {ex.Message}");
-                throw;
+                registry.UnregisterConverter(converter);
             }
-        }
-
-        /// <summary>
-        /// Registers the WmiInstancePropertyTypeProvider for WmiInstance support.
-        /// </summary>
-        public static void RegisterWmiInstanceProvider()
-        {
-            var registry = PropertyTypeProviderRegistry.Instance;
-            // Adjust the namespace if needed
-            registry.RegisterProvider(new WmiExplorer.Presentation.PropertyTypeProvider.WmiInstancePropertyTypeProvider());
-            System.Diagnostics.Debug.WriteLine("WmiInstancePropertyTypeProvider registered");
-        }
-
-        /// <summary>
-        /// Unregisters WMI providers (for testing or cleanup purposes).
-        /// Not typically needed in production code.
-        /// </summary>
-        public static void UnregisterBaseWmiProviders()
-        {
-            _isRegistered = false;
-
-            // In the future, if we implement unregister functionality in the registry,
-            // we would call it here. Currently, the registry doesn't support removing
-            // registered providers.
-        }
+            System.Diagnostics.Debug.WriteLine($"{provider.GetType().Name} unregistered{(converter != null ? " with converter" : "")}");
+        }        
     }
 }

@@ -1,7 +1,7 @@
 using System.Management;
 using WmiExplorer.Presentation.Controls.PropertyGrid.Abstractions;
 
-namespace WmiExplorer.Presentation.Controls.PropertyGrid.Converters
+namespace WmiExplorer.Presentation.PropertyTypeProvider
 {
     /// <summary>
     /// Converter for WMI-specific value formatting and editing.

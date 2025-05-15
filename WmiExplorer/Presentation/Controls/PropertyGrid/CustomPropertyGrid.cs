@@ -1,4 +1,5 @@
 using System.Management;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -327,16 +328,12 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         private static void RegisterDefaultProvidersAndConverters()
         {
             // Register providers with the registry (order matters - more specific first)
-            var registry = PropertyTypeProviderRegistry.Instance;
-
-            // WMI provider is registered first so it takes precedence for WMI types
-            registry.RegisterProvider(new BaseWmiPropertyTypeProvider());
+            var registry = PropertyTypeProviderRegistry.Instance;            
 
             // Default provider handles all other types
             registry.RegisterProvider(new DefaultPropertyTypeProvider());
 
-            // Register value converters (order matters - converters with higher priority are tried first)
-            registry.RegisterConverter(new WmiPropertyValueConverter());
+            // Register value converters (order matters - converters with higher priority are tried first)            
             registry.RegisterConverter(new DefaultPropertyValueConverter());
         }
 
@@ -437,6 +434,19 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 var registry = PropertyTypeProviderRegistry.Instance;
                 var descriptors = registry.GetProperties(SelectedObject);
 
+                // Filter out [Browsable(false)] properties
+                descriptors = descriptors.Where(p =>
+                {
+                    if (p is DefaultPropertyDescriptor rpd)
+                    {
+                        var propInfo = rpd.PropertyInfo;
+                        var browsable = propInfo.GetCustomAttribute<System.ComponentModel.BrowsableAttribute>();
+                        return browsable == null || browsable.Browsable;
+                    }
+                    // For non-reflection descriptors, assume browsable
+                    return true;
+                }).ToList();
+
                 // Filter out properties with null values if IncludeNullValues is false
                 if (!IncludeNullValues)
                 {
@@ -448,15 +458,9 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                     descriptors = descriptors.Where(p => !(p.Name?.StartsWith("__") ?? false)).ToList();
                 }
 
-                var desiredOrder = new List<string> { "Properties", "System Properties", "Class", "Metadata", "Misc", "Errors" };
                 var categoryGroups = descriptors
                     .GroupBy(p => p.Category)
-                    .OrderBy(g =>
-                    {
-                        int idx = desiredOrder.IndexOf(g.Key);
-                        return idx == -1 ? int.MaxValue : idx;
-                    })
-                    .ThenBy(g => g.Key)
+                    .OrderBy(g => g.Key)
                     .ToList();
 
                 var rootItems = new List<PropertyHierarchyItem>();
@@ -466,8 +470,6 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                     string categoryName = string.IsNullOrEmpty(category.Key) ? "Misc" : category.Key;
 
                     var categoryItem = new PropertyCategoryItem(categoryName);
-                    // Expand only the "Properties" category by default
-                    // categoryItem.IsExpanded = categoryName == "Properties";
                     rootItems.Add(categoryItem);
 
                     foreach (var descriptor in category.OrderBy(p => p.DisplayName))

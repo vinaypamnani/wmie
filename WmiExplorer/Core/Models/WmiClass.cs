@@ -36,7 +36,7 @@ namespace WmiExplorer.Core.Models
         [Category("Metadata")]
         public ManagementPath ClassPath => _actualClass.ClassPath;
 
-        [Category("Class")]
+        [Browsable(false)]
         public string Description
         {
             get
@@ -57,7 +57,7 @@ namespace WmiExplorer.Core.Models
         [Category("Class")]
         public List<WmiMethod> Methods { get; }
 
-        [Category("Metadata")]
+        [Category("Qualifiers")]
         public QualifierDataCollection Qualifiers => _actualClass.Qualifiers;
 
         [Category("Metadata")]

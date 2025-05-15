@@ -1,4 +1,5 @@
-﻿using System.Management;
+﻿using System.ComponentModel;
+using System.Management;
 
 namespace WmiExplorer.Core.Models
 {
@@ -8,6 +9,9 @@ namespace WmiExplorer.Core.Models
     public class WmiInstance
     {
         private readonly ManagementObject _actualObject;
+
+        
+        public ManagementObject ActualObject => _actualObject; // needed for PropertyTypeProvider to expose property description
 
         /// <summary>
         /// Constructor that takes required instance information
@@ -20,10 +24,16 @@ namespace WmiExplorer.Core.Models
 
         // Expose ManagementObject properties
         public ManagementPath Path => _actualObject.Path;
+
+        [Category("Properties")]
         public PropertyDataCollection Properties => _actualObject.Properties;
         public PropertyDataCollection SystemProperties => _actualObject.SystemProperties;
+        
+        [Category("Qualifiers")]
         public QualifierDataCollection Qualifiers => _actualObject.Qualifiers;
         public ManagementPath ClassPath => _actualObject.ClassPath;
+        
+        [Category("Metadata")]
         public string ClassName => _actualObject.ClassPath?.ClassName ?? string.Empty;
         public string ScopePath => _actualObject.Scope != null ? _actualObject.Scope.Path?.Path ?? string.Empty : string.Empty;
         public object this[string propertyName] => _actualObject[propertyName];

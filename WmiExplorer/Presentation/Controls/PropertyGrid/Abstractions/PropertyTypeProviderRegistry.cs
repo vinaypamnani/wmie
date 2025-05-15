@@ -144,6 +144,34 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Abstractions
         }
 
         /// <summary>
+        /// Unregisters a property type provider in a thread-safe manner
+        /// </summary>
+        public void UnregisterProvider(IPropertyTypeProvider provider)
+        {
+            if (provider == null)
+                throw new ArgumentNullException(nameof(provider));
+
+            lock (_lockObject)
+            {
+                _providers.Remove(provider);
+            }
+        }
+
+        /// <summary>
+        /// Unregisters a property value converter in a thread-safe manner
+        /// </summary>
+        public void UnregisterConverter(IPropertyValueConverter converter)
+        {
+            if (converter == null)
+                throw new ArgumentNullException(nameof(converter));
+
+            lock (_lockObject)
+            {
+                _converters.Remove(converter);
+            }
+        }
+
+        /// <summary>
         /// A simple fallback provider that returns empty collections
         /// and provides sensible defaults for all required operations.
         /// </summary>

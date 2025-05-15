@@ -132,7 +132,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
                     continue;
 
                 string category = GetPropertyCategory(prop);
-                yield return new ReflectionPropertyDescriptor(prop, obj, category);
+                yield return new DefaultPropertyDescriptor(prop, obj, category);
             }
         }
 
@@ -200,7 +200,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
             }
 
             public string Category { get; }
-            public string Description => $"Item at index {_index}";
+            public string Description => $"Collection Item at index {_index}";
             public string DisplayName { get; }
             public bool IsReadOnly => true;
             public string Name { get; }

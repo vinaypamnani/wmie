@@ -5,6 +5,7 @@ using System.Windows;
 using WmiExplorer.Presentation.Controls.PropertyGrid.Providers;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
+using WmiExplorer.Presentation.PropertyTypeProvider;
 using MessageBox = System.Windows.MessageBox;
 
 namespace WmiExplorer
@@ -88,9 +89,8 @@ namespace WmiExplorer
             var themeManager = ServiceLocator.Instance.Get<ThemeManager>();
             themeManager.InitializeTheme();
 
-            // Register Base WMI providers for PropertyGrid
-            ProviderModule.RegisterBaseWmiProviders();
-            ProviderModule.RegisterWmiInstanceProvider();
+            // Register Base WMI providers for PropertyGrid using the new generic method
+            ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(), new WmiPropertyValueConverter());            
         }
     }
 }

@@ -7,7 +7,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
     /// <summary>
     /// Property descriptor implementation that uses reflection to access standard .NET properties.
     /// </summary>
-    public class ReflectionPropertyDescriptor : IPropertyDescriptor
+    public class DefaultPropertyDescriptor : IPropertyDescriptor
     {
         private readonly string _category;
         private readonly string _description;
@@ -16,9 +16,9 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
         private readonly object _source;
 
         /// <summary>
-        /// Creates a new ReflectionPropertyDescriptor instance.
+        /// Creates a new DefaultPropertyDescriptor instance.
         /// </summary>
-        public ReflectionPropertyDescriptor(PropertyInfo propertyInfo, object source, string category = "Misc")
+        public DefaultPropertyDescriptor(PropertyInfo propertyInfo, object source, string category = "Misc")
         {
             _propertyInfo = propertyInfo ?? throw new ArgumentNullException(nameof(propertyInfo));
             _source = source ?? throw new ArgumentNullException(nameof(source));
@@ -91,6 +91,11 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the underlying PropertyInfo for this property.
+        /// </summary>
+        public PropertyInfo PropertyInfo => _propertyInfo;
 
         /// <summary>
         /// Formats the property description according to the standard format.
