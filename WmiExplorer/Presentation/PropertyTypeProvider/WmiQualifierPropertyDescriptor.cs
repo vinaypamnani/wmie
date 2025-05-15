@@ -22,9 +22,9 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         public string DisplayName => _qualifier.Name;
         public bool IsReadOnly => true;
         public string Name => _qualifier.Name;
-        public Type? PropertyType => Value?.GetType() ?? typeof(object);
+        public Type? PropertyType => typeof(QualifierData); // Mark as expandable
         public object Source => _qualifier;
-        public object? Value => _qualifier.Value;
+        public object? Value => _qualifier; // Return the QualifierData object itself
 
         public bool SetValue(object? value)
         {

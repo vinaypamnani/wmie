@@ -210,6 +210,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                 PropertyData pd when pd.IsArray => true,
                 PropertyDataCollection => true,
                 QualifierDataCollection => true,
+                QualifierData => true, 
                 ManagementBaseObject => true,
                 ICollection => true,  // Handle any ICollection implementation
                 _ => false
