@@ -33,13 +33,13 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         /// <summary>
         /// Creates a property descriptor for PropertyData
         /// </summary>
-        private IPropertyDescriptor CreatePropertyDataDescriptor(PropertyData property, string category, object? source)
+        private IPropertyDescriptor CreatePropertyDataDescriptor(PropertyData property, string category, object? source, bool allowExpansion = false)
         {
             // Use the ActualObject property of WmiInstance if available, otherwise fallback to dummy
             var wmiSource = (source is WmiInstance wmiInstance)
                 ? (wmiInstance.ActualObject ?? new ManagementClass())
                 : (source as ManagementBaseObject ?? new ManagementClass());
-            return new WmiPropertyDescriptor(property, wmiSource);
+            return new WmiPropertyDescriptor(property, wmiSource, allowExpansion);
         }
 
         /// <summary>
@@ -124,7 +124,8 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             foreach (var prop in GetTypeProperties(obj))
             {
                 var category = GetCategoryOrDefault(prop);
-                // Special handling for PropertyDataCollection: only for WmiInstance
+
+                // Special handling for PropertyDataCollection: we want Properties to be exposed on top-level only for WmiInstance
                 if (obj is WmiInstance && typeof(PropertyDataCollection).IsAssignableFrom(prop.PropertyType))
                 {
                     var propertyDataCollection = prop.GetValue(obj) as PropertyDataCollection;
@@ -136,7 +137,8 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                         continue;
                     }
                 }
-                // Special handling for QualifierDataCollection: for WmiInstance and WmiClass
+
+                // Special handling for QualifierDataCollection: we want Qualifiers to be exposed on top-level for WmiInstance and WmiClass
                 if ((obj is WmiInstance || obj is WmiClass) && typeof(QualifierDataCollection).IsAssignableFrom(prop.PropertyType))
                 {
                     var qualifierDataCollection = prop.GetValue(obj) as QualifierDataCollection;
@@ -179,7 +181,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             if (value is PropertyDataCollection propertyCollection)
             {
                 var category = propertyCollection.GetType().Name;
-                foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, category, (property, cat) => CreatePropertyDataDescriptor(property, cat, value)))
+                foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, category, (property, cat) => CreatePropertyDataDescriptor(property, cat, value, true)))
                     yield return desc;
                 yield break;
             }
@@ -211,6 +213,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                 PropertyDataCollection => true,
                 QualifierDataCollection => true,
                 QualifierData => true, 
+                PropertyData => true,
                 ManagementBaseObject => true,
                 ICollection => true,  // Handle any ICollection implementation
                 _ => false

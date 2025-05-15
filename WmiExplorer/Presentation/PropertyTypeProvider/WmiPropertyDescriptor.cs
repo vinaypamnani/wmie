@@ -12,14 +12,16 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         private readonly bool _isReadOnly;
         private readonly PropertyData _propertyData;
         private readonly ManagementBaseObject _source;
+        private readonly bool _allowExpansion;
 
         /// <summary>
         /// Creates a new WmiPropertyDescriptor instance.
         /// </summary>
-        public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source)
+        public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, bool allowExpansion = false)
         {
             _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
             _source = source; // Allow null source for system properties
+            _allowExpansion = allowExpansion;
 
             // Determine if this is a system property or regular property
             Category = propertyData.Origin?.StartsWith("___") == true ? "System Properties" : "Properties";
@@ -60,9 +62,9 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         public string Name => _propertyData.Name;
 
         /// <summary>
-        /// Gets the type of the property based on CIM type.
+        /// Gets the type of the property based on CIM type. Allows expansion if _allowExpansion is true (for WmiClass).
         /// </summary>
-        public Type PropertyType => GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
+        public Type PropertyType => _allowExpansion ? typeof(PropertyData) : GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
 
         /// <summary>
         /// Gets the source object containing this property.
@@ -70,9 +72,9 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         public object Source => _source;
 
         /// <summary>
-        /// Gets the value of the property.
+        /// Gets the value of the property. Allows expansion if _allowExpansion is true (for WmiClass).
         /// </summary>
-        public object Value => _propertyData.Value;
+        public object Value => _allowExpansion ? _propertyData : _propertyData.Value;
 
         /// <summary>
         /// Gets property description from the class definition using UseAmendedQualifiers
