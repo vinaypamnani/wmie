@@ -8,7 +8,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
     /// <summary>
     /// Property provider that handles WMI-specific types like ManagementBaseObject and related WMI classes.
     /// </summary>
-    public class WmiPropertyTypeProvider : IPropertyTypeProvider
+    public class BaseWmiPropertyTypeProvider : IPropertyTypeProvider
     {
         private const int MaxRecursionDepth = 10;
 
@@ -107,7 +107,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
         {
             // Create a dummy ManagementBaseObject to avoid null reference warnings
             var dummySource = new ManagementClass();
-            return new WmiPropertyDescriptor(property, dummySource);
+            return new BaseWmiPropertyDescriptor(property, dummySource);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
         {
             // Create a dummy ManagementBaseObject to avoid null reference warnings
             var dummySource = new ManagementClass();
-            var descriptor = new WmiPropertyDescriptor(property, dummySource)
+            var descriptor = new BaseWmiPropertyDescriptor(property, dummySource)
             {
                 Category = "System Properties"
             };
@@ -233,7 +233,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
             {
                 foreach (PropertyData property in mbo.Properties)
                 {
-                    yield return new WmiPropertyDescriptor(property, mbo);
+                    yield return new BaseWmiPropertyDescriptor(property, mbo);
                 }
             }
 
@@ -242,7 +242,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
             {
                 foreach (PropertyData property in mbo.SystemProperties)
                 {
-                    yield return new WmiPropertyDescriptor(property, mbo)
+                    yield return new BaseWmiPropertyDescriptor(property, mbo)
                     {
                         Category = "System Properties"
                     };
@@ -295,7 +295,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
         /// </summary>
         private void LogError(string message)
         {
-            System.Diagnostics.Debug.WriteLine($"WmiPropertyTypeProvider Error: {message}");
+            System.Diagnostics.Debug.WriteLine($"BaseWmiPropertyTypeProvider Error: {message}");
         }
 
         /// <summary>

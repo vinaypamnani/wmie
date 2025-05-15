@@ -6,7 +6,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
     /// <summary>
     /// Property descriptor implementation that handles WMI-specific properties from ManagementBaseObject.
     /// </summary>
-    public class WmiPropertyDescriptor : IPropertyDescriptor
+    public class BaseWmiPropertyDescriptor : IPropertyDescriptor
     {
         private readonly bool _isKey;
         private readonly bool _isReadOnly;
@@ -14,9 +14,9 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid.Providers
         private readonly ManagementBaseObject _source;
 
         /// <summary>
-        /// Creates a new WmiPropertyDescriptor instance.
+        /// Creates a new BaseWmiPropertyDescriptor instance.
         /// </summary>
-        public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source)
+        public BaseWmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source)
         {
             _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
             _source = source; // Allow null source for system properties

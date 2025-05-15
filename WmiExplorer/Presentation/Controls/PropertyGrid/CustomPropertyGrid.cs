@@ -330,7 +330,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
             var registry = PropertyTypeProviderRegistry.Instance;
 
             // WMI provider is registered first so it takes precedence for WMI types
-            registry.RegisterProvider(new WmiPropertyTypeProvider());
+            registry.RegisterProvider(new BaseWmiPropertyTypeProvider());
 
             // Default provider handles all other types
             registry.RegisterProvider(new DefaultPropertyTypeProvider());
