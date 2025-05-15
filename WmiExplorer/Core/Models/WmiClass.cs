@@ -54,7 +54,7 @@ namespace WmiExplorer.Core.Models
             }
         }
 
-        [Category("Class")]
+        [Category("Methods")]
         public List<WmiMethod> Methods { get; }
 
         [Category("Qualifiers")]

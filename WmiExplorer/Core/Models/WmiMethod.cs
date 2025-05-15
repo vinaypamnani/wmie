@@ -25,6 +25,6 @@ namespace WmiExplorer.Core.Models
 
         public string Description => _methodData.Qualifiers?["Description"]?.Value?.ToString() ?? string.Empty;
 
-        public override string ToString() => Name;
+        public override string ToString() => $"InParameters: {InParameters.Count}, OutParameters: {OutParameters.Count}, Origin: {Origin}";
     }
 }

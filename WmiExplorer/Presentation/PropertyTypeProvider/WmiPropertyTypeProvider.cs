@@ -144,12 +144,28 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                     var qualifierDataCollection = prop.GetValue(obj) as QualifierDataCollection;
                     if (qualifierDataCollection != null)
                     {
-                        foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierDataCollection, category, (qualifier, cat) => CreateQualifierDescriptor(qualifier, cat)))
+                        foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierDataCollection, category, CreateQualifierDescriptor))
                             yield return desc;
                         yieldedSpecial = true;
                         continue;
                     }
                 }
+
+                // Special handling for Methods: expose as top-level for WmiClass
+                if (obj is WmiClass && typeof(List<WmiMethod>).IsAssignableFrom(prop.PropertyType))
+                {
+                    var methods = prop.GetValue(obj) as List<WmiMethod>;
+                    if (methods != null)
+                    {                        
+                        foreach (var method in methods)
+                        {
+                            yield return new WmiMethodPropertyDescriptor(method, category);
+                        }
+                        yieldedSpecial = true;
+                        continue;
+                    }
+                }
+
                 yield return new DefaultPropertyDescriptor(prop, obj, category);
             }
             
@@ -211,9 +227,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             {
                 PropertyData pd when pd.IsArray => true,
                 PropertyDataCollection => true,
-                QualifierDataCollection => true,
-                QualifierData => true, 
-                PropertyData => true,
+                QualifierDataCollection => true,                
                 ManagementBaseObject => true,
                 ICollection => true,  // Handle any ICollection implementation
                 _ => false
