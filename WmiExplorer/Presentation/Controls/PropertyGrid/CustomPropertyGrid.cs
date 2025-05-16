@@ -42,7 +42,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 nameof(HelpPaneHeight),
                 typeof(double),
                 typeof(CustomPropertyGrid),
-                new PropertyMetadata(60.0));
+                new PropertyMetadata(90.0));
 
         /// <summary>
         /// Whether to include properties with null values in the property grid.
