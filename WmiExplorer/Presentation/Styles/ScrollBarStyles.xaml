@@ -4,7 +4,8 @@
     <!-- Modern ScrollBar Styles that match the application's theme -->
 
     <!-- Thumb Style - The draggable part of the scrollbar -->
-    <Style x:Key="ModernScrollBarThumbStyle" TargetType="{x:Type Thumb}">
+    <Style x:Key="ModernScrollBarThumbStyle"
+            TargetType="{x:Type Thumb}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Thumb}">
@@ -12,14 +13,20 @@
                         <Border x:Name="ThumbBorder"
                                 CornerRadius="3"
                                 Background="{DynamicResource ScrollBarThumbBrush}"
-                                BorderThickness="0" />
+                                BorderThickness="0"/>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource ScrollBarThumbHoverBrush}" />
+                        <Trigger Property="IsMouseOver"
+                                Value="true">
+                            <Setter TargetName="ThumbBorder"
+                                    Property="Background"
+                                    Value="{DynamicResource ScrollBarThumbHoverBrush}"/>
                         </Trigger>
-                        <Trigger Property="IsDragging" Value="true">
-                            <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource ScrollBarThumbPressedBrush}" />
+                        <Trigger Property="IsDragging"
+                                Value="true">
+                            <Setter TargetName="ThumbBorder"
+                                    Property="Background"
+                                    Value="{DynamicResource ScrollBarThumbPressedBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -28,28 +35,40 @@
     </Style>
 
     <!-- RepeatButton Style for page buttons -->
-    <Style x:Key="ModernScrollBarPageButtonStyle" TargetType="{x:Type RepeatButton}">
-        <Setter Property="OverridesDefaultStyle" Value="true" />
-        <Setter Property="Background" Value="Transparent" />
+    <Style x:Key="ModernScrollBarPageButtonStyle"
+            TargetType="{x:Type RepeatButton}">
+        <Setter Property="OverridesDefaultStyle"
+                Value="true"/>
+        <Setter Property="Background"
+                Value="Transparent"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type RepeatButton}">
-                    <Border Background="{TemplateBinding Background}" />
+                    <Border Background="{TemplateBinding Background}"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
     <!-- Main ScrollBar Style -->
-    <Style x:Key="ModernScrollBarStyle" TargetType="{x:Type ScrollBar}">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="MinWidth" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource ScrollBarTrackBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource ScrollBarThumbBrush}" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false" />
-        <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
+    <Style x:Key="ModernScrollBarStyle"
+            TargetType="{x:Type ScrollBar}">
+        <Setter Property="Width"
+                Value="8"/>
+        <Setter Property="MinWidth"
+                Value="8"/>
+        <Setter Property="Background"
+                Value="{DynamicResource ScrollBarTrackBrush}"/>
+        <Setter Property="Foreground"
+                Value="{DynamicResource ScrollBarThumbBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="Transparent"/>
+        <Setter Property="BorderThickness"
+                Value="0"/>
+        <Setter Property="Stylus.IsPressAndHoldEnabled"
+                Value="false"/>
+        <Setter Property="Stylus.IsFlicksEnabled"
+                Value="false"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ScrollBar}">
@@ -63,14 +82,14 @@
                                Margin="0">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"
-                                              Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                              Style="{StaticResource ModernScrollBarPageButtonStyle}"/>
                             </Track.DecreaseRepeatButton>
                             <Track.IncreaseRepeatButton>
                                 <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"
-                                              Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                              Style="{StaticResource ModernScrollBarPageButtonStyle}"/>
                             </Track.IncreaseRepeatButton>
                             <Track.Thumb>
-                                <Thumb Style="{StaticResource ModernScrollBarThumbStyle}" />
+                                <Thumb Style="{StaticResource ModernScrollBarThumbStyle}"/>
                             </Track.Thumb>
                         </Track>
                     </Border>
@@ -78,10 +97,14 @@
             </Setter.Value>
         </Setter>
         <Style.Triggers>
-            <Trigger Property="Orientation" Value="Horizontal">
-                <Setter Property="Width" Value="Auto" />
-                <Setter Property="Height" Value="8" />
-                <Setter Property="MinHeight" Value="8" />
+            <Trigger Property="Orientation"
+                    Value="Horizontal">
+                <Setter Property="Width"
+                        Value="Auto"/>
+                <Setter Property="Height"
+                        Value="8"/>
+                <Setter Property="MinHeight"
+                        Value="8"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ScrollBar}">
@@ -94,14 +117,14 @@
                                        Margin="0">
                                     <Track.DecreaseRepeatButton>
                                         <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}"
-                                                      Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                                      Style="{StaticResource ModernScrollBarPageButtonStyle}"/>
                                     </Track.DecreaseRepeatButton>
                                     <Track.IncreaseRepeatButton>
                                         <RepeatButton Command="{x:Static ScrollBar.PageRightCommand}"
-                                                      Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                                      Style="{StaticResource ModernScrollBarPageButtonStyle}"/>
                                     </Track.IncreaseRepeatButton>
                                     <Track.Thumb>
-                                        <Thumb Style="{StaticResource ModernScrollBarThumbStyle}" />
+                                        <Thumb Style="{StaticResource ModernScrollBarThumbStyle}"/>
                                     </Track.Thumb>
                                 </Track>
                             </Border>
@@ -113,26 +136,27 @@
     </Style>
 
     <!-- ScrollViewer Style -->
-    <Style x:Key="ModernScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
+    <Style x:Key="ModernScrollViewerStyle"
+            TargetType="{x:Type ScrollViewer}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ScrollViewer}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <ScrollContentPresenter Grid.Column="0"
-                                               Grid.Row="0"
-                                               Margin="{TemplateBinding Padding}"
-                                               Content="{TemplateBinding Content}"
-                                               ContentTemplate="{TemplateBinding ContentTemplate}"
-                                               CanContentScroll="{TemplateBinding CanContentScroll}" />
+                                                Grid.Row="0"
+                                                Margin="{TemplateBinding Padding}"
+                                                Content="{TemplateBinding Content}"
+                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                CanContentScroll="{TemplateBinding CanContentScroll}"/>
 
                         <ScrollBar x:Name="PART_VerticalScrollBar"
                                    Grid.Column="1"
@@ -142,7 +166,7 @@
                                    Maximum="{TemplateBinding ScrollableHeight}"
                                    ViewportSize="{TemplateBinding ViewportHeight}"
                                    Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
-                                   Style="{StaticResource ModernScrollBarStyle}" />
+                                   Style="{StaticResource ModernScrollBarStyle}"/>
 
                         <ScrollBar x:Name="PART_HorizontalScrollBar"
                                    Grid.Column="0"
@@ -153,7 +177,7 @@
                                    Maximum="{TemplateBinding ScrollableWidth}"
                                    ViewportSize="{TemplateBinding ViewportWidth}"
                                    Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
-                                   Style="{StaticResource ModernScrollBarStyle}" />
+                                   Style="{StaticResource ModernScrollBarStyle}"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -161,5 +185,16 @@
     </Style>
 
     <!-- Apply the modern style to all ScrollViewers in the application -->
-    <Style TargetType="{x:Type ScrollViewer}" BasedOn="{StaticResource ModernScrollViewerStyle}" />
+    <Style TargetType="{x:Type ScrollViewer}"
+            BasedOn="{StaticResource ModernScrollViewerStyle}">
+        <Setter Property="PanningMode"
+                Value="Both"/>
+        <Setter Property="IsTabStop"
+                Value="False"/>
+        <Setter Property="HorizontalScrollBarVisibility"
+                Value="Auto"/>
+        <Setter Property="VerticalScrollBarVisibility"
+                Value="Auto"/>
+    </Style>
+
 </ResourceDictionary>

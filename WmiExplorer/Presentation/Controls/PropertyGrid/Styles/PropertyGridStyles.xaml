@@ -74,11 +74,7 @@
     <!-- ================================================================ -->
 
     <!-- Overlay style for scrollbars used in property grid -->
-    <Style x:Key="OverlayScrollBarStyle" TargetType="ScrollBar">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Opacity" Value="0.6" />
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
+    <Style x:Key="OverlayScrollBarStyle" TargetType="ScrollBar">        
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
@@ -127,17 +123,5 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
-
-    <!-- Style for ScrollViewer in CustomPropertyGrid to handle mouse wheel scrolling properly -->
-    <Style x:Key="PropertyGridScrollViewerStyle"
-            TargetType="{x:Type ScrollViewer}"
-            BasedOn="{StaticResource ModernScrollViewerStyle}">
-        <Setter Property="PanningMode"
-                Value="Both" />
-        <Setter Property="IsTabStop"
-                Value="False" />
-        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
-        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
     </Style>
 </ResourceDictionary>

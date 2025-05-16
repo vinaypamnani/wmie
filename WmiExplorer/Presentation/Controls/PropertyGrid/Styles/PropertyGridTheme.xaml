@@ -219,8 +219,7 @@
 
                     <!-- TreeView Mode -->
                     <ScrollViewer x:Name="PART_TreeScrollViewer"
-                                  Grid.Row="1"
-                                  Style="{StaticResource PropertyGridScrollViewerStyle}"
+                                  Grid.Row="1"                                  
                                   VerticalScrollBarVisibility="Auto"
                                   Visibility="Visible">
                         <TreeView x:Name="PART_PropertiesTree"
