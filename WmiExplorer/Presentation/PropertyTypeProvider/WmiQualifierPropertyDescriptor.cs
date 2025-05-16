@@ -10,21 +10,35 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
     {
         private readonly string _category;
         private readonly QualifierData _qualifier;
+        private readonly string? _providerClsid;
 
-        public WmiQualifierPropertyDescriptor(QualifierData qualifier, string category)
+        public WmiQualifierPropertyDescriptor(QualifierData qualifier, string category, string? providerClsid = null)
         {
             _qualifier = qualifier;
             _category = category;
+            _providerClsid = providerClsid;
         }
 
         public string Category => _category;
-        public string Description => _qualifier.Value != null ? $"Type: {_qualifier.Value.GetType().Name}" : string.Empty;
+        public string Description
+        {
+            get
+            {
+                var desc = _qualifier.Value != null ? $"Type: {_qualifier.Value.GetType().Name}" : string.Empty;
+                if (_providerClsid != null)
+                {
+                    desc += $"; CLSID from __Win32Provider: {_providerClsid}";
+                }
+                return desc;
+            }
+        }
         public string DisplayName => _qualifier.Name;
         public bool IsReadOnly => true;
         public string Name => _qualifier.Name;
         public Type? PropertyType => typeof(QualifierData); // Mark as expandable
         public object Source => _qualifier;
         public object? Value => _qualifier; // Return the QualifierData object itself
+        public string? ProviderClsid => _providerClsid;
 
         public bool SetValue(object? value)
         {

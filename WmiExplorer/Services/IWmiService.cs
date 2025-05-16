@@ -52,5 +52,10 @@ namespace WmiExplorer.Services
         /// Gets or sets the operation mode for WMI service
         /// </summary>
         WmiOperationMode OperationMode { get; set; }
+
+        /// <summary>
+        /// Gets the CLSID for a WMI provider by name (synchronous, returns null if not found or error)
+        /// </summary>
+        string? GetProviderClsid(ManagementScope scope, string providerName);
     }
 }

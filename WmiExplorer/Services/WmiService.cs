@@ -16,6 +16,9 @@ namespace WmiExplorer.Services
 
         public WmiOperationMode OperationMode { get; set; } = WmiOperationMode.Asynchronous;
 
+        // Cache for provider CLSIDs to avoid repeated WMI queries
+        private readonly Dictionary<string, string?> _providerClsidCache = new();
+
         /// <summary>
         /// Finalizer to ensure resources are cleaned up
         /// </summary>
@@ -308,6 +311,52 @@ namespace WmiExplorer.Services
                 System.Diagnostics.Debug.WriteLine($"Error creating root namespace: {ex.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Gets the CLSID for a WMI provider by name (synchronous, returns null if not found or error)
+        /// </summary>
+        public string? GetProviderClsid(ManagementScope scope, string providerName)
+        {
+            if (string.IsNullOrWhiteSpace(providerName))
+                return null;
+
+            if (scope == null)
+                throw new ArgumentNullException(nameof(scope));
+
+            var cacheKey = providerName.Trim();
+            // If cache is populated, only use cache
+            if (_providerClsidCache.Count > 0)
+            {
+                return _providerClsidCache.TryGetValue(cacheKey, out var cachedClsid) ? cachedClsid : null;
+            }
+
+            // Populate cache with all provider CLSIDs on first run
+            try
+            {
+                var server = scope.Path?.Server;
+                var options = scope.Options;
+                var rootDefaultPath = !string.IsNullOrWhiteSpace(server)
+                    ? $"\\\\{server}\\root\\default"
+                    : "\\.\\root\\default";
+                var rootDefaultScope = CreateManagementScope(rootDefaultPath, options);
+                var query = new ObjectQuery("SELECT Name, CLSID FROM __Win32Provider");
+                using var searcher = new ManagementObjectSearcher(rootDefaultScope, query);
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    var name = obj["Name"]?.ToString();
+                    var clsid = obj["CLSID"]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(name) && !_providerClsidCache.ContainsKey(name))
+                        _providerClsidCache[name] = clsid;
+                }
+                // After populating, return from cache
+                return _providerClsidCache.TryGetValue(cacheKey, out var result) ? result : null;
+            }
+            catch
+            {
+                // Ignore errors, return null
+            }
+            return null;
         }
     }
 }

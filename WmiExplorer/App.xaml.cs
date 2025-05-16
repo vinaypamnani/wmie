@@ -90,7 +90,8 @@ namespace WmiExplorer
             themeManager.InitializeTheme();
 
             // Register Base WMI providers for PropertyGrid using the new generic method
-            ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(), new WmiPropertyValueConverter());            
+            var wmiService = ServiceLocator.Instance.Get<IWmiService>();
+            ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());            
         }
     }
 }

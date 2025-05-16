@@ -4,6 +4,7 @@ using System.Reflection;
 using WmiExplorer.Presentation.Controls.PropertyGrid.Abstractions;
 using WmiExplorer.Presentation.Controls.PropertyGrid.Providers;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.PropertyTypeProvider
 {
@@ -12,6 +13,13 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
     /// </summary>
     public class WmiPropertyTypeProvider : IPropertyTypeProvider
     {
+        private readonly IWmiService? _wmiService;
+
+        public WmiPropertyTypeProvider(IWmiService? wmiService = null)
+        {
+            _wmiService = wmiService;
+        }
+
         /// <summary>
         /// Gets properties using reflection for regular .NET objects
         /// </summary>
@@ -45,9 +53,16 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         /// <summary>
         /// Creates a property descriptor for QualifierData
         /// </summary>
-        private IPropertyDescriptor CreateQualifierDescriptor(QualifierData qualifier, string category)
+        private IPropertyDescriptor CreateQualifierDescriptor(QualifierData qualifier, string category, object? source = null)
         {
-            return new WmiQualifierPropertyDescriptor(qualifier, category);
+            string? providerClsid = null;
+            if (_wmiService != null && string.Equals(qualifier.Name, "provider", StringComparison.OrdinalIgnoreCase) && qualifier.Value is string providerName)
+            {
+                var scope = GetManagementScopeFromSource(source);
+                if (scope != null)
+                    providerClsid = _wmiService.GetProviderClsid(scope, providerName);
+            }
+            return new WmiQualifierPropertyDescriptor(qualifier, category, providerClsid);
         }
 
         /// <summary>
@@ -145,7 +160,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                     var qualifierDataCollection = prop.GetValue(obj) as QualifierDataCollection;
                     if (qualifierDataCollection != null)
                     {
-                        foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierDataCollection, category, CreateQualifierDescriptor))
+                        foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierDataCollection, category, (qualifier, cat) => CreateQualifierDescriptor(qualifier, cat, obj)))
                             yield return desc;
                         yieldedSpecial = true;
                         continue;
@@ -181,7 +196,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             if (!yieldedSpecial && obj is QualifierDataCollection qualifierCollection)
             {
                 var category = qualifierCollection.GetType().Name;
-                foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, category, (qualifier, cat) => CreateQualifierDescriptor(qualifier, cat)))
+                foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, category, (qualifier, cat) => CreateQualifierDescriptor(qualifier, cat, source)))
                     yield return desc;
             }
         }
@@ -204,7 +219,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
 
             if (value is QualifierDataCollection qualifierCollection)
             {
-                foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, string.Empty, (qualifier, cat) => CreateQualifierDescriptor(qualifier, string.Empty)))
+                foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, string.Empty, (qualifier, cat) => CreateQualifierDescriptor(qualifier, string.Empty, value)))
                     yield return desc;
                 yield break;
             }
@@ -249,6 +264,40 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                 ICollection => true,  // Handle any ICollection implementation
                 _ => false
             };
+        }
+
+        /// <summary>
+        /// Helper to extract ConnectionOptions from various WMI-related source objects
+        /// </summary>
+        private static ConnectionOptions? GetConnectionOptionsFromSource(object? source)
+        {
+            if (source is ManagementObject mo && mo.Scope != null)
+                return mo.Scope.Options;
+            if (source is ManagementClass mc && mc.Scope != null)
+                return mc.Scope.Options;
+            if (source is WmiClass wmiClass && wmiClass.Scope != null)
+                return wmiClass.Scope.Options;
+            if (source is WmiInstance wmiInstance && wmiInstance.Scope != null)
+                return wmiInstance.Scope.Options;
+            if (source is WmiNamespace wmiNamespace && wmiNamespace.ConnectionOptions != null)
+                return wmiNamespace.ConnectionOptions;
+            return null;
+        }
+
+        /// <summary>
+        /// Helper to extract ManagementScope from various WMI-related source objects
+        /// </summary>
+        private static ManagementScope? GetManagementScopeFromSource(object? source)
+        {
+            if (source is ManagementObject mo && mo.Scope != null)
+                return mo.Scope;
+            if (source is ManagementClass mc && mc.Scope != null)
+                return mc.Scope;
+            if (source is WmiClass wmiClass && wmiClass.Scope != null)
+                return wmiClass.Scope;
+            if (source is WmiInstance wmiInstance && wmiInstance.Scope != null)
+                return wmiInstance.Scope;
+            return null;
         }
     }
 }
