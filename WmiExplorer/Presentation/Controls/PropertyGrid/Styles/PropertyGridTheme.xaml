@@ -264,15 +264,21 @@
                         Visibility="{Binding ShowHelpPane, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
-                        <TextBlock Margin="8"
-                                   Padding="0"
-                                   TextWrapping="Wrap"
-                                   VerticalAlignment="Top"
-                                   Foreground="{DynamicResource PropertyGridForegroundBrush}">
-                            <Run Text="{Binding SelectedHierarchyItem.DisplayName, RelativeSource={RelativeSource TemplatedParent}}" FontWeight="Bold" />
-                            <LineBreak />
-                            <Run Text="{Binding SelectedHierarchyItem.Description, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue='Select a property to view its description.'}" />
-                        </TextBlock>
+                        <StackPanel Margin="8" VerticalAlignment="Top">
+                            <TextBlock
+                                Text="{Binding SelectedHierarchyItem.DisplayName, RelativeSource={RelativeSource TemplatedParent}}"
+                                FontWeight="Bold"
+                                Foreground="{DynamicResource PropertyGridForegroundBrush}" />
+                            <TextBox
+                                Text="{Binding SelectedHierarchyItem.Description, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue='Select a property to view its description.'}"
+                                IsReadOnly="True"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Foreground="{DynamicResource PropertyGridForegroundBrush}"
+                                CaretBrush="{DynamicResource PropertyGridForegroundBrush}"
+                                TextWrapping="Wrap"
+                                IsTabStop="False" />
+                        </StackPanel>
                     </ScrollViewer>
                 </Border>
             </Grid>

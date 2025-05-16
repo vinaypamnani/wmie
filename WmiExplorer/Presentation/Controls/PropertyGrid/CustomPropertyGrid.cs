@@ -42,7 +42,7 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 nameof(HelpPaneHeight),
                 typeof(double),
                 typeof(CustomPropertyGrid),
-                new PropertyMetadata(50.0));
+                new PropertyMetadata(60.0));
 
         /// <summary>
         /// Whether to include properties with null values in the property grid.
@@ -130,6 +130,12 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         public static readonly RoutedUICommand ToggleCategoryCommand = new RoutedUICommand(
             "Toggle Category", "ToggleCategory", typeof(CustomPropertyGrid));
 
+        /// <summary>
+        /// Command to copy text to clipboard
+        /// </summary>
+        public static readonly RoutedUICommand CopyToClipboardCommand = new RoutedUICommand(
+            "Copy To Clipboard", "CopyToClipboard", typeof(CustomPropertyGrid));
+
         static CustomPropertyGrid()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPropertyGrid),
@@ -142,6 +148,9 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
             CommandManager.RegisterClassCommandBinding(
                 typeof(CustomPropertyGrid),
                 new CommandBinding(ToggleCategoryCommand, OnToggleCategoryExecuted));
+            CommandManager.RegisterClassCommandBinding(
+                typeof(CustomPropertyGrid),
+                new CommandBinding(CopyToClipboardCommand, OnCopyToClipboardExecuted, OnCopyToClipboardCanExecute));
         }
 
         public CustomPropertyGrid()
@@ -277,7 +286,8 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         {
             if (d is CustomPropertyGrid grid && grid.SelectedHierarchyItem != null && grid.ShowHelpPane && !string.IsNullOrEmpty(grid.SelectedHierarchyItem.Description))
             {
-                grid.AutoAdjustHelpPaneHeight(grid.SelectedHierarchyItem.Description);
+                // Disabled auto sizing help pane for now
+                // grid.AutoAdjustHelpPaneHeight(grid.SelectedHierarchyItem.Description);
             }
         }
 
@@ -298,6 +308,19 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
             {
                 CategoryExpansionManager.Instance.ToggleCategory(categoryName);
             }
+        }
+
+        private static void OnCopyToClipboardExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is string text && !string.IsNullOrEmpty(text))
+            {
+                Clipboard.SetText(text);
+            }
+        }
+
+        private static void OnCopyToClipboardCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is string s && !string.IsNullOrEmpty(s);
         }
 
         private static void OnVirtualizationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

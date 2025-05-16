@@ -5,6 +5,8 @@
 
     <!-- Converters -->
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    <conv:NewlineToSpaceConverter x:Key="NewlineToSpaceConverter" />
+    <conv:NameValueToStringConverter x:Key="NameValueToStringConverter" />
 
     <!-- Common style for property text -->
     <Style x:Key="PropertyTextBlockStyle"
@@ -176,6 +178,20 @@
     <HierarchicalDataTemplate x:Key="PropertyItemTemplate"
                               ItemsSource="{Binding Children}">
         <Grid>
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Copy Name &amp; Value" Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}">
+                        <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource NameValueToStringConverter}">
+                                <Binding Path="Name" />
+                                <Binding Path="FormattedValue" />
+                            </MultiBinding>
+                        </MenuItem.CommandParameter>
+                    </MenuItem>
+                    <MenuItem Header="Copy Name" Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" />
+                    <MenuItem Header="Copy Value" Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" />
+                </ContextMenu>
+            </Grid.ContextMenu>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding NameColumnWidth, RelativeSource={RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}}" />
                 <ColumnDefinition Width="*" />
@@ -199,8 +215,15 @@
             <!-- Property Value - using column 1 now -->
             <Border Grid.Column="1"
                     Background="Transparent">
-                <TextBlock Text="{Binding FormattedValue}" Margin="5,0,0,0"
-                           Style="{StaticResource PropertyTextBlockStyle}" />
+                <TextBlock Margin="5,0,0,0"
+                           Style="{StaticResource PropertyTextBlockStyle}"
+                           TextWrapping="NoWrap">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource NewlineToSpaceConverter}">
+                            <Binding Path="FormattedValue" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
             </Border>
         </Grid>
     </HierarchicalDataTemplate>
