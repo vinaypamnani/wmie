@@ -136,6 +136,18 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         public static readonly RoutedUICommand CopyToClipboardCommand = new RoutedUICommand(
             "Copy To Clipboard", "CopyToClipboard", typeof(CustomPropertyGrid));
 
+        /// <summary>
+        /// Command to copy text from the help pane
+        /// </summary>
+        public static readonly RoutedUICommand HelpPaneCopyCommand = new RoutedUICommand(
+            string.Empty, "HelpPaneCopy", typeof(CustomPropertyGrid));
+
+        /// <summary>
+        /// Command to select all text in the help pane
+        /// </summary>
+        public static readonly RoutedUICommand HelpPaneSelectAllCommand = new RoutedUICommand(
+            string.Empty, "HelpPaneSelectAll", typeof(CustomPropertyGrid));
+
         static CustomPropertyGrid()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPropertyGrid),
@@ -151,6 +163,12 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
             CommandManager.RegisterClassCommandBinding(
                 typeof(CustomPropertyGrid),
                 new CommandBinding(CopyToClipboardCommand, OnCopyToClipboardExecuted, OnCopyToClipboardCanExecute));
+            CommandManager.RegisterClassCommandBinding(
+                typeof(CustomPropertyGrid),
+                new CommandBinding(HelpPaneCopyCommand, OnHelpPaneCopyExecuted, OnHelpPaneCopyCanExecute));
+            CommandManager.RegisterClassCommandBinding(
+                typeof(CustomPropertyGrid),
+                new CommandBinding(HelpPaneSelectAllCommand, OnHelpPaneSelectAllExecuted, OnHelpPaneSelectAllCanExecute));
         }
 
         public CustomPropertyGrid()
@@ -321,6 +339,32 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         private static void OnCopyToClipboardCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = e.Parameter is string s && !string.IsNullOrEmpty(s);
+        }
+
+        private static void OnHelpPaneCopyExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is TextBox tb && tb.IsReadOnly && !string.IsNullOrEmpty(tb.SelectedText))
+            {
+                Clipboard.SetText(tb.SelectedText);
+            }
+        }
+
+        private static void OnHelpPaneCopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.OriginalSource is TextBox tb && tb.IsReadOnly && !string.IsNullOrEmpty(tb.SelectedText);
+        }
+
+        private static void OnHelpPaneSelectAllExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is TextBox tb && tb.IsReadOnly)
+            {
+                tb.SelectAll();
+            }
+        }
+
+        private static void OnHelpPaneSelectAllCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.OriginalSource is TextBox tb && tb.IsReadOnly && tb.Text?.Length > 0;
         }
 
         private static void OnVirtualizationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
