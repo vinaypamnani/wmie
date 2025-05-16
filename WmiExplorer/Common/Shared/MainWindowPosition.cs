@@ -21,25 +21,16 @@ namespace WmiExplorer.Common.Shared
 
         // Private fields
         private double _classesColumnWidth = DEFAULT_COLUMN_WIDTH;
-
         private double _namespaceColumnWidth = DEFAULT_COLUMN_WIDTH;
-
         private double _propertyGridColumnWidth = DEFAULT_COLUMN_WIDTH;
-
+        private double _classesTabWidth = DEFAULT_COLUMN_WIDTH; // For main content column
         private double _height = DEFAULT_HEIGHT;
-
         private double _width = DEFAULT_WIDTH;
-
         private double _left = DEFAULT_LEFT;
-
         private double _top = DEFAULT_TOP;
-
         private bool _isClassesExpanded = true;
-
         private bool _isNamespacesExpanded = true;
-
         private bool _isPropertyGridExpanded = true;
-
         private bool _isWindowMaximized = false;
 
         // Events
@@ -244,49 +235,18 @@ namespace WmiExplorer.Common.Shared
         }
 
         /// <summary>
-        /// Updates the position with new values
+        /// Updates the position with new values (only window geometry)
         /// </summary>
         public void UpdatePosition(
-            double? left = null,
-            double? top = null,
-            double? width = null,
-            double? height = null,
-            bool? isNamespacesExpanded = null,
-            double? namespaceColumnWidth = null,
-            bool? isClassesExpanded = null,
-            double? classesColumnWidth = null,
-            bool? isPropertyGridExpanded = null,
-            double? propertyGridColumnWidth = null)
+            double left,
+            double top,
+            double width,
+            double height)
         {
-            if (left.HasValue) Left = left.Value;
-            if (top.HasValue) Top = top.Value;
-            if (width.HasValue) Width = width.Value;
-            if (height.HasValue) Height = height.Value;
-
-            // These need special handling to avoid triggering save logic multiple times
-            if (namespaceColumnWidth.HasValue) _namespaceColumnWidth = namespaceColumnWidth.Value;
-            if (isNamespacesExpanded.HasValue)
-            {
-                _isNamespacesExpanded = isNamespacesExpanded.Value;
-                OnPropertyChanged(nameof(IsNamespacesExpanded));
-                OnPropertyChanged(nameof(NamespaceColumnGridLength));
-            }
-
-            if (classesColumnWidth.HasValue) _classesColumnWidth = classesColumnWidth.Value;
-            if (isClassesExpanded.HasValue)
-            {
-                _isClassesExpanded = isClassesExpanded.Value;
-                OnPropertyChanged(nameof(IsClassesExpanded));
-                OnPropertyChanged(nameof(ClassesColumnGridLength));
-            }
-
-            if (propertyGridColumnWidth.HasValue) _propertyGridColumnWidth = propertyGridColumnWidth.Value;
-            if (isPropertyGridExpanded.HasValue)
-            {
-                _isPropertyGridExpanded = isPropertyGridExpanded.Value;
-                OnPropertyChanged(nameof(IsPropertyGridExpanded));
-                OnPropertyChanged(nameof(PropertyGridColumnGridLength));
-            }
+            Left = left;
+            Top = top;
+            Width = width;
+            Height = height;
         }
 
         // Protected Methods
@@ -296,13 +256,14 @@ namespace WmiExplorer.Common.Shared
         }
 
         // Private Methods
-        private GridLength GetColumnWidth(bool isExpanded, double savedWidth)
+        // Returns a GridLength for a column, using Pixel or Auto
+        private GridLength GetColumnWidth(bool isExpanded, double savedWidth, GridUnitType unitType = GridUnitType.Pixel)
         {
             if (isExpanded)
             {
                 // Use saved width (or safe default) when expanded
                 double width = savedWidth >= MIN_COLUMN_WIDTH ? savedWidth : DEFAULT_COLUMN_WIDTH;
-                return new GridLength(width, GridUnitType.Pixel);
+                return new GridLength(width, unitType);
             }
             else
             {

@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Services;
@@ -81,6 +82,6 @@ namespace WmiExplorer
                 // Clean up the view model resources
                 _viewModel?.Dispose();
             };
-        }
+        }        
     }
 }
