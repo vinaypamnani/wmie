@@ -12,9 +12,7 @@
     xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
     xmlns:userControls="clr-namespace:WmiExplorer.Presentation.UserControls"
     xmlns:pg="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid"
-    Title="WmiExplorer"
-    Width="1280"
-    Height="960"
+    Title="WmiExplorer"    
     Background="{DynamicResource PrimaryBackgroundBrush}"
     BorderBrush="{DynamicResource BorderBrush}"
     Foreground="{DynamicResource PrimaryForegroundBrush}"
@@ -79,22 +77,21 @@
                 <userControls:OptionsPanel />
             </DockPanel>
             <DockPanel Grid.Row="1" Margin="5,0,5,0">
-                <Grid Name="ContentGrid">
-                    <Grid.ColumnDefinitions>
+                <Grid Name="ContentGrid">                    <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
-                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Changed from fixed 15px to Auto -->
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Changed from fixed 15px to Auto -->
-                        <ColumnDefinition Width="{Binding WindowPosition.PropertyGridColumnGridLength, Mode=TwoWay}" />
+                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Giving it fixed width makes it easier to grab -->
+                        <ColumnDefinition Width="{Binding WindowPosition.ContentColumnStarGridLength, Mode=TwoWay}" />
+                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Giving it fixed width makes it easier to grab -->
+                        <ColumnDefinition Width="{Binding WindowPosition.PropertyGridColumnStarGridLength, Mode=TwoWay}" />
                     </Grid.ColumnDefinitions>
 
                     <!-- Namespace View -->
-                    <userControls:WmiNamespacesPane Grid.Column="0" />
-
-                    <GridSplitter
+                    <userControls:WmiNamespacesPane Grid.Column="0" />                    <GridSplitter
                         Grid.Column="1"
-                        HorizontalAlignment="Center"
+                        Width="6"
+                        HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
+                        Background="{DynamicResource BorderBrush}"
                         Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <TabControl Grid.Column="2">
@@ -110,8 +107,10 @@
 
                     <GridSplitter
                         Grid.Column="3"
-                        HorizontalAlignment="Center"
+                        Width="6"
+                        HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
+                        Background="{DynamicResource BorderBrush}"
                         Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <!-- Property Grid with Expander -->

@@ -12,17 +12,18 @@ namespace WmiExplorer.Common.Shared
     {
         // Constants
         public const double DEFAULT_COLUMN_WIDTH = 300;
-        public const double DEFAULT_HEIGHT = 960;
+        public const double DEFAULT_HEIGHT = 900;
         public const double DEFAULT_LEFT = 100;
         public const double DEFAULT_TOP = 100;
-        public const double DEFAULT_WIDTH = 1280;
+        public const double DEFAULT_WIDTH = 1440;
         public const double FLUCTUATION_THRESHOLD = 1;
-        public const double MIN_COLUMN_WIDTH = 30;
-
+        public const double MIN_COLUMN_WIDTH = 30;        
+        
         // Private fields
         private double _classesColumnWidth = DEFAULT_COLUMN_WIDTH;
         private double _namespaceColumnWidth = DEFAULT_COLUMN_WIDTH;
-        private double _propertyGridColumnWidth = DEFAULT_COLUMN_WIDTH;        
+        private double _contentColumnStarWidth = 2.0;  // Default star value for the content column (column 3)
+        private double _propertyGridColumnStarWidth = 1.0;  // Default star value for property grid column (column 5)
         private double _height = DEFAULT_HEIGHT;
         private double _width = DEFAULT_WIDTH;
         private double _left = DEFAULT_LEFT;
@@ -35,7 +36,8 @@ namespace WmiExplorer.Common.Shared
         // Events
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // Properties: Window geometry
+        #region Properties: Window geometry
+
         /// <summary>
         /// Gets or sets the window's left position
         /// </summary>
@@ -73,6 +75,7 @@ namespace WmiExplorer.Common.Shared
         }
 
         /// <summary>
+        /// Gets or sets whether the window is maximized
         /// </summary>
         public bool IsWindowMaximized
         {
@@ -80,7 +83,10 @@ namespace WmiExplorer.Common.Shared
             set => SetProperty(ref _isWindowMaximized, value);
         }
 
-        // Properties: Column widths (raw)
+        #endregion
+
+        #region Properties: Column widths (raw values)
+
         /// <summary>
         /// Gets or sets the width of the classes column when expanded
         /// </summary>
@@ -114,22 +120,41 @@ namespace WmiExplorer.Common.Shared
         }
 
         /// <summary>
-        /// Gets or sets the width of the property grid column when expanded
+        /// Gets or sets the star proportion for the content column (column 3)
         /// </summary>
-        public double PropertyGridColumnWidth
+        public double ContentColumnStarWidth
         {
-            get => _propertyGridColumnWidth;
+            get => _contentColumnStarWidth;
             set
             {
-                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _propertyGridColumnWidth, value))
+                if (value > 0 && SetProperty(ref _contentColumnStarWidth, value))
                 {
-                    OnPropertyChanged(nameof(PropertyGridColumnGridLength));
-                    System.Diagnostics.Debug.WriteLine($"Saved property grid column width: {value}");
+                    OnPropertyChanged(nameof(ContentColumnStarGridLength));
+                    System.Diagnostics.Debug.WriteLine($"Saved content column star value: {value}");
                 }
             }
         }
 
-        // Properties: Column widths (UI-friendly)
+        /// <summary>
+        /// Gets or sets the star proportion for the property grid column (column 5)
+        /// </summary>
+        public double PropertyGridColumnStarWidth
+        {
+            get => _propertyGridColumnStarWidth;
+            set
+            {
+                if (value > 0 && SetProperty(ref _propertyGridColumnStarWidth, value))
+                {
+                    OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
+                    System.Diagnostics.Debug.WriteLine($"Saved property grid column star value: {value}");
+                }
+            }
+        }
+
+        #endregion
+
+        #region Properties: Column widths (UI-friendly GridLength)
+
         /// <summary>
         /// Gets a UI-friendly GridLength for the classes column width based on expander state
         /// </summary>
@@ -167,24 +192,42 @@ namespace WmiExplorer.Common.Shared
         }
 
         /// <summary>
-        /// Gets a UI-friendly GridLength for the property grid column width based on expander state
+        /// Gets a UI-friendly star-based GridLength for the content column 
         /// </summary>
         [JsonIgnore]
-        public GridLength PropertyGridColumnGridLength
+        public GridLength ContentColumnStarGridLength
         {
-            get => GetColumnWidth(IsPropertyGridExpanded, _propertyGridColumnWidth);
+            get => GetColumnWidth(true, _contentColumnStarWidth, GridUnitType.Star);
             set
             {
-                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
-                    IsPropertyGridExpanded &&
-                    Math.Abs(value.Value - _propertyGridColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
+                if (value.GridUnitType == GridUnitType.Star && value.Value > 0)
                 {
-                    PropertyGridColumnWidth = value.Value;
+                    ContentColumnStarWidth = value.Value;
                 }
             }
         }
 
-        // Properties: Expansion states
+        /// <summary>
+        /// Gets a UI-friendly GridLength for the property grid column
+        /// </summary>
+        [JsonIgnore]
+        public GridLength PropertyGridColumnStarGridLength
+        {
+            get => GetColumnWidth(IsPropertyGridExpanded, _propertyGridColumnStarWidth, GridUnitType.Star);
+            set
+            {
+                if (value.GridUnitType == GridUnitType.Star && value.Value > 0 &&
+                    IsPropertyGridExpanded)
+                {
+                    PropertyGridColumnStarWidth = value.Value;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Properties: Expansion states
+
         /// <summary>
         /// Gets or sets the Classes expander's expansion state
         /// </summary>
@@ -216,7 +259,7 @@ namespace WmiExplorer.Common.Shared
                 }
             }
         }
-
+        
         /// <summary>
         /// Gets or sets the Property Grid expander's expansion state
         /// </summary>
@@ -228,10 +271,28 @@ namespace WmiExplorer.Common.Shared
                 if (_isPropertyGridExpanded != value)
                 {
                     SetProperty(ref _isPropertyGridExpanded, value);
-                    OnPropertyChanged(nameof(PropertyGridColumnGridLength));
+                    OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
+                    
+                    // When toggling expander state, we need to ensure the correct column widths
+                    if (value == false)
+                    {
+                        // When collapsing, we store the current star value for later
+                        // No additional action needed as PropertyGridColumnStarGridLength handles this
+                    }
+                    else
+                    {
+                        // When expanding, we ensure we have a reasonable star value
+                        if (_propertyGridColumnStarWidth <= 0)
+                        {
+                            _propertyGridColumnStarWidth = 1.0;
+                            OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
+                        }
+                    }
                 }
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Updates the position with new values (only window geometry)
@@ -248,21 +309,25 @@ namespace WmiExplorer.Common.Shared
             Height = height;
         }
 
-        // Protected Methods
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        #region Helper Methods
 
-        // Private Methods
-        // Returns a GridLength for a column, using Pixel or Auto
+        // Returns a GridLength for a column, using Pixel, Star or Auto based on unitType
         private GridLength GetColumnWidth(bool isExpanded, double savedWidth, GridUnitType unitType = GridUnitType.Pixel)
         {
             if (isExpanded)
             {
                 // Use saved width (or safe default) when expanded
-                double width = savedWidth >= MIN_COLUMN_WIDTH ? savedWidth : DEFAULT_COLUMN_WIDTH;
-                return new GridLength(width, unitType);
+                if (unitType == GridUnitType.Star)
+                {
+                    // For star units, just use the value directly (must be > 0)
+                    return new GridLength(savedWidth > 0 ? savedWidth : 1.0, GridUnitType.Star);
+                }
+                else
+                {
+                    // For pixel units, apply minimum width
+                    double width = savedWidth >= MIN_COLUMN_WIDTH ? savedWidth : DEFAULT_COLUMN_WIDTH;
+                    return new GridLength(width, unitType);
+                }
             }
             else
             {
@@ -270,6 +335,11 @@ namespace WmiExplorer.Common.Shared
                 // The expander header width is controlled by the fixed Border width in XAML
                 return new GridLength(0, GridUnitType.Auto);
             }
+        }
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
@@ -281,5 +351,7 @@ namespace WmiExplorer.Common.Shared
             OnPropertyChanged(propertyName);
             return true;
         }
+
+        #endregion
     }
 }
