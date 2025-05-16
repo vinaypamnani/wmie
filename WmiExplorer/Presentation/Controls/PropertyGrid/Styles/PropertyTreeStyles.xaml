@@ -190,6 +190,8 @@
                     </MenuItem>
                     <MenuItem Header="Copy Name" Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" />
                     <MenuItem Header="Copy Value" Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" />
+                    <MenuItem Header="Copy Description" Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" />
+
                 </ContextMenu>
             </Grid.ContextMenu>
             <Grid.ColumnDefinitions>
