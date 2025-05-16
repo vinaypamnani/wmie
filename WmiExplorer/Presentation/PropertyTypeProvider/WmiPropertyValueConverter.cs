@@ -49,8 +49,24 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             // Special handling for WMI types
             if (value is ManagementBaseObject mbo)
             {
-                // Show class name or other summary for embedded objects
-                return $"[Embedded: {mbo.ClassPath?.ClassName ?? "Object"}]";
+                // Try __RELPATH value
+                var relPath = mbo.SystemProperties["__RELPATH"]?.Value as string;
+                if (!string.IsNullOrEmpty(relPath))
+                    return $"[Embedded: {relPath}]";
+
+                // Fallback: use ClassPath.Path
+                var classPath = mbo.ClassPath?.Path ?? "Object";
+                string? displayName = null;
+                // Try to get DisplayName or Name property value
+                if (mbo.Properties["DisplayName"] != null && mbo.Properties["DisplayName"].Value is string dn && !string.IsNullOrEmpty(dn))
+                    displayName = dn;
+                else if (mbo.Properties["Name"] != null && mbo.Properties["Name"].Value is string n && !string.IsNullOrEmpty(n))
+                    displayName = n;
+
+                if (!string.IsNullOrEmpty(displayName))
+                    return $"[Embedded: {classPath} ({displayName})]";
+                else
+                    return $"[Embedded: {classPath}]";
             }
             if (value is ManagementBaseObject[] mboArray)
             {

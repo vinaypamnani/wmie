@@ -410,7 +410,8 @@ namespace WmiExplorer.Presentation.ViewModels
             SelectedInstance = message.InstanceViewModel;            
 
             // Update the selected object for the property grid
-            SelectedObject = message.InstanceViewModel.WmiInstance;
+            SelectedInstance.WmiInstance.ActualObject?.Get();
+            SelectedObject = message.InstanceViewModel.WmiInstance;            
         }
 
         /// <summary>

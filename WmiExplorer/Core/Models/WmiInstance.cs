@@ -19,8 +19,7 @@ namespace WmiExplorer.Core.Models
         /// <param name="actualObject">The underlying WMI object</param>
         public WmiInstance(ManagementObject actualObject)
         {
-            _actualObject = actualObject ?? throw new ArgumentNullException(nameof(actualObject));
-            _actualObject.Get(); // Ensure the object is retrieved
+            _actualObject = actualObject ?? throw new ArgumentNullException(nameof(actualObject));            
         }
 
         // Expose ManagementObject properties        
