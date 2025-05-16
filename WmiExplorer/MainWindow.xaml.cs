@@ -48,10 +48,17 @@ namespace WmiExplorer
 
             // Set the window position and size using the MainWindowPosition property
             var position = _settingsService.MainWindowPosition;
-            Left = position.Left;
-            Top = position.Top;
-            Width = position.Width;
-            Height = position.Height;
+            if (position.Maximized)
+            {
+                WindowState = WindowState.Maximized;
+            }
+            else
+            {
+                Left = position.Left;
+                Top = position.Top;
+                Width = position.Width;
+                Height = position.Height;
+            }
 
             // Save the window position and size when it is closed
             Closing += (s, args) =>
@@ -64,6 +71,9 @@ namespace WmiExplorer
                     width: Width,
                     height: Height
                 );
+
+                // Set Maximized property based on current window state
+                _viewModel.WindowPosition.Maximized = WindowState == WindowState.Maximized;
 
                 // Explicitly save all settings
                 _settingsService.SaveSettings();

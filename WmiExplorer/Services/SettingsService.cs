@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Windows;
 using WmiExplorer.Common.Shared;
 
 namespace WmiExplorer.Services
@@ -109,7 +110,7 @@ namespace WmiExplorer.Services
                         try
                         {
                             _mainWindowPosition = JsonSerializer.Deserialize<MainWindowPosition>(mainWindowPosition.GetRawText())
-                                ?? new MainWindowPosition();
+                                ?? new MainWindowPosition();                            
                         }
                         catch (Exception ex)
                         {
@@ -132,7 +133,8 @@ namespace WmiExplorer.Services
                                     Top = windowTop.GetDouble(),
                                     Left = windowLeft.GetDouble(),
                                     Width = windowWidth.GetDouble(),
-                                    Height = windowHeight.GetDouble()
+                                    Height = windowHeight.GetDouble(),
+                                    Maximized = false // Default to false for backward compatibility
                                 };
 
                                 Debug.WriteLine("Migrated from old window position settings");

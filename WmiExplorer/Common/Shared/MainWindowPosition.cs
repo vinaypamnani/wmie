@@ -30,6 +30,8 @@ namespace WmiExplorer.Common.Shared
 
         private double _width = DEFAULT_WIDTH;
 
+        private bool _maximized = false;
+
         // Column width constants
         public const double DEFAULT_COLUMN_WIDTH = 300;
 
@@ -234,6 +236,14 @@ namespace WmiExplorer.Common.Shared
         {
             get => _width;
             set => SetProperty(ref _width, value);
+        }
+
+        /// <summary>
+        /// </summary>
+        public bool Maximized
+        {
+            get => _maximized;
+            set => SetProperty(ref _maximized, value);
         }
 
         /// <summary>

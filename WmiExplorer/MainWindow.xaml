@@ -82,9 +82,9 @@
                 <Grid Name="ContentGrid">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{Binding WindowPosition.NamespacesColumnWidth, Mode=TwoWay}" />
-                        <ColumnDefinition Width="Auto" />  <!-- Changed from fixed 15px to Auto -->
+                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Changed from fixed 15px to Auto -->
                         <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="Auto" />  <!-- Changed from fixed 15px to Auto -->
+                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Changed from fixed 15px to Auto -->
                         <ColumnDefinition Width="{Binding WindowPosition.PropertyGridWidth, Mode=TwoWay}" />
                     </Grid.ColumnDefinitions>
 
