@@ -20,6 +20,7 @@ namespace WmiExplorer.Core.Models
         public WmiInstance(ManagementObject actualObject)
         {
             _actualObject = actualObject ?? throw new ArgumentNullException(nameof(actualObject));
+            _actualObject.Get(); // Ensure the object is retrieved
         }
 
         // Expose ManagementObject properties        

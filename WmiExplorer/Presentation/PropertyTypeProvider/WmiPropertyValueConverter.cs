@@ -47,6 +47,15 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                 return "<null>";
 
             // Special handling for WMI types
+            if (value is ManagementBaseObject mbo)
+            {
+                // Show class name or other summary for embedded objects
+                return $"[Embedded: {mbo.ClassPath?.ClassName ?? "Object"}]";
+            }
+            if (value is ManagementBaseObject[] mboArray)
+            {
+                return $"[Embedded Array: {mboArray.Length} object(s)]";
+            }
             if (value is ManagementPath)
                 return "ManagementPath";
 

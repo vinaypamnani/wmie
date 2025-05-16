@@ -120,11 +120,20 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         {
             get
             {
-                // Use the PropertyTypeProviderRegistry to format the value
-                return PropertyTypeProviderRegistry.Instance.FormatValue(Value, PropertyType);
+                var valueType = Value?.GetType() ?? typeof(object);
+                var converter = PropertyTypeProviderRegistry.Instance.GetConverter(valueType);
+                if (converter == null)
+                    return Value?.ToString() ?? string.Empty;
+                if (Value is Array arr && !(Value is string))
+                {
+                    // Join each element's string representation using the converter
+                    return string.Join(", ", arr.Cast<object>().Select(v => converter.ConvertToString(v, v?.GetType() ?? typeof(object))));
+                }
+                return converter.ConvertToString(Value, valueType);
             }
         }
 
+        /// <summary>
         /// Gets or sets whether this item has child items.
         /// </summary>
         public bool HasItems { get; set; }
@@ -211,7 +220,6 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
             }
         }
 
-        /// <summary>
         /// <summary>
         /// Gets or sets the level in the hierarchy (used for indentation).
         /// </summary>
@@ -307,11 +315,14 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 {
                     if (!includeSystemProperties && descriptor.Name != null && descriptor.Name.StartsWith("__"))
                         continue;
-                    if (!includeNullValues && descriptor.Value == null)
+
+                    // Only filter out nulls for category 'Properties' if includeNullValues is false
+                    bool isPropertiesCategory = string.Equals(Category, "Properties", StringComparison.OrdinalIgnoreCase);
+                    if (isPropertiesCategory && !includeNullValues && descriptor.Value == null)
                         continue;
-                    // Create child item with incremented level
-                    var childItem = new PropertyHierarchyItem(descriptor, Level + 1, includeSystemProperties, includeNullValues);
-                    // Add to children collection
+
+                    // For children, propagate the correct includeNullValues flag
+                    var childItem = new PropertyHierarchyItem(descriptor, Level + 1, includeSystemProperties, isPropertiesCategory ? includeNullValues : true);
                     Children.Add(childItem);
                 }
             }

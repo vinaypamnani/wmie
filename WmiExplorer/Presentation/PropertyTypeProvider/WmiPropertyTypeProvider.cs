@@ -197,17 +197,33 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             // Special handling for PropertyDataCollection and QualifierDataCollection
             if (value is PropertyDataCollection propertyCollection)
             {
-                var category = propertyCollection.GetType().Name;
-                foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, category, (property, cat) => CreatePropertyDataDescriptor(property, cat, value, true)))
+                foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, value, true)))
                     yield return desc;
                 yield break;
             }
 
             if (value is QualifierDataCollection qualifierCollection)
             {
-                var category = qualifierCollection.GetType().Name;
-                foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, category, (qualifier, cat) => CreateQualifierDescriptor(qualifier, cat)))
+                foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, string.Empty, (qualifier, cat) => CreateQualifierDescriptor(qualifier, string.Empty)))
                     yield return desc;
+                yield break;
+            }
+
+            // Special handling for embedded ManagementBaseObject
+            if (value is ManagementBaseObject mbo)
+            {
+                foreach (var desc in ProcessWmiCollection<PropertyData>(mbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, mbo, false)))
+                    yield return desc;
+                yield break;
+            }
+            // Special handling for array of embedded ManagementBaseObject
+            if (value is ManagementBaseObject[] mboArray)
+            {
+                foreach (var embeddedMbo in mboArray)
+                {
+                    foreach (var desc in ProcessWmiCollection<PropertyData>(embeddedMbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, embeddedMbo, false)))
+                        yield return desc;
+                }
                 yield break;
             }
 

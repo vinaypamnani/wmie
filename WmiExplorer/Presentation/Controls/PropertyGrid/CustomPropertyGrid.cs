@@ -283,12 +283,6 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
 
         private static void OnSelectedObjectChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is ManagementObject)
-            {
-                var mo = (ManagementObject)e.NewValue;
-                mo.Get();
-            }
-
             if (d is CustomPropertyGrid grid)
             {
                 grid.LoadProperties();
@@ -449,11 +443,6 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                     return true;
                 }).ToList();
 
-                // Filter out properties with null values if IncludeNullValues is false
-                if (!IncludeNullValues)
-                {
-                    descriptors = descriptors.Where(p => p.Value != null).ToList();
-                }
                 // Filter out system properties at the top level if IncludeSystemProperties is false
                 if (!IncludeSystemProperties)
                 {
@@ -471,13 +460,21 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 foreach (var category in categoryGroups)
                 {
                     string categoryName = category.Key;
-
                     var categoryItem = new PropertyCategoryItem(categoryName);
                     rootItems.Add(categoryItem);
 
-                    foreach (var descriptor in category.OrderBy(p => p.DisplayName))
+                    // Only filter out nulls for category 'Properties' if IncludeNullValues is false
+                    IEnumerable<WmiExplorer.Presentation.Controls.PropertyGrid.Abstractions.IPropertyDescriptor> filteredProperties = category;
+                    if (string.Equals(categoryName, "Properties", StringComparison.OrdinalIgnoreCase) && !IncludeNullValues)
                     {
-                        var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, true);
+                        filteredProperties = filteredProperties.Where(p => p.Value != null);
+                    }
+                    var filteredList = filteredProperties.OrderBy(p => p.DisplayName).ToList();
+                    foreach (var descriptor in filteredList)
+                    {
+                        // Pass the category name to the PropertyHierarchyItem for child filtering
+                        var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, 
+                            string.Equals(categoryName, "Properties", StringComparison.OrdinalIgnoreCase) ? IncludeNullValues : true);
                         categoryItem.Children.Add(propertyItem);
                     }
                 }
