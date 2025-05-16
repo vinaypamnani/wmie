@@ -77,7 +77,8 @@
                 <userControls:OptionsPanel />
             </DockPanel>
             <DockPanel Grid.Row="1" Margin="5,0,5,0">
-                <Grid Name="ContentGrid">                    <Grid.ColumnDefinitions>
+                <Grid Name="ContentGrid">                    
+                    <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
                         <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Giving it fixed width makes it easier to grab -->
                         <ColumnDefinition Width="{Binding WindowPosition.ContentColumnStarGridLength, Mode=TwoWay}" />
@@ -86,12 +87,13 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Namespace View -->
-                    <userControls:WmiNamespacesPane Grid.Column="0" />                    <GridSplitter
+                    <userControls:WmiNamespacesPane Grid.Column="0" />                    
+                    
+                    <GridSplitter
                         Grid.Column="1"
                         Width="6"
                         HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        Background="{DynamicResource BorderBrush}"
+                        VerticalAlignment="Stretch"                        
                         Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <TabControl Grid.Column="2">
@@ -109,8 +111,7 @@
                         Grid.Column="3"
                         Width="6"
                         HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        Background="{DynamicResource BorderBrush}"
+                        VerticalAlignment="Stretch"                        
                         Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <!-- Property Grid with Expander -->

@@ -19,7 +19,7 @@
 
     <!--  GridSplitter  -->
     <Style TargetType="GridSplitter">
-        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
         <Setter Property="Width" Value="5" />
         <Setter Property="Height" Value="50" />
         <Setter Property="Margin" Value="5,0,5,0" />
