@@ -22,8 +22,7 @@ namespace WmiExplorer.Common.Shared
         // Private fields
         private double _classesColumnWidth = DEFAULT_COLUMN_WIDTH;
         private double _namespaceColumnWidth = DEFAULT_COLUMN_WIDTH;
-        private double _propertyGridColumnWidth = DEFAULT_COLUMN_WIDTH;
-        private double _classesTabWidth = DEFAULT_COLUMN_WIDTH; // For main content column
+        private double _propertyGridColumnWidth = DEFAULT_COLUMN_WIDTH;        
         private double _height = DEFAULT_HEIGHT;
         private double _width = DEFAULT_WIDTH;
         private double _left = DEFAULT_LEFT;
