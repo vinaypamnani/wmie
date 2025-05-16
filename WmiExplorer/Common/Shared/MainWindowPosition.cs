@@ -10,9 +10,29 @@ namespace WmiExplorer.Common.Shared
     /// </summary>
     public class MainWindowPosition : INotifyPropertyChanged
     {
+        // Constants
+        public const double DEFAULT_COLUMN_WIDTH = 300;
+        public const double DEFAULT_HEIGHT = 960;
+        public const double DEFAULT_LEFT = 100;
+        public const double DEFAULT_TOP = 100;
+        public const double DEFAULT_WIDTH = 1280;
+        public const double FLUCTUATION_THRESHOLD = 1;
+        public const double MIN_COLUMN_WIDTH = 30;
+
+        // Private fields
         private double _classesColumnWidth = DEFAULT_COLUMN_WIDTH;
 
+        private double _namespaceColumnWidth = DEFAULT_COLUMN_WIDTH;
+
+        private double _propertyGridColumnWidth = DEFAULT_COLUMN_WIDTH;
+
         private double _height = DEFAULT_HEIGHT;
+
+        private double _width = DEFAULT_WIDTH;
+
+        private double _left = DEFAULT_LEFT;
+
+        private double _top = DEFAULT_TOP;
 
         private bool _isClassesExpanded = true;
 
@@ -20,129 +40,12 @@ namespace WmiExplorer.Common.Shared
 
         private bool _isPropertyGridExpanded = true;
 
-        private double _left = DEFAULT_LEFT;
+        private bool _isWindowMaximized = false;
 
-        private double _namespaceColumnWidth = DEFAULT_COLUMN_WIDTH;
-
-        private double _propertyGridColumnWidth = DEFAULT_COLUMN_WIDTH;
-
-        private double _top = DEFAULT_TOP;
-
-        private double _width = DEFAULT_WIDTH;
-
-        private bool _maximized = false;
-
-        // Column width constants
-        public const double DEFAULT_COLUMN_WIDTH = 300;
-
-        public const double DEFAULT_HEIGHT = 960;
-
-        public const double DEFAULT_LEFT = 100;
-
-        // Default position and size constants
-        public const double DEFAULT_TOP = 100;
-
-        public const double DEFAULT_WIDTH = 1280;
-
-        // Value to avoid minor UI fluctuations
-        public const double FLUCTUATION_THRESHOLD = 1;
-
-        public const double MIN_COLUMN_WIDTH = 30;
-
-        // INotifyPropertyChanged implementation
+        // Events
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        /// <summary>
-        /// Gets or sets the width of the classes column when expanded
-        /// </summary>
-        public double ClassesColumnWidth
-        {
-            get => _classesColumnWidth;
-            set
-            {
-                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _classesColumnWidth, value))
-                {
-                    OnPropertyChanged(nameof(ClassesGridWidth));
-                    System.Diagnostics.Debug.WriteLine($"Saved classes column width: {value}");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a UI-friendly GridLength for the classes column width based on expander state
-        /// </summary>
-        [JsonIgnore]
-        public GridLength ClassesGridWidth
-        {
-            get => GetColumnWidth(IsClassesExpanded, _classesColumnWidth);
-            set
-            {
-                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
-                    IsClassesExpanded &&
-                    Math.Abs(value.Value - _classesColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
-                {
-                    ClassesColumnWidth = value.Value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the window's height
-        /// </summary>
-        public double Height
-        {
-            get => _height;
-            set => SetProperty(ref _height, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the Classes expander's expansion state
-        /// </summary>
-        public bool IsClassesExpanded
-        {
-            get => _isClassesExpanded;
-            set
-            {
-                if (_isClassesExpanded != value)
-                {
-                    SetProperty(ref _isClassesExpanded, value);
-                    OnPropertyChanged(nameof(ClassesGridWidth));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the Namespace expander's expansion state
-        /// </summary>
-        public bool IsNamespacesExpanded
-        {
-            get => _isNamespacesExpanded;
-            set
-            {
-                if (_isNamespacesExpanded != value)
-                {
-                    SetProperty(ref _isNamespacesExpanded, value);
-                    OnPropertyChanged(nameof(NamespacesColumnWidth));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the Property Grid expander's expansion state
-        /// </summary>
-        public bool IsPropertyGridExpanded
-        {
-            get => _isPropertyGridExpanded;
-            set
-            {
-                if (_isPropertyGridExpanded != value)
-                {
-                    SetProperty(ref _isPropertyGridExpanded, value);
-                    OnPropertyChanged(nameof(PropertyGridWidth));
-                }
-            }
-        }
-
+        // Properties: Window geometry
         /// <summary>
         /// Gets or sets the window's left position
         /// </summary>
@@ -150,74 +53,6 @@ namespace WmiExplorer.Common.Shared
         {
             get => _left;
             set => SetProperty(ref _left, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the width of the namespace column when expanded
-        /// </summary>
-        public double NamespaceColumnWidth
-        {
-            get => _namespaceColumnWidth;
-            set
-            {
-                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _namespaceColumnWidth, value))
-                {
-                    OnPropertyChanged(nameof(NamespacesColumnWidth));
-                    System.Diagnostics.Debug.WriteLine($"Saved namespace column width: {value}");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a UI-friendly GridLength for the namespaces column width based on expander state
-        /// </summary>
-        [JsonIgnore]
-        public GridLength NamespacesColumnWidth
-        {
-            get => GetColumnWidth(IsNamespacesExpanded, _namespaceColumnWidth);
-            set
-            {
-                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
-                    IsNamespacesExpanded &&
-                    Math.Abs(value.Value - _namespaceColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
-                {
-                    NamespaceColumnWidth = value.Value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the width of the property grid column when expanded
-        /// </summary>
-        public double PropertyGridColumnWidth
-        {
-            get => _propertyGridColumnWidth;
-            set
-            {
-                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _propertyGridColumnWidth, value))
-                {
-                    OnPropertyChanged(nameof(PropertyGridWidth));
-                    System.Diagnostics.Debug.WriteLine($"Saved property grid column width: {value}");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a UI-friendly GridLength for the property grid column width based on expander state
-        /// </summary>
-        [JsonIgnore]
-        public GridLength PropertyGridWidth
-        {
-            get => GetColumnWidth(IsPropertyGridExpanded, _propertyGridColumnWidth);
-            set
-            {
-                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
-                    IsPropertyGridExpanded &&
-                    Math.Abs(value.Value - _propertyGridColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
-                {
-                    PropertyGridColumnWidth = value.Value;
-                }
-            }
         }
 
         /// <summary>
@@ -239,45 +74,173 @@ namespace WmiExplorer.Common.Shared
         }
 
         /// <summary>
+        /// Gets or sets the window's height
         /// </summary>
-        public bool Maximized
+        public double Height
         {
-            get => _maximized;
-            set => SetProperty(ref _maximized, value);
+            get => _height;
+            set => SetProperty(ref _height, value);
         }
 
         /// <summary>
-        /// Helper method to compute appropriate column width based on expander state
         /// </summary>
-        private GridLength GetColumnWidth(bool isExpanded, double savedWidth)
+        public bool IsWindowMaximized
         {
-            if (isExpanded)
+            get => _isWindowMaximized;
+            set => SetProperty(ref _isWindowMaximized, value);
+        }
+
+        // Properties: Column widths (raw)
+        /// <summary>
+        /// Gets or sets the width of the classes column when expanded
+        /// </summary>
+        public double ClassesColumnWidth
+        {
+            get => _classesColumnWidth;
+            set
             {
-                // Use saved width (or safe default) when expanded
-                double width = savedWidth >= MIN_COLUMN_WIDTH ? savedWidth : DEFAULT_COLUMN_WIDTH;
-                return new GridLength(width, GridUnitType.Pixel);
-            }
-            else
-            {
-                // When collapsed, return Auto width
-                // The expander header width is controlled by the fixed Border width in XAML
-                return new GridLength(0, GridUnitType.Auto);
+                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _classesColumnWidth, value))
+                {
+                    OnPropertyChanged(nameof(ClassesColumnGridLength));
+                    System.Diagnostics.Debug.WriteLine($"Saved classes column width: {value}");
+                }
             }
         }
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        /// <summary>
+        /// Gets or sets the width of the namespace column when expanded
+        /// </summary>
+        public double NamespaceColumnWidth
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            get => _namespaceColumnWidth;
+            set
+            {
+                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _namespaceColumnWidth, value))
+                {
+                    OnPropertyChanged(nameof(NamespaceColumnGridLength));
+                    System.Diagnostics.Debug.WriteLine($"Saved namespace column width: {value}");
+                }
+            }
         }
 
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+        /// <summary>
+        /// Gets or sets the width of the property grid column when expanded
+        /// </summary>
+        public double PropertyGridColumnWidth
         {
-            if (Equals(storage, value))
-                return false;
+            get => _propertyGridColumnWidth;
+            set
+            {
+                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _propertyGridColumnWidth, value))
+                {
+                    OnPropertyChanged(nameof(PropertyGridColumnGridLength));
+                    System.Diagnostics.Debug.WriteLine($"Saved property grid column width: {value}");
+                }
+            }
+        }
 
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
+        // Properties: Column widths (UI-friendly)
+        /// <summary>
+        /// Gets a UI-friendly GridLength for the classes column width based on expander state
+        /// </summary>
+        [JsonIgnore]
+        public GridLength ClassesColumnGridLength
+        {
+            get => GetColumnWidth(IsClassesExpanded, _classesColumnWidth);
+            set
+            {
+                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
+                    IsClassesExpanded &&
+                    Math.Abs(value.Value - _classesColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
+                {
+                    ClassesColumnWidth = value.Value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a UI-friendly GridLength for the namespaces column width based on expander state
+        /// </summary>
+        [JsonIgnore]
+        public GridLength NamespaceColumnGridLength
+        {
+            get => GetColumnWidth(IsNamespacesExpanded, _namespaceColumnWidth);
+            set
+            {
+                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
+                    IsNamespacesExpanded &&
+                    Math.Abs(value.Value - _namespaceColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
+                {
+                    NamespaceColumnWidth = value.Value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a UI-friendly GridLength for the property grid column width based on expander state
+        /// </summary>
+        [JsonIgnore]
+        public GridLength PropertyGridColumnGridLength
+        {
+            get => GetColumnWidth(IsPropertyGridExpanded, _propertyGridColumnWidth);
+            set
+            {
+                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
+                    IsPropertyGridExpanded &&
+                    Math.Abs(value.Value - _propertyGridColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
+                {
+                    PropertyGridColumnWidth = value.Value;
+                }
+            }
+        }
+
+        // Properties: Expansion states
+        /// <summary>
+        /// Gets or sets the Classes expander's expansion state
+        /// </summary>
+        public bool IsClassesExpanded
+        {
+            get => _isClassesExpanded;
+            set
+            {
+                if (_isClassesExpanded != value)
+                {
+                    SetProperty(ref _isClassesExpanded, value);
+                    OnPropertyChanged(nameof(ClassesColumnGridLength));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the Namespace expander's expansion state
+        /// </summary>
+        public bool IsNamespacesExpanded
+        {
+            get => _isNamespacesExpanded;
+            set
+            {
+                if (_isNamespacesExpanded != value)
+                {
+                    SetProperty(ref _isNamespacesExpanded, value);
+                    OnPropertyChanged(nameof(NamespaceColumnGridLength));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the Property Grid expander's expansion state
+        /// </summary>
+        public bool IsPropertyGridExpanded
+        {
+            get => _isPropertyGridExpanded;
+            set
+            {
+                if (_isPropertyGridExpanded != value)
+                {
+                    SetProperty(ref _isPropertyGridExpanded, value);
+                    OnPropertyChanged(nameof(PropertyGridColumnGridLength));
+                }
+            }
         }
 
         /// <summary>
@@ -306,7 +269,7 @@ namespace WmiExplorer.Common.Shared
             {
                 _isNamespacesExpanded = isNamespacesExpanded.Value;
                 OnPropertyChanged(nameof(IsNamespacesExpanded));
-                OnPropertyChanged(nameof(NamespacesColumnWidth));
+                OnPropertyChanged(nameof(NamespaceColumnGridLength));
             }
 
             if (classesColumnWidth.HasValue) _classesColumnWidth = classesColumnWidth.Value;
@@ -314,7 +277,7 @@ namespace WmiExplorer.Common.Shared
             {
                 _isClassesExpanded = isClassesExpanded.Value;
                 OnPropertyChanged(nameof(IsClassesExpanded));
-                OnPropertyChanged(nameof(ClassesGridWidth));
+                OnPropertyChanged(nameof(ClassesColumnGridLength));
             }
 
             if (propertyGridColumnWidth.HasValue) _propertyGridColumnWidth = propertyGridColumnWidth.Value;
@@ -322,8 +285,41 @@ namespace WmiExplorer.Common.Shared
             {
                 _isPropertyGridExpanded = isPropertyGridExpanded.Value;
                 OnPropertyChanged(nameof(IsPropertyGridExpanded));
-                OnPropertyChanged(nameof(PropertyGridWidth));
+                OnPropertyChanged(nameof(PropertyGridColumnGridLength));
             }
+        }
+
+        // Protected Methods
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        // Private Methods
+        private GridLength GetColumnWidth(bool isExpanded, double savedWidth)
+        {
+            if (isExpanded)
+            {
+                // Use saved width (or safe default) when expanded
+                double width = savedWidth >= MIN_COLUMN_WIDTH ? savedWidth : DEFAULT_COLUMN_WIDTH;
+                return new GridLength(width, GridUnitType.Pixel);
+            }
+            else
+            {
+                // When collapsed, return Auto width
+                // The expander header width is controlled by the fixed Border width in XAML
+                return new GridLength(0, GridUnitType.Auto);
+            }
+        }
+
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (Equals(storage, value))
+                return false;
+
+            storage = value;
+            OnPropertyChanged(propertyName);
+            return true;
         }
     }
 }

@@ -134,7 +134,7 @@ namespace WmiExplorer.Services
                                     Left = windowLeft.GetDouble(),
                                     Width = windowWidth.GetDouble(),
                                     Height = windowHeight.GetDouble(),
-                                    Maximized = false // Default to false for backward compatibility
+                                    IsWindowMaximized = false // Default to false for backward compatibility
                                 };
 
                                 Debug.WriteLine("Migrated from old window position settings");

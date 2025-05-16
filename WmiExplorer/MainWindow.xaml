@@ -81,11 +81,11 @@
             <DockPanel Grid.Row="1" Margin="5,0,5,0">
                 <Grid Name="ContentGrid">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="{Binding WindowPosition.NamespacesColumnWidth, Mode=TwoWay}" />
+                        <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
                         <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Changed from fixed 15px to Auto -->
                         <ColumnDefinition Width="3*" />
                         <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Changed from fixed 15px to Auto -->
-                        <ColumnDefinition Width="{Binding WindowPosition.PropertyGridWidth, Mode=TwoWay}" />
+                        <ColumnDefinition Width="{Binding WindowPosition.PropertyGridColumnGridLength, Mode=TwoWay}" />
                     </Grid.ColumnDefinitions>
 
                     <!-- Namespace View -->

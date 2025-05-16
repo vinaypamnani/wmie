@@ -16,7 +16,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="{Binding WindowPosition.ClassesGridWidth, Mode=TwoWay}" />
+            <ColumnDefinition Width="{Binding WindowPosition.ClassesColumnGridLength, Mode=TwoWay}" />
             <ColumnDefinition Width="Auto" />  <!-- Changed from fixed 15px to Auto -->
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
