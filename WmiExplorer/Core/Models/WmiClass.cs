@@ -10,6 +10,9 @@ namespace WmiExplorer.Core.Models
     {
         private ManagementClass _actualClass;
 
+        [Browsable(false)]
+        public ManagementClass ActualClass => _actualClass;
+
         public WmiClass(ManagementBaseObject actualClass)
         {            
             
@@ -26,14 +29,14 @@ namespace WmiExplorer.Core.Models
         
         [Category("Class")]
         public string ClassName => _actualClass["__Class"]?.ToString() ?? string.Empty;
-
-        [Category("Metadata")]
+        
+        [Category("Class")]
         public string[] Derivation => _actualClass.Derivation?.Cast<string>().ToArray() ?? new string[0];
-
-        [Category("Metadata")]
+        
+        [Category("Class")]
         public string SuperClass => (_actualClass.Derivation != null && _actualClass.Derivation.Count > 0 && _actualClass.Derivation[0] != null) ? _actualClass.Derivation[0]! : string.Empty;
 
-        [Category("Metadata")]
+        [Browsable(false)]
         public ManagementPath ClassPath => _actualClass.ClassPath;
 
         [Browsable(false)]
@@ -60,16 +63,23 @@ namespace WmiExplorer.Core.Models
         [Category("Qualifiers")]
         public QualifierDataCollection Qualifiers => _actualClass.Qualifiers;
 
-        [Category("Metadata")]
+        [Category("Properties")]
         public PropertyDataCollection Properties => _actualClass.Properties;
 
-        [Category("Metadata")]
+        [Category("Properties")]
         public PropertyDataCollection SystemProperties => _actualClass.SystemProperties;
 
-        [Category("Metadata")]
+        [Category("Class")]
         public ManagementPath Path => _actualClass.Path;
 
-        [Category("Metadata")]
-        public ManagementScope Scope => _actualClass.Scope;        
+        [Category("Class")]
+        public ManagementScope Scope => _actualClass.Scope;
+
+        public string LocalRelativePath => _actualClass.Path.NamespacePath + ":" + _actualClass.Path.ClassName;
+
+        public override string ToString()
+        {
+            return $"Class: {LocalRelativePath}";
+        }
     }
 }

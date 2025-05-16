@@ -10,7 +10,7 @@ namespace WmiExplorer.Core.Models
     {
         private readonly ManagementObject _actualObject;
 
-        
+        [Browsable(false)]
         public ManagementObject ActualObject => _actualObject; // needed for PropertyTypeProvider to expose property description
 
         /// <summary>
@@ -22,25 +22,31 @@ namespace WmiExplorer.Core.Models
             _actualObject = actualObject ?? throw new ArgumentNullException(nameof(actualObject));
         }
 
-        // Expose ManagementObject properties
-        public ManagementPath Path => _actualObject.Path;
+        // Expose ManagementObject properties        
 
         [Category("Properties")]
         public PropertyDataCollection Properties => _actualObject.Properties;
+
+        [Category("System Properties")]
         public PropertyDataCollection SystemProperties => _actualObject.SystemProperties;
-        
+
         [Category("Qualifiers")]
         public QualifierDataCollection Qualifiers => _actualObject.Qualifiers;
+
+        public ManagementPath Path => _actualObject.Path;
+
         public ManagementPath ClassPath => _actualObject.ClassPath;
-        
-        [Category("Metadata")]
-        public string ClassName => _actualObject.ClassPath?.ClassName ?? string.Empty;
-        public string ScopePath => _actualObject.Scope != null ? _actualObject.Scope.Path?.Path ?? string.Empty : string.Empty;
+
+        public ObjectGetOptions Options => _actualObject.Options;
+
+        public ManagementScope Scope => _actualObject.Scope;
+
         public object this[string propertyName] => _actualObject[propertyName];
 
         /// <summary>
         /// Gets the display name of the instance
         /// </summary>
+        [Browsable(false)]
         public string InstanceName =>
             Path.RelativePath.ToString().Replace("\\\\", "\\") // TODO: Extract friendly name from known "Name" properties
             ?? string.Empty;
@@ -48,6 +54,6 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// Returns the instance's string representation
         /// </summary>
-        public override string ToString() => InstanceName;
+        public override string ToString() => $"Instance: {InstanceName}";
     }
 }

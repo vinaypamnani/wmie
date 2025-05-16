@@ -1,5 +1,6 @@
 using System.Management;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WmiExplorer.Core.Models
 {
@@ -25,6 +26,19 @@ namespace WmiExplorer.Core.Models
 
         public string Description => _methodData.Qualifiers?["Description"]?.Value?.ToString() ?? string.Empty;
 
-        public override string ToString() => $"InParameters: {InParameters.Count}, OutParameters: {OutParameters.Count}, Origin: {Origin}";
+        public bool IsStatic
+        {
+            get
+            {
+                var qualifiers = Qualifiers;
+                if (qualifiers == null)
+                    return false;
+                var qualifier = qualifiers.Cast<QualifierData>().FirstOrDefault(q => q != null && q.Name != null && q.Name.Equals("static", StringComparison.OrdinalIgnoreCase));
+                var value = qualifier?.Value?.ToString();
+                return string.Equals(value, "True", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        public override string ToString() => $"Static: {IsStatic}, InParameters: {InParameters.Count}, OutParameters: {OutParameters.Count}";
     }
 }

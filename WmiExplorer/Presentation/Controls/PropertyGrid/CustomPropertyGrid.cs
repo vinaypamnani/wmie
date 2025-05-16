@@ -20,6 +20,8 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
         private TextBox? _searchBox;
         // TreeView for hierarchical display
 
+        private const string _defaultCategory = "Misc";
+
         #region Commands
 
         /// <summary>
@@ -459,15 +461,16 @@ namespace WmiExplorer.Presentation.Controls.PropertyGrid
                 }
 
                 var categoryGroups = descriptors
-                    .GroupBy(p => p.Category)
-                    .OrderBy(g => g.Key)
+                    .GroupBy(p => string.IsNullOrEmpty(p.Category) ? _defaultCategory : p.Category)
+                    .OrderBy(g => string.Equals(g.Key, _defaultCategory, StringComparison.OrdinalIgnoreCase) ? 1 : 0)
+                    .ThenBy(g => g.Key)
                     .ToList();
 
                 var rootItems = new List<PropertyHierarchyItem>();
 
                 foreach (var category in categoryGroups)
                 {
-                    string categoryName = string.IsNullOrEmpty(category.Key) ? "Misc" : category.Key;
+                    string categoryName = category.Key;
 
                     var categoryItem = new PropertyCategoryItem(categoryName);
                     rootItems.Add(categoryItem);

@@ -39,7 +39,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             var wmiSource = (source is WmiInstance wmiInstance)
                 ? (wmiInstance.ActualObject ?? new ManagementClass())
                 : (source as ManagementBaseObject ?? new ManagementClass());
-            return new WmiPropertyDescriptor(property, wmiSource, allowExpansion);
+            return new WmiPropertyDescriptor(property, wmiSource, category, allowExpansion);
         }
 
         /// <summary>
@@ -99,7 +99,8 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             if (objectType == null)
                 return false;
             // Handle WmiInstance by type, and WMI types
-            return objectType == typeof(WmiClass) ||
+            return objectType == typeof(WmiNamespace) ||
+                   objectType == typeof(WmiClass) ||
                    objectType == typeof(WmiInstance) ||
                    objectType == typeof(ManagementBaseObject) ||
                    objectType == typeof(PropertyDataCollection) ||
@@ -139,7 +140,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                 }
 
                 // Special handling for QualifierDataCollection: we want Qualifiers to be exposed on top-level for WmiInstance and WmiClass
-                if ((obj is WmiInstance || obj is WmiClass) && typeof(QualifierDataCollection).IsAssignableFrom(prop.PropertyType))
+                if ((obj is WmiInstance || obj is WmiClass || obj is WmiNamespace) && typeof(QualifierDataCollection).IsAssignableFrom(prop.PropertyType))
                 {
                     var qualifierDataCollection = prop.GetValue(obj) as QualifierDataCollection;
                     if (qualifierDataCollection != null)

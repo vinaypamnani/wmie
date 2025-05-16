@@ -325,6 +325,9 @@ namespace WmiExplorer.Presentation.ViewModels
                 throw new ArgumentException("Namespace path cannot be empty", nameof(namespacePath));
 
             var rootMbo = await wmiService.GetRootNamespaceAsync(namespacePath, cancellationToken);
+            if (rootMbo == null)
+                throw new InvalidOperationException("Failed to retrieve the root WMI namespace object.");
+
             var rootNamespace = new WmiNamespace(rootMbo, namespacePath, new ConnectionOptions());
             var rootViewModel = new WmiNamespaceViewModel(
                 rootNamespace,

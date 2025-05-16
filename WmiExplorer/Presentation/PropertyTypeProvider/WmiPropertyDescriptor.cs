@@ -13,18 +13,17 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         private readonly PropertyData _propertyData;
         private readonly ManagementBaseObject _source;
         private readonly bool _allowExpansion;
+        private readonly string _category;
 
         /// <summary>
         /// Creates a new WmiPropertyDescriptor instance.
         /// </summary>
-        public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, bool allowExpansion = false)
+        public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false)
         {
             _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
             _source = source; // Allow null source for system properties
             _allowExpansion = allowExpansion;
-
-            // Determine if this is a system property or regular property
-            Category = propertyData.Origin?.StartsWith("___") == true ? "System Properties" : "Properties";
+            _category = category;
 
             // Determine if property is read-only (generally true for WMI properties)
             _isReadOnly = true;
@@ -37,9 +36,9 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
         }
 
         /// <summary>
-        /// Gets the category of the property (System Properties or Properties).
+        /// Gets the category of the property.
         /// </summary>
-        public string Category { get; set; }
+        public string Category => _category;
 
         /// <summary>
         /// Gets the description of the property.

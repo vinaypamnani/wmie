@@ -8,12 +8,15 @@ namespace WmiExplorer.Core.Models
     /// </summary>
     public class WmiNamespace
     {
-        private ManagementObject? _actualObject;
+        private ManagementObject _actualObject;
+
+        [Browsable(false)]
+        public ManagementObject ActualObject => _actualObject;
 
         /// <summary>
         /// Constructor for a WMI namespace, optionally with ConnectionOptions (root if specified)
         /// </summary>
-        public WmiNamespace(ManagementObject? actualObject, string namespacePath, ConnectionOptions? connectionOptions = null)
+        public WmiNamespace(ManagementObject actualObject, string namespacePath, ConnectionOptions? connectionOptions = null)
         {
             _actualObject = actualObject;
             NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
@@ -24,12 +27,12 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// Constructor for a child WMI namespace, propagating ConnectionOptions from the parent
         /// </summary>
-        public WmiNamespace(ManagementObject? actualObject, string namespacePath, WmiNamespace parent)
+        public WmiNamespace(ManagementObject actualObject, string namespacePath, WmiNamespace parent)
         {
             _actualObject = actualObject;
             NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
             ConnectionOptions = parent?.ConnectionOptions;
-            IsRoot = false;
+            IsRoot = false;            
         }        
 
         /// <summary>
@@ -41,13 +44,13 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// The ConnectionOptions used for this namespace (can be null)
         /// </summary>
+        [Category("Namespace")]
         public ConnectionOptions? ConnectionOptions { get; }
 
         /// <summary>
         /// Indicates whether this namespace is the root namespace (if ConnectionOptions is specified)
         /// </summary>
-        [Category("WmiExplorer.Internal")]        
-        [Description("Indicates whether this namespace is the root namespace")]
+        [Browsable(false)]
         public bool IsRoot { get; }
 
         /// <summary>
@@ -58,9 +61,13 @@ namespace WmiExplorer.Core.Models
             string.IsNullOrEmpty(NamespacePath) ? string.Empty :
             NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
 
+
+        [Category("Qualifiers")]
+        public QualifierDataCollection Qualifiers => _actualObject.Qualifiers;
+
         /// <summary>
         /// Returns the string representation
         /// </summary>
-        public override string ToString() => NamespacePath;
+        public override string ToString() => $"Namespace: {NamespacePath}";
     }
 }
