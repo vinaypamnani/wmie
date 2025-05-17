@@ -134,7 +134,7 @@
                             x:Name="PART_VerticalScrollBar"
                             Grid.Row="0"
                             Grid.Column="1"
-                            Margin="5,0,0,0"
+                            Margin="5,5,5,5"
                             Maximum="{TemplateBinding ScrollableHeight}"
                             Style="{StaticResource ModernScrollBarStyle}"
                             ViewportSize="{TemplateBinding ViewportHeight}"
