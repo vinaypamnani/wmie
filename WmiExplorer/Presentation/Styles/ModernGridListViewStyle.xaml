@@ -21,18 +21,36 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer x:Name="_tv_scrollviewer_" Padding="{TemplateBinding Padding}" Style="{DynamicResource ModernScrollViewerStyle}">
-                            <DockPanel>
-                                <!--  Preserve the GridView header with our flat style  -->
-                                <GridViewHeaderRowPresenter
-                                    Margin="2,0,2,0"
-                                    ColumnHeaderContainerStyle="{DynamicResource FlatGridViewColumnHeaderStyle}"
-                                    Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}"
-                                    DockPanel.Dock="Top" />
-                                <!--  Display the items  -->
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <!--  Fixed Header Row with ScrollViewer to enable horizontal scrolling sync  -->
+                            <ScrollViewer
+                                x:Name="PART_HeaderScrollViewer"
+                                Grid.Row="0"
+                                HorizontalScrollBarVisibility="Hidden"
+                                VerticalScrollBarVisibility="Disabled">
+                                <!--  Wrap in a border to provide the background  -->
+                                <Border Background="{DynamicResource SecondaryBackgroundBrush}">
+                                    <GridViewHeaderRowPresenter Margin="2,0,2,0" ColumnHeaderContainerStyle="{DynamicResource FlatGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
+                                </Border>
+                            </ScrollViewer>
+
+                            <!--  Scrollable Items Area  -->
+                            <ScrollViewer
+                                x:Name="PART_ScrollViewer"
+                                Grid.Row="1"
+                                Padding="{TemplateBinding Padding}"
+                                behaviors:ScrollSynchronizationBehavior.SynchronizeWith="{Binding ElementName=PART_HeaderScrollViewer}"
+                                CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
+                                HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                Style="{DynamicResource ModernScrollViewerStyle}"
+                                VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
                                 <ItemsPresenter />
-                            </DockPanel>
-                        </ScrollViewer>
+                            </ScrollViewer>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="False">

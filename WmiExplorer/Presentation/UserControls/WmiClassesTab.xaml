@@ -51,9 +51,9 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource TextBoxWithPlaceholder}"
                             Tag="Quick Filter Classes..."
-                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />                        <ListView
+                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />
+                        <ListView
                             Grid.Row="1"
-                            Style="{StaticResource ModernGridListViewStyle}"
                             behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
                             behaviors:ListViewAutoScrollBehavior.DisableVirtualization="True"
                             behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedNamespace.SelectedClass}"
@@ -61,7 +61,8 @@
                             BorderThickness="1"
                             ItemsSource="{Binding SelectedNamespace.ClassesView}"
                             SelectedItem="{Binding SelectedNamespace.SelectedClass}"
-                            SelectionMode="Single">
+                            SelectionMode="Single"
+                            Style="{StaticResource ModernGridListViewStyle}">
                             <ListView.View>
                                 <GridView AllowsColumnReorder="True">
                                     <GridView.ColumnHeaderContainerStyle>
