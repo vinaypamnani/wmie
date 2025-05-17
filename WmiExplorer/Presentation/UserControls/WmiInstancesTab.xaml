@@ -28,6 +28,7 @@
         <ListView
             Grid.Row="1"
             BorderThickness="0"
+            Style="{StaticResource ScrollableListViewStyle}"
             ItemsSource="{Binding SelectedNamespace.SelectedClass.WmiInstancesView}"
             SelectedItem="{Binding SelectedNamespace.SelectedClass.SelectedInstance}"
             SelectionMode="Single">

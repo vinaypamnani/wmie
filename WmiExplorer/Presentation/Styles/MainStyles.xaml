@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">    
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
     <ResourceDictionary.MergedDictionaries>
         <!--  Include theme-specific resources (will be loaded by your theme system)  -->
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Generic.xaml" />
@@ -14,5 +14,7 @@
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/IndicatorStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/TooltipStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ScrollBarStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/FlatUIOverrides.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ModernGridListViewStyle.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

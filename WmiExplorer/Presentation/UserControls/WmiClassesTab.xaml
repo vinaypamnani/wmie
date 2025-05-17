@@ -5,8 +5,8 @@
     xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
     xmlns:userControls="clr-namespace:WmiExplorer.Presentation.UserControls"
+    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -17,25 +17,23 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="{Binding WindowPosition.ClassesColumnGridLength, Mode=TwoWay}" />
-            <ColumnDefinition Width="Auto" />  <!-- Changed from fixed 15px to Auto -->
+            <ColumnDefinition Width="Auto" />
+            <!--  Changed from fixed 15px to Auto  -->
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Classes View Content -->
-        <Grid Grid.Column="0" Grid.Row="0">
+        <!--  Classes View Content  -->
+        <Grid Grid.Row="0" Grid.Column="0">
             <Expander
                 Name="ExpanderClasses"
                 Padding="0,3,0,0"
                 BorderThickness="0"
                 ExpandDirection="Right"
-                Style="{StaticResource VerticalHeaderExpanderStyle}"
-                IsExpanded="{Binding WindowPosition.IsClassesExpanded, Mode=TwoWay}">
+                IsExpanded="{Binding WindowPosition.IsClassesExpanded, Mode=TwoWay}"
+                Style="{StaticResource VerticalHeaderExpanderStyle}">
                 <Expander.Header>
                     <Border Width="25">
-                        <TextBlock
-                            FontSize="15"
-                            FontWeight="SemiBold"
-                            Text="Classes">
+                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="Classes">
                             <TextBlock.LayoutTransform>
                                 <RotateTransform Angle="90" />
                             </TextBlock.LayoutTransform>
@@ -53,154 +51,73 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource TextBoxWithPlaceholder}"
                             Tag="Quick Filter Classes..."
-                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />
-                        <ListView
+                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />                        <ListView
                             Grid.Row="1"
+                            Style="{StaticResource ModernGridListViewStyle}"
                             behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
                             behaviors:ListViewAutoScrollBehavior.DisableVirtualization="True"
                             behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedNamespace.SelectedClass}"
                             behaviors:ListViewSortBehavior.EnableSorting="True"
-                            BorderThickness="0"
+                            BorderThickness="1"
                             ItemsSource="{Binding SelectedNamespace.ClassesView}"
                             SelectedItem="{Binding SelectedNamespace.SelectedClass}"
                             SelectionMode="Single">
-                            <ListView.ItemContainerStyle>
-                                <Style BasedOn="{StaticResource BaseListViewItemStyle}" TargetType="{x:Type ListViewItem}">
-                                    <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
-                                    <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
-                                    <Setter Property="ContextMenu">
-                                        <Setter.Value>
-                                            <ContextMenu>
-                                                <MenuItem Header="Copy Relative Path" Command="{Binding CopyRelativePathCommand}" />
-                                            </ContextMenu>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="{Binding Path=View.Columns[0].ActualWidth, RelativeSource={RelativeSource AncestorType=ListView}}" />
-                                            <ColumnDefinition Width="{Binding Path=View.Columns[1].ActualWidth, RelativeSource={RelativeSource AncestorType=ListView}}" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid
-                                            Grid.Column="0"
-                                            Width="16"
-                                            Height="16"
-                                            Margin="3,1">
-                                            <Ellipse
-                                                Width="10"
-                                                Height="10"
-                                                RenderTransformOrigin="0.5,0.5"
-                                                Style="{DynamicResource StatusIndicatorStyle}" />
-                                        </Grid>
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Margin="5,0"
-                                            Text="{Binding ClassName}" />
-                                        <TextBlock
-                                            Grid.Column="2"
-                                            Margin="5,0"
-                                            TextTrimming="CharacterEllipsis"
-                                            TextWrapping="NoWrap"
-                                            MaxHeight="20"
-                                            Text="{Binding Description}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="ToolTip" Value="{Binding Description}" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Description}" Value="">
-                                                            <Setter Property="ToolTip" Value="{x:Null}" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
                             <ListView.View>
                                 <GridView AllowsColumnReorder="True">
                                     <GridView.ColumnHeaderContainerStyle>
-                                        <Style BasedOn="{StaticResource GridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader">
-                                            <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                            <Setter Property="Padding" Value="5,3,5,3" />
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="GridViewColumnHeader">
-                                                        <Grid>
-                                                            <Border x:Name="HeaderBorder"
-                                                                    Background="{TemplateBinding Background}"
-                                                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                                                    BorderThickness="{TemplateBinding BorderThickness}">
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*" />
-                                                                        <ColumnDefinition Width="Auto" />
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <ContentPresenter Grid.Column="0"
-                                                                                      Margin="{TemplateBinding Padding}"
-                                                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                                                      RecognizesAccessKey="True"
-                                                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                                                    <Path x:Name="SortArrow"
-                                                                          Grid.Column="1"
-                                                                          Width="8"
-                                                                          Height="10"
-                                                                          Margin="0,0,8,0"
-                                                                          HorizontalAlignment="Center"
-                                                                          VerticalAlignment="Center"
-                                                                          Opacity="0.5"
-                                                                          Fill="{TemplateBinding Foreground}"
-                                                                          Stretch="Fill"
-                                                                          Visibility="Collapsed" />
-                                                                </Grid>
-                                                            </Border>
-                                                            <Thumb x:Name="PART_HeaderGripper"
-                                                                   HorizontalAlignment="Right"
-                                                                   Cursor="SizeWE" />
-                                                        </Grid>
-                                                        <ControlTemplate.Triggers>
-                                                            <!-- Sort Direction Indicator Triggers -->
-                                                            <Trigger Property="behaviors:ListViewSortBehavior.IsSorted" Value="True">
-                                                                <Setter TargetName="SortArrow" Property="Visibility" Value="Visible" />
-                                                            </Trigger>
-                                                            <Trigger Property="behaviors:ListViewSortBehavior.SortDirection" Value="Ascending">
-                                                                <Setter TargetName="SortArrow" Property="Data" Value="M0,10 L8,10 L4,0 Z" />
-                                                            </Trigger>
-                                                            <Trigger Property="behaviors:ListViewSortBehavior.SortDirection" Value="Descending">
-                                                                <Setter TargetName="SortArrow" Property="Data" Value="M0,0 L8,0 L4,10 Z" />
-                                                            </Trigger>
-
-                                                            <!-- Add back hover effect -->
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource HoverBackgroundBrush}" />
-                                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-                                                            </Trigger>
-                                                            <Trigger Property="IsPressed" Value="True">
-                                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
-                                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
+                                        <Style BasedOn="{StaticResource FlatGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
                                     </GridView.ColumnHeaderContainerStyle>
-                                    <GridViewColumn
-                                        Width="150"
-                                        behaviors:ListViewSortBehavior.SortProperty="ClassName"
-                                        Header="Class Name" />
-                                    <GridViewColumn
-                                        Width="150"
-                                        behaviors:ListViewSortBehavior.SortProperty="Description"
-                                        Header="Description" />
+                                    <GridViewColumn Width="40">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid Width="16" Height="16" Margin="3,1">
+                                                    <Ellipse
+                                                        Width="10"
+                                                        Height="10"
+                                                        RenderTransformOrigin="0.5,0.5"
+                                                        Style="{DynamicResource StatusIndicatorStyle}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="150" behaviors:ListViewSortBehavior.SortProperty="ClassName" Header="Class Name">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Margin="5,0" Text="{Binding ClassName}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="150" behaviors:ListViewSortBehavior.SortProperty="Description" Header="Description">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock
+                                                    MaxHeight="20"
+                                                    Margin="5,0"
+                                                    Text="{Binding Description}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    TextWrapping="NoWrap">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="ToolTip" Value="{Binding Description}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Description}" Value="">
+                                                                    <Setter Property="ToolTip" Value="{x:Null}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
                                 </GridView>
                             </ListView.View>
+                            <ListView.ItemContainerStyle>
+                                <Style BasedOn="{StaticResource FlatListViewItemStyle}" TargetType="{x:Type ListViewItem}">
+                                    <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
+                                    <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
                         </ListView>
                     </Grid>
                 </Expander.Content>
@@ -208,29 +125,33 @@
         </Grid>
 
         <GridSplitter
-            Grid.Column="1"
             Grid.Row="0"
+            Grid.Column="1"
             HorizontalAlignment="Center"
             VerticalAlignment="Stretch"
             Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-        <TabControl Grid.Column="2" Grid.Row="0">
+        <TabControl Grid.Row="0" Grid.Column="2">
             <TabItem Header="Instances">
-                <!-- Instances View -->
+                <!--  Instances View  -->
                 <userControls:WmiInstancesTab />
             </TabItem>
             <TabItem Header="Properties">
-                <!-- Properties View -->
+                <!--  Properties View  -->
                 <userControls:WmiPropertiesTab />
             </TabItem>
             <TabItem Header="Methods">
-                <!-- Methods View -->
+                <!--  Methods View  -->
                 <userControls:WmiMethodsTab />
             </TabItem>
         </TabControl>
 
-        <!-- Query GroupBox spanning all columns -->
-        <GroupBox Grid.Row="1" Grid.ColumnSpan="3" Header="Query" Margin="0,5,0,0">
+        <!--  Query GroupBox spanning all columns  -->
+        <GroupBox
+            Grid.Row="1"
+            Grid.ColumnSpan="3"
+            Margin="0,5,0,0"
+            Header="Query">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -240,8 +161,8 @@
                     Grid.Column="0"
                     Margin="5"
                     IsEnabled="False"
-                    Style="{StaticResource TextBoxWithPlaceholder}"                    
-                    Tag="Automatically created query here" />                
+                    Style="{StaticResource TextBoxWithPlaceholder}"
+                    Tag="Automatically created query here" />
                 <Button
                     Grid.Column="1"
                     MinWidth="75"
