@@ -1,7 +1,6 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Base ListView style with proper horizontal scrolling support -->
+    <!--  Base ListView style with proper horizontal scrolling support  -->
     <Style x:Key="ScrollableListViewStyle" TargetType="{x:Type ListView}">
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -17,13 +16,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListView}">
-                    <Border x:Name="Border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer x:Name="ScrollViewer"
-                                      Padding="{TemplateBinding Padding}"
-                                      Style="{DynamicResource ModernScrollViewerStyle}">
+                    <Border
+                        x:Name="Border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                        <ScrollViewer x:Name="ScrollViewer" Padding="{TemplateBinding Padding}" Style="{DynamicResource ModernScrollViewerStyle}">
                             <ItemsPresenter />
                         </ScrollViewer>
                     </Border>
@@ -42,8 +40,8 @@
         </Setter>
     </Style>
 
-    <!-- Override the base ListView style -->
-    <Style TargetType="{x:Type ListView}" BasedOn="{StaticResource ScrollableListViewStyle}" />
+    <!--  Override the base ListView style  -->
+    <Style BasedOn="{StaticResource ScrollableListViewStyle}" TargetType="{x:Type ListView}" />
 
     <!--  ListViewItem  -->
     <Style x:Key="BaseListViewItemStyle" TargetType="ListViewItem">
@@ -63,23 +61,20 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         SnapsToDevicePixels="True">
-                        <ContentPresenter
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SelectedItemBackgroundBrush}" />
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SelectedItemBackgroundBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-                        </Trigger>                        
+                        </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                         </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
-                                <Condition Property="IsSelected" Value="False" />                                
+                                <Condition Property="IsSelected" Value="False" />
                                 <Condition Property="IsMouseOver" Value="True" />
                             </MultiTrigger.Conditions>
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />

@@ -1,13 +1,12 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Fallback theme: Matches Light theme colors from ThemeManager.cs -->
-    <!-- Base Colors -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  Fallback theme: Matches Light theme colors from ThemeManager.cs  -->
+    <!--  Base Colors  -->
     <Color x:Key="PrimaryBackgroundColor">#FFFFFFFF</Color>
     <Color x:Key="SecondaryBackgroundColor">#FFF5F5F5</Color>
     <Color x:Key="TertiaryBackgroundColor">#FFEBEBEB</Color>
     <Color x:Key="DisabledBackgroundColor">#FFF0F0F0</Color>
     <Color x:Key="PrimaryForegroundColor">#FF202020</Color>
-    <Color x:Key="SecondaryForegroundColor">#FF505050</Color>    
+    <Color x:Key="SecondaryForegroundColor">#FF505050</Color>
     <Color x:Key="DisabledForegroundColor">#FFB0B0B0</Color>
     <Color x:Key="PrimaryAccentColor">#FF0078D7</Color>
     <Color x:Key="SecondaryAccentColor">#FF3A96DD</Color>
@@ -16,16 +15,16 @@
     <Color x:Key="ErrorColor">#FFE81123</Color>
     <Color x:Key="WarningColor">#FFFF8C00</Color>
     <Color x:Key="IndeterminateColor">#FF767676</Color>
-    <Color x:Key="BusyColor">#FF0063B1</Color>    
+    <Color x:Key="BusyColor">#FF0063B1</Color>
 
-    <!-- Status Brushes -->
+    <!--  Status Brushes  -->
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
     <SolidColorBrush x:Key="IndeterminateBrush" Color="{StaticResource IndeterminateColor}" />
-    <SolidColorBrush x:Key="BusyBrush" Color="{StaticResource BusyColor}" />    
-    
-    <!-- Base Brushes -->
+    <SolidColorBrush x:Key="BusyBrush" Color="{StaticResource BusyColor}" />
+
+    <!--  Base Brushes  -->
     <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
     <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
     <SolidColorBrush x:Key="TertiaryBackgroundBrush" Color="{StaticResource TertiaryBackgroundColor}" />
@@ -36,20 +35,20 @@
     <SolidColorBrush x:Key="PrimaryAccentBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource SecondaryAccentColor}" />
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
-    
-    <!-- Interaction State Brushes -->
-    <SolidColorBrush x:Key="SelectedItemBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.8"/>
-    <SolidColorBrush x:Key="SelectedUnfocusedBackgroundBrush" Color="{StaticResource SecondaryAccentColor}" Opacity="0.4" />    
-    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.6" />
-    <SolidColorBrush x:Key="ItemPressedBrush" Color="{StaticResource SecondaryAccentColor}" Opacity="0.75" />
-    
-    <!-- ScrollBar Brushes -->
+
+    <!--  Interaction State Brushes  -->
+    <SolidColorBrush x:Key="SelectedItemBackgroundBrush" Opacity="0.8" Color="{StaticResource PrimaryAccentColor}" />
+    <SolidColorBrush x:Key="SelectedUnfocusedBackgroundBrush" Opacity="0.4" Color="{StaticResource SecondaryAccentColor}" />
+    <SolidColorBrush x:Key="HoverBackgroundBrush" Opacity="0.6" Color="{StaticResource PrimaryAccentColor}" />
+    <SolidColorBrush x:Key="ItemPressedBrush" Opacity="0.75" Color="{StaticResource SecondaryAccentColor}" />
+
+    <!--  ScrollBar Brushes  -->
     <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="{StaticResource SecondaryBackgroundColor}" />
-    <SolidColorBrush x:Key="ScrollBarThumbBrush" Color="{StaticResource BorderColor}" Opacity="0.8" />
-    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.7" />
-    <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="{StaticResource PrimaryAccentColor}" Opacity="0.9" />    
-    
-    <!-- PropertyGrid Colors (Consolidated, only used brushes) -->
+    <SolidColorBrush x:Key="ScrollBarThumbBrush" Opacity="0.8" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Opacity="0.7" Color="{StaticResource PrimaryAccentColor}" />
+    <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Opacity="0.9" Color="{StaticResource PrimaryAccentColor}" />
+
+    <!--  PropertyGrid Colors (Consolidated, only used brushes)  -->
     <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
     <SolidColorBrush x:Key="PropertyGridForegroundBrush" Color="{StaticResource PrimaryForegroundColor}" />
     <SolidColorBrush x:Key="PropertyGridSecondaryBackgroundBrush" Color="{StaticResource SecondaryBackgroundColor}" />
@@ -58,6 +57,6 @@
     <SolidColorBrush x:Key="PropertyGridAccentBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="PropertyGridDisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
-    <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}"/>
-    
+    <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
+
 </ResourceDictionary>

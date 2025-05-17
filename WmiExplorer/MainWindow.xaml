@@ -7,12 +7,12 @@
     xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pg="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid"
     xmlns:services="clr-namespace:WmiExplorer.Services"
     xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
-    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
     xmlns:userControls="clr-namespace:WmiExplorer.Presentation.UserControls"
-    xmlns:pg="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid"
-    Title="WmiExplorer"    
+    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+    Title="WmiExplorer"
     Background="{DynamicResource PrimaryBackgroundBrush}"
     BorderBrush="{DynamicResource BorderBrush}"
     Foreground="{DynamicResource PrimaryForegroundBrush}"
@@ -55,7 +55,7 @@
                 <MenuItem Header="Copy" />
                 <MenuItem Header="Paste" />
             </MenuItem>
-            <TextBlock><Hyperlink>Version</Hyperlink></TextBlock>            
+            <TextBlock><Hyperlink>Version</Hyperlink></TextBlock>
             <MenuItem
                 x:Name="ThemeToggle"
                 Margin="10,0"
@@ -70,39 +70,38 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <DockPanel
-                Grid.Row="0"
-                Margin="5,0,5,0"
-                VerticalAlignment="Top">
+            <DockPanel Grid.Row="0" Margin="5,0,5,0" VerticalAlignment="Top">
                 <userControls:OptionsPanel />
             </DockPanel>
             <DockPanel Grid.Row="1" Margin="5,0,5,0">
-                <Grid Name="ContentGrid">                    
+                <Grid Name="ContentGrid">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
-                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Giving it fixed width makes it easier to grab -->
+                        <ColumnDefinition Width="Auto" />
+                        <!--  GridSplitter - Giving it fixed width makes it easier to grab  -->
                         <ColumnDefinition Width="{Binding WindowPosition.ContentColumnStarGridLength, Mode=TwoWay}" />
-                        <ColumnDefinition Width="Auto" />  <!-- GridSplitter - Giving it fixed width makes it easier to grab -->
+                        <ColumnDefinition Width="Auto" />
+                        <!--  GridSplitter - Giving it fixed width makes it easier to grab  -->
                         <ColumnDefinition Width="{Binding WindowPosition.PropertyGridColumnStarGridLength, Mode=TwoWay}" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Namespace View -->
-                    <userControls:WmiNamespacesPane Grid.Column="0" />                    
-                    
+                    <!--  Namespace View  -->
+                    <userControls:WmiNamespacesPane Grid.Column="0" />
+
                     <GridSplitter
                         Grid.Column="1"
                         Width="6"
                         HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"                        
+                        VerticalAlignment="Stretch"
                         Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <TabControl Grid.Column="2">
                         <TabItem Header="Classes">
-                            <!-- All the grid content has been moved to WmiClassesTab -->
+                            <!--  All the grid content has been moved to WmiClassesTab  -->
                             <userControls:WmiClassesTab />
                         </TabItem>
                         <TabItem Header="Search">
-                            <!-- Search View -->
+                            <!--  Search View  -->
                             <userControls:WmiSearchTab />
                         </TabItem>
                     </TabControl>
@@ -111,24 +110,21 @@
                         Grid.Column="3"
                         Width="6"
                         HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"                        
+                        VerticalAlignment="Stretch"
                         Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                    <!-- Property Grid with Expander -->
+                    <!--  Property Grid with Expander  -->
                     <Grid Grid.Column="4">
                         <Expander
                             Name="ExpanderPropertyGrid"
                             Padding="0,3,0,0"
                             BorderThickness="0"
                             ExpandDirection="Left"
-                            Style="{StaticResource VerticalHeaderExpanderStyle}"
-                            IsExpanded="{Binding WindowPosition.IsPropertyGridExpanded, Mode=TwoWay}">
+                            IsExpanded="{Binding WindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
+                            Style="{StaticResource VerticalHeaderExpanderStyle}">
                             <Expander.Header>
                                 <Border Width="25">
-                                    <TextBlock
-                                        FontSize="15"
-                                        FontWeight="SemiBold"
-                                        Text="Properties">
+                                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="Properties">
                                         <TextBlock.LayoutTransform>
                                             <RotateTransform Angle="90" />
                                         </TextBlock.LayoutTransform>
@@ -137,40 +133,37 @@
                             </Expander.Header>
                             <Expander.Content>
                                 <Grid>
-                                    <!-- Border around both header and property grid -->
-                                    <Border
-                                        BorderBrush="{DynamicResource PrimaryAccentBrush}"
-                                        BorderThickness="0"
-                                        CornerRadius="3">
+                                    <!--  Border around both header and property grid  -->
+                                    <Border BorderBrush="{DynamicResource PrimaryAccentBrush}" BorderThickness="0" CornerRadius="3">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="*" />
                                             </Grid.RowDefinitions>
 
-                                            <!-- Header for selected object -->
+                                            <!--  Header for selected object  -->
                                             <Border
                                                 Grid.Row="0"
-                                                Background="{DynamicResource PrimaryAccentBrush}"
-                                                BorderThickness="0"
+                                                Margin="0"
                                                 Padding="10,5"
-                                                Margin="0">
+                                                Background="{DynamicResource PrimaryAccentBrush}"
+                                                BorderThickness="0">
                                                 <TextBlock
-                                                    Text="{Binding SelectedObject}"
+                                                    Background="{DynamicResource PrimaryAccentBrush}"
                                                     FontWeight="SemiBold"
                                                     Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                                    Background="{DynamicResource PrimaryAccentBrush}"
+                                                    Text="{Binding SelectedObject}"
                                                     TextTrimming="CharacterEllipsis" />
                                             </Border>
 
                                             <pg:CustomPropertyGrid
-                                                Grid.Row="1"
                                                 x:Name="PropertyGrid"
+                                                Grid.Row="1"
                                                 Background="{DynamicResource PropertyGridBackgroundBrush}"
-                                                NameColumnWidth="150"
-                                                ShowSearchBox="True"
                                                 EnableVirtualization="True"
-                                                SelectedObject="{Binding SelectedObject, Mode=OneWay}" />
+                                                NameColumnWidth="150"
+                                                SelectedObject="{Binding SelectedObject, Mode=OneWay}"
+                                                ShowSearchBox="True" />
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -182,10 +175,7 @@
         </Grid>
         <StatusBar Grid.Row="2" Margin="0,5,0,0">
             <StatusBarItem>
-                <TextBlock
-                    x:Name="StatusBarText"
-                    Margin="5,0"
-                    Text="{Binding CurrentApplicationState.Message}" />
+                <TextBlock x:Name="StatusBarText" Margin="5,0" Text="{Binding CurrentApplicationState.Message}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Margin="0,0,5,0" Orientation="Horizontal">

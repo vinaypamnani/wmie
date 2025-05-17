@@ -1,8 +1,6 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters">
 
-    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />    
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
     <!--  TabControl  -->
     <Style TargetType="TabControl">
@@ -59,17 +57,17 @@
 
         <Style.Triggers>
             <Trigger Property="IsExpanded" Value="False">
-                <!-- MinWidth set at style level -->
+                <!--  MinWidth set at style level  -->
             </Trigger>
             <Trigger Property="IsExpanded" Value="True">
-                <!-- Setting Width directly to ensure MinWidth works -->
+                <!--  Setting Width directly to ensure MinWidth works  -->
                 <Setter Property="Width" Value="NaN" />
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
-                <!-- Force MinWidth on the Header -->
+                <!--  Force MinWidth on the Header  -->
                 <Setter Property="HeaderTemplate">
                     <Setter.Value>
                         <DataTemplate>
-                            <ContentPresenter Content="{Binding}" MinWidth="30" />
+                            <ContentPresenter MinWidth="30" Content="{Binding}" />
                         </DataTemplate>
                     </Setter.Value>
                 </Setter>
