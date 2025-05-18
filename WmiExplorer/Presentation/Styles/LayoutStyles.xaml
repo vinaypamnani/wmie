@@ -24,6 +24,19 @@
         <Setter Property="Margin" Value="5,0,5,0" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="ShowsPreview" Value="True" />
+        <Setter Property="PreviewStyle">
+            <Setter.Value>
+                <Style TargetType="{x:Type Control}">
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle Fill="{DynamicResource PrimaryAccentBrush}" />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GridSplitter">
