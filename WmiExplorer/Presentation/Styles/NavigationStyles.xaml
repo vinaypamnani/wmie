@@ -48,29 +48,272 @@
         </Setter>
     </Style>
 
+    <!--  ToggleButton Style for Vertical Expander with Chevron Arrows  -->
+    <Style x:Key="VerticalExpanderToggleStyle" TargetType="ToggleButton">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        x:Name="ToggleBorder"
+                        Width="24"
+                        Height="24"
+                        Background="{DynamicResource TertiaryBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1.5"
+                        CornerRadius="3">
+                        <!--  Chevron arrow similar to SortArrow  -->
+                        <Path
+                            x:Name="ExpanderArrow"
+                            Width="10"
+                            Height="10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Fill="{DynamicResource PrimaryAccentBrush}"
+                            Stretch="Uniform"
+                            Stroke="{DynamicResource PrimaryAccentBrush}"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round"
+                            StrokeStartLineCap="Round"
+                            StrokeThickness="1">
+                            <!--  Default chevron pointing right  -->
+                            <Path.Data>M 0,0 L 5,5 L 0,10</Path.Data>
+                        </Path>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!--  Right direction (default) unchecked  -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource Self}}" Value="False" />
+                                <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Right" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="ExpanderArrow" Property="Data" Value="M 0,0 L 5,5 L 0,10" />
+                        </MultiDataTrigger>
+
+                        <!--  Right direction checked - collapsed arrow  -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Right" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="ExpanderArrow" Property="Data" Value="M 5,0 L 0,5 L 5,10" />
+                            <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
+                            <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="2" />
+                        </MultiDataTrigger>
+
+                        <!--  Left direction default - left pointing arrow  -->
+                        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Left">
+                            <Setter TargetName="ExpanderArrow" Property="Data" Value="M 5,0 L 0,5 L 5,10" />
+                        </DataTrigger>
+
+                        <!--  Left direction checked - expanded arrow  -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Left" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="ExpanderArrow" Property="Data" Value="M 0,0 L 5,5 L 0,10" />
+                            <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
+                            <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="2" />
+                        </MultiDataTrigger>
+
+                        <!--  Fallback for backward compatibility  -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="ExpanderArrow" Property="Stroke" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
+                            <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="2" />
+                        </Trigger>
+
+                        <!--  Hover effect with improved visuals  -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource SecondaryAccentBrush}" />
+                            <Setter TargetName="ExpanderArrow" Property="Stroke" Value="{DynamicResource SecondaryAccentBrush}" />
+                            <Setter TargetName="ExpanderArrow" Property="StrokeThickness" Value="1.5" />
+                            <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+                            <Setter TargetName="ToggleBorder" Property="Background">
+                                <Setter.Value>
+                                    <SolidColorBrush Opacity="0.7" Color="{DynamicResource TertiaryBackgroundColor}" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="ToggleBorder" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect
+                                        BlurRadius="2"
+                                        Direction="315"
+                                        Opacity="0.3"
+                                        ShadowDepth="1" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--  Expander - Collapsible panel style with vertical header  -->
     <Style x:Key="VerticalHeaderExpanderStyle" TargetType="Expander">
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="MinWidth" Value="30" />
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Expander">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="LeftColumn" Width="Auto" />
+                            <ColumnDefinition x:Name="RightColumn" Width="*" />
+                        </Grid.ColumnDefinitions>
 
+                        <!--  Header - Position determined by ExpandDirection  -->
+                        <Border
+                            x:Name="HeaderBorder"
+                            Grid.Column="0"
+                            Background="{DynamicResource TertiaryBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,0,1,0">
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="3"
+                                    Direction="270"
+                                    Opacity="0.2"
+                                    ShadowDepth="1" />
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <!--  Toggle Button at Top  -->
+                                <ToggleButton
+                                    x:Name="ExpanderButton"
+                                    Grid.Row="0"
+                                    Margin="0,5,0,0"
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                    Style="{StaticResource VerticalExpanderToggleStyle}"
+                                    Tag="Right" />
+
+                                <!--  Vertical Header Content  -->
+                                <ContentPresenter
+                                    x:Name="HeaderContent"
+                                    Grid.Row="1"
+                                    MinWidth="30"
+                                    Margin="2,5,2,10"
+                                    ContentSource="Header" />
+                            </Grid>
+                        </Border>
+
+                        <!--  Content - Position determined by ExpandDirection  -->
+                        <Border
+                            x:Name="ContentBorder"
+                            Grid.Column="1"
+                            Margin="0,0,0,0"
+                            Background="{DynamicResource PrimaryBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1,0,0,0"
+                            Visibility="Collapsed">
+                            <ContentPresenter
+                                x:Name="ContentSite"
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!--  IsExpanded Triggers  -->
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ContentBorder" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                            <Setter TargetName="HeaderContent" Property="TextElement.Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsExpanded" Value="False">
+                            <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+                        </Trigger>
+
+                        <!--  ExpandDirection Triggers  -->
+                        <Trigger Property="ExpandDirection" Value="Right">
+                            <Setter TargetName="HeaderBorder" Property="Grid.Column" Value="0" />
+                            <Setter TargetName="ContentBorder" Property="Grid.Column" Value="1" />
+                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0,0,1,0" />
+                            <Setter TargetName="ContentBorder" Property="BorderThickness" Value="1,0,0,0" />
+                            <Setter TargetName="ExpanderButton" Property="Tag" Value="Right" />
+                            <Setter TargetName="HeaderBorder" Property="Width" Value="Auto" />
+                            <Setter TargetName="HeaderBorder" Property="HorizontalAlignment" Value="Left" />
+                            <Setter TargetName="HeaderContent" Property="HorizontalAlignment" Value="Center" />
+                        </Trigger>
+
+                        <Trigger Property="ExpandDirection" Value="Left">
+                            <Setter TargetName="HeaderBorder" Property="Grid.Column" Value="1" />
+                            <Setter TargetName="ContentBorder" Property="Grid.Column" Value="0" />
+                            <Setter TargetName="ContentBorder" Property="HorizontalAlignment" Value="Stretch" />
+                            <Setter TargetName="ContentBorder" Property="Width" Value="Auto" />
+                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="1,0,0,0" />
+                            <Setter TargetName="ContentBorder" Property="BorderThickness" Value="0,0,1,0" />
+                            <Setter TargetName="ExpanderButton" Property="Tag" Value="Left" />
+                            <Setter TargetName="HeaderBorder" Property="Width" Value="Auto" />
+                            <Setter TargetName="HeaderBorder" Property="MinWidth" Value="30" />
+                            <Setter TargetName="HeaderBorder" Property="HorizontalAlignment" Value="Right" />
+                            <Setter TargetName="HeaderContent" Property="HorizontalAlignment" Value="Center" />
+                            <!--  Fix for content space in left direction  -->
+                            <Setter TargetName="LeftColumn" Property="Width" Value="*" />
+                            <Setter TargetName="RightColumn" Property="Width" Value="Auto" />
+                            <Setter TargetName="ContentSite" Property="HorizontalAlignment" Value="Stretch" />
+                        </Trigger>
+
+                        <!--  Animation Triggers for better user experience  -->
+                        <EventTrigger RoutedEvent="Expander.Expanded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="HeaderBorder"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0.8"
+                                        To="1.0"
+                                        Duration="0:0:0.2" />
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="ContentBorder"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="0.7"
+                                        To="1.0"
+                                        Duration="0:0:0.3" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+
+                        <EventTrigger RoutedEvent="Expander.Collapsed">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                                        Storyboard.TargetName="HeaderBorder"
+                                        Storyboard.TargetProperty="Opacity"
+                                        From="1.0"
+                                        To="0.9"
+                                        Duration="0:0:0.1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
             <Trigger Property="IsExpanded" Value="False">
                 <!--  MinWidth set at style level  -->
             </Trigger>
             <Trigger Property="IsExpanded" Value="True">
-                <!--  Setting Width directly to ensure MinWidth works  -->
+                <!--  Setting Width properly to ensure proper layout  -->
                 <Setter Property="Width" Value="NaN" />
                 <Setter Property="HorizontalAlignment" Value="Stretch" />
-                <!--  Force MinWidth on the Header  -->
-                <Setter Property="HeaderTemplate">
-                    <Setter.Value>
-                        <DataTemplate>
-                            <ContentPresenter MinWidth="30" Content="{Binding}" />
-                        </DataTemplate>
-                    </Setter.Value>
-                </Setter>
             </Trigger>
         </Style.Triggers>
     </Style>
