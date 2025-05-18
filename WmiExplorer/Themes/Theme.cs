@@ -124,9 +124,9 @@ namespace WmiExplorer.Themes
                 ["SecondaryAccentBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)),
                 ["BorderBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)),
                 // Selection and interaction states with improved opacity for better contrast
-                ["SelectedItemBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.8 },
+                ["SelectedItemBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.8 },
                 ["SelectedUnfocusedBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackKey: "PrimaryAccentColor", fallbackColor: Colors.LightBlue)) { Opacity = 0.4 },
-                ["HoverBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.6 },
+                ["HoverBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.6 },
                 ["ItemPressedBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)) { Opacity = 0.75 },
                 // ScrollBar brushes with improved contrast and interaction states
                 ["ScrollBarTrackBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
