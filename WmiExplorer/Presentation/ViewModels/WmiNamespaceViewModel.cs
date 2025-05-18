@@ -144,7 +144,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
                 if (mo.Scope?.Path != null)
                     vm.ComputerName = mo.Scope.Path.Server;
-                    
+
                 viewModels.Add(vm);
             }
 
@@ -154,7 +154,7 @@ namespace WmiExplorer.Presentation.ViewModels
         public string NamespacePath => _wmiNamespace.NamespacePath;
 
         public WmiNamespace? WmiNamespace => _wmiNamespace;
-        
+
         public string Name => _wmiNamespace.IsRoot ? _wmiNamespace.NamespacePath : _wmiNamespace.NamespaceName;
 
         public string ComputerName
@@ -429,7 +429,7 @@ namespace WmiExplorer.Presentation.ViewModels
                     _applicationService,
                     _settingsService,
                     this);
-                    
+
                 var sortedChildViewModels = new ObservableCollection<WmiNamespaceViewModel>(
                     childViewModels.OrderBy(vm => vm.Name)
                 );
@@ -491,16 +491,12 @@ namespace WmiExplorer.Presentation.ViewModels
                     MessageService!,
                     _applicationService);
 
-                var sortedClassViewModels = new ObservableCollection<WmiClassViewModel>(
-                    classViewModels.OrderBy(vm => vm.ClassName)
-                );
-
                 await RunOnUIThreadAsync(() =>
                 {
                     lock (_collectionLock)
                     {
                         _classes.Clear();
-                        foreach (var classVm in sortedClassViewModels)
+                        foreach (var classVm in classViewModels)
                         {
                             _classes.Add(classVm);
                         }
@@ -511,7 +507,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 });
 
                 ClassLoadState = ClassLoadState.Success;
-                PublishSuccessState($"Loaded {sortedClassViewModels.Count} classes for {NamespacePath}");
+                PublishSuccessState($"Loaded {classViewModels.Count} classes for {NamespacePath}");
             }
             catch (OperationCanceledException)
             {

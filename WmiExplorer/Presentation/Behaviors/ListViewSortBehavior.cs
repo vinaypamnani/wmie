@@ -15,25 +15,23 @@ namespace WmiExplorer.Presentation.Behaviors
         public static readonly DependencyProperty EnableSortingProperty =
             DependencyProperty.RegisterAttached("EnableSorting", typeof(bool),
                 typeof(ListViewSortBehavior),
-                new UIPropertyMetadata(false, OnEnableSortingChanged));        
+                new UIPropertyMetadata(false, OnEnableSortingChanged));
 
         public static readonly DependencyPropertyKey IsSortedPropertyKey =
             DependencyProperty.RegisterAttachedReadOnly("IsSorted", typeof(bool),
                 typeof(ListViewSortBehavior), new FrameworkPropertyMetadata(false));
 
         public static readonly DependencyProperty IsSortedProperty = IsSortedPropertyKey.DependencyProperty;
-        
+
         public static readonly DependencyPropertyKey SortDirectionPropertyKey =
             DependencyProperty.RegisterAttachedReadOnly("SortDirection", typeof(ListSortDirection?),
                 typeof(ListViewSortBehavior), new FrameworkPropertyMetadata(null));
 
         public static readonly DependencyProperty SortDirectionProperty = SortDirectionPropertyKey.DependencyProperty;
 
-        public static readonly DependencyProperty SortPropertyProperty = 
+        public static readonly DependencyProperty SortPropertyProperty =
             DependencyProperty.RegisterAttached("SortProperty", typeof(string),
-                typeof(ListViewSortBehavior), new UIPropertyMetadata(null));
-
-        private static void ColumnHeader_Click(object sender, RoutedEventArgs e)
+                typeof(ListViewSortBehavior), new UIPropertyMetadata(null));        private static void ColumnHeader_Click(object sender, RoutedEventArgs e)
         {
             if (e.OriginalSource is not GridViewColumnHeader headerClicked || headerClicked.Column == null)
                 return;
@@ -45,6 +43,10 @@ namespace WmiExplorer.Presentation.Behaviors
             if (sender is not ListView listView || listView.ItemsSource == null)
                 return;
 
+            // Store if the header was already sorted before clearing indicators
+            bool wasAlreadySorted = headerClicked == _lastHeaderClicked || GetIsSorted(headerClicked);
+            var currentDirection = GetSortDirection(headerClicked);
+
             // Clear previous sort indicators
             if (_lastHeaderClicked != null)
             {
@@ -53,9 +55,12 @@ namespace WmiExplorer.Presentation.Behaviors
             }
 
             var direction = ListSortDirection.Ascending;
-            if (headerClicked == _lastHeaderClicked)
+            // If header was already sorted, toggle the direction
+            if (wasAlreadySorted)
             {
-                direction = _lastDirection == ListSortDirection.Ascending ?
+                // If currentDirection is not null, use it; otherwise use _lastDirection
+                var directionToToggle = currentDirection ?? _lastDirection;
+                direction = directionToToggle == ListSortDirection.Ascending ?
                     ListSortDirection.Descending : ListSortDirection.Ascending;
             }
 
