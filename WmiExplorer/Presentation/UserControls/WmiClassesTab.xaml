@@ -51,14 +51,15 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource TextBoxWithPlaceholder}"
                             Tag="Quick Filter Classes..."
-                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />                        <ListView
+                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />
+                        <ListView
                             Grid.Row="1"
                             behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
                             behaviors:ListViewAutoScrollBehavior.DisableVirtualization="True"
                             behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedNamespace.SelectedClass}"
-                            behaviors:ListViewSortBehavior.EnableSorting="True"
                             behaviors:ListViewDefaultSortBehavior.DefaultSortProperty="ClassName"
-                            BorderThickness="1"
+                            behaviors:ListViewSortBehavior.EnableSorting="True"
+                            BorderThickness="0"
                             ItemsSource="{Binding SelectedNamespace.ClassesView}"
                             SelectedItem="{Binding SelectedNamespace.SelectedClass}"
                             SelectionMode="Single"
@@ -68,30 +69,27 @@
                                     <GridView.ColumnHeaderContainerStyle>
                                         <Style BasedOn="{StaticResource FlatGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
                                     </GridView.ColumnHeaderContainerStyle>
-                                    <GridViewColumn Width="40">
+                                    <GridViewColumn Width="200" behaviors:ListViewSortBehavior.SortProperty="ClassName" Header="Class Name">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Grid Width="16" Height="16" Margin="3,1">
-                                                    <Ellipse
-                                                        Width="10"
-                                                        Height="10"
-                                                        RenderTransformOrigin="0.5,0.5"
-                                                        Style="{DynamicResource StatusIndicatorStyle}" />
-                                                </Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Grid Width="16" Height="16" Margin="1,1">
+                                                        <Ellipse
+                                                            Width="10"
+                                                            Height="10"
+                                                            RenderTransformOrigin="0.5,0.5"
+                                                            Style="{DynamicResource StatusIndicatorStyle}" />
+                                                    </Grid>
+                                                    <TextBlock Margin="5,0,5,0" Text="{Binding ClassName}" />
+                                                </StackPanel>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
-                                    <GridViewColumn Width="150" behaviors:ListViewSortBehavior.SortProperty="ClassName" Header="Class Name">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Margin="5,0" Text="{Binding ClassName}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="150" behaviors:ListViewSortBehavior.SortProperty="Description" Header="Description">
+                                    <GridViewColumn Width="300" behaviors:ListViewSortBehavior.SortProperty="Description" Header="Description">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock
+                                                    Width="Auto"
                                                     MaxHeight="20"
                                                     Margin="5,0"
                                                     Text="{Binding Description}"
