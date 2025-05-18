@@ -15,8 +15,8 @@
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}" />
-        <Setter Property="Padding" Value="10,4" />
-        <Setter Property="Margin" Value="2,2,0,0" />
+        <Setter Property="Padding" Value="{StaticResource PaddingLarge}" />
+        <Setter Property="Margin" Value="{StaticResource MarginTopTiny}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">

@@ -34,7 +34,7 @@
                                 VerticalScrollBarVisibility="Disabled">
                                 <!--  Wrap in a border to provide the background  -->
                                 <Border Background="{DynamicResource SecondaryBackgroundBrush}">
-                                    <GridViewHeaderRowPresenter Margin="2,0,2,0" ColumnHeaderContainerStyle="{DynamicResource FlatGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    <GridViewHeaderRowPresenter Margin="{StaticResource MarginHorizontalTiny}" ColumnHeaderContainerStyle="{DynamicResource FlatGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </Border>
                             </ScrollViewer>
 

@@ -21,7 +21,7 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer x:Name="ScrollViewer" Padding="{TemplateBinding Padding}" Style="{DynamicResource ModernScrollViewerStyle}">
+                        <ScrollViewer x:Name="ScrollViewer" Padding="{StaticResource PaddingTiny}" Style="{DynamicResource ModernScrollViewerStyle}">
                             <ItemsPresenter />
                         </ScrollViewer>
                     </Border>
@@ -39,11 +39,10 @@
             </Setter.Value>
         </Setter>
     </Style>
-
     <!--  ListViewItem  -->
     <Style x:Key="BaseListViewItemStyle" TargetType="ListViewItem">
         <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Padding" Value="4,2" />
+        <Setter Property="Padding" Value="{StaticResource PaddingVerticalTiny}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Background" Value="Transparent" />

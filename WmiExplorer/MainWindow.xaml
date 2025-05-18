@@ -55,10 +55,12 @@
                 <MenuItem Header="Copy" />
                 <MenuItem Header="Paste" />
             </MenuItem>
-            <TextBlock><Hyperlink>Version</Hyperlink></TextBlock>
+            <TextBlock>
+                <Hyperlink>Version</Hyperlink>
+            </TextBlock>
             <MenuItem
                 x:Name="ThemeToggle"
-                Margin="10,0"
+                Margin="{StaticResource MarginHorizontalLarge}"
                 HorizontalAlignment="Right"
                 Command="{Binding ToggleThemeCommand}"
                 DockPanel.Dock="Right"
@@ -70,10 +72,10 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <DockPanel Grid.Row="0" Margin="5,0,5,0" VerticalAlignment="Top">
+            <DockPanel Grid.Row="0" Margin="{StaticResource MarginHorizontalSmall}" VerticalAlignment="Top">
                 <userControls:OptionsPanel />
             </DockPanel>
-            <DockPanel Grid.Row="1" Margin="5,0,5,0">
+            <DockPanel Grid.Row="1" Margin="{StaticResource MarginHorizontalSmall}">
                 <Grid Name="ContentGrid">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
@@ -90,7 +92,7 @@
 
                     <GridSplitter
                         Grid.Column="1"
-                        Width="6"
+                        Width="{StaticResource SpacingMedium}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
@@ -108,16 +110,15 @@
 
                     <GridSplitter
                         Grid.Column="3"
-                        Width="6"
+                        Width="{StaticResource SpacingMedium}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-
                     <!--  Property Grid with Expander  -->
                     <Grid Grid.Column="4">
                         <Expander
                             Name="ExpanderPropertyGrid"
-                            Padding="0,3,0,0"
+                            Padding="{StaticResource PaddingTopSmall}"
                             BorderThickness="0"
                             ExpandDirection="Left"
                             IsExpanded="{Binding WindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
@@ -145,7 +146,7 @@
                                             <Border
                                                 Grid.Row="0"
                                                 Margin="0"
-                                                Padding="10,5"
+                                                Padding="{StaticResource PaddingSmall}"
                                                 Background="{DynamicResource PrimaryAccentBrush}"
                                                 BorderThickness="0">
                                                 <TextBlock
@@ -173,12 +174,13 @@
                 </Grid>
             </DockPanel>
         </Grid>
-        <StatusBar Grid.Row="2" Margin="0,5,0,0">
+
+        <StatusBar Grid.Row="2" Margin="{StaticResource MarginTopSmall}">
             <StatusBarItem>
-                <TextBlock x:Name="StatusBarText" Margin="5,0" Text="{Binding CurrentApplicationState.Message}" />
+                <TextBlock x:Name="StatusBarText" Margin="{StaticResource MarginHorizontalSmall}" Text="{Binding CurrentApplicationState.Message}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <StackPanel Margin="0,0,5,0" Orientation="Horizontal">
+                <StackPanel Margin="{StaticResource MarginRightSmall}" Orientation="Horizontal">
                     <!-- <TextBlock Text="{Binding ComputerName}" Margin="0,0,8,0" VerticalAlignment="Center" /> -->
                     <userControls:StatusIndicator DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
                 </StackPanel>

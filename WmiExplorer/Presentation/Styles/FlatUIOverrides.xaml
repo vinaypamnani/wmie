@@ -78,7 +78,7 @@
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0,0,1,1" />
-        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="Padding" Value="{StaticResource PaddingLarge}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
@@ -100,9 +100,9 @@
                             <Path
                                 x:Name="SortArrow"
                                 Grid.Column="1"
-                                Width="10"
-                                Height="10"
-                                Margin="0,0,8,0"
+                                Width="{StaticResource SpacingSmall}"
+                                Height="{StaticResource SpacingSmall}"
+                                Margin="{StaticResource MarginRightLarge}"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Data="M 0,0 L 5,5 L 10,0"
@@ -115,7 +115,7 @@
                             <Thumb
                                 x:Name="PART_HeaderGripper"
                                 Grid.Column="1"
-                                Width="8"
+                                Width="{StaticResource SpacingLarge}"
                                 Margin="0,0,-3,0"
                                 HorizontalAlignment="Right"
                                 Cursor="SizeWE"

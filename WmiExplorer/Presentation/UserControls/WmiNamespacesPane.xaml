@@ -12,17 +12,14 @@
     <Grid>
         <Expander
             Name="ExpanderNamespaces"
-            Padding="0,3,0,0"
+            Padding="{StaticResource PaddingTopSmall}"
             BorderThickness="0"
             ExpandDirection="Right"
-            Style="{StaticResource VerticalHeaderExpanderStyle}"
-            IsExpanded="{Binding WindowPosition.IsNamespacesExpanded, Mode=TwoWay}">
+            IsExpanded="{Binding WindowPosition.IsNamespacesExpanded, Mode=TwoWay}"
+            Style="{StaticResource VerticalHeaderExpanderStyle}">
             <Expander.Header>
                 <Border Width="25">
-                    <TextBlock
-                        FontSize="15"
-                        FontWeight="SemiBold"
-                        Text="Namespaces">
+                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="Namespaces">
                         <TextBlock.LayoutTransform>
                             <RotateTransform Angle="90" />
                         </TextBlock.LayoutTransform>
@@ -31,7 +28,7 @@
             </Expander.Header>
             <TreeView
                 Name="WmiNamespaces"
-                Margin="3,3,0,0"
+                Margin="{StaticResource MarginSmall}"
                 behaviors:TreeViewAutoScrollBehavior.AutoScroll="True"
                 behaviors:TreeViewSelectedItemBehavior.SelectedItem="{Binding SelectedNamespace}"
                 ItemsSource="{Binding Namespaces}">
@@ -44,8 +41,8 @@
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu>
-                                    <MenuItem Header="Copy Relative Path" Command="{Binding CopyRelativePathCommand}" />
-                                    <MenuItem Header="Copy Relative Path (Test)" Command="{Binding CopyRelativePathCommand}" />
+                                    <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path" />
+                                    <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path (Test)" />
                                 </ContextMenu>
                             </Setter.Value>
                         </Setter>
@@ -54,17 +51,14 @@
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
-                            <Grid
-                                Width="16"
-                                Height="16"
-                                Margin="3,1">
+                            <Grid Width="16" Height="16" Margin="{StaticResource MarginTiny}">
                                 <Ellipse
                                     Width="10"
                                     Height="10"
                                     RenderTransformOrigin="0.5,0.5"
                                     Style="{DynamicResource StatusIndicatorStyle}" />
                             </Grid>
-                            <TextBlock Margin="3,1" Text="{Binding Name}" />
+                            <TextBlock Margin="{StaticResource MarginTiny}" Text="{Binding Name}" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>

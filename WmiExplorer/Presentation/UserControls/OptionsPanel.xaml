@@ -2,14 +2,14 @@
     x:Class="WmiExplorer.Presentation.UserControls.OptionsPanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
     xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
     xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-    mc:Ignorable="d"
-    d:DesignWidth="800">
+    d:DesignWidth="800"
+    mc:Ignorable="d">
 
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
@@ -27,27 +27,25 @@
             <StackPanel Orientation="Horizontal">
                 <TextBox
                     MinWidth="120"
-                    Margin="5"
+                    Margin="{StaticResource MarginSmall}"
                     VerticalContentAlignment="Center"
-                    Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}"
-                    Tag="Enter computer name..." />
+                    Tag="Enter computer name..."
+                    Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" />
                 <Button
                     MinWidth="75"
-                    Margin="5"
+                    Margin="{StaticResource MarginSmall}"
                     Command="{Binding ConnectCommand}"
                     Content="Connect" />
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="1" Header="Mode">
             <StackPanel Orientation="Vertical">
-                <RadioButton Content="Asynchronous"
-                             IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" />
-                <RadioButton Content="Synchronous"
-                             IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" />
+                <RadioButton Content="Asynchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" />
+                <RadioButton Content="Synchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" />
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="2" Header="Class Enumeration">
-            <Grid Margin="2,0">
+            <Grid Margin="{StaticResource MarginHorizontalTiny}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -59,62 +57,70 @@
                 <CheckBox
                     Grid.Row="0"
                     Grid.Column="0"
-                    Margin="5,3"
+                    Margin="{StaticResource MarginSmall}"
                     Content="Include System Classes"
                     IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=System}" />
                 <CheckBox
                     Grid.Row="0"
                     Grid.Column="1"
-                    Margin="5,3"
+                    Margin="{StaticResource MarginSmall}"
                     Content="Include CIM Classes"
                     IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}" />
                 <CheckBox
                     Grid.Row="1"
                     Grid.Column="0"
-                    Margin="5,3"
+                    Margin="{StaticResource MarginSmall}"
                     Content="Include MSFT Classes"
                     IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}" />
                 <CheckBox
                     Grid.Row="1"
                     Grid.Column="1"
-                    Margin="5,3"
+                    Margin="{StaticResource MarginSmall}"
                     Content="Include Perf Classes"
                     IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}" />
             </Grid>
         </GroupBox>
         <GroupBox Grid.Column="3" Header="Accent Colors">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                <StackPanel Orientation="Horizontal" Margin="5,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="Primary" Margin="5,0,5,0" VerticalAlignment="Center" TextAlignment="Left"/>
-                    <xctk:ColorPicker 
-                        Width="80" 
-                        ShowRecentColors="True"
-                        DisplayColorTooltip="False"
-                        DisplayColorAndName="False"
-                        SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock
+                        Margin="{StaticResource MarginHorizontalSmall}"
+                        VerticalAlignment="Center"
+                        Text="Primary"
+                        TextAlignment="Left" />
+                    <xctk:ColorPicker
+                        Width="80"
                         Background="{DynamicResource SecondaryBackgroundBrush}"
-                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}"
+                        DisplayColorAndName="False"
+                        DisplayColorTooltip="False"
                         DropDownBackground="{DynamicResource PrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                         HeaderBackground="{DynamicResource SecondaryBackgroundBrush}"
                         HeaderForeground="{DynamicResource PrimaryForegroundBrush}"
+                        SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
+                        ShowRecentColors="True"
                         TabBackground="{DynamicResource SecondaryBackgroundBrush}"
                         TabForeground="{DynamicResource PrimaryForegroundBrush}" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="5,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="Secondary" Margin="5,0,5,0" VerticalAlignment="Center" TextAlignment="Left"/>
-                    <xctk:ColorPicker 
-                        Width="80" 
-                        ShowRecentColors="True"
-                        DisplayColorTooltip="False"
-                        DisplayColorAndName="False"
-                        SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
+                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock
+                        Margin="{StaticResource MarginHorizontalSmall}"
+                        VerticalAlignment="Center"
+                        Text="Secondary"
+                        TextAlignment="Left" />
+                    <xctk:ColorPicker
+                        Width="80"
                         Background="{DynamicResource SecondaryBackgroundBrush}"
-                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}"
+                        DisplayColorAndName="False"
+                        DisplayColorTooltip="False"
                         DropDownBackground="{DynamicResource PrimaryBackgroundBrush}"
+                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                         HeaderBackground="{DynamicResource SecondaryBackgroundBrush}"
                         HeaderForeground="{DynamicResource PrimaryForegroundBrush}"
+                        SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
+                        ShowRecentColors="True"
                         TabBackground="{DynamicResource SecondaryBackgroundBrush}"
                         TabForeground="{DynamicResource PrimaryForegroundBrush}" />
                 </StackPanel>

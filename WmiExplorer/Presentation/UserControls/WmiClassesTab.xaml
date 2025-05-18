@@ -26,7 +26,7 @@
         <Grid Grid.Row="0" Grid.Column="0">
             <Expander
                 Name="ExpanderClasses"
-                Padding="0,3,0,0"
+                Padding="{StaticResource PaddingTopSmall}"
                 BorderThickness="0"
                 ExpandDirection="Right"
                 IsExpanded="{Binding WindowPosition.IsClassesExpanded, Mode=TwoWay}"
@@ -73,14 +73,14 @@
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <Grid Width="16" Height="16" Margin="1,1">
+                                                    <Grid Width="16" Height="16" Margin="{StaticResource MarginTiny}">
                                                         <Ellipse
                                                             Width="10"
                                                             Height="10"
                                                             RenderTransformOrigin="0.5,0.5"
                                                             Style="{DynamicResource StatusIndicatorStyle}" />
                                                     </Grid>
-                                                    <TextBlock Margin="5,0,5,0" Text="{Binding ClassName}" />
+                                                    <TextBlock Margin="{StaticResource MarginHorizontalSmall}" Text="{Binding ClassName}" />
                                                 </StackPanel>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
@@ -91,7 +91,7 @@
                                                 <TextBlock
                                                     Width="Auto"
                                                     MaxHeight="20"
-                                                    Margin="5,0"
+                                                    Margin="{StaticResource MarginHorizontalSmall}"
                                                     Text="{Binding Description}"
                                                     TextTrimming="CharacterEllipsis"
                                                     TextWrapping="NoWrap">
@@ -122,10 +122,10 @@
                 </Expander.Content>
             </Expander>
         </Grid>
-
         <GridSplitter
             Grid.Row="0"
             Grid.Column="1"
+            Width="{StaticResource SpacingMedium}"
             HorizontalAlignment="Center"
             VerticalAlignment="Stretch"
             Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
@@ -149,7 +149,7 @@
         <GroupBox
             Grid.Row="1"
             Grid.ColumnSpan="3"
-            Margin="0,5,0,0"
+            Margin="{StaticResource MarginTopSmall}"
             Header="Query">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -158,14 +158,14 @@
                 </Grid.ColumnDefinitions>
                 <TextBox
                     Grid.Column="0"
-                    Margin="5"
+                    Margin="{StaticResource MarginSmall}"
                     IsEnabled="False"
                     Style="{StaticResource TextBoxWithPlaceholder}"
                     Tag="Automatically created query here" />
                 <Button
                     Grid.Column="1"
                     MinWidth="75"
-                    Margin="5"
+                    Margin="{StaticResource MarginSmall}"
                     Content="Execute" />
             </Grid>
         </GroupBox>

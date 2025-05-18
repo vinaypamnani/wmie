@@ -39,11 +39,10 @@
             </Setter.Value>
         </Setter>
     </Style>
-
     <!--  Main ScrollBar Style  -->
     <Style x:Key="ModernScrollBarStyle" TargetType="{x:Type ScrollBar}">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="MinWidth" Value="8" />
+        <Setter Property="Width" Value="{StaticResource SpacingLarge}" />
+        <Setter Property="MinWidth" Value="{StaticResource SpacingLarge}" />
         <Setter Property="Background" Value="{DynamicResource ScrollBarTrackBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource ScrollBarThumbBrush}" />
         <Setter Property="BorderBrush" Value="Transparent" />
@@ -77,8 +76,8 @@
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Width" Value="Auto" />
-                <Setter Property="Height" Value="8" />
-                <Setter Property="MinHeight" Value="8" />
+                <Setter Property="Height" Value="{StaticResource SpacingLarge}" />
+                <Setter Property="MinHeight" Value="{StaticResource SpacingLarge}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ScrollBar}">
@@ -134,7 +133,7 @@
                             x:Name="PART_VerticalScrollBar"
                             Grid.Row="0"
                             Grid.Column="1"
-                            Margin="5,5,5,5"
+                            Margin="{StaticResource MarginSmall}"
                             Maximum="{TemplateBinding ScrollableHeight}"
                             Style="{StaticResource ModernScrollBarStyle}"
                             ViewportSize="{TemplateBinding ViewportHeight}"
@@ -145,7 +144,7 @@
                             x:Name="PART_HorizontalScrollBar"
                             Grid.Row="1"
                             Grid.Column="0"
-                            Margin="5,5,5,5"
+                            Margin="{StaticResource MarginSmall}"
                             Maximum="{TemplateBinding ScrollableWidth}"
                             Orientation="Horizontal"
                             Style="{StaticResource ModernScrollBarStyle}"

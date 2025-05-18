@@ -14,10 +14,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
-        <DockPanel
-            Grid.Row="0"
-            Margin="3,3,3,5">
+        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
             <TextBox
                 VerticalAlignment="Center"
                 Style="{StaticResource TextBoxWithPlaceholder}"
@@ -28,17 +25,17 @@
         <ListView
             Grid.Row="1"
             BorderThickness="0"
-            Style="{StaticResource ScrollableListViewStyle}"
             ItemsSource="{Binding SelectedNamespace.SelectedClass.WmiInstancesView}"
             SelectedItem="{Binding SelectedNamespace.SelectedClass.SelectedInstance}"
-            SelectionMode="Single">
+            SelectionMode="Single"
+            Style="{StaticResource ScrollableListViewStyle}">
             <ListView.ItemContainerStyle>
                 <Style BasedOn="{StaticResource BaseListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
-                                <MenuItem Header="Copy Relative Path" Command="{Binding CopyRelativePathCommand}" />
+                                <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path" />
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
@@ -47,7 +44,7 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="3,1" Text="{Binding InstanceName}" />
+                        <TextBlock Margin="{StaticResource MarginTiny}" Text="{Binding InstanceName}" />
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

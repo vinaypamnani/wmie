@@ -1,43 +1,48 @@
-<UserControl x:Class="WmiExplorer.Presentation.UserControls.StatusIndicator"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WmiExplorer.Presentation.UserControls"
-             xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
-             xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
-             xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
-             xmlns:services="clr-namespace:WmiExplorer.Services"
-             Height="20" Width="20">
+<UserControl
+    x:Class="WmiExplorer.Presentation.UserControls.StatusIndicator"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
+    xmlns:local="clr-namespace:WmiExplorer.Presentation.UserControls"
+    xmlns:services="clr-namespace:WmiExplorer.Services"
+    xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
+    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+    Width="20"
+    Height="20">
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:BoolAndNotBoolToVisibilityConverter x:Key="BoolAndNotBoolToVisibilityConverter" />
         <converters:NotBoolAndNotBoolToVisibilityConverter x:Key="NotBoolAndNotBoolToVisibilityConverter" />
 
-        <!-- Animations -->
+        <!--  Animations  -->
         <Storyboard x:Key="PulseStoryboard" RepeatBehavior="Forever">
             <DoubleAnimation
+                AutoReverse="True"
                 Storyboard.TargetName="BusyEllipse"
                 Storyboard.TargetProperty="Opacity"
-                From="1.0" To="0.6" Duration="0:0:0.75"
-                AutoReverse="True" />
+                From="1.0"
+                To="0.6"
+                Duration="0:0:0.75" />
         </Storyboard>
 
         <Storyboard x:Key="IndeterminateStoryboard" RepeatBehavior="Forever">
             <DoubleAnimation
+                AutoReverse="True"
                 Storyboard.TargetName="IndeterminateEllipse"
                 Storyboard.TargetProperty="Opacity"
-                From="1.0" To="0.3" Duration="0:0:1.5"
-                AutoReverse="True" />
+                From="1.0"
+                To="0.3"
+                Duration="0:0:1.5" />
         </Storyboard>
     </UserControl.Resources>
-
     <Border
+        Padding="{StaticResource PaddingTiny}"
         Background="{DynamicResource BorderBrush}"
         BorderBrush="{DynamicResource BorderBrush}"
         BorderThickness="1"
-        CornerRadius="10"
-        Padding="2">
+        CornerRadius="10">
         <Grid>
-            <!-- Indeterminate Indicator (Gray) -->
+            <!--  Indeterminate Indicator (Gray)  -->
             <Ellipse
                 x:Name="IndeterminateEllipse"
                 Width="14"
@@ -60,7 +65,7 @@
                 </Ellipse.Triggers>
             </Ellipse>
 
-            <!-- Busy Indicator (Blue) -->
+            <!--  Busy Indicator (Blue)  -->
             <Ellipse
                 x:Name="BusyEllipse"
                 Width="14"
@@ -83,11 +88,8 @@
                 </Ellipse.Triggers>
             </Ellipse>
 
-            <!-- Error Indicator (Red) -->
-            <Ellipse
-                Width="14"
-                Height="14"
-                Fill="{DynamicResource ErrorBrush}">
+            <!--  Error Indicator (Red)  -->
+            <Ellipse Width="14" Height="14" Fill="{DynamicResource ErrorBrush}">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Visibility" Value="Collapsed" />
@@ -100,11 +102,8 @@
                 </Ellipse.Style>
             </Ellipse>
 
-            <!-- Success Indicator (Green) -->
-            <Ellipse
-                Width="14"
-                Height="14"
-                Fill="{DynamicResource SuccessBrush}">
+            <!--  Success Indicator (Green)  -->
+            <Ellipse Width="14" Height="14" Fill="{DynamicResource SuccessBrush}">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Visibility" Value="Collapsed" />
@@ -120,11 +119,8 @@
                 </Ellipse.Style>
             </Ellipse>
 
-            <!-- Ready/Idle Indicator (Green) -->
-            <Ellipse
-                Width="14"
-                Height="14"
-                Fill="{DynamicResource SuccessBrush}">
+            <!--  Ready/Idle Indicator (Green)  -->
+            <Ellipse Width="14" Height="14" Fill="{DynamicResource SuccessBrush}">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Visibility" Value="Collapsed" />
