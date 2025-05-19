@@ -5,8 +5,40 @@
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="{StaticResource PaddingHorizontalSmall}" />
-        <Setter Property="Margin" Value="{StaticResource MarginMedium}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Margin" Value="4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border
+                            Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3" />
+                        <ContentPresenter
+                            Grid.Row="0"
+                            Margin="8,4,4,2"
+                            ContentSource="Header"
+                            RecognizesAccessKey="True"
+                            TextElement.FontWeight="DemiBold"
+                            TextElement.Foreground="{TemplateBinding Foreground}" />
+                        <ContentPresenter
+                            Grid.Row="1"
+                            Margin="8,0,4,4"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!--  StatusBar  -->
@@ -17,8 +49,8 @@
     <!--  GridSplitter  -->
     <Style TargetType="GridSplitter">
         <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
-        <Setter Property="Width" Value="{StaticResource SpacingSmall}" />
-        <Setter Property="Height" Value="50" />
+        <Setter Property="Width" Value="{StaticResource SpacingMedium}" />
+        <Setter Property="Height" Value="100" />
         <Setter Property="Margin" Value="{StaticResource MarginHorizontalSmall}" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="ShowsPreview" Value="True" />
@@ -38,7 +70,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GridSplitter">
-                    <Border Background="{TemplateBinding Background}" />
+                    <Border Background="{TemplateBinding Background}" CornerRadius="3" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

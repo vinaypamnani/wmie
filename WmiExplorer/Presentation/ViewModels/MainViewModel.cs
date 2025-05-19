@@ -19,7 +19,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private readonly ThemeManager _themeManager;
         private readonly IWmiService _wmiService;
         private readonly IApplicationService _applicationService;
-        
+
         private string _temporaryComputerName = Environment.MachineName; // Temporary field for initial connection
         private ApplicationState _currentApplicationState = ApplicationState.Ready();
         private WmiNamespaceViewModel? _selectedNamespace;
@@ -28,6 +28,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private object? _selectedObject; // The selected object to show in the property grid
         private MainWindowPosition _windowPosition;
         private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
+        private WmiEventWatcherViewModel? _eventWatcherViewModel;
 
         public MainViewModel(
             IMessagingService messagingService,
@@ -43,7 +44,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
             // Initialize messaging
             InitializeMessaging(messagingService);
-            
+
             // Initialize commands
             ConnectCommand = new AsyncRelayCommand(ConnectAsync);
             ExitCommand = new RelayCommand(_ => Environment.Exit(0));
@@ -55,14 +56,19 @@ namespace WmiExplorer.Presentation.ViewModels
             StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
             StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
             StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
+
             // Subscribe to theme change messages
-            StrongSubscribe<ThemeChangedMessage>(_ => {
+            StrongSubscribe<ThemeChangedMessage>(_ =>
+            {
                 OnPropertyChanged(nameof(CurrentTheme)); // To update color-picker color on theme change.
                 OnPropertyChanged(nameof(ThemeToggleText)); // To update theme toggle text on theme change.
             });
 
             // Initialize window position from settings
             _windowPosition = _settingsService.MainWindowPosition;
+
+            // Initialize the Event Watcher ViewModel
+            _eventWatcherViewModel = new WmiEventWatcherViewModel();
 
             // Log initial class filter
             System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
@@ -188,15 +194,15 @@ namespace WmiExplorer.Presentation.ViewModels
             get => _selectedInstance;
             set => SetProperty(ref _selectedInstance, value);
         }
-        
+
         /// <summary>
         /// Object to display in the property grid - could be namespace, class, or instance
         /// </summary>
         public object? SelectedObject
         {
             get => _selectedObject;
-            set 
-            { 
+            set
+            {
                 if (SetProperty(ref _selectedObject, value))
                 {
                     // Notify that the display name has changed when the selected object changes
@@ -214,16 +220,16 @@ namespace WmiExplorer.Presentation.ViewModels
             {
                 if (_selectedObject == null)
                     return "No Selection";
-                
+
                 if (_selectedObject is WmiNamespaceViewModel namespaceVm)
                     return $"Namespace: {namespaceVm.Name}";
-                
+
                 if (_selectedObject is WmiClassViewModel classVm)
                     return $"Class: {classVm.ClassName}";
-                
+
                 if (_selectedObject is WmiInstanceViewModel instanceVm)
                     return $"Instance: {instanceVm.InstanceName}";
-                
+
                 return _selectedObject.GetType().Name;
             }
         }
@@ -263,15 +269,20 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
+        /// Gets the view model for the WMI Event Watcher
+        /// </summary>
+        public WmiEventWatcherViewModel EventWatcherViewModel => _eventWatcherViewModel!;
+
+        /// <summary>
         /// Connects to the specified computer or namespace path
         /// </summary>
         private async Task ConnectAsync()
         {
             string input = _temporaryComputerName.Trim();
-            
+
             // Parse the input to determine what type of connection we're making
             string effectivePath;
-            
+
             try
             {
                 // Normalize the input and determine the path type
@@ -301,9 +312,9 @@ namespace WmiExplorer.Presentation.ViewModels
                 PublishBusyState($"Connecting to {effectivePath}...");
 
                 // Check if we're already connected to this path
-                var existingRoot = Namespaces.FirstOrDefault(n => 
+                var existingRoot = Namespaces.FirstOrDefault(n =>
                     n.NamespacePath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase));
-                
+
                 if (existingRoot != null)
                 {
                     // Just select the existing root namespace
@@ -315,7 +326,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 // Force garbage collection to release any existing WMI resources
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-                
+
                 // Create the root namespace view model using the async method
                 var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
                     effectivePath,
@@ -350,7 +361,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private void HandleApplicationStateMessage(ApplicationStateMessage message)
         {
             // Ensure application state updates happen on the UI thread
-            RunOnUIThread(() => 
+            RunOnUIThread(() =>
             {
                 CurrentApplicationState = message.State;
             });
@@ -407,11 +418,11 @@ namespace WmiExplorer.Presentation.ViewModels
                 return;
 
             // Update our selected instance property which is bound to the property grid
-            SelectedInstance = message.InstanceViewModel;            
+            SelectedInstance = message.InstanceViewModel;
 
             // Update the selected object for the property grid
             SelectedInstance.WmiInstance.ActualObject?.Get();
-            SelectedObject = message.InstanceViewModel.WmiInstance;            
+            SelectedObject = message.InstanceViewModel.WmiInstance;
         }
 
         /// <summary>
@@ -420,10 +431,10 @@ namespace WmiExplorer.Presentation.ViewModels
         private void HandleClassTypeFilterChangedMessage(ClassTypeFilterChangedMessage message)
         {
             if (message == null) return;
-            
+
             // Update UI if needed
             OnPropertyChanged(nameof(ClassTypeFilter));
-            
+
             System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged: {_settingsService.ClassTypeFilter}");
         }
 
@@ -443,7 +454,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 // Dispose the cancellation token source
                 _cts.Dispose();
             }
-            
+
             base.Dispose(disposing);
         }
     }

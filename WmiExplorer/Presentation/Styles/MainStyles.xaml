@@ -4,8 +4,8 @@
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Generic.xaml" />
 
         <!--  Include all of our modular style files  -->
-        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ButtonStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/TextControlStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ButtonStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ListStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/TreeStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/MenuStyles.xaml" />

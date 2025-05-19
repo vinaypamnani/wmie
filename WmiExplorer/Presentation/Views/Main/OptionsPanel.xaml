@@ -82,7 +82,10 @@
         </GroupBox>
         <GroupBox Grid.Column="3" Header="Accent Colors">
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                <StackPanel
+                    Margin="{StaticResource MarginLeftSmall}"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
                     <TextBlock
                         Margin="{StaticResource MarginHorizontalSmall}"
                         VerticalAlignment="Center"
@@ -103,7 +106,10 @@
                         TabBackground="{DynamicResource SecondaryBackgroundBrush}"
                         TabForeground="{DynamicResource PrimaryForegroundBrush}" />
                 </StackPanel>
-                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                <StackPanel
+                    Margin="{StaticResource MarginLeftSmall}"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
                     <TextBlock
                         Margin="{StaticResource MarginHorizontalSmall}"
                         VerticalAlignment="Center"
