@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Presentation.Views;
 using Application = System.Windows.Application;
 
 namespace WmiExplorer.Services
@@ -55,15 +56,11 @@ namespace WmiExplorer.Services
             // Special handling for ApplicationStateMessage
             if (message is ApplicationStateMessage appStateMsg)
             {
-                System.Diagnostics.Debug.WriteLine($"[MessagingService] ApplicationState: {appStateMsg.State.State}, Message={appStateMsg.State.Message}");
-
-                // Update the MainWindow status bar
-                if (WmiExplorer.MainWindow.Current != null)
+                System.Diagnostics.Debug.WriteLine($"[MessagingService] ApplicationState: {appStateMsg.State.State}, Message={appStateMsg.State.Message}");                // Update the MainWindow status bar
+                if (MainWindow.Current != null)
                 {
-                    // WmiExplorer.MainWindow.Current.UpdateStatusBar(appStateMsg.State.Message, appStateMsg.State.IsError);
-
                     // Also update the view model for binding
-                    if (WmiExplorer.MainWindow.Current.DataContext is MainViewModel mainVm)
+                    if (MainWindow.Current.DataContext is MainViewModel mainVm)
                     {
                         Application.Current?.Dispatcher.InvokeAsync(() =>
                         {

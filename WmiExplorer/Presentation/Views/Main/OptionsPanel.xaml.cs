@@ -4,7 +4,7 @@ using System.Windows.Media;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 
-namespace WmiExplorer.Presentation.UserControls
+namespace WmiExplorer.Presentation.Views.Main
 {
     /// <summary>
     /// Interaction logic for OptionsPanel.xaml

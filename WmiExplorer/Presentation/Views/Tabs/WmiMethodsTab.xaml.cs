@@ -1,4 +1,4 @@
-namespace WmiExplorer.Presentation.UserControls
+namespace WmiExplorer.Presentation.Views.Tabs
 {
     /// <summary>
     /// Interaction logic for WmiMethodsTab.xaml

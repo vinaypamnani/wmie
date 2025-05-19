@@ -5,7 +5,7 @@ using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 
-namespace WmiExplorer
+namespace WmiExplorer.Presentation.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -82,6 +82,6 @@ namespace WmiExplorer
                 // Clean up the view model resources
                 _viewModel?.Dispose();
             };
-        }        
+        }
     }
 }
