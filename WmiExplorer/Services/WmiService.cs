@@ -1,5 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Management;
 using WmiExplorer.Common.Shared;
+using WmiExplorer.Core.Cache;
 using WmiExplorer.Core.Models;
 
 namespace WmiExplorer.Services
@@ -18,6 +24,12 @@ namespace WmiExplorer.Services
 
         // Cache for provider CLSIDs to avoid repeated WMI queries
         private readonly Dictionary<string, string?> _providerClsidCache = new();
+        private readonly ICacheService _cacheService;
+
+        public WmiService(ICacheService cacheService)
+        {
+            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        }
 
         /// <summary>
         /// Finalizer to ensure resources are cleaned up
@@ -221,6 +233,40 @@ namespace WmiExplorer.Services
                 return await GetClassesAsyncInternal(scope, classTypeFilter, cancellationToken);
         }
 
+        /// <summary>
+        /// Caches lightweight class metadata for a namespace.
+        /// </summary>
+        private async Task CacheNamespaceClassMetadata(string namespacePath, IEnumerable<ManagementObject> classes)
+        {
+            var classCaches = new List<WmiClassCache>();
+            foreach (var mo in classes)
+            {
+                try
+                {
+                    var className = mo["__Class"]?.ToString() ?? string.Empty;
+                    var relativePath = mo.Path?.RelativePath ?? string.Empty;
+                    var isSystem = className.StartsWith("__");
+                    var derivation = mo["__Derivation"] as string[] ?? Array.Empty<string>();
+                    var isEvent = derivation.Contains("__Event") || className == "__Event";
+                    classCaches.Add(new WmiClassCache
+                    {
+                        ClassName = className,
+                        RelativePath = relativePath,
+                        IsSystemClass = isSystem,
+                        IsEventClass = isEvent
+                    });
+                }
+                catch { /* Ignore individual class errors */ }
+            }
+            var nsCache = new WmiNamespaceCache
+            {
+                NamespacePath = namespacePath,
+                LastUpdatedUtc = DateTime.UtcNow,
+                Classes = classCaches
+            };
+            await _cacheService.UpdateNamespaceCacheAsync(nsCache);
+        }
+
         private IEnumerable<ManagementObject> GetClassesSync(ManagementScope scope, WmiClassTypeFlags classTypeFilter, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -235,6 +281,8 @@ namespace WmiExplorer.Services
                 _disposables.Add(classObject);
                 result.Add(classObject);
             }
+            // Fire-and-forget cache update
+            try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); } catch { /* Ignore cache errors */ }
             return result;
         }
 
@@ -244,7 +292,10 @@ namespace WmiExplorer.Services
             var query = new ObjectQuery(queryString);
             var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
             _disposables.Add(searcher);
-            return await RunWmiListAsync(obs => searcher.Get(obs), cancellationToken);
+            var result = await RunWmiListAsync(obs => searcher.Get(obs), cancellationToken);
+            // Fire-and-forget cache update
+            try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); } catch { /* Ignore cache errors */ }
+            return result;
         }
 
         /// <summary>

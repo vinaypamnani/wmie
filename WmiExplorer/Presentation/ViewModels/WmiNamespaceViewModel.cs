@@ -71,9 +71,6 @@ namespace WmiExplorer.Presentation.ViewModels
         private ICommand? _copyRelativePathCommand;
         private string _computerName = string.Empty;
 
-        // Track the last known state of the System flag for class filtering
-        private bool _lastSystemFlagState = false;
-
         /// <summary>
         /// Children namespaces (read-only).
         /// </summary>

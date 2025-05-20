@@ -34,8 +34,12 @@ namespace WmiExplorer
             // Register theme manager with messaging and settings service
             serviceLocator.Register<ThemeManager, ThemeManager>(new ThemeManager(messagingService, settingsService));
 
-            // Register WmiService
-            serviceLocator.Register<IWmiService, WmiService>(new WmiService());
+            // Register cache service
+            serviceLocator.Register<ICacheService, CacheService>(new CacheService());
+            var cacheService = serviceLocator.Get<ICacheService>();
+
+            // Register WmiService with injected cache service
+            serviceLocator.Register<IWmiService, WmiService>(new WmiService(cacheService));
 
             // Register ApplicationService
             serviceLocator.Register<IApplicationService, ApplicationService>(new ApplicationService());

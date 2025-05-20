@@ -100,7 +100,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
         public WmiClass WmiClass => _wmiClass;
 
-        public string ClassName => _wmiClass.ClassName;        
+        public string ClassName => _wmiClass.ClassName;
 
         public string Description => _wmiClass.Description;
 
@@ -150,6 +150,8 @@ namespace WmiExplorer.Presentation.ViewModels
         public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
 
         public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
+
+        public bool IsEventClass => WmiClass.Derivation.Contains("__Event") || WmiClass.ClassName == "__Event";
 
         private void CopyRelativePath(object? parameter)
         {

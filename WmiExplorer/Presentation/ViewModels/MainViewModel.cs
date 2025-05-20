@@ -20,6 +20,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private readonly IWmiService _wmiService;
         private readonly IApplicationService _applicationService;
         private readonly IWmiEventWatcherService _eventWatcherService;
+        private readonly ICacheService _cacheService;
 
         private string _temporaryComputerName = Environment.MachineName; // Temporary field for initial connection
         private ApplicationState _currentApplicationState = ApplicationState.Ready();
@@ -37,13 +38,15 @@ namespace WmiExplorer.Presentation.ViewModels
             ThemeManager themeManager,
             IWmiService wmiService,
             IApplicationService applicationService,
-            IWmiEventWatcherService eventWatcherService)
+            IWmiEventWatcherService eventWatcherService,
+            ICacheService cacheService)
         {
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
             _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
             _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
             _eventWatcherService = eventWatcherService ?? throw new ArgumentNullException(nameof(eventWatcherService));
+            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
             // Initialize messaging
             InitializeMessaging(messagingService);
@@ -73,7 +76,7 @@ namespace WmiExplorer.Presentation.ViewModels
             _windowPosition = _settingsService.MainWindowPosition;
 
             // Initialize the Event Watcher ViewModel
-            _eventWatcherViewModel = new WmiEventWatcherViewModel(messagingService, _eventWatcherService);
+            _eventWatcherViewModel = new WmiEventWatcherViewModel(messagingService, _eventWatcherService, _cacheService);
 
             // Log initial class filter
             System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");

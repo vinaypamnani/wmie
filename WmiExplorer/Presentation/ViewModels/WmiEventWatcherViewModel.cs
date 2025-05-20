@@ -20,21 +20,13 @@ namespace WmiExplorer.Presentation.ViewModels
     public class WmiEventWatcherViewModel : MessagingViewModelBase
     {
         private readonly ObservableCollection<string> _targetClasses = new ObservableCollection<string>();
-        private readonly ObservableCollection<string> _intrinsicEvents = new ObservableCollection<string>
-        {
-            "__InstanceCreationEvent",
-            "__InstanceModificationEvent",
-            "__InstanceDeletionEvent",
-            "__InstanceOperationEvent",
-            "__ClassCreationEvent",
-            "__ClassModificationEvent",
-            "__ClassDeletionEvent"
-        };
+        private readonly ObservableCollection<string> _intrinsicEvents = new ObservableCollection<string>();
         private readonly IMessagingService _messagingService;
         private readonly IWmiEventWatcherService _eventWatcherService;
         private readonly DebounceDispatcher _debouncer = new();
         private readonly ObservableCollection<WmiEventWatcherItemViewModel> _watchers = new();
         private readonly ObservableCollection<WmiEvent> _events = new();
+        private readonly ICacheService _cacheService;
 
         private string _eventType = "__InstanceCreationEvent";
         private int _within = 5;
@@ -55,10 +47,12 @@ namespace WmiExplorer.Presentation.ViewModels
         /// </summary>
         /// <param name="messagingService">The messaging service to use</param>
         /// <param name="eventWatcherService">The WMI event watcher service to use</param>
-        public WmiEventWatcherViewModel(IMessagingService messagingService, IWmiEventWatcherService eventWatcherService)
+        /// <param name="cacheService">The cache service to use</param>
+        public WmiEventWatcherViewModel(IMessagingService messagingService, IWmiEventWatcherService eventWatcherService, ICacheService cacheService)
         {
             _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
             _eventWatcherService = eventWatcherService ?? throw new ArgumentNullException(nameof(eventWatcherService));
+            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
             InitializeMessaging(_messagingService);
 
@@ -163,6 +157,9 @@ namespace WmiExplorer.Presentation.ViewModels
 
                     // Update the event query
                     UpdateEventQuery();
+
+                    // Update intrinsic events
+                    UpdateIntrinsicEvents();
                 }
             }
         }
@@ -403,6 +400,7 @@ namespace WmiExplorer.Presentation.ViewModels
             if (_selectedNamespace == message.NamespaceViewModel)
             {
                 UpdateTargetClasses();
+                UpdateIntrinsicEvents();
             }
         }
 
@@ -491,24 +489,38 @@ namespace WmiExplorer.Presentation.ViewModels
         /// </summary>
         private void UpdateTargetClasses()
         {
-            if (_selectedNamespace == null)
+            _targetClasses.Clear();
+            IEnumerable<string> classNames = Enumerable.Empty<string>();
+
+            if (_selectedNamespace != null)
             {
-                _targetClasses.Clear();
-                TargetClass = string.Empty;
-                CanAddWatcher = false;
-                TargetClassesView.Refresh();
-                return;
+                // Prefer in-memory classes if available
+                var inMemory = _selectedNamespace.Classes?.Where(c => !c.IsEventClass).Select(c => c.ClassName).ToList();
+                if (inMemory != null && inMemory.Count > 0)
+                {
+                    classNames = inMemory;
+                }
+                else
+                {
+                    try
+                    {
+                        var nsCacheTask = _cacheService.GetNamespaceCacheAsync(_selectedNamespace.NamespacePath);
+                        nsCacheTask.Wait(); // Synchronous wait since this is not async
+                        var nsCache = nsCacheTask.Result;
+                        if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
+                        {
+                            classNames = nsCache.Classes.Where(c => !c.IsEventClass).Select(c => c.ClassName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Cache error: {ex.Message}");
+                    }
+                }
             }
 
-            // Clear existing classes
-            _targetClasses.Clear();
-
             // Add classes from the namespace and sort them
-            var sortedClasses = _selectedNamespace.Classes
-                .OrderBy(c => c.ClassName)
-                .Select(c => c.ClassName);
-
-            foreach (var className in sortedClasses)
+            foreach (var className in classNames.OrderBy(n => n, StringComparer.Ordinal))
             {
                 _targetClasses.Add(className);
             }
@@ -666,6 +678,62 @@ namespace WmiExplorer.Presentation.ViewModels
             WatcherNames.Clear();
             foreach (var name in names)
                 WatcherNames.Add(name);
+        }
+
+        private async void UpdateIntrinsicEvents()
+        {
+            _intrinsicEvents.Clear();
+            var eventClassNames = Enumerable.Empty<string>();
+
+            if (_selectedNamespace != null)
+            {
+                // Prefer in-memory classes if available
+                var inMemory = _selectedNamespace.Classes?.Where(c => c.IsEventClass).Select(c => c.ClassName).ToList();
+                if (inMemory != null && inMemory.Count > 0)
+                {
+                    eventClassNames = inMemory;
+                }
+                else
+                {
+                    try
+                    {
+                        // Use cache service directly
+                        var nsCache = await _cacheService.GetNamespaceCacheAsync(_selectedNamespace.NamespacePath);
+                        if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
+                        {
+                            eventClassNames = nsCache.Classes.Where(c => c.IsEventClass).Select(c => c.ClassName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log or handle cache retrieval errors gracefully
+                        System.Diagnostics.Debug.WriteLine($"Cache error: {ex.Message}");
+                    }
+                }
+            }
+
+            if (!eventClassNames.Any())
+            {
+                // Fallback to default list
+                eventClassNames =
+                [
+                    "__InstanceCreationEvent",
+                    "__InstanceModificationEvent",
+                    "__InstanceDeletionEvent",
+                    "__InstanceOperationEvent",
+                    "__ClassCreationEvent",
+                    "__ClassModificationEvent",
+                    "__ClassDeletionEvent"
+                ];
+            }
+
+            // Sort event class names: system classes (names starting with "__") first, then others, both groups sorted ascending (A-Z)
+            var systemEvents = eventClassNames.Where(n => n.StartsWith("__")).Distinct().OrderBy(n => n, StringComparer.Ordinal);
+            var userEvents = eventClassNames.Where(n => !n.StartsWith("__")).Distinct().OrderBy(n => n, StringComparer.Ordinal);
+            foreach (var name in systemEvents.Concat(userEvents))
+                _intrinsicEvents.Add(name);
+
+            IntrinsicEventsView.Refresh();
         }
     }
 }

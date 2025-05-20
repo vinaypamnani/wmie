@@ -19,6 +19,8 @@ namespace WmiExplorer.Presentation.Views
         private readonly MainViewModel _viewModel;
         private readonly IWmiService _wmiService;
         private readonly IWmiEventWatcherService _eventWatcherService;
+        private readonly ICacheService _cacheService;
+
 
         public MainWindow()
         {
@@ -32,6 +34,7 @@ namespace WmiExplorer.Presentation.Views
             _wmiService = ServiceLocator.Instance.Get<IWmiService>();
             _applicationService = ServiceLocator.Instance.Get<IApplicationService>();
             _eventWatcherService = ServiceLocator.Instance.Get<IWmiEventWatcherService>();
+            _cacheService = ServiceLocator.Instance.Get<ICacheService>();
 
             // Create the main view model with injected services
             _viewModel = new MainViewModel(
@@ -40,7 +43,8 @@ namespace WmiExplorer.Presentation.Views
                 _themeManager,
                 _wmiService,
                 _applicationService,
-                _eventWatcherService);
+                _eventWatcherService,
+                _cacheService);
             DataContext = _viewModel;
 
             // Set an initial application state
