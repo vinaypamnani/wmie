@@ -77,6 +77,11 @@ namespace WmiExplorer.Presentation.ViewModels
 
             // Log initial class filter
             System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
+
+            _settingsService.ShowSystemClassesChanged += (s, v) =>
+            {
+                OnPropertyChanged(nameof(ShowSystemClasses));
+            };
         }
 
         /// <summary>
@@ -385,7 +390,7 @@ namespace WmiExplorer.Presentation.ViewModels
 
             if (ns.ClassLoadState == ClassLoadState.Unknown)
             {
-                PublishErrorState($"Selected {ns.NamespacePath} Double-click to load classes.");
+                PublishSuccessState($"Selected {ns.NamespacePath} Double-click to load classes.");
                 return;
             }
             if (ns.ClassLoadState == ClassLoadState.Loading)
@@ -527,5 +532,18 @@ namespace WmiExplorer.Presentation.ViewModels
             _ => SelectedNamespace?.LoadClassesCommand.Execute(null),
             _ => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
         );
+
+        public bool ShowSystemClasses
+        {
+            get => _settingsService.ShowSystemClasses;
+            set
+            {
+                if (_settingsService.ShowSystemClasses != value)
+                {
+                    _settingsService.ShowSystemClasses = value;
+                    OnPropertyChanged(nameof(ShowSystemClasses));
+                }
+            }
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace WmiExplorer.Services
 
         private string _currentTheme = "Dark";
         private MainWindowPosition _mainWindowPosition = new MainWindowPosition();
+        private bool _showSystemClasses = false;
 
         public SettingsService(IMessagingService messagingService)
         {
@@ -36,6 +37,8 @@ namespace WmiExplorer.Services
         public event EventHandler<WmiClassTypeFlags>? ClassTypeFilterChanged;
 
         public event EventHandler<string>? ThemeChanged;
+
+        public event EventHandler<bool>? ShowSystemClassesChanged;
 
         // ClassTypeFilter property with change notification
         public WmiClassTypeFlags ClassTypeFilter
@@ -65,6 +68,21 @@ namespace WmiExplorer.Services
                     _currentTheme = value;
                     ThemeChanged?.Invoke(this, value);
                     Debug.WriteLine($"CurrentTheme changed to: {value}");
+                }
+            }
+        }
+
+        // ShowSystemClasses property with change notification
+        public bool ShowSystemClasses
+        {
+            get => _showSystemClasses;
+            set
+            {
+                if (_showSystemClasses != value)
+                {
+                    _showSystemClasses = value;
+                    ShowSystemClassesChanged?.Invoke(this, value);
+                    // Optionally publish a message if needed for decoupled updates
                 }
             }
         }
@@ -104,13 +122,19 @@ namespace WmiExplorer.Services
                         _currentTheme = currentTheme.GetString() ?? "Dark";
                     }
 
+                    // Parse ShowSystemClasses
+                    if (settings.TryGetProperty("ShowSystemClasses", out var showSystemClasses))
+                    {
+                        _showSystemClasses = showSystemClasses.GetBoolean();
+                    }
+
                     // Parse MainWindowPosition
                     if (settings.TryGetProperty("MainWindowPosition", out var mainWindowPosition))
                     {
                         try
                         {
                             _mainWindowPosition = JsonSerializer.Deserialize<MainWindowPosition>(mainWindowPosition.GetRawText())
-                                ?? new MainWindowPosition();                            
+                                ?? new MainWindowPosition();
                         }
                         catch (Exception ex)
                         {
@@ -194,6 +218,7 @@ namespace WmiExplorer.Services
                 {
                     ClassTypeFilter = _classTypeFilter,
                     CurrentTheme = _currentTheme,
+                    ShowSystemClasses = _showSystemClasses,
                     MainWindowPosition = _mainWindowPosition
                 };
 

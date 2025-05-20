@@ -50,12 +50,6 @@
             <StackPanel Margin="{StaticResource MarginHorizontalTiny}" Orientation="Horizontal">
                 <CheckBox
                     Grid.Row="0"
-                    Grid.Column="0"
-                    Margin="{StaticResource MarginSmall}"
-                    Content="Include System Classes"
-                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=System}" />
-                <CheckBox
-                    Grid.Row="0"
                     Grid.Column="1"
                     Margin="{StaticResource MarginSmall}"
                     Content="Include CIM Classes"

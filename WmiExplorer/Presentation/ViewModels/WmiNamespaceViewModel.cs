@@ -110,6 +110,13 @@ namespace WmiExplorer.Presentation.ViewModels
             StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
             StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChanged, true);
 
+            // Subscribe to ShowSystemClassesChanged to refresh filter
+            _settingsService.ShowSystemClassesChanged += (s, show) =>
+            {
+                _classesView?.Refresh();
+                PublishMessage(new ClassesFilteredMessage(this));
+            };
+
             // Set parent namespace if provided
             ParentNamespaceViewModel = parentNamespaceViewModel;
         }
@@ -371,14 +378,9 @@ namespace WmiExplorer.Presentation.ViewModels
         {
             if (message == null) return;
 
-            // Determine current System flag state
-            bool currentSystemFlag = (message.ClassTypeFilter & WmiClassTypeFlags.System) == WmiClassTypeFlags.System;
-            if (currentSystemFlag != _lastSystemFlagState)
-            {
-                _classesView?.Refresh();
-                PublishMessage(new ClassesFilteredMessage(this));
-                _lastSystemFlagState = currentSystemFlag;
-            }
+            // No more System flag logic here, just refresh and publish
+            _classesView?.Refresh();
+            PublishMessage(new ClassesFilteredMessage(this));
         }
 
         private void CopyRelativePath()
@@ -395,10 +397,9 @@ namespace WmiExplorer.Presentation.ViewModels
             // Predicate for filtering classes by quick filter text (case-insensitive substring match).
             if (item is WmiClassViewModel classVm)
             {
-                // System class filtering: only show system classes if the flag is set
-                var classTypeFilter = _settingsService.ClassTypeFilter;
+                // System class filtering: only show system classes if the setting is enabled
                 bool isSystemClass = classVm.ClassName.StartsWith("__");
-                if (isSystemClass && (classTypeFilter & WmiClassTypeFlags.System) != WmiClassTypeFlags.System)
+                if (isSystemClass && !_settingsService.ShowSystemClasses)
                     return false;
 
                 // Quick filter text

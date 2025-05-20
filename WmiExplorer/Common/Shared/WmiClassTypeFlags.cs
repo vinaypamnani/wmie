@@ -7,10 +7,9 @@ namespace WmiExplorer.Common.Shared
     public enum WmiClassTypeFlags
     {
         None = 0,
-        System = 1,
         CIM = 2,
         MSFT = 4,
         Perf = 8,
-        All = System | CIM | MSFT | Perf
+        All = CIM | MSFT | Perf
     }
 }
