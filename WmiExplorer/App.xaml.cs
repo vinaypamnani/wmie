@@ -44,9 +44,6 @@ namespace WmiExplorer
             // Register ApplicationService
             serviceLocator.Register<IApplicationService, ApplicationService>(new ApplicationService());
 
-            // Register WmiEventWatcherService
-            serviceLocator.Register<IWmiEventWatcherService, WmiEventWatcherService>(new WmiEventWatcherService());
-
             // Configure unhandled exception handling
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {

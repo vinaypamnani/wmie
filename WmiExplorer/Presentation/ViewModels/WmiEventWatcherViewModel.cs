@@ -18,7 +18,6 @@ namespace WmiExplorer.Presentation.ViewModels
         private readonly ICacheService _cacheService;
         private readonly DebounceDispatcher _debouncer = new();
         private readonly ObservableCollection<WmiEvent> _events = new();
-        private readonly IWmiEventWatcherService _eventWatcherService;
         private readonly ObservableCollection<string> _intrinsicEvents = new ObservableCollection<string>();
         private readonly IMessagingService _messagingService;
         private readonly ObservableCollection<string> _targetClasses = new ObservableCollection<string>();
@@ -42,16 +41,13 @@ namespace WmiExplorer.Presentation.ViewModels
         /// Initializes a new instance of the <see cref="WmiEventWatcherViewModel"/> class.
         /// </summary>
         /// <param name="messagingService">The messaging service to use</param>
-        /// <param name="eventWatcherService">The WMI event watcher service to use</param>
         /// <param name="cacheService">The cache service to use</param>
         public WmiEventWatcherViewModel(
             IMessagingService messagingService,
-            IWmiEventWatcherService eventWatcherService,
             ICacheService cacheService
         )
         {
             _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
-            _eventWatcherService = eventWatcherService ?? throw new ArgumentNullException(nameof(eventWatcherService));
             _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
             InitializeMessaging(_messagingService);
@@ -381,14 +377,12 @@ namespace WmiExplorer.Presentation.ViewModels
             {
                 var watcher = new WmiEventWatcher(
                     EventQuery,
-                    _selectedNamespace.ManagementScope,
-                    _eventWatcherService
-                );
+                    _selectedNamespace.ManagementScope);
                 var watcherViewModel = new WmiEventWatcherItemViewModel(
                     watcher,
-                    _messagingService,
                     RemoveWatcher,
-                    OnEventReceived
+                    OnEventReceived,
+                    EventType // Pass the event type explicitly
                 );
                 _watchers.Add(watcherViewModel);
                 watcher.Start();
@@ -414,14 +408,12 @@ namespace WmiExplorer.Presentation.ViewModels
             return false;
         }
 
-        /// <summary>
-        /// Filter predicate for events by watcher name
-        /// </summary>
         private bool FilterByWatcherName(object obj)
         {
             if (obj is not WmiEvent evt)
                 return false;
-            if (string.IsNullOrEmpty(SelectedWatcherName))
+            // If "All" is selected, show all events
+            if (string.IsNullOrEmpty(SelectedWatcherName) || SelectedWatcherName == "All")
                 return true;
             return evt.WatcherName == SelectedWatcherName;
         }
@@ -633,8 +625,12 @@ namespace WmiExplorer.Presentation.ViewModels
         {
             var names = _watchers.Select(w => w.Name).Distinct().OrderBy(n => n).ToList();
             WatcherNames.Clear();
+            WatcherNames.Add("All"); // Always add "All" as the first item
             foreach (var name in names)
                 WatcherNames.Add(name);
+            // If the selected watcher name is not in the list, reset to "All"
+            if (string.IsNullOrEmpty(_selectedWatcherName) || !WatcherNames.Contains(_selectedWatcherName))
+                SelectedWatcherName = "All";
         }
 
         public void ClearEvents() => _events.Clear();

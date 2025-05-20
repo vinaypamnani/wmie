@@ -18,7 +18,6 @@ namespace WmiExplorer.Presentation.Views
         private readonly ThemeManager _themeManager;
         private readonly MainViewModel _viewModel;
         private readonly IWmiService _wmiService;
-        private readonly IWmiEventWatcherService _eventWatcherService;
         private readonly ICacheService _cacheService;
 
 
@@ -33,7 +32,6 @@ namespace WmiExplorer.Presentation.Views
             _themeManager = ServiceLocator.Instance.Get<ThemeManager>();
             _wmiService = ServiceLocator.Instance.Get<IWmiService>();
             _applicationService = ServiceLocator.Instance.Get<IApplicationService>();
-            _eventWatcherService = ServiceLocator.Instance.Get<IWmiEventWatcherService>();
             _cacheService = ServiceLocator.Instance.Get<ICacheService>();
 
             // Create the main view model with injected services
@@ -43,7 +41,6 @@ namespace WmiExplorer.Presentation.Views
                 _themeManager,
                 _wmiService,
                 _applicationService,
-                _eventWatcherService,
                 _cacheService);
             DataContext = _viewModel;
 

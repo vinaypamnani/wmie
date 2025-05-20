@@ -1,6 +1,5 @@
 using System;
 using System.Management;
-using WmiExplorer.Services;
 
 namespace WmiExplorer.Core.Models
 {
@@ -9,9 +8,9 @@ namespace WmiExplorer.Core.Models
     /// </summary>
     public class WmiEventWatcher : IDisposable
     {
-        private readonly IWmiEventWatcherService _eventWatcherService;
         private readonly string _query;
         private readonly ManagementScope _scope;
+        private ManagementEventWatcher? _watcher;
         private bool _isRunning;
         private bool _disposed;
 
@@ -50,18 +49,13 @@ namespace WmiExplorer.Core.Models
         /// </summary>
         /// <param name="query">The WQL query for events</param>
         /// <param name="scope">The WMI scope to watch</param>
-        /// <param name="eventWatcherService">The WMI event watcher service to use</param>
-        public WmiEventWatcher(string query, ManagementScope scope, IWmiEventWatcherService eventWatcherService)
+        public WmiEventWatcher(string query, ManagementScope scope)
         {
             _query = query ?? throw new ArgumentNullException(nameof(query));
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            _eventWatcherService = eventWatcherService ?? throw new ArgumentNullException(nameof(eventWatcherService));
-            
+
             Name = $"Watcher_{DateTime.Now:yyyyMMdd_HHmmss}";
             CreatedAt = DateTime.Now;
-
-            // Subscribe to the service's event
-            _eventWatcherService.EventArrived += OnEventArrived;
         }
 
         /// <summary>
@@ -72,10 +66,22 @@ namespace WmiExplorer.Core.Models
             if (_disposed)
                 throw new ObjectDisposedException(nameof(WmiEventWatcher));
 
-            if (!_isRunning)
+            if (_isRunning)
+                return;
+
+            try
             {
-                _eventWatcherService.StartWatching(_scope, _query);
+                _watcher = new ManagementEventWatcher(_scope, new EventQuery(_query));
+                _watcher.EventArrived += OnEventArrived;
+                _watcher.Start();
                 _isRunning = true;
+            }
+            catch (Exception)
+            {
+                _watcher?.Dispose();
+                _watcher = null;
+                _isRunning = false;
+                throw;
             }
         }
 
@@ -87,9 +93,21 @@ namespace WmiExplorer.Core.Models
             if (_disposed)
                 throw new ObjectDisposedException(nameof(WmiEventWatcher));
 
-            if (_isRunning)
+            if (!_isRunning)
+                return;
+
+            try
             {
-                _eventWatcherService.StopWatching();
+                if (_watcher != null)
+                {
+                    _watcher.EventArrived -= OnEventArrived;
+                    _watcher.Stop();
+                    _watcher.Dispose();
+                    _watcher = null;
+                }
+            }
+            finally
+            {
                 _isRunning = false;
             }
         }
@@ -97,9 +115,9 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// Handles the event when a WMI event is received
         /// </summary>
-        private void OnEventArrived(object? sender, ManagementBaseObject e)
+        private void OnEventArrived(object? sender, EventArrivedEventArgs e)
         {
-            EventArrived?.Invoke(this, e);
+            EventArrived?.Invoke(this, e.NewEvent);
         }
 
         /// <summary>
@@ -110,9 +128,8 @@ namespace WmiExplorer.Core.Models
             if (!_disposed)
             {
                 Stop();
-                _eventWatcherService.EventArrived -= OnEventArrived;
                 _disposed = true;
             }
         }
     }
-} 
+}

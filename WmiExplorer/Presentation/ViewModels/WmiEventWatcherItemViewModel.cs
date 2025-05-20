@@ -4,7 +4,6 @@ using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels
 {
@@ -14,9 +13,9 @@ namespace WmiExplorer.Presentation.ViewModels
     public class WmiEventWatcherItemViewModel : ViewModelBase, IDisposable
     {
         private readonly WmiEventWatcher _watcher;
-        private readonly IMessagingService _messagingService;
         private readonly Action<WmiEventWatcherItemViewModel> _onRemove;
         private readonly Action<WmiEvent> _onEventReceived;
+        private readonly string _eventType;
         private bool _disposed;
 
         /// <summary>
@@ -64,14 +63,14 @@ namespace WmiExplorer.Presentation.ViewModels
         /// </summary>
         public WmiEventWatcherItemViewModel(
             WmiEventWatcher watcher,
-            IMessagingService messagingService,
             Action<WmiEventWatcherItemViewModel> onRemove,
-            Action<WmiEvent> onEventReceived)
+            Action<WmiEvent> onEventReceived,
+            string eventType)
         {
             _watcher = watcher ?? throw new ArgumentNullException(nameof(watcher));
-            _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
             _onRemove = onRemove ?? throw new ArgumentNullException(nameof(onRemove));
             _onEventReceived = onEventReceived ?? throw new ArgumentNullException(nameof(onEventReceived));
+            _eventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
 
             StartCommand = new RelayCommand(_ => Start(), _ => !IsRunning);
             StopCommand = new RelayCommand(_ => Stop(), _ => IsRunning);
@@ -87,9 +86,9 @@ namespace WmiExplorer.Presentation.ViewModels
                 _watcher.Start();
                 OnPropertyChanged(nameof(IsRunning));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _messagingService.Publish(new ApplicationStateMessage(ApplicationState.Error($"Failed to start watcher: {ex.Message}", ex)));
+                // Optionally log or handle error
             }
         }
 
@@ -100,9 +99,9 @@ namespace WmiExplorer.Presentation.ViewModels
                 _watcher.Stop();
                 OnPropertyChanged(nameof(IsRunning));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _messagingService.Publish(new ApplicationStateMessage(ApplicationState.Error($"Failed to stop watcher: {ex.Message}", ex)));
+                // Optionally log or handle error
             }
         }
 
@@ -113,6 +112,12 @@ namespace WmiExplorer.Presentation.ViewModels
 
         private void OnEventArrived(object? sender, ManagementBaseObject e)
         {
+            var actualEventType = e.ClassPath?.ClassName;
+            if (!string.IsNullOrEmpty(_eventType) && !string.IsNullOrEmpty(actualEventType) && !string.Equals(_eventType, actualEventType, StringComparison.Ordinal))
+            {
+                // Ignore events that do not match the expected type
+                return;
+            }
             var wmiEvent = new WmiEvent(Name, e);
             _onEventReceived(wmiEvent);
         }
