@@ -1,5 +1,6 @@
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Core.Models;
 
 namespace WmiExplorer.Services
 {
@@ -27,6 +28,19 @@ namespace WmiExplorer.Services
         }
 
         public WmiClassTypeFlags ClassTypeFilter { get; }
+    }
+
+    /// <summary>
+    /// Message sent when classes are loaded in a namespace
+    /// </summary>
+    public class ClassesLoadedMessage : MessageBase
+    {
+        public ClassesLoadedMessage(WmiNamespaceViewModel namespaceViewModel)
+        {
+            NamespaceViewModel = namespaceViewModel;
+        }
+
+        public WmiNamespaceViewModel NamespaceViewModel { get; }
     }
 
     /// <summary>
@@ -85,5 +99,18 @@ namespace WmiExplorer.Services
         }
 
         public string Theme { get; }
+    }
+
+    /// <summary>
+    /// Message sent when selected WMI event changes
+    /// </summary>
+    public class SelectedEventChangedMessage : MessageBase
+    {
+        public SelectedEventChangedMessage(WmiEvent? wmiEvent)
+        {
+            WmiEvent = wmiEvent;
+        }
+
+        public WmiEvent? WmiEvent { get; }
     }
 }

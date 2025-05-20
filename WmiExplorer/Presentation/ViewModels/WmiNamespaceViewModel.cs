@@ -508,6 +508,9 @@ namespace WmiExplorer.Presentation.ViewModels
 
                 ClassLoadState = ClassLoadState.Success;
                 PublishSuccessState($"Loaded {classViewModels.Count} classes for {NamespacePath}");
+                
+                // Publish message that classes are loaded
+                PublishMessage(new ClassesLoadedMessage(this));
             }
             catch (OperationCanceledException)
             {

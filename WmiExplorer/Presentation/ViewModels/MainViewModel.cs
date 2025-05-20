@@ -19,6 +19,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private readonly ThemeManager _themeManager;
         private readonly IWmiService _wmiService;
         private readonly IApplicationService _applicationService;
+        private readonly IWmiEventWatcherService _eventWatcherService;
 
         private string _temporaryComputerName = Environment.MachineName; // Temporary field for initial connection
         private ApplicationState _currentApplicationState = ApplicationState.Ready();
@@ -35,12 +36,14 @@ namespace WmiExplorer.Presentation.ViewModels
             ISettingsService settingsService,
             ThemeManager themeManager,
             IWmiService wmiService,
-            IApplicationService applicationService)
+            IApplicationService applicationService,
+            IWmiEventWatcherService eventWatcherService)
         {
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
             _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
             _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
             _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
+            _eventWatcherService = eventWatcherService ?? throw new ArgumentNullException(nameof(eventWatcherService));
 
             // Initialize messaging
             InitializeMessaging(messagingService);
@@ -56,6 +59,7 @@ namespace WmiExplorer.Presentation.ViewModels
             StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
             StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
             StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
+            StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
 
             // Subscribe to theme change messages
             StrongSubscribe<ThemeChangedMessage>(_ =>
@@ -68,7 +72,7 @@ namespace WmiExplorer.Presentation.ViewModels
             _windowPosition = _settingsService.MainWindowPosition;
 
             // Initialize the Event Watcher ViewModel
-            _eventWatcherViewModel = new WmiEventWatcherViewModel();
+            _eventWatcherViewModel = new WmiEventWatcherViewModel(messagingService, _eventWatcherService);
 
             // Log initial class filter
             System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
@@ -436,6 +440,18 @@ namespace WmiExplorer.Presentation.ViewModels
             OnPropertyChanged(nameof(ClassTypeFilter));
 
             System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged: {_settingsService.ClassTypeFilter}");
+        }
+
+        /// <summary>
+        /// Handles when a WMI event is selected to update the property grid
+        /// </summary>
+        private void HandleSelectedEventChangedMessage(SelectedEventChangedMessage message)
+        {
+            if (message?.WmiEvent == null)
+                return;
+
+            // Update the selected object for the property grid
+            SelectedObject = message.WmiEvent;
         }
 
         /// <summary>

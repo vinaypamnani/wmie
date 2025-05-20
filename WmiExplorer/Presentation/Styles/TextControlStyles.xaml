@@ -54,4 +54,13 @@
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
     </Style>
+
+    <!--  ReadOnly TextBox Style  -->
+    <Style x:Key="ReadOnlyTextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="IsTabStop" Value="False" />
+    </Style>
 </ResourceDictionary>
