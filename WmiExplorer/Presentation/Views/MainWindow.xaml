@@ -6,7 +6,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:pg="clr-namespace:WmiExplorer.Presentation.Controls.PropertyGrid"
+        xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
         xmlns:services="clr-namespace:WmiExplorer.Services"
         xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
         xmlns:tabs="clr-namespace:WmiExplorer.Presentation.Views.Tabs"

@@ -1,5 +1,5 @@
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.Controls.PropertyGrid.Abstractions;
+using WmiExplorer.PropertyGrid.Abstractions;
 
 namespace WmiExplorer.Presentation.PropertyTypeProvider
 {

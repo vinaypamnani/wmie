@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Management;
 using System.Reflection;
-using WmiExplorer.Presentation.Controls.PropertyGrid.Abstractions;
-using WmiExplorer.Presentation.Controls.PropertyGrid.Providers;
+using WmiExplorer.PropertyGrid.Abstractions;
+using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
 
@@ -172,7 +172,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
                 {
                     var methods = prop.GetValue(obj) as List<WmiMethod>;
                     if (methods != null)
-                    {                        
+                    {
                         foreach (var method in methods)
                         {
                             yield return new WmiMethodPropertyDescriptor(method, category);
@@ -184,7 +184,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
 
                 yield return new DefaultPropertyDescriptor(prop, obj, category);
             }
-            
+
             // For standalone PropertyDataCollection or QualifierDataCollection, use type name as category
             // We will never assign these directly to PropertyGrid but keeping it just in case.
             if (!yieldedSpecial && obj is PropertyDataCollection propertyCollection)
@@ -259,7 +259,7 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             {
                 PropertyData pd when pd.IsArray => true,
                 PropertyDataCollection => true,
-                QualifierDataCollection => true,                
+                QualifierDataCollection => true,
                 ManagementBaseObject => true,
                 ICollection => true,  // Handle any ICollection implementation
                 _ => false

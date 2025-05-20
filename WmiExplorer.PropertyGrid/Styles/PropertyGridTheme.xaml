@@ -1,0 +1,283 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="clr-namespace:WmiExplorer.PropertyGrid.Behaviors"
+    xmlns:local="clr-namespace:WmiExplorer.PropertyGrid"
+    xmlns:pgConverters="clr-namespace:WmiExplorer.PropertyGrid.Converters">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="PropertyGridStyles.xaml" />
+        <ResourceDictionary Source="PropertyTreeStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--  ================================================================  -->
+    <!--  CONVERTERS  -->
+    <!--  ================================================================  -->
+    <pgConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <pgConverters:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />
+    <pgConverters:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter" />
+
+    <!--  ================================================================  -->
+    <!--  SEARCH COMPONENTS  -->
+    <!--  ================================================================  -->
+
+    <!--  Search Icon Template  -->
+    <DataTemplate x:Key="SearchIconTemplate">
+        <Path
+            Width="16"
+            Height="16"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Data="M15.5,14.5L11.5,10.5C12.5,9.5 13,8 13,6.5 13,3 10,0 6.5,0 3,0 0,3 0,6.5 0,10 3,13 6.5,13 8,13 9.5,12.5 10.5,11.5L14.5,15.5 15.5,14.5z M2,6.5C2,4 4,2 6.5,2 9,2 11,4 11,6.5 11,9 9,11 6.5,11 4,11 2,9 2,6.5z"
+            Fill="{DynamicResource PropertyGridForegroundBrush}"
+            Stretch="Uniform" />
+    </DataTemplate>
+
+    <!--  Clear Button Template  -->
+    <ControlTemplate x:Key="ClearButtonTemplate" TargetType="Button">
+        <Border Background="Transparent" Cursor="Hand">
+            <Path
+                Width="10"
+                Height="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Data="M 0,0 L 10,10 M 0,10 L 10,0"
+                Stroke="{DynamicResource PropertyGridForegroundBrush}"
+                StrokeThickness="1.5" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Opacity" Value="0.8" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!--  Add this style to ensure the clear button works  -->
+    <Style x:Key="SearchClearButtonStyle" BasedOn="{x:Null}" TargetType="Button">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Command" Value="{Binding ClearSearchCommand, RelativeSource={RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}}" />
+        <Setter Property="Template" Value="{StaticResource ClearButtonTemplate}" />
+    </Style>
+
+    <!--  ================================================================  -->
+    <!--  TEXTBOX SEARCH BOX STYLE  -->
+    <!--  ================================================================  -->
+    <Style x:Key="SearchTextBoxStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource PropertyGridBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="26,4,26,4" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  GridSplitter  -->
+    <Style x:Key="PropertyGridGridSplitter" TargetType="GridSplitter">
+        <Setter Property="Background" Value="{DynamicResource PropertyGridSecondaryBackgroundBrush}" />
+        <Setter Property="Width" Value="50" />
+        <Setter Property="Height" Value="5" />
+        <Setter Property="Margin" Value="5,5,5,5" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="ShowsPreview" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GridSplitter">
+                    <Border Background="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PropertyGridHoverBackgroundBrush}" />
+                <Setter Property="Width" Value="Auto" />
+            </Trigger>
+            <Trigger Property="IsDragging" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PropertyGridHoverBackgroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--  ================================================================  -->
+    <!--  CUSTOM PROPERTY GRID TEMPLATE  -->
+    <!--  ================================================================  -->
+    <ControlTemplate x:Key="CustomPropertyGridTemplate" TargetType="local:CustomPropertyGrid">
+        <Border
+            Padding="5"
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}">
+            <Grid x:Name="PART_MainGrid">
+                <Grid.RowDefinitions>
+                    <!--  Options row  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Search box row  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Properties list / tree row  -->
+                    <RowDefinition Height="*" />
+                    <!--  Grid splitter row  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Help text row  -->
+                    <RowDefinition Height="{Binding HelpPaneHeight, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}" />
+                </Grid.RowDefinitions>
+
+                <!--  ===== OPTIONS PANEL (for checkboxes) =====  -->
+                <DockPanel Grid.Row="0" Margin="8,8,8,8" LastChildFill="False">
+                    <CheckBox Content="Show null values" IsChecked="{Binding IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                    <CheckBox Margin="8,0,0,0" Content="Show System Properties" IsChecked="{Binding IncludeSystemProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                    <!--  Add more options here as needed  -->
+                </DockPanel>
+
+                <!--  ===== SEARCH BOX =====  -->
+                <Grid Grid.Row="1" Margin="8,8,8,4" Visibility="{Binding ShowSearchBox, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Search Icon OUTSIDE TextBox border  -->
+                    <ContentControl
+                        Grid.Column="0"
+                        Width="18"
+                        Height="18"
+                        Margin="4,0,8,0"
+                        VerticalAlignment="Center"
+                        ContentTemplate="{StaticResource SearchIconTemplate}"
+                        Opacity="0.7" />
+
+                    <!--  TextBoxWithPlaceholder for Search  -->
+                    <Grid Grid.Column="1">
+                        <TextBox
+                            x:Name="PART_SearchBox"
+                            MinWidth="80"
+                            Margin="0"
+                            Padding="4,4,4,4"
+                            VerticalContentAlignment="Center"
+                            CaretBrush="{DynamicResource PropertyGridForegroundBrush}"
+                            FontSize="13"
+                            Foreground="{DynamicResource PropertyGridForegroundBrush}"
+                            Style="{StaticResource PropertyGridTextBoxWithPlaceholder}"
+                            Tag="Search properties..."
+                            ToolTip="Search properties by name or description" />
+                    </Grid>
+
+                    <!--  Clear Button OUTSIDE TextBox border  -->
+                    <Button
+                        Grid.Column="2"
+                        Width="20"
+                        Height="20"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource SearchClearButtonStyle}"
+                        Visibility="{Binding Text.IsEmpty, ElementName=PART_SearchBox, Converter={StaticResource BooleanNotToVisibilityConverter}}" />
+                </Grid>
+
+                <!--  ===== PROPERTIES CONTENT =====  -->
+                <Grid Grid.Row="2" Background="{DynamicResource PropertyGridBackgroundBrush}">
+
+                    <!--  TreeView Mode  -->
+                    <ScrollViewer
+                        x:Name="PART_TreeScrollViewer"
+                        Grid.Row="1"
+                        VerticalScrollBarVisibility="Auto"
+                        Visibility="Visible">
+                        <TreeView
+                            x:Name="PART_PropertiesTree"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            ScrollViewer.CanContentScroll="False"
+                            VirtualizingStackPanel.IsVirtualizing="{Binding EnableVirtualization, RelativeSource={RelativeSource TemplatedParent}}"
+                            VirtualizingStackPanel.VirtualizationMode="Recycling">
+
+                            <TreeView.Resources>
+                                <!--  Ensure all items stretch horizontally  -->
+                                <Style TargetType="DockPanel">
+                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                </Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                </Style>
+                            </TreeView.Resources>
+                            <TreeView.ItemTemplateSelector>
+                                <local:PropertyItemTemplateSelector CategoryItemTemplate="{StaticResource CategoryItemTemplate}" PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
+                            </TreeView.ItemTemplateSelector>
+                            <TreeView.ItemContainerStyle>
+                                <Style BasedOn="{StaticResource PropertyTreeViewItemStyle}" TargetType="TreeViewItem">
+                                    <Setter Property="behaviors:SuppressRequestBringIntoViewBehavior.SuppressBringIntoView" Value="True" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                    <Setter Property="Focusable" Value="True" />
+                                    <Setter Property="Margin" Value="0" />
+
+                                    <!--  Bind the TreeViewItem's Visibility to the model's Visibility property  -->
+                                    <Setter Property="Visibility" Value="{Binding Visibility, Mode=TwoWay}" />
+                                </Style>
+                            </TreeView.ItemContainerStyle>
+                        </TreeView>
+                    </ScrollViewer>
+                </Grid>
+
+                <!--  ===== SPLITTER =====  -->
+                <GridSplitter
+                    x:Name="PART_GridSplitter"
+                    Grid.Row="3"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    Focusable="False"
+                    Style="{StaticResource PropertyGridGridSplitter}"
+                    Visibility="{Binding ShowHelpPane, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <!--  ===== HELP PANE =====  -->
+                <Border
+                    Grid.Row="4"
+                    Background="{DynamicResource PropertyGridBackgroundBrush}"
+                    BorderBrush="{DynamicResource PropertyGridBorderBrush}"
+                    BorderThickness="1,1,1,1"
+                    Visibility="{Binding ShowHelpPane, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="8" VerticalAlignment="Top">
+                            <TextBlock FontWeight="Bold" Foreground="{DynamicResource PropertyGridForegroundBrush}" Text="{Binding SelectedHierarchyItem.DisplayName, RelativeSource={RelativeSource TemplatedParent}}" />
+                            <TextBox
+                                Background="Transparent"
+                                BorderThickness="0"
+                                CaretBrush="{DynamicResource PropertyGridForegroundBrush}"
+                                Foreground="{DynamicResource PropertyGridForegroundBrush}"
+                                IsReadOnly="True"
+                                IsTabStop="False"
+                                Text="{Binding SelectedHierarchyItem.Description, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue='Select a property to view its description.'}"
+                                TextWrapping="Wrap">
+                                <TextBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Command="{x:Static local:CustomPropertyGrid.HelpPaneCopyCommand}" Header="Copy" />
+                                        <MenuItem Command="{x:Static local:CustomPropertyGrid.HelpPaneSelectAllCommand}" Header="Select All" />
+                                    </ContextMenu>
+                                </TextBox.ContextMenu>
+                            </TextBox>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Border>
+    </ControlTemplate>
+
+    <!--  ================================================================  -->
+    <!--  CUSTOM PROPERTY GRID STYLE  -->
+    <!--  ================================================================  -->
+    <Style TargetType="{x:Type local:CustomPropertyGrid}">
+        <Setter Property="Background" Value="{DynamicResource PropertyGridBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="MinWidth" Value="200" />
+        <Setter Property="MinHeight" Value="150" />
+        <Setter Property="Template" Value="{StaticResource CustomPropertyGridTemplate}" />
+    </Style>
+
+</ResourceDictionary>

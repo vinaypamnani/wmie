@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
-using WmiExplorer.Presentation.Controls.PropertyGrid.Providers;
+using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 using WmiExplorer.Presentation.PropertyTypeProvider;
@@ -91,7 +91,7 @@ namespace WmiExplorer
 
             // Register Base WMI providers for PropertyGrid using the new generic method
             var wmiService = ServiceLocator.Instance.Get<IWmiService>();
-            ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());            
+            ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());
         }
     }
 }

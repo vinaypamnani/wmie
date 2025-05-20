@@ -10,7 +10,7 @@
                 <!-- Load modular styles -->
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/MainStyles.xaml" />
-                <ResourceDictionary Source="Presentation/Controls/PropertyGrid/Styles/PropertyGridTheme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
                 <!-- Theme will be loaded dynamically by ThemeManager from the Themes folder -->
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
