@@ -60,6 +60,7 @@ namespace WmiExplorer.Presentation.ViewModels
             StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
             StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
             StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
+            StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
 
             // Subscribe to theme change messages
             StrongSubscribe<ThemeChangedMessage>(_ =>
@@ -375,7 +376,38 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
-        /// Handles when a namespace is selected to ensure it loads its children
+        /// Updates the status bar message based on the selected namespace's load states
+        /// </summary>
+        private void UpdateNamespaceStatus(WmiNamespaceViewModel? ns)
+        {
+            if (ns == null)
+                return;
+
+            if (ns.ClassLoadState == ClassLoadState.Unknown)
+            {
+                PublishErrorState($"Selected {ns.NamespacePath} Double-click to load classes.");
+                return;
+            }
+            if (ns.ClassLoadState == ClassLoadState.Loading)
+            {
+                PublishBusyState($"Loading classes for {ns.NamespacePath}...");
+                return;
+            }
+            if (ns.ClassLoadState == ClassLoadState.Failed)
+            {
+                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click namespace to try again.");
+                return;
+            }
+            if (ns.ClassLoadState == ClassLoadState.Success && ns.NamespaceLoadState == NamespaceLoadState.Success)
+            {
+                var count = ns.ClassesView.Cast<object>().Count();
+                PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Handles when a namespace is selected to ensure it loads its children and updates the class count/status message
         /// </summary>
         private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
         {
@@ -396,6 +428,9 @@ namespace WmiExplorer.Presentation.ViewModels
 
             // Update the selected object for the property grid
             SelectedObject = message.NamespaceViewModel.WmiNamespace;
+
+            // Use the new method to update the status bar
+            UpdateNamespaceStatus(message.NamespaceViewModel);
         }
 
         /// <summary>
@@ -455,6 +490,17 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
+        /// Handles when classes are filtered in the selected namespace to update the status bar
+        /// </summary>
+        private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
+        {
+            if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectedNamespace)
+            {
+                UpdateNamespaceStatus(message.NamespaceViewModel);
+            }
+        }
+
+        /// <summary>
         /// Override to clean up additional resources
         /// </summary>
         protected override void Dispose(bool disposing)
@@ -473,5 +519,13 @@ namespace WmiExplorer.Presentation.ViewModels
 
             base.Dispose(disposing);
         }
+
+        /// <summary>
+        /// Command to reload the classes of the selected namespace
+        /// </summary>
+        public ICommand ReloadClassesCommand => new RelayCommand(
+            _ => SelectedNamespace?.LoadClassesCommand.Execute(null),
+            _ => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
+        );
     }
 }

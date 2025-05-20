@@ -71,6 +71,9 @@ namespace WmiExplorer.Presentation.ViewModels
         private ICommand? _copyRelativePathCommand;
         private string _computerName = string.Empty;
 
+        // Track the last known state of the System flag for class filtering
+        private bool _lastSystemFlagState = false;
+
         /// <summary>
         /// Children namespaces (read-only).
         /// </summary>
@@ -261,6 +264,7 @@ namespace WmiExplorer.Presentation.ViewModels
                         {
                             _quickFilterClasses = _pendingQuickFilter;
                             _classesView?.Refresh();
+                            PublishMessage(new ClassesFilteredMessage(this));
                         }
                     });
                 }
@@ -367,12 +371,13 @@ namespace WmiExplorer.Presentation.ViewModels
         {
             if (message == null) return;
 
-            if (_classLoadState != ClassLoadState.Unknown && _isSelected)
+            // Determine current System flag state
+            bool currentSystemFlag = (message.ClassTypeFilter & WmiClassTypeFlags.System) == WmiClassTypeFlags.System;
+            if (currentSystemFlag != _lastSystemFlagState)
             {
-                System.Diagnostics.Debug.WriteLine($"WmiNamespaceViewModel ({NamespacePath}) received ClassTypeFilterChanged: {message.ClassTypeFilter}");
-
-                _classes.Clear();
-                _ = LoadClassesAsync();
+                _classesView?.Refresh();
+                PublishMessage(new ClassesFilteredMessage(this));
+                _lastSystemFlagState = currentSystemFlag;
             }
         }
 
@@ -388,14 +393,21 @@ namespace WmiExplorer.Presentation.ViewModels
         private bool QuickFilterClassesPredicate(object item)
         {
             // Predicate for filtering classes by quick filter text (case-insensitive substring match).
-            if (string.IsNullOrWhiteSpace(_quickFilterClasses))
-                return true;
-
             if (item is WmiClassViewModel classVm)
             {
-                return classVm.ClassName.IndexOf(_quickFilterClasses, StringComparison.OrdinalIgnoreCase) >= 0;
-            }
+                // System class filtering: only show system classes if the flag is set
+                var classTypeFilter = _settingsService.ClassTypeFilter;
+                bool isSystemClass = classVm.ClassName.StartsWith("__");
+                if (isSystemClass && (classTypeFilter & WmiClassTypeFlags.System) != WmiClassTypeFlags.System)
+                    return false;
 
+                // Quick filter text
+                if (!string.IsNullOrWhiteSpace(_quickFilterClasses))
+                {
+                    return classVm.ClassName.IndexOf(_quickFilterClasses, StringComparison.OrdinalIgnoreCase) >= 0;
+                }
+                return true;
+            }
             return false;
         }
 
@@ -507,8 +519,8 @@ namespace WmiExplorer.Presentation.ViewModels
                 });
 
                 ClassLoadState = ClassLoadState.Success;
-                PublishSuccessState($"Loaded {classViewModels.Count} classes for {NamespacePath}");
-                
+                PublishSuccessState($"Loaded {ClassesView.Cast<object>().Count()} classes for {NamespacePath}");
+
                 // Publish message that classes are loaded
                 PublishMessage(new ClassesLoadedMessage(this));
             }
@@ -520,7 +532,7 @@ namespace WmiExplorer.Presentation.ViewModels
             catch (Exception ex)
             {
                 ClassLoadState = ClassLoadState.Failed;
-                PublishErrorState($"Error loading {NamespacePath}: {ex.Message}", ex);
+                PublishErrorState($"Error loading classes for {NamespacePath}: {ex.Message}", ex);
             }
         }
 

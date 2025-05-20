@@ -39,10 +39,8 @@ namespace WmiExplorer.Services
             // Start with a simple base query without the problematic LIKE '%'
             string query = "SELECT * FROM meta_class WHERE __Class LIKE '%'";
 
-            // Add exclusion conditions for unchecked class types
-            if ((classTypeFilter & WmiClassTypeFlags.System) != WmiClassTypeFlags.System)
-                query += " AND NOT __Class LIKE \"[_][_]%\"";
-
+            // Remove System class filtering here; always return system classes
+            // Only filter CIM, MSFT, Perf
             if ((classTypeFilter & WmiClassTypeFlags.CIM) != WmiClassTypeFlags.CIM)
                 query += " AND NOT __Class LIKE \"CIM[_]%\"";
 

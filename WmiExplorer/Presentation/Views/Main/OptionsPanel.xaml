@@ -14,6 +14,7 @@
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
         <converters:EnumFlagsToBooleanConverter x:Key="EnumFlagsToBooleanConverter" />
+        <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
     </UserControl.Resources>
 
     <Grid Name="OptionsGrid">
@@ -32,6 +33,7 @@
                     Tag="Enter computer name..."
                     Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" />
                 <Button
+                    Height="28"
                     MinWidth="75"
                     Margin="{StaticResource MarginSmall}"
                     Command="{Binding ConnectCommand}"
@@ -39,21 +41,13 @@
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="1" Header="Mode">
-            <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
                 <RadioButton Content="Asynchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" />
                 <RadioButton Content="Synchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" />
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="2" Header="Class Enumeration">
-            <Grid Margin="{StaticResource MarginHorizontalTiny}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <StackPanel Margin="{StaticResource MarginHorizontalTiny}" Orientation="Horizontal">
                 <CheckBox
                     Grid.Row="0"
                     Grid.Column="0"
@@ -78,7 +72,17 @@
                     Margin="{StaticResource MarginSmall}"
                     Content="Include Perf Classes"
                     IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}" />
-            </Grid>
+                <Button
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Grid.Column="2"
+                    Height="28"
+                    MinWidth="100"
+                    Margin="{StaticResource MarginSmall}"
+                    Content="Reload Classes"
+                    Command="{Binding ReloadClassesCommand}"
+                    IsEnabled="{Binding SelectedNamespace, Converter={StaticResource NullToBoolConverter}}" />
+            </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="3" Header="Accent Colors">
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">

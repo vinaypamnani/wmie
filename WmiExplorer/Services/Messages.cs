@@ -113,4 +113,16 @@ namespace WmiExplorer.Services
 
         public WmiEvent? WmiEvent { get; }
     }
+
+    /// <summary>
+    /// Message sent when classes are filtered in a namespace (e.g., quick filter or type filter changes)
+    /// </summary>
+    public class ClassesFilteredMessage : MessageBase
+    {
+        public ClassesFilteredMessage(WmiNamespaceViewModel namespaceViewModel)
+        {
+            NamespaceViewModel = namespaceViewModel;
+        }
+        public WmiNamespaceViewModel NamespaceViewModel { get; }
+    }
 }
