@@ -150,6 +150,7 @@
         <GroupBox
             Grid.Row="1"
             Grid.ColumnSpan="3"
+            HorizontalContentAlignment="Stretch"
             Margin="{StaticResource MarginTopSmall}"
             Header="Query">
             <Grid>
