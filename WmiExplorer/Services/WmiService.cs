@@ -248,12 +248,26 @@ namespace WmiExplorer.Services
                     var isSystem = className.StartsWith("__");
                     var derivation = mo["__Derivation"] as string[] ?? Array.Empty<string>();
                     var isEvent = derivation.Contains("__Event") || className == "__Event";
+
+                    // Get property names, excluding system properties (those starting with "__")
+                    var propertyNames = new List<string>();
+                    try
+                    {
+                        foreach (PropertyData prop in mo.Properties)
+                        {
+                            if (!prop.Name.StartsWith("__"))
+                                propertyNames.Add(prop.Name);
+                        }
+                    }
+                    catch { /* Ignore property enumeration errors */ }
+
                     classCaches.Add(new WmiClassCache
                     {
                         ClassName = className,
                         RelativePath = relativePath,
                         IsSystemClass = isSystem,
-                        IsEventClass = isEvent
+                        IsEventClass = isEvent,
+                        PropertyNames = propertyNames
                     });
                 }
                 catch { /* Ignore individual class errors */ }

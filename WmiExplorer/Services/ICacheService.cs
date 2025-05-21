@@ -15,11 +15,6 @@ namespace WmiExplorer.Services
         Task<List<WmiNamespaceCache>> LoadCacheAsync();
 
         /// <summary>
-        /// Saves the cache to persistent storage.
-        /// </summary>
-        Task SaveCacheAsync(List<WmiNamespaceCache> cache);
-
-        /// <summary>
         /// Gets the cached entry for a specific namespace, or null if not found or expired.
         /// </summary>
         Task<WmiNamespaceCache?> GetNamespaceCacheAsync(string namespacePath);
