@@ -368,19 +368,11 @@
                                     Width="200"
                                     DisplayMemberBinding="{Binding ClassPath}"
                                     Header="Class" />
-                                <GridViewColumn Width="220" Header="Properties">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <!--  No button needed, just show a placeholder or leave empty  -->
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
                             </GridView>
                         </ListView.View>
                     </ListView>
                 </GroupBox>
             </Grid>
-
         </Grid>
     </Grid>
 </UserControl>

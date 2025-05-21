@@ -47,14 +47,14 @@ namespace WmiExplorer.Core.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="WmiEventWatcher"/> class.
         /// </summary>
+        /// <param name="name">The name of the watcher</param>
         /// <param name="query">The WQL query for events</param>
         /// <param name="scope">The WMI scope to watch</param>
-        public WmiEventWatcher(string query, ManagementScope scope)
+        public WmiEventWatcher(string name, string query, ManagementScope scope)
         {
             _query = query ?? throw new ArgumentNullException(nameof(query));
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
-
-            Name = $"Watcher_{DateTime.Now:yyyyMMdd_HHmmss}";
+            Name = name;
             CreatedAt = DateTime.Now;
         }
 

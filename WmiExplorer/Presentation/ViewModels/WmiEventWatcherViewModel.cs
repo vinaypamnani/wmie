@@ -375,7 +375,13 @@ namespace WmiExplorer.Presentation.ViewModels
 
             try
             {
+                // Compose watcher name as <EventType>_<TargetClass>
+                string watcherName = string.IsNullOrWhiteSpace(EventType) ? "Unknown" : EventType;
+                if (!string.IsNullOrWhiteSpace(TargetClass))
+                    watcherName += "_" + TargetClass;
+
                 var watcher = new WmiEventWatcher(
+                    watcherName,
                     EventQuery,
                     _selectedNamespace.ManagementScope);
                 var watcherViewModel = new WmiEventWatcherItemViewModel(
