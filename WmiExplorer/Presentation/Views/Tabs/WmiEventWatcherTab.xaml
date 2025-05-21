@@ -87,12 +87,20 @@
                                 Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Within}" />
                         </GroupBox>
                         <!--  Condition  -->
-                        <GroupBox Margin="0" Header="Condition (optional)">
+                        <GroupBox Margin="0" Header="Condition [optional]">
                             <TextBox
                                 Width="180"
                                 Height="26"
                                 HorizontalContentAlignment="Left"
                                 Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Condition, UpdateSourceTrigger=PropertyChanged}" />
+                        </GroupBox>
+                        <!--  EventDisplayProperty  -->
+                        <GroupBox Margin="0" Header="Event Display Property [optional]">
+                            <TextBox
+                                Width="180"
+                                Height="26"
+                                HorizontalContentAlignment="Left"
+                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyName, UpdateSourceTrigger=PropertyChanged}" />
                         </GroupBox>
 
                     </StackPanel>
@@ -325,6 +333,10 @@
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
                                     <GridViewColumn
+                                        Width="100"
+                                        DisplayMemberBinding="{Binding EventDisplayPropertyName}"
+                                        Header="EventDisplayProperty" />
+                                    <GridViewColumn
                                         Width="160"
                                         DisplayMemberBinding="{Binding Namespace}"
                                         Header="Namespace" />
@@ -397,10 +409,10 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="200" Header="EventRelativePath">
+                                <GridViewColumn Width="200" Header="EventDisplayProperty">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding EventRelativePath}" ToolTip="{Binding EventRelativePath}" />
+                                            <TextBlock Text="{Binding EventDisplayProperty}" ToolTip="{Binding EventDisplayProperty}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>

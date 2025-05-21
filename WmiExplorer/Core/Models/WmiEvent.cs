@@ -18,7 +18,7 @@ namespace WmiExplorer.Core.Models
         public DateTime EventTimestamp { get; }
 
         [Category("Event")]
-        public string EventRelativePath { get; }
+        public string EventDisplayProperty { get; }
 
         [Category("Event")]
         [ShowChildrenAsParent]
@@ -28,7 +28,7 @@ namespace WmiExplorer.Core.Models
         [ShowChildrenAsParent]
         public PropertyChangeTracker? EventChanges { get; }
 
-        public WmiEvent(string watcherName, ManagementBaseObject eventData)
+        public WmiEvent(string watcherName, ManagementBaseObject eventData, string eventDisplayPropertyName)
         {
             WatcherName = watcherName ?? throw new ArgumentNullException(nameof(watcherName));
             EventData = eventData as ManagementBaseObject ?? throw new ArgumentNullException(nameof(eventData));
@@ -56,7 +56,23 @@ namespace WmiExplorer.Core.Models
                 System.Diagnostics.Debug.WriteLine($"Embedded instance access error: {ex.Message}");
             }
 
-            EventRelativePath = targetObject?["__RELPATH"]?.ToString() ?? "<Unknown>";
+            // Try to use the requested display property, fallback to __RELPATH
+            string displayValue = string.Empty;
+            if (!string.IsNullOrWhiteSpace(eventDisplayPropertyName) && targetObject != null)
+            {
+                try
+                {
+                    var val = targetObject[eventDisplayPropertyName];
+                    if (val != null)
+                        displayValue = val?.ToString() ?? string.Empty;
+                }
+                catch { /* Ignore property not found */ }
+            }
+            if (string.IsNullOrEmpty(displayValue))
+            {
+                displayValue = targetObject?["__RELPATH"]?.ToString() ?? "<Unknown>";
+            }
+            EventDisplayProperty = displayValue;
             EventClassName = eventData.ClassPath?.ClassName ?? "<Unknown>";
 
             if (targetObject != null && previousObject != null)

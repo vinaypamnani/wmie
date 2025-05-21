@@ -36,6 +36,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private string? _selectedWatcherName;
         private string _targetClass = "";
         private int _within = 5;
+        private string _eventDisplayPropertyName = "__RELPATH";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WmiEventWatcherViewModel"/> class.
@@ -382,6 +383,21 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         /// <summary>
+        /// Gets or sets the property name to use for event display
+        /// </summary>
+        public string EventDisplayPropertyName
+        {
+            get => _eventDisplayPropertyName;
+            set
+            {
+                if (SetProperty(ref _eventDisplayPropertyName, value))
+                {
+                    // Optionally, update watchers or events if needed
+                }
+            }
+        }
+
+        /// <summary>
         /// Adds a new watcher based on the current event query
         /// </summary>
         private void AddWatcher()
@@ -408,7 +424,8 @@ namespace WmiExplorer.Presentation.ViewModels
                     watcher,
                     RemoveWatcher,
                     OnEventReceived,
-                    EventType // Pass the event type explicitly
+                    EventType, // Pass the event type explicitly
+                    EventDisplayPropertyName // Pass the display property name
                 );
                 _watchers.Add(watcherViewModel);
                 watcher.Start();

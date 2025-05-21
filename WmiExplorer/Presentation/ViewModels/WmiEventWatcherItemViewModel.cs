@@ -16,6 +16,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private readonly Action<WmiEventWatcherItemViewModel> _onRemove;
         private readonly Action<WmiEvent> _onEventReceived;
         private readonly string _eventType;
+        private readonly string _eventDisplayPropertyName;
         private bool _disposed;
 
         /// <summary>
@@ -65,12 +66,14 @@ namespace WmiExplorer.Presentation.ViewModels
             WmiEventWatcher watcher,
             Action<WmiEventWatcherItemViewModel> onRemove,
             Action<WmiEvent> onEventReceived,
-            string eventType)
+            string eventType,
+            string eventDisplayPropertyName)
         {
             _watcher = watcher ?? throw new ArgumentNullException(nameof(watcher));
             _onRemove = onRemove ?? throw new ArgumentNullException(nameof(onRemove));
             _onEventReceived = onEventReceived ?? throw new ArgumentNullException(nameof(onEventReceived));
             _eventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
+            _eventDisplayPropertyName = eventDisplayPropertyName ?? string.Empty;
 
             StartCommand = new RelayCommand(_ => Start(), _ => !IsRunning);
             StopCommand = new RelayCommand(_ => Stop(), _ => IsRunning);
@@ -118,7 +121,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 // Ignore events that do not match the expected type
                 return;
             }
-            var wmiEvent = new WmiEvent(Name, e);
+            var wmiEvent = new WmiEvent(Name, e, _eventDisplayPropertyName);
             _onEventReceived(wmiEvent);
         }
 
@@ -131,5 +134,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 _disposed = true;
             }
         }
+
+        public string EventDisplayPropertyName => _eventDisplayPropertyName;
     }
 }
