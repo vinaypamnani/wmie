@@ -10,7 +10,7 @@ namespace WmiExplorer.Core.Models
     {
         private readonly string _query;
         private readonly ManagementScope _scope;
-        private ManagementEventWatcher? _watcher;
+        private ManagementEventWatcher? _managementEventWatcher;
         private bool _isRunning;
         private bool _disposed;
 
@@ -71,15 +71,15 @@ namespace WmiExplorer.Core.Models
 
             try
             {
-                _watcher = new ManagementEventWatcher(_scope, new EventQuery(_query));
-                _watcher.EventArrived += OnEventArrived;
-                _watcher.Start();
+                _managementEventWatcher = new ManagementEventWatcher(_scope, new EventQuery(_query));
+                _managementEventWatcher.EventArrived += OnEventArrived;
+                _managementEventWatcher.Start();
                 _isRunning = true;
             }
             catch (Exception)
             {
-                _watcher?.Dispose();
-                _watcher = null;
+                _managementEventWatcher?.Dispose();
+                _managementEventWatcher = null;
                 _isRunning = false;
                 throw;
             }
@@ -98,12 +98,12 @@ namespace WmiExplorer.Core.Models
 
             try
             {
-                if (_watcher != null)
+                if (_managementEventWatcher != null)
                 {
-                    _watcher.EventArrived -= OnEventArrived;
-                    _watcher.Stop();
-                    _watcher.Dispose();
-                    _watcher = null;
+                    _managementEventWatcher.EventArrived -= OnEventArrived;
+                    _managementEventWatcher.Stop();
+                    _managementEventWatcher.Dispose();
+                    _managementEventWatcher = null;
                 }
             }
             finally

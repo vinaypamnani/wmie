@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Converters;
 using WmiExplorer.PropertyGrid.Providers;
@@ -538,12 +539,12 @@ namespace WmiExplorer.PropertyGrid
                     var filteredList = filteredProperties.OrderBy(p => p.DisplayName).ToList();
                     foreach (var descriptor in filteredList)
                     {
-                        // Check for ExpandPropertyAttribute
-                        bool expandProperty = HasPropertyAttribute<ExpandPropertyAttribute>(descriptor);
-                        if (expandProperty)
+                        // Check for ShowChildrenAsParentAttribute
+                        bool showChildAsParent = PropertyGridAttributeHelpers.HasPropertyAttribute<ShowChildrenAsParentAttribute>(descriptor);
+                        if (showChildAsParent)
                         {
                             // Promote children: add child properties directly to the parent category
-                            var childDescriptors = WmiExplorer.PropertyGrid.Abstractions.PropertyTypeProviderRegistry.Instance.GetChildItems(descriptor.Value, descriptor.Name, descriptor.Category);
+                            var childDescriptors = PropertyTypeProviderRegistry.Instance.GetChildItems(descriptor.Value, descriptor.Name, descriptor.Category);
                             // Filter childDescriptors based on IncludeNullValues
                             if (!IncludeNullValues)
                             {
@@ -754,29 +755,6 @@ namespace WmiExplorer.PropertyGrid
             }
 
             LoadProperties();
-        }
-
-        // Helper to check for property attribute
-        private static bool HasPropertyAttribute<TAttribute>(Abstractions.IPropertyDescriptor descriptor) where TAttribute : Attribute
-        {
-            return GetPropertyAttribute<TAttribute>(descriptor) != null;
-        }
-
-        // Helper to get property attribute instance
-        private static TAttribute? GetPropertyAttribute<TAttribute>(Abstractions.IPropertyDescriptor descriptor) where TAttribute : Attribute
-        {
-            PropertyInfo? propInfo = null;
-            if (descriptor is DefaultPropertyDescriptor rpd)
-            {
-                propInfo = rpd.PropertyInfo;
-            }
-            else
-            {
-                var pi = descriptor.GetType().GetProperty("PropertyInfo");
-                if (pi != null)
-                    propInfo = pi.GetValue(descriptor) as PropertyInfo;
-            }
-            return propInfo != null ? propInfo.GetCustomAttribute<TAttribute>() : null;
         }
     }
 }

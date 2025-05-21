@@ -53,6 +53,12 @@ namespace WmiExplorer.PropertyGrid
 
             // Check if this property is expandable
             HasItems = PropertyTypeProviderRegistry.Instance.IsExpandable(Value, PropertyType);
+
+            // Expand by default if the attribute is present
+            if (PropertyGridAttributeHelpers.HasPropertyAttribute<ExpandByDefaultAttribute>(descriptor) && IsExpandable)
+            {
+                IsExpanded = true;
+            }
         }
 
         /// <summary>
@@ -307,19 +313,31 @@ namespace WmiExplorer.PropertyGrid
             try
             {
                 var registry = PropertyTypeProviderRegistry.Instance;
-
-                // Get child properties from the registry
-                var childDescriptors = registry.GetChildItems(Value, Name, Category);
-
+                var childDescriptors = registry.GetChildItems(Value, Name, Category).OrderBy(cd => cd.DisplayName).ToList();
+                if (!includeNullValues)
+                {
+                    childDescriptors = childDescriptors.Where(cd => cd.Value != null).ToList();
+                }
                 foreach (var descriptor in childDescriptors)
                 {
                     if (!includeSystemProperties && descriptor.Name != null && descriptor.Name.StartsWith("__"))
                         continue;
-
-                    if (!includeNullValues && descriptor.Value == null)
-                        continue;
-
-                    // For children, propagate the correct includeNullValues flag
+                    // If this child has ShowChildrenAsParentAttribute, promote its children
+                    if (PropertyGridAttributeHelpers.HasPropertyAttribute<ShowChildrenAsParentAttribute>(descriptor))
+                    {
+                        // Use empty string if name/category is null to avoid null reference
+                        var grandChildren = registry.GetChildItems(descriptor.Value, descriptor.Name ?? string.Empty, descriptor.Category ?? string.Empty);
+                        if (!includeNullValues)
+                        {
+                            grandChildren = grandChildren.Where(cd => cd.Value != null).ToList();
+                        }
+                        foreach (var grandChild in grandChildren)
+                        {
+                            var grandChildItem = new PropertyHierarchyItem(grandChild, Level + 1, includeSystemProperties, includeNullValues);
+                            Children.Add(grandChildItem);
+                        }
+                        continue; // Skip adding this descriptor itself
+                    }
                     var childItem = new PropertyHierarchyItem(descriptor, Level + 1, includeSystemProperties, includeNullValues);
                     Children.Add(childItem);
                 }

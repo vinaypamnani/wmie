@@ -85,6 +85,10 @@ namespace WmiExplorer.Presentation.ViewModels
                 UpdateWatcherNames();
 
             UpdateWatcherNames();
+
+            StartAllCommand = new RelayCommand(_ => StartAllWatchers(), _ => _watchers.Count > 0);
+            StopAllCommand = new RelayCommand(_ => StopAllWatchers(), _ => _watchers.Count > 0);
+            RemoveAllCommand = new RelayCommand(_ => RemoveAllWatchers(), _ => _watchers.Count > 0);
         }
 
         /// <summary>
@@ -136,6 +140,21 @@ namespace WmiExplorer.Presentation.ViewModels
         /// Gets the command to clear events
         /// </summary>
         public ICommand ClearEventsCommand { get; }
+
+        /// <summary>
+        /// Gets the command to start all watchers
+        /// </summary>
+        public ICommand StartAllCommand { get; }
+
+        /// <summary>
+        /// Gets the command to stop all watchers
+        /// </summary>
+        public ICommand StopAllCommand { get; }
+
+        /// <summary>
+        /// Gets the command to remove all watchers
+        /// </summary>
+        public ICommand RemoveAllCommand { get; }
 
         /// <summary>
         /// Gets or sets the condition for the event query
@@ -384,6 +403,7 @@ namespace WmiExplorer.Presentation.ViewModels
                     watcherName,
                     EventQuery,
                     _selectedNamespace.ManagementScope);
+
                 var watcherViewModel = new WmiEventWatcherItemViewModel(
                     watcher,
                     RemoveWatcher,
@@ -640,5 +660,37 @@ namespace WmiExplorer.Presentation.ViewModels
         }
 
         public void ClearEvents() => _events.Clear();
+
+        private void StartAllWatchers()
+        {
+            foreach (var watcher in _watchers)
+            {
+                // Use the public StartCommand to ensure correct state and error handling
+                if (watcher.StartCommand.CanExecute(null))
+                    watcher.StartCommand.Execute(null);
+            }
+            PublishSuccessState("Started all watchers.");
+        }
+
+        private void StopAllWatchers()
+        {
+            foreach (var watcher in _watchers)
+            {
+                if (watcher.StopCommand.CanExecute(null))
+                    watcher.StopCommand.Execute(null);
+            }
+            PublishSuccessState("Stopped all watchers.");
+        }
+
+        private void RemoveAllWatchers()
+        {
+            // Copy to list to avoid modifying collection during enumeration
+            var toRemove = _watchers.ToList();
+            foreach (var watcher in toRemove)
+            {
+                RemoveWatcher(watcher);
+            }
+            PublishSuccessState("Removed all watchers.");
+        }
     }
 }
