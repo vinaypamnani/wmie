@@ -544,6 +544,11 @@ namespace WmiExplorer.PropertyGrid
                         {
                             // Promote children: add child properties directly to the parent category
                             var childDescriptors = WmiExplorer.PropertyGrid.Abstractions.PropertyTypeProviderRegistry.Instance.GetChildItems(descriptor.Value, descriptor.Name, descriptor.Category);
+                            // Filter childDescriptors based on IncludeNullValues
+                            if (!IncludeNullValues)
+                            {
+                                childDescriptors = childDescriptors.Where(cd => cd.Value != null).ToList();
+                            }
                             foreach (var childDesc in childDescriptors)
                             {
                                 var childItem = new PropertyHierarchyItem(childDesc, 1, IncludeSystemProperties, IncludeNullValues);
