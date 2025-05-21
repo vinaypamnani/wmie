@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows.Data;
 using System.Windows.Input;
+
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
@@ -13,7 +14,7 @@ namespace WmiExplorer.Presentation.ViewModels
     /// <summary>
     /// View model for WMI Event Watcher tab
     /// </summary>
-    public class WmiEventWatcherViewModel : MessagingViewModelBase
+    public class WmiWatcherViewModel : MessagingViewModelBase
     {
         private readonly ICacheService _cacheService;
         private readonly DebounceDispatcher _debouncer = new();
@@ -21,7 +22,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private readonly ObservableCollection<string> _intrinsicEvents = new ObservableCollection<string>();
         private readonly IMessagingService _messagingService;
         private readonly ObservableCollection<string> _targetClasses = new ObservableCollection<string>();
-        private readonly ObservableCollection<WmiEventWatcherItemViewModel> _watchers = new();
+        private readonly ObservableCollection<WmiWatcherItemViewModel> _watchers = new();
         private ICommand? _addWatcherCommand;
         private bool _canAddWatcher = false;
         private string _classSearchText = string.Empty;
@@ -39,11 +40,11 @@ namespace WmiExplorer.Presentation.ViewModels
         private string _eventDisplayPropertyName = "__RELPATH";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WmiEventWatcherViewModel"/> class.
+        /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
         /// </summary>
         /// <param name="messagingService">The messaging service to use</param>
         /// <param name="cacheService">The cache service to use</param>
-        public WmiEventWatcherViewModel(
+        public WmiWatcherViewModel(
             IMessagingService messagingService,
             ICacheService cacheService
         )
@@ -63,7 +64,7 @@ namespace WmiExplorer.Presentation.ViewModels
             IntrinsicEventsView = CollectionViewSource.GetDefaultView(IntrinsicEvents);
 
             // Watchers and events
-            Watchers = new ReadOnlyObservableCollection<WmiEventWatcherItemViewModel>(_watchers);
+            Watchers = new ReadOnlyObservableCollection<WmiWatcherItemViewModel>(_watchers);
             Events = new ReadOnlyObservableCollection<WmiEvent>(_events);
             ClearEventsCommand = new RelayCommand(_ => ClearEvents());
 
@@ -361,7 +362,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Gets the collection of watchers
         /// </summary>
-        public ReadOnlyObservableCollection<WmiEventWatcherItemViewModel> Watchers { get; }
+        public ReadOnlyObservableCollection<WmiWatcherItemViewModel> Watchers { get; }
 
         /// <summary>
         /// Gets or sets the polling interval in seconds
@@ -420,7 +421,7 @@ namespace WmiExplorer.Presentation.ViewModels
                     EventQuery,
                     _selectedNamespace.ManagementScope);
 
-                var watcherViewModel = new WmiEventWatcherItemViewModel(
+                var watcherViewModel = new WmiWatcherItemViewModel(
                     watcher,
                     RemoveWatcher,
                     OnEventReceived,
@@ -499,7 +500,7 @@ namespace WmiExplorer.Presentation.ViewModels
             });
         }
 
-        private void RemoveWatcher(WmiEventWatcherItemViewModel watcher)
+        private void RemoveWatcher(WmiWatcherItemViewModel watcher)
         {
             if (_watchers.Remove(watcher))
             {

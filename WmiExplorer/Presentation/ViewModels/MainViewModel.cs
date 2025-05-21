@@ -29,7 +29,7 @@ namespace WmiExplorer.Presentation.ViewModels
         private object? _selectedObject; // The selected object to show in the property grid
         private MainWindowPosition _windowPosition;
         private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
-        private WmiEventWatcherViewModel? _eventWatcherViewModel;
+        private WmiWatcherViewModel? _eventWatcherViewModel;
 
         public MainViewModel(
             IMessagingService messagingService,
@@ -73,7 +73,7 @@ namespace WmiExplorer.Presentation.ViewModels
             _windowPosition = _settingsService.MainWindowPosition;
 
             // Initialize the Event Watcher ViewModel
-            _eventWatcherViewModel = new WmiEventWatcherViewModel(messagingService, _cacheService);
+            _eventWatcherViewModel = new WmiWatcherViewModel(messagingService, _cacheService);
 
             // Log initial class filter
             System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
@@ -281,7 +281,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Gets the view model for the WMI Event Watcher
         /// </summary>
-        public WmiEventWatcherViewModel EventWatcherViewModel => _eventWatcherViewModel!;
+        public WmiWatcherViewModel EventWatcherViewModel => _eventWatcherViewModel!;
 
         /// <summary>
         /// Connects to the specified computer or namespace path

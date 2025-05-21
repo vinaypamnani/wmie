@@ -1,8 +1,7 @@
-using System;
 using System.Management;
 using System.Windows.Input;
+
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 
 namespace WmiExplorer.Presentation.ViewModels
@@ -10,10 +9,10 @@ namespace WmiExplorer.Presentation.ViewModels
     /// <summary>
     /// ViewModel for a single WMI event watcher item
     /// </summary>
-    public class WmiEventWatcherItemViewModel : ViewModelBase, IDisposable
+    public class WmiWatcherItemViewModel : ViewModelBase, IDisposable
     {
         private readonly WmiEventWatcher _watcher;
-        private readonly Action<WmiEventWatcherItemViewModel> _onRemove;
+        private readonly Action<WmiWatcherItemViewModel> _onRemove;
         private readonly Action<WmiEvent> _onEventReceived;
         private readonly string _eventType;
         private readonly string _eventDisplayPropertyName;
@@ -60,11 +59,11 @@ namespace WmiExplorer.Presentation.ViewModels
         public ICommand RemoveCommand { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WmiEventWatcherItemViewModel"/> class.
+        /// Initializes a new instance of the <see cref="WmiWatcherItemViewModel"/> class.
         /// </summary>
-        public WmiEventWatcherItemViewModel(
+        public WmiWatcherItemViewModel(
             WmiEventWatcher watcher,
-            Action<WmiEventWatcherItemViewModel> onRemove,
+            Action<WmiWatcherItemViewModel> onRemove,
             Action<WmiEvent> onEventReceived,
             string eventType,
             string eventDisplayPropertyName)

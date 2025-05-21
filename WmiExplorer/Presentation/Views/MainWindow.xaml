@@ -104,7 +104,7 @@
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
-                            <tabs:WmiEventWatcherTab />
+                            <tabs:WmiWatcherTab />
                         </TabItem>
                     </TabControl>
 

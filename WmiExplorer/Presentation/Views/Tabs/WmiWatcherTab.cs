@@ -5,9 +5,9 @@ namespace WmiExplorer.Presentation.Views.Tabs
     /// <summary>
     /// Interaction logic for WmiEventWatcherTab.xaml
     /// </summary>
-    public partial class WmiEventWatcherTab : UserControl
+    public partial class WmiWatcherTab : UserControl
     {
-        public WmiEventWatcherTab()
+        public WmiWatcherTab()
         {
             InitializeComponent();
             // The view model is set in XAML
