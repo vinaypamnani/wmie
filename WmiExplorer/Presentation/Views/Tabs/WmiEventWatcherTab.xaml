@@ -1,15 +1,14 @@
-<UserControl
-    x:Class="WmiExplorer.Presentation.Views.Tabs.WmiEventWatcherTab"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    x:Name="ThisControl"
-    d:DesignHeight="600"
-    d:DesignWidth="1000"
-    mc:Ignorable="d">
+<UserControl x:Class="WmiExplorer.Presentation.Views.Tabs.WmiEventWatcherTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Name="ThisControl"
+             d:DesignHeight="600"
+             d:DesignWidth="1000"
+             mc:Ignorable="d">
 
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="NotBoolToVisibilityConverter" Invert="True" />
@@ -27,10 +26,7 @@
 
         <Grid Grid.Row="0">
 
-            <GroupBox
-                HorizontalContentAlignment="Stretch"
-                BorderThickness="1"
-                Header="Configuration">
+            <GroupBox HorizontalContentAlignment="Stretch" BorderThickness="1" Header="Configuration">
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -42,10 +38,7 @@
                     </Grid.RowDefinitions>
 
                     <!--  Main controls  -->
-                    <StackPanel
-                        Grid.Row="0"
-                        Grid.Column="0"
-                        Orientation="Horizontal">
+                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
 
                         <!--  Namespace  -->
                         <!-- <GroupBox Margin="0" Header="Namespace">
@@ -59,52 +52,47 @@
                         </GroupBox>-->
                         <!--  Event Type  -->
                         <GroupBox Margin="0" Header="Event Type">
-                            <ComboBox
-                                Width="200"
-                                Height="26"
-                                IsEditable="False"
-                                IsTextSearchEnabled="True"
-                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IntrinsicEvents}"
-                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventType}" />
+                            <ComboBox Width="200"
+                                      Height="26"
+                                      IsEditable="False"
+                                      IsTextSearchEnabled="True"
+                                      ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IntrinsicEvents}"
+                                      SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventType}" />
                         </GroupBox>
                         <!--  Target Class  -->
                         <GroupBox Margin="0" Header="Target Class">
-                            <ComboBox
-                                Width="180"
-                                Height="26"
-                                VerticalContentAlignment="Center"
-                                IsEditable="True"
-                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.TargetClasses}"
-                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.TargetClass, UpdateSourceTrigger=PropertyChanged}"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.ClassSearchText, UpdateSourceTrigger=PropertyChanged}" />
+                            <ComboBox Width="180"
+                                      Height="26"
+                                      VerticalContentAlignment="Center"
+                                      IsEditable="True"
+                                      ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.TargetClasses}"
+                                      SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.TargetClass, UpdateSourceTrigger=PropertyChanged}"
+                                      Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.ClassSearchText, UpdateSourceTrigger=PropertyChanged}" />
                         </GroupBox>
                         <!--  Within (sec)  -->
                         <GroupBox Margin="0" Header="Within (sec)">
-                            <TextBox
-                                Width="40"
-                                Height="26"
-                                HorizontalContentAlignment="Center"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Within}" />
+                            <TextBox Width="40"
+                                     Height="26"
+                                     HorizontalContentAlignment="Center"
+                                     Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Within}" />
                         </GroupBox>
                         <!--  Condition  -->
                         <GroupBox Margin="0" Header="Condition (optional)">
-                            <TextBox
-                                Width="180"
-                                Height="26"
-                                HorizontalContentAlignment="Left"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Condition, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Width="180"
+                                     Height="26"
+                                     HorizontalContentAlignment="Left"
+                                     Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Condition, UpdateSourceTrigger=PropertyChanged}" />
                         </GroupBox>
 
                     </StackPanel>
 
                     <!--  Event Query Row  -->
-                    <GroupBox
-                        Grid.Row="1"
-                        Grid.Column="0"
-                        Margin="0"
-                        HorizontalContentAlignment="Stretch"
-                        BorderThickness="0"
-                        Header="Event Query">
+                    <GroupBox Grid.Row="1"
+                              Grid.Column="0"
+                              Margin="0"
+                              HorizontalContentAlignment="Stretch"
+                              BorderThickness="0"
+                              Header="Event Query">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -112,31 +100,28 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <!--  Custom Event Query CheckBox  -->
-                            <CheckBox
-                                x:Name="OverrideQueryCheckBox"
-                                Grid.Column="0"
-                                Margin="4,4,4,4"
-                                VerticalAlignment="Center"
-                                Content="Custom"
-                                IsChecked="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsCustomQuery}" />
+                            <CheckBox x:Name="OverrideQueryCheckBox"
+                                      Grid.Column="0"
+                                      Margin="4,4,4,4"
+                                      VerticalAlignment="Center"
+                                      Content="Custom"
+                                      IsChecked="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsCustomQuery}" />
                             <!--  Custom Event Query TextBox  -->
-                            <TextBox
-                                Grid.Column="1"
-                                Height="28"
-                                VerticalContentAlignment="Center"
-                                AcceptsReturn="True"
-                                IsReadOnly="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsQueryReadOnly}"
-                                Style="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsQueryReadOnly, Converter={StaticResource BooleanToStyleConverter}, ConverterParameter='ReadOnlyTextBoxStyle'}"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQuery, UpdateSourceTrigger=PropertyChanged}"
-                                TextWrapping="Wrap" />
+                            <TextBox Grid.Column="1"
+                                     Height="28"
+                                     VerticalContentAlignment="Center"
+                                     AcceptsReturn="True"
+                                     IsReadOnly="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsQueryReadOnly}"
+                                     Style="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsQueryReadOnly, Converter={StaticResource BooleanToStyleConverter}, ConverterParameter='ReadOnlyTextBoxStyle'}"
+                                     Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQuery, UpdateSourceTrigger=PropertyChanged}"
+                                     TextWrapping="Wrap" />
                             <!--  Add Watcher Button  -->
-                            <Button
-                                Grid.Column="2"
-                                Width="100"
-                                Height="28"
-                                Command="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.AddWatcherCommand}"
-                                Content="Add Watcher"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.CanAddWatcher}" />
+                            <Button Grid.Column="2"
+                                    Width="100"
+                                    Height="28"
+                                    Command="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.AddWatcherCommand}"
+                                    Content="Add Watcher"
+                                    IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.CanAddWatcher}" />
 
                         </Grid>
                     </GroupBox>
@@ -154,20 +139,18 @@
             </Grid.ColumnDefinitions>
 
             <!--  Left Panel: Watchers List  -->
-            <GroupBox
-                Grid.Column="0"
-                Margin="4"
-                HorizontalContentAlignment="Stretch"
-                VerticalContentAlignment="Stretch"
-                Header="Watchers">
+            <GroupBox Grid.Column="0"
+                      Margin="4"
+                      HorizontalContentAlignment="Stretch"
+                      VerticalContentAlignment="Stretch"
+                      Header="Watchers">
                 <DockPanel>
-                    <ListView
-                        Height="Auto"
-                        Margin="{StaticResource MarginTiny}"
-                        BorderThickness="0"
-                        ItemContainerStyle="{StaticResource FlatListViewItemStyle}"
-                        ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Watchers}"
-                        Style="{StaticResource ModernGridListViewStyle}">
+                    <ListView Height="Auto"
+                              Margin="{StaticResource MarginTiny}"
+                              BorderThickness="0"
+                              ItemContainerStyle="{StaticResource FlatListViewItemStyle}"
+                              ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.Watchers}"
+                              Style="{StaticResource ModernGridListViewStyle}">
                         <ListView.View>
                             <GridView>
                                 <GridView.ColumnHeaderContainerStyle>
@@ -176,17 +159,13 @@
                                 <GridViewColumn Width="50" Header="State">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <StackPanel
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal">
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
                                                 <!--  Status  -->
-                                                <Ellipse
-                                                    Width="12"
-                                                    Height="12"
-                                                    Margin="6,0,6,0"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center">
+                                                <Ellipse Width="12"
+                                                         Height="12"
+                                                         Margin="6,0,6,0"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center">
                                                     <Ellipse.Style>
                                                         <Style TargetType="Ellipse">
                                                             <Setter Property="Fill" Value="{DynamicResource ErrorBrush}" />
@@ -205,94 +184,76 @@
                                 <GridViewColumn Width="60" Header="Actions">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <StackPanel
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal">
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
                                                 <!--  Start/Stop Button  -->
-                                                <Button
-                                                    Width="22"
-                                                    Height="22"
-                                                    Margin="0,0,6,0"
-                                                    Padding="0"
-                                                    VerticalAlignment="Center"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Command="{Binding StartCommand}"
-                                                    ToolTip="Start"
-                                                    Visibility="{Binding IsRunning, Converter={StaticResource NotBoolToVisibilityConverter}}">
-                                                    <Path
-                                                        Width="12"
-                                                        Height="12"
-                                                        HorizontalAlignment="Center"
+                                                <Button Width="22"
+                                                        Height="22"
+                                                        Margin="0,0,6,0"
+                                                        Padding="0"
                                                         VerticalAlignment="Center"
-                                                        Data="M2,2 L10,6 L2,10 Z"
-                                                        Fill="{DynamicResource SuccessBrush}"
-                                                        Stretch="Uniform" />
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Command="{Binding StartCommand}"
+                                                        ToolTip="Start"
+                                                        Visibility="{Binding IsRunning, Converter={StaticResource NotBoolToVisibilityConverter}}">
+                                                    <Path Width="12"
+                                                          Height="12"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Data="M2,2 L10,6 L2,10 Z"
+                                                          Fill="{DynamicResource SuccessBrush}"
+                                                          Stretch="Uniform" />
                                                 </Button>
-                                                <Button
-                                                    Width="22"
-                                                    Height="22"
-                                                    Margin="0,0,6,0"
-                                                    Padding="0"
-                                                    VerticalAlignment="Center"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Command="{Binding StopCommand}"
-                                                    ToolTip="Stop"
-                                                    Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                    <Rectangle
-                                                        Width="12"
-                                                        Height="12"
-                                                        HorizontalAlignment="Center"
+                                                <Button Width="22"
+                                                        Height="22"
+                                                        Margin="0,0,6,0"
+                                                        Padding="0"
                                                         VerticalAlignment="Center"
-                                                        Fill="{DynamicResource ErrorBrush}"
-                                                        RadiusX="2"
-                                                        RadiusY="2" />
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Command="{Binding StopCommand}"
+                                                        ToolTip="Stop"
+                                                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <Rectangle Width="12"
+                                                               Height="12"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Fill="{DynamicResource ErrorBrush}"
+                                                               RadiusX="2"
+                                                               RadiusY="2" />
                                                 </Button>
-                                                <Button
-                                                    Width="22"
-                                                    Height="22"
-                                                    Margin="0,0,0,0"
-                                                    Padding="0"
-                                                    VerticalAlignment="Center"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Command="{Binding RemoveCommand}"
-                                                    ToolTip="Remove">
-                                                    <Path
-                                                        Width="12"
-                                                        Height="12"
-                                                        HorizontalAlignment="Center"
+                                                <Button Width="22"
+                                                        Height="22"
+                                                        Margin="0,0,0,0"
+                                                        Padding="0"
                                                         VerticalAlignment="Center"
-                                                        Data="M3,3 L9,9 M9,3 L3,9"
-                                                        Stroke="{DynamicResource ErrorBrush}"
-                                                        StrokeEndLineCap="Round"
-                                                        StrokeStartLineCap="Round"
-                                                        StrokeThickness="2" />
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Command="{Binding RemoveCommand}"
+                                                        ToolTip="Remove">
+                                                    <Path Width="12"
+                                                          Height="12"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Data="M3,3 L9,9 M9,3 L3,9"
+                                                          Stroke="{DynamicResource ErrorBrush}"
+                                                          StrokeEndLineCap="Round"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeThickness="2" />
                                                 </Button>
                                             </StackPanel>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn
-                                    Width="160"
-                                    DisplayMemberBinding="{Binding Name}"
-                                    Header="Name" />
+                                <GridViewColumn Width="160" DisplayMemberBinding="{Binding Name}" Header="Name" />
                                 <GridViewColumn Width="160" Header="Query">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock
-                                                Text="{Binding Query}"
-                                                TextTrimming="CharacterEllipsis"
-                                                ToolTip="{Binding Query}" />
+                                            <TextBlock Text="{Binding Query}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Query}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn
-                                    Width="160"
-                                    DisplayMemberBinding="{Binding Namespace}"
-                                    Header="Namespace" />
+                                <GridViewColumn Width="160" DisplayMemberBinding="{Binding Namespace}" Header="Namespace" />
                             </GridView>
                         </ListView.View>
                     </ListView>
@@ -300,11 +261,10 @@
             </GroupBox>
 
             <!--  GridSplitter  -->
-            <GridSplitter
-                Grid.Column="1"
-                Margin="0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Stretch" />
+            <GridSplitter Grid.Column="1"
+                          Margin="0"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch" />
 
             <!--  Right Panel: Events  -->
             <Grid Grid.Column="2">
@@ -313,61 +273,69 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <GroupBox
-                    Grid.Row="0"
-                    HorizontalContentAlignment="Stretch"
-                    VerticalContentAlignment="Stretch"
-                    Header="Event Filter">
+                <GroupBox Grid.Row="0"
+                          HorizontalContentAlignment="Stretch"
+                          VerticalContentAlignment="Stretch"
+                          Header="Event Filter">
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <ComboBox
-                            Width="180"
-                            Height="26"
-                            Margin="4"
-                            IsEditable="False"
-                            ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.WatcherNames}"
-                            SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <Button
-                            Width="100"
-                            Height="28"
-                            Command="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.ClearEventsCommand}"
-                            Content="Clear Events" />
+                        <ComboBox Width="180"
+                                  Height="26"
+                                  Margin="4"
+                                  IsEditable="False"
+                                  ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.WatcherNames}"
+                                  SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Width="100"
+                                Height="28"
+                                Command="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.ClearEventsCommand}"
+                                Content="Clear Events" />
                     </StackPanel>
                 </GroupBox>
 
-                <GroupBox
-                    Grid.Row="1"
-                    HorizontalContentAlignment="Stretch"
-                    VerticalContentAlignment="Stretch"
-                    BorderThickness="1"
-                    Header="Events">
-                    <ListView
-                        Margin="0"
-                        BorderThickness="0"
-                        IsSynchronizedWithCurrentItem="True"
-                        ItemContainerStyle="{StaticResource FlatListViewItemStyle}"
-                        ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventsView}"
-                        SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.SelectedEvent, Mode=TwoWay}"
-                        Style="{StaticResource ModernGridListViewStyle}">
+                <GroupBox Grid.Row="1"
+                          HorizontalContentAlignment="Stretch"
+                          VerticalContentAlignment="Stretch"
+                          BorderThickness="1"
+                          Header="Events">
+                    <ListView Margin="0"
+                              BorderThickness="0"
+                              IsSynchronizedWithCurrentItem="True"
+                              ItemContainerStyle="{StaticResource FlatListViewItemStyle}"
+                              ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventsView}"
+                              SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.SelectedEvent, Mode=TwoWay}"
+                              Style="{StaticResource ModernGridListViewStyle}">
                         <ListView.View>
                             <GridView>
                                 <GridView.ColumnHeaderContainerStyle>
                                     <Style BasedOn="{StaticResource FlatGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
                                 </GridView.ColumnHeaderContainerStyle>
-                                <GridViewColumn Width="100" Header="Time">
+                                <GridViewColumn Width="80" Header="Time">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Timestamp, StringFormat={}{0:HH:mm:ss.fff}}" />
+                                            <TextBlock Text="{Binding EventTimestamp, StringFormat={}{0:HH:mm:ss.fff}}" ToolTip="{Binding EventTimestamp}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn
-                                    Width="120"
-                                    DisplayMemberBinding="{Binding WatcherName}"
-                                    Header="Watcher" />
-                                <GridViewColumn
-                                    Width="200"
-                                    DisplayMemberBinding="{Binding ClassPath}"
-                                    Header="Class" />
+                                <GridViewColumn Width="120" Header="Event">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding EventRelativePath}" ToolTip="{Binding EventRelativePath}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="120" Header="Watcher">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding WatcherName}" ToolTip="{Binding WatcherName}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="200" Header="EventClass">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding EventClassName}" ToolTip="{Binding EventClassName}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
                             </GridView>
                         </ListView.View>
                     </ListView>

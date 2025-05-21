@@ -529,18 +529,29 @@ namespace WmiExplorer.PropertyGrid
                     var categoryItem = new PropertyCategoryItem(categoryName);
                     rootItems.Add(categoryItem);
 
-                    // Only filter out nulls for category 'Properties' if IncludeNullValues is false
+                    // Only filter out nulls if IncludeNullValues is false
                     IEnumerable<Abstractions.IPropertyDescriptor> filteredProperties = category;
-                    if (string.Equals(categoryName, "Properties", StringComparison.OrdinalIgnoreCase) && !IncludeNullValues)
+                    if (!IncludeNullValues)
                     {
                         filteredProperties = filteredProperties.Where(p => p.Value != null);
                     }
                     var filteredList = filteredProperties.OrderBy(p => p.DisplayName).ToList();
                     foreach (var descriptor in filteredList)
                     {
-                        // Pass the category name to the PropertyHierarchyItem for child filtering
-                        var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties,
-                            string.Equals(categoryName, "Properties", StringComparison.OrdinalIgnoreCase) ? IncludeNullValues : true);
+                        // Check for ExpandPropertyAttribute
+                        bool expandProperty = HasPropertyAttribute<ExpandPropertyAttribute>(descriptor);
+                        if (expandProperty)
+                        {
+                            // Promote children: add child properties directly to the parent category
+                            var childDescriptors = WmiExplorer.PropertyGrid.Abstractions.PropertyTypeProviderRegistry.Instance.GetChildItems(descriptor.Value, descriptor.Name, descriptor.Category);
+                            foreach (var childDesc in childDescriptors)
+                            {
+                                var childItem = new PropertyHierarchyItem(childDesc, 1, IncludeSystemProperties, IncludeNullValues);
+                                categoryItem.Children.Add(childItem);
+                            }
+                            continue; // Do not add the property itself
+                        }
+                        var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, IncludeNullValues);
                         categoryItem.Children.Add(propertyItem);
                     }
                 }
@@ -738,6 +749,29 @@ namespace WmiExplorer.PropertyGrid
             }
 
             LoadProperties();
+        }
+
+        // Helper to check for property attribute
+        private static bool HasPropertyAttribute<TAttribute>(Abstractions.IPropertyDescriptor descriptor) where TAttribute : Attribute
+        {
+            return GetPropertyAttribute<TAttribute>(descriptor) != null;
+        }
+
+        // Helper to get property attribute instance
+        private static TAttribute? GetPropertyAttribute<TAttribute>(Abstractions.IPropertyDescriptor descriptor) where TAttribute : Attribute
+        {
+            PropertyInfo? propInfo = null;
+            if (descriptor is DefaultPropertyDescriptor rpd)
+            {
+                propInfo = rpd.PropertyInfo;
+            }
+            else
+            {
+                var pi = descriptor.GetType().GetProperty("PropertyInfo");
+                if (pi != null)
+                    propInfo = pi.GetValue(descriptor) as PropertyInfo;
+            }
+            return propInfo != null ? propInfo.GetCustomAttribute<TAttribute>() : null;
         }
     }
 }

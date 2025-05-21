@@ -316,13 +316,11 @@ namespace WmiExplorer.PropertyGrid
                     if (!includeSystemProperties && descriptor.Name != null && descriptor.Name.StartsWith("__"))
                         continue;
 
-                    // Only filter out nulls for category 'Properties' if includeNullValues is false
-                    bool isPropertiesCategory = string.Equals(Category, "Properties", StringComparison.OrdinalIgnoreCase);
-                    if (isPropertiesCategory && !includeNullValues && descriptor.Value == null)
+                    if (!includeNullValues && descriptor.Value == null)
                         continue;
 
                     // For children, propagate the correct includeNullValues flag
-                    var childItem = new PropertyHierarchyItem(descriptor, Level + 1, includeSystemProperties, isPropertiesCategory ? includeNullValues : true);
+                    var childItem = new PropertyHierarchyItem(descriptor, Level + 1, includeSystemProperties, includeNullValues);
                     Children.Add(childItem);
                 }
             }

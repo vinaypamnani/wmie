@@ -72,37 +72,28 @@ namespace WmiExplorer.Presentation.PropertyTypeProvider
             {
                 return $"[Embedded Array: {mboArray.Length} object(s)]";
             }
-            if (value is ManagementPath)
-                return "ManagementPath";
-
-            if (value is ManagementScope)
-                return "ManagementScope";
-
-            if (value is ObjectGetOptions)
-                return "ObjectGetOptions";
-
-            if (value is ConnectionOptions)
-                return "ConnectionOptions";
 
             if (value is PropertyData propertyData)
             {
                 if (propertyData.IsArray && propertyData.Value is Array pdArray)
                     return $"{propertyData.Type} Array[{pdArray.Length}]";
 
-                return propertyData.Value?.ToString() ?? "<null>";
+                if (propertyData.Value != null)
+                    return propertyData.Value.ToString() ?? "<null value>";
+
+                return "PropertyData";
             }
 
             if (value is QualifierData qualifierData)
-                return qualifierData.Value?.ToString() ?? "<null>";
+            {
+                if (qualifierData.Value != null)
+                    return qualifierData.Value?.ToString() ?? "<null value>";
 
-            if (value is PropertyDataCollection)
-                return "PropertyDataCollection";
+                return "QualifierData";
+            }
 
-            if (value is QualifierDataCollection)
-                return "QualifierDataCollection";
-
-            // Default to ToString for other types
-            return value.ToString() ?? string.Empty;
+            // Default to class name for other types
+            return value.GetType().Name;
         }
 
         /// <summary>
