@@ -63,7 +63,8 @@ namespace WmiExplorer.Presentation.ViewModels
 
             EventClassList = new ReadOnlyObservableCollection<string>(_eventClassList);
             EventClassListView = CollectionViewSource.GetDefaultView(EventClassList);
-            EventClassListView.Filter = ClassSearchFilter;
+            // Only apply filter to EventTargetClassListView, not EventClassListView
+            // EventClassListView.Filter = ClassSearchFilter; // Removed as not needed
 
             // Watchers and events
             Watchers = new ReadOnlyObservableCollection<WmiWatcherItem>(_watchers);
@@ -258,7 +259,7 @@ namespace WmiExplorer.Presentation.ViewModels
                     EventQueryBuilder.EventTargetClass = string.Empty;
                     if (value != null)
                     {
-                        UpdateTargetClasses();
+                        _ = UpdateTargetClassesAsync();
                     }
                     CanAddWatcher = _selectedNamespace != null && !string.IsNullOrWhiteSpace(EventQueryBuilder.EventQuery);
                     UpdateEventClassList();
@@ -317,10 +318,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Helper method to retrieve WMI class properties from either in-memory classes or cache
         /// </summary>
-        /// <param name="className">The class name to retrieve properties for</param>
-        /// <param name="targetCollection">The collection to populate with property names</param>
-        /// <param name="setDefaultProperty">Optional callback to set a default property if desired</param>
-        private void GetAndPopulateWmiClassProperties(string? className, ObservableCollection<string> targetCollection, Action<IEnumerable<string>>? setDefaultProperty = null)
+        private async Task GetAndPopulateWmiClassPropertiesAsync(string? className, ObservableCollection<string> targetCollection, Action<IEnumerable<string>>? setDefaultProperty = null)
         {
             targetCollection.Clear();
             IEnumerable<string> propertyNames = Enumerable.Empty<string>();
@@ -339,9 +337,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 {
                     try
                     {
-                        var nsCacheTask = _cacheService.GetNamespaceCacheAsync(_selectedNamespace.NamespacePath);
-                        nsCacheTask.Wait(); // Synchronous wait since this is not async
-                        var nsCache = nsCacheTask.Result;
+                        var nsCache = await _cacheService.GetNamespaceCacheAsync(_selectedNamespace.NamespacePath);
                         if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
                         {
                             var cachedClass = nsCache.Classes.FirstOrDefault(c => c.ClassName == className);
@@ -449,7 +445,7 @@ namespace WmiExplorer.Presentation.ViewModels
             // Only update if this is our selected namespace
             if (_selectedNamespace == message.NamespaceViewModel)
             {
-                UpdateTargetClasses();
+                _ = UpdateTargetClassesAsync();
                 UpdateEventClassList();
                 UpdateEventPropertyList();
                 UpdateEventTargetClassPropertyList(); // Also update target class properties when classes are loaded
@@ -559,7 +555,7 @@ namespace WmiExplorer.Presentation.ViewModels
         /// <summary>
         /// Updates the target classes collection based on the selected namespace
         /// </summary>
-        private void UpdateTargetClasses()
+        private async Task UpdateTargetClassesAsync()
         {
             _eventTargetClasses.Clear();
             IEnumerable<string> classNames = Enumerable.Empty<string>();
@@ -579,11 +575,9 @@ namespace WmiExplorer.Presentation.ViewModels
                 {
                     try
                     {
-                        var nsCacheTask = _cacheService.GetNamespaceCacheAsync(
+                        var nsCache = await _cacheService.GetNamespaceCacheAsync(
                             _selectedNamespace.NamespacePath
                         );
-                        nsCacheTask.Wait(); // Synchronous wait since this is not async
-                        var nsCache = nsCacheTask.Result;
                         if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
                         {
                             classNames = nsCache
@@ -614,9 +608,9 @@ namespace WmiExplorer.Presentation.ViewModels
             EventTargetClassListView.Refresh();
         }
 
-        private void UpdateEventPropertyList()
+        private async void UpdateEventPropertyList()
         {
-            GetAndPopulateWmiClassProperties(EventQueryBuilder.EventClass, _eventPropertyList, propertyNames =>
+            await GetAndPopulateWmiClassPropertiesAsync(EventQueryBuilder.EventClass, _eventPropertyList, propertyNames =>
             {
                 // Set default EventProperty: prefer property starting with "Target", else first item, else null
                 var targetProp = propertyNames.FirstOrDefault(n => n.StartsWith("Target", StringComparison.OrdinalIgnoreCase));
@@ -625,9 +619,10 @@ namespace WmiExplorer.Presentation.ViewModels
                 else
                     EventQueryBuilder.EventProperty = propertyNames.FirstOrDefault();
             });
-        }        private void UpdateEventTargetClassPropertyList()
+        }
+        private async void UpdateEventTargetClassPropertyList()
         {
-            GetAndPopulateWmiClassProperties(EventQueryBuilder.EventTargetClass, _eventTargetClassPropertyList, propertyNames =>
+            await GetAndPopulateWmiClassPropertiesAsync(EventQueryBuilder.EventTargetClass, _eventTargetClassPropertyList, propertyNames =>
             {
                 // Set default EventTargetClassProperty if not already set and if the EventTargetClass has changed
                 if (string.IsNullOrEmpty(EventQueryBuilder.EventTargetClassProperty) && propertyNames.Any())
@@ -652,7 +647,10 @@ namespace WmiExplorer.Presentation.ViewModels
                 WatcherNames.Add(name);
             // If the selected watcher name is not in the list, reset to "All"
             if (string.IsNullOrEmpty(_selectedWatcherName) || !WatcherNames.Contains(_selectedWatcherName))
-                SelectedWatcherName = "All";
+            {
+                if (_selectedWatcherName != "All")
+                    SelectedWatcherName = "All";
+            }
         }
 
         public void ClearEvents() => _events.Clear();
@@ -689,10 +687,11 @@ namespace WmiExplorer.Presentation.ViewModels
             PublishSuccessState("Removed all watchers.");
         }
 
-        public ReadOnlyObservableCollection<string> EventClassList { get; private set; }
-        public ICollectionView EventClassListView { get; private set; }
-        public ReadOnlyObservableCollection<string> EventTargetClassList { get; private set; }
-        public ICollectionView EventTargetClassListView { get; private set; }
+        // Change private set to get-only for read-only properties
+        public ReadOnlyObservableCollection<string> EventClassList { get; }
+        public ICollectionView EventClassListView { get; }
+        public ReadOnlyObservableCollection<string> EventTargetClassList { get; }
+        public ICollectionView EventTargetClassListView { get; }
         public ReadOnlyObservableCollection<string> EventTargetClassPropertyList { get; }
     }
 }

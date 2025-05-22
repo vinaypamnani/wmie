@@ -26,6 +26,20 @@ namespace WmiExplorer.Presentation.ViewModels
                     BuildQuery();
                     OnPropertyChanged(nameof(IsTargetClassEnabled));
                     OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
+                    OnPropertyChanged(nameof(EventClass));
+                    // Clear EventPropertyValue if property value entry is now disabled
+                    if (!IsEventPropertyValueEnabled && !string.IsNullOrEmpty(EventPropertyValue))
+                    {
+                        EventPropertyValue = string.Empty;
+                    }
+                    // Clear EventTargetClass and EventTargetClassProperty if selector is now disabled
+                    if (!IsTargetClassEnabled)
+                    {
+                        if (!string.IsNullOrEmpty(EventTargetClass))
+                            EventTargetClass = string.Empty;
+                        if (!string.IsNullOrEmpty(EventTargetClassProperty))
+                            EventTargetClassProperty = null;
+                    }
                 }
             }
         }
@@ -236,17 +250,7 @@ namespace WmiExplorer.Presentation.ViewModels
             get
             {
                 // Use the helper for __Namespace* or __Class* events
-                bool enabled = IsIntrinsicEvent && !IsNamespaceOrClassEvent(EventClass);
-
-                // If disabling, clear EventTargetClass and EventTargetClassProperty
-                if (!enabled)
-                {
-                    if (!string.IsNullOrEmpty(EventTargetClass))
-                        EventTargetClass = string.Empty;
-                    if (!string.IsNullOrEmpty(EventTargetClassProperty))
-                        EventTargetClassProperty = null;
-                }
-                return enabled;
+                return IsIntrinsicEvent && !IsNamespaceOrClassEvent(EventClass);
             }
         }
 
@@ -272,12 +276,8 @@ namespace WmiExplorer.Presentation.ViewModels
         {
             get
             {
-                bool enabled = !IsNamespaceOrClassEvent(EventClass);
-                if (!enabled && !string.IsNullOrEmpty(EventPropertyValue))
-                {
-                    EventPropertyValue = string.Empty;
-                }
-                return enabled;
+                // Only compute, do not mutate state
+                return !IsNamespaceOrClassEvent(EventClass);
             }
         }
     }
