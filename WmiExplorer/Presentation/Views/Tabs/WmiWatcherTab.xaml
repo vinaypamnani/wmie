@@ -110,11 +110,13 @@
                         </GroupBox>
                         <!--  EventDisplayProperty  -->
                         <GroupBox Margin="0" Header="Event Display Property [optional]">
-                            <TextBox
+                            <ComboBox
                                 Width="180"
                                 Height="26"
                                 HorizontalContentAlignment="Left"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyName, UpdateSourceTrigger=PropertyChanged}" />
+                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyList}"
+                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyName, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyValueEnabled}" />
                         </GroupBox>
 
                     </StackPanel>

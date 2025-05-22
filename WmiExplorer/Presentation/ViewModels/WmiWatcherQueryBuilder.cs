@@ -16,6 +16,8 @@ namespace WmiExplorer.Presentation.ViewModels
         private string? _validationError = null;
         private bool _isIntrinsicEvent = true;
 
+        private string? _lastEventTargetClass = null;
+
         public string? EventClass
         {
             get => _eventClass;
@@ -32,13 +34,21 @@ namespace WmiExplorer.Presentation.ViewModels
                     {
                         EventPropertyValue = string.Empty;
                     }
-                    // Clear EventTargetClass and EventTargetClassProperty if selector is now disabled
+                    // Save and clear EventTargetClass and EventTargetClassProperty if selector is now disabled
                     if (!IsTargetClassEnabled)
                     {
                         if (!string.IsNullOrEmpty(EventTargetClass))
+                        {
+                            _lastEventTargetClass = EventTargetClass;
                             EventTargetClass = string.Empty;
+                        }
                         if (!string.IsNullOrEmpty(EventTargetClassProperty))
                             EventTargetClassProperty = null;
+                    }
+                    // Restore EventTargetClass if selector is now enabled and we have a previous value
+                    else if (string.IsNullOrEmpty(EventTargetClass) && !string.IsNullOrEmpty(_lastEventTargetClass))
+                    {
+                        EventTargetClass = _lastEventTargetClass;
                     }
                 }
             }
