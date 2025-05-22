@@ -7,6 +7,19 @@ namespace WmiExplorer.Presentation.ViewModels;
 /// </summary>
 public class WmiWatcherQueryBuilder : ViewModelBase
 {
+    /// <summary>
+    /// Represents the type of WMI event for query building and UI logic.
+    /// </summary>
+    public enum WmiEventType
+    {
+        Unknown,
+        Extrinsic,
+        Instance,
+        Class,
+        Namespace,
+        Method
+    }
+
     private string? _additionalSelectFields;
     private string? _eventClass = "__InstanceCreationEvent";
     private string? _eventProperty = null;
@@ -18,6 +31,7 @@ public class WmiWatcherQueryBuilder : ViewModelBase
 
     private string? _eventTargetClassProperty = null;
 
+    private string? _eventTargetClassPropertyValue = "";
     private int _eventWithin = 5;
     private bool _isIntrinsicEvent = true;
     private string? _lastEventTargetClass = null;
@@ -45,9 +59,10 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             if (SetProperty(ref _eventClass, value))
             {
                 BuildQuery();
+                OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
                 OnPropertyChanged(nameof(IsTargetClassEnabled));
                 OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
-                OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
+                OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
                 OnPropertyChanged(nameof(EventClass));
 
                 // Clear EventPropertyValue if property value entry is now disabled
@@ -129,7 +144,46 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             if (SetProperty(ref _eventTargetClassProperty, value))
             {
                 BuildQuery();
+                OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
             }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the value for the selected property of the EventTargetClass.
+    /// </summary>
+    public string EventTargetClassPropertyValue
+    {
+        get => _eventTargetClassPropertyValue ?? string.Empty;
+        set
+        {
+            if (SetProperty(ref _eventTargetClassPropertyValue, value))
+            {
+                BuildQuery();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the event type based on the EventClass property.
+    /// </summary>
+    public WmiEventType EventType
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(EventClass))
+                return WmiEventType.Unknown;
+            if (!EventClass.StartsWith("__"))
+                return WmiEventType.Extrinsic;
+            if (EventClass.StartsWith("__Instance", StringComparison.OrdinalIgnoreCase))
+                return WmiEventType.Instance;
+            if (EventClass.StartsWith("__Class", StringComparison.OrdinalIgnoreCase))
+                return WmiEventType.Class;
+            if (EventClass.StartsWith("__Namespace", StringComparison.OrdinalIgnoreCase))
+                return WmiEventType.Namespace;
+            if (EventClass.StartsWith("__Method", StringComparison.OrdinalIgnoreCase))
+                return WmiEventType.Method;
+            return WmiEventType.Unknown;
         }
     }
 
@@ -146,7 +200,7 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     }
 
     /// <summary>
-    /// True if the EventProperty selector should be enabled in the UI (intrinsic events only).
+    /// True if the EventProperty selector should be enabled in the UI.
     /// </summary>
     public bool IsEventPropertyEnabled => true;
 
@@ -157,8 +211,26 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     {
         get
         {
+            // Disabled for instance events
+            if (EventType == WmiEventType.Instance)
+                return false;
             // Only compute, do not mutate state
-            return !IsNamespaceOrClassEvent(EventClass);
+            return EventType != WmiEventType.Namespace && EventType != WmiEventType.Class;
+        }
+    }
+
+    /// <summary>
+    /// True if the TargetClassProperty value entry should be enabled in the UI.
+    /// </summary>
+    public bool IsEventTargetClassPropertyValueEnabled
+    {
+        get
+        {
+            if (EventType == WmiEventType.Extrinsic)
+                return false;
+            if (!IsTargetClassPropertyEnabled)
+                return false;
+            return !string.IsNullOrWhiteSpace(EventTargetClassProperty);
         }
     }
 
@@ -172,6 +244,7 @@ public class WmiWatcherQueryBuilder : ViewModelBase
                 OnPropertyChanged(nameof(IsWithinEnabled));
                 OnPropertyChanged(nameof(IsTargetClassEnabled));
                 OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
+                OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
                 OnPropertyChanged(nameof(IsEventPropertyEnabled));
             }
         }
@@ -184,8 +257,14 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     {
         get
         {
-            // Use the helper for __Namespace* or __Class* events
-            return IsIntrinsicEvent && !IsNamespaceEvent(EventClass);
+            // Disable for extrinsic events
+            if (EventType == WmiEventType.Extrinsic)
+                return false;
+            if (EventType == WmiEventType.Instance || EventType == WmiEventType.Class)
+                return true;
+            if (EventType == WmiEventType.Namespace)
+                return false;
+            return true;
         }
     }
 
@@ -196,8 +275,13 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     {
         get
         {
-            // Use the helper for __Namespace* or __Class* events
-            return IsIntrinsicEvent && !IsNamespaceOrClassEvent(EventClass);
+            if (EventType == WmiEventType.Extrinsic)
+                return false;
+            if (EventType == WmiEventType.Instance)
+                return true;
+            if (EventType == WmiEventType.Class || EventType == WmiEventType.Namespace)
+                return false;
+            return true;
         }
     }
 
@@ -231,7 +315,8 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             return;
         }
 
-        bool isIntrinsic = IsIntrinsic(EventClass);
+        // Use new logic: intrinsic if EventType is not Extrinsic
+        bool isIntrinsic = EventType != WmiEventType.Extrinsic;
         IsIntrinsicEvent = isIntrinsic;
 
         // Validate polling interval for intrinsic
@@ -257,7 +342,8 @@ public class WmiWatcherQueryBuilder : ViewModelBase
         // WHERE clause construction
         string whereClause = string.Empty;
         bool hasTargetClass = !string.IsNullOrWhiteSpace(EventTargetClass);
-        bool hasPropertyValue = !string.IsNullOrWhiteSpace(EventPropertyValue);
+        bool hasEventPropertyValue = !string.IsNullOrWhiteSpace(EventPropertyValue);
+        bool hasTargetClassPropertyValue = !string.IsNullOrWhiteSpace(EventTargetClassPropertyValue);
         var whereParts = new List<string>();
 
         // Only add ISA filter for intrinsic events and if event property is set
@@ -266,8 +352,8 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             whereParts.Add($"{eventProp} ISA '{EventTargetClass}'");
         }
 
-        // Add property value condition
-        if (hasPropertyValue)
+        // Add property value condition for EventPropertyValue
+        if (hasEventPropertyValue && IsEventPropertyValueEnabled)
         {
             if (IsTargetClassEnabled && !string.IsNullOrWhiteSpace(EventTargetClassProperty))
             {
@@ -277,6 +363,16 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             else if (!string.IsNullOrWhiteSpace(eventProp))
             {
                 whereParts.Add($"{eventProp} = '{EventPropertyValue}'");
+            }
+        }
+
+        // Add property value condition for EventTargetClassPropertyValue
+        if (hasTargetClassPropertyValue && IsEventTargetClassPropertyValueEnabled)
+        {
+            if (!string.IsNullOrWhiteSpace(EventTargetClassProperty))
+            {
+                // Use EventProperty.EventTargetClassProperty = 'TargetClassPropertyValue'
+                whereParts.Add($"{eventProp}.{EventTargetClassProperty} = '{EventTargetClassPropertyValue}'");
             }
         }
 
@@ -295,46 +391,11 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     /// </summary>
     private string GetDefaultEventProperty(string? eventClass)
     {
-        if (string.IsNullOrWhiteSpace(eventClass)) return "TargetInstance";
+        if (string.IsNullOrWhiteSpace(eventClass)) return string.Empty;
         if (eventClass.StartsWith("__Instance")) return "TargetInstance";
         if (eventClass.StartsWith("__Class")) return "TargetClass";
         if (eventClass.StartsWith("__Namespace")) return "TargetNamespace";
+        if (eventClass.StartsWith("__Method")) return "Method";
         return ""; // For extrinsic or unknown
-    }
-
-    /// <summary>
-    /// Helper to determine if the event class disables property value entry (for __Namespace* or __Class* events).
-    /// </summary>
-    private bool IsClassEvent(string? eventClass)
-    {
-        if (string.IsNullOrWhiteSpace(eventClass)) return false;
-        return eventClass.StartsWith("__Class", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Determines if the event class is intrinsic (starts with '__').
-    /// </summary>
-    private bool IsIntrinsic(string? eventClass)
-    {
-        return !string.IsNullOrWhiteSpace(eventClass) && eventClass.StartsWith("__");
-    }
-
-    /// <summary>
-    /// Helper to determine if the event class disables property value entry (for __Namespace* or __Class* events).
-    /// </summary>
-    private bool IsNamespaceEvent(string? eventClass)
-    {
-        if (string.IsNullOrWhiteSpace(eventClass)) return false;
-        return eventClass.StartsWith("__Namespace", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Helper to determine if the event class disables property value entry (for __Namespace* or __Class* events).
-    /// </summary>
-    private bool IsNamespaceOrClassEvent(string? eventClass)
-    {
-        if (string.IsNullOrWhiteSpace(eventClass)) return false;
-        return eventClass.StartsWith("__Namespace", StringComparison.OrdinalIgnoreCase)
-            || eventClass.StartsWith("__Class", StringComparison.OrdinalIgnoreCase);
     }
 }

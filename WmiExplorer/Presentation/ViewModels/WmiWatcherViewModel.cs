@@ -602,7 +602,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private void UpdateEventDisplayPropertyList()
     {
         _eventDisplayPropertyList.Clear();
-        if (EventQueryBuilder.IsTargetClassEnabled && EventQueryBuilder.IsTargetClassPropertyEnabled)
+        if (EventQueryBuilder.IsTargetClassEnabled && EventQueryBuilder.IsTargetClassPropertyEnabled && EventQueryBuilder.EventType != WmiWatcherQueryBuilder.WmiEventType.Method)
         {
             foreach (var prop in EventTargetClassPropertyList)
             {

@@ -12,6 +12,7 @@ public class WmiEvent
     public WmiEvent(string watcherName, ManagementBaseObject eventData, string eventDisplayPropertyName)
     {
         WatcherName = watcherName ?? throw new ArgumentNullException(nameof(watcherName));
+        EventDisplayPropertyName = eventDisplayPropertyName ?? string.Empty;
         EventData = eventData as ManagementBaseObject ?? throw new ArgumentNullException(nameof(eventData));
         EventTimestamp = DateTime.Now;
 
@@ -39,20 +40,14 @@ public class WmiEvent
 
         // Try to use the requested display property, fallback to __RELPATH
         string displayValue = string.Empty;
-        if (!string.IsNullOrWhiteSpace(eventDisplayPropertyName) && targetObject != null)
+        if (!string.IsNullOrWhiteSpace(eventDisplayPropertyName))
         {
-            try
-            {
-                var val = targetObject[eventDisplayPropertyName];
-                if (val != null)
-                    displayValue = val?.ToString() ?? string.Empty;
-            }
-            catch { /* Ignore property not found */ }
+            displayValue = TryGetPropertyValue(targetObject, eventDisplayPropertyName)
+                ?? TryGetPropertyValue(eventData, eventDisplayPropertyName)
+                ?? TryGetPropertyValue(targetObject, "__RELPATH")
+                ?? "<Unknown>";
         }
-        if (string.IsNullOrEmpty(displayValue))
-        {
-            displayValue = targetObject?["__RELPATH"]?.ToString() ?? "<Unknown>";
-        }
+
         EventDisplayPropertyValue = displayValue;
         EventClassName = eventData.ClassPath?.ClassName ?? "<Unknown>";
 
@@ -71,6 +66,9 @@ public class WmiEvent
     [Category("Event")]
     [ShowChildrenAsParent]
     public ManagementBaseObject EventData { get; }
+
+    [Category("Event")]
+    public string EventDisplayPropertyName { get; }
 
     [Category("Event")]
     public string EventDisplayPropertyValue { get; }
@@ -105,6 +103,21 @@ public class WmiEvent
             }
         }
         return diff;
+    }
+
+    private static string? TryGetPropertyValue(ManagementBaseObject? obj, string propertyName)
+    {
+        if (obj == null || string.IsNullOrWhiteSpace(propertyName))
+            return null;
+        try
+        {
+            var val = obj[propertyName];
+            return val?.ToString();
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
 

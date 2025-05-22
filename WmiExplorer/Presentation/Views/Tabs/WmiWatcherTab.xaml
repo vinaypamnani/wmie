@@ -45,79 +45,94 @@
                     <StackPanel
                         Grid.Row="0"
                         Grid.Column="0"
-                        Orientation="Horizontal">
-                        <!--  Event Class  -->
-                        <GroupBox Margin="0" Header="Event Type">
-                            <ComboBox
-                                Width="200"
-                                Height="26"
-                                IsEditable="False"
-                                IsTextSearchEnabled="True"
-                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventClassList}"
-                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventClass, UpdateSourceTrigger=PropertyChanged}" />
-                        </GroupBox>
-                        <!--  Within (sec)  -->
-                        <GroupBox Margin="0" Header="Within (sec)">
-                            <TextBox
-                                Width="40"
-                                Height="26"
-                                HorizontalContentAlignment="Center"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventWithin, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsWithinEnabled}" />
-                        </GroupBox>
-                        <!--  Event Property  -->
-                        <GroupBox Margin="0" Header="Event Property">
-                            <ComboBox
-                                Width="200"
-                                Height="26"
-                                IsEditable="False"
-                                IsTextSearchEnabled="True"
-                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventPropertyList}"
-                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventProperty, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyEnabled}" />
-                        </GroupBox>
-                        <!--  Target Class  -->
-                        <GroupBox Margin="0" Header="Target Class (ISA)">
-                            <ComboBox
-                                Width="180"
-                                Height="26"
-                                VerticalContentAlignment="Center"
-                                IsEditable="True"
-                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassList}"
-                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClass, UpdateSourceTrigger=PropertyChanged}"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassEnabled}" />
-                        </GroupBox>
-                        <!--  Target Class Property  -->
-                        <GroupBox Margin="0" Header="Target Class Property">
-                            <ComboBox
-                                Width="180"
-                                Height="26"
-                                VerticalContentAlignment="Center"
-                                IsEditable="True"
-                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassPropertyList}"
-                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClassProperty, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassPropertyEnabled}" />
-                        </GroupBox>
-                        <!--  Condition  -->
-                        <GroupBox Margin="0" Header="Property Value [optional]">
-                            <TextBox
-                                Width="180"
-                                Height="26"
-                                HorizontalContentAlignment="Left"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventPropertyValue, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyValueEnabled}" />
-                        </GroupBox>
-                        <!--  EventDisplayProperty  -->
-                        <GroupBox Margin="0" Header="Event Display Property [optional]">
-                            <ComboBox
-                                Width="180"
-                                Height="26"
-                                HorizontalContentAlignment="Left"
-                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyList}"
-                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyName, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyValueEnabled}" />
-                        </GroupBox>
+                        Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <!--  Event Class  -->
+                            <GroupBox Margin="0" Header="Event Type">
+                                <ComboBox
+                                    Width="200"
+                                    Height="26"
+                                    IsEditable="False"
+                                    IsTextSearchEnabled="True"
+                                    ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventClassList}"
+                                    SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventClass, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                            <!--  Within (sec)  -->
+                            <GroupBox Margin="0" Header="Within (sec)">
+                                <TextBox
+                                    Width="40"
+                                    Height="26"
+                                    HorizontalContentAlignment="Center"
+                                    IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsWithinEnabled}"
+                                    Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventWithin, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                            <!--  Event Property  -->
+                            <GroupBox Margin="0" Header="Event Property">
+                                <ComboBox
+                                    Width="200"
+                                    Height="26"
+                                    IsEditable="False"
+                                    IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyEnabled}"
+                                    IsTextSearchEnabled="True"
+                                    ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventPropertyList}"
+                                    SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventProperty, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                            <!--  Event Property Value  -->
+                            <GroupBox Margin="0" Header="Event Property Value [optional]">
+                                <TextBox
+                                    Width="180"
+                                    Height="26"
+                                    HorizontalContentAlignment="Left"
+                                    IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyValueEnabled}"
+                                    Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventPropertyValue, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                        </StackPanel>
+                        <DockPanel LastChildFill="False">
+                            <!--  Target Class  -->
+                            <GroupBox Margin="0" Header="Target Class (ISA)">
+                                <ComboBox
+                                    Width="180"
+                                    Height="26"
+                                    VerticalContentAlignment="Center"
+                                    IsEditable="True"
+                                    IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassEnabled}"
+                                    ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassList}"
+                                    SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClass, UpdateSourceTrigger=PropertyChanged}"
+                                    Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassSearchText, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                            <!--  Target Class Property  -->
+                            <GroupBox Margin="0" Header="Target Class Property">
+                                <ComboBox
+                                    Width="180"
+                                    Height="26"
+                                    VerticalContentAlignment="Center"
+                                    IsEditable="True"
+                                    IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassPropertyEnabled}"
+                                    ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassPropertyList}"
+                                    SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClassProperty, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                            <!--  Target Class Property Value  -->
+                            <GroupBox Margin="0" Header="Target Class Property Value [optional]">
+                                <TextBox
+                                    Width="180"
+                                    Height="26"
+                                    HorizontalContentAlignment="Left"
+                                    IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventTargetClassPropertyValueEnabled}"
+                                    Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClassPropertyValue, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                            <!--  EventDisplayProperty  -->
+                            <GroupBox
+                                Margin="0"
+                                DockPanel.Dock="Right"
+                                Header="Event Display Property [optional]">
+                                <ComboBox
+                                    Width="180"
+                                    Height="26"
+                                    HorizontalContentAlignment="Left"
+                                    ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyList}"
+                                    SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyName, UpdateSourceTrigger=PropertyChanged}" />
+                            </GroupBox>
+                        </DockPanel>
 
                     </StackPanel>
 
@@ -162,8 +177,7 @@
                                 Content="Add Watcher"
                                 IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.CanAddWatcher}"
                                 ToolTip="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.ValidationError}"
-                                Visibility="Visible">
-                            </Button>
+                                Visibility="Visible" />
 
                         </Grid>
                     </GroupBox>
@@ -421,21 +435,28 @@
                                 <GridView.ColumnHeaderContainerStyle>
                                     <Style BasedOn="{StaticResource FlatGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
                                 </GridView.ColumnHeaderContainerStyle>
-                                <GridViewColumn Width="80" Header="Time">
+                                <GridViewColumn Width="Auto" Header="Time">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding EventTimestamp, StringFormat={}{0:HH:mm:ss.fff}}" ToolTip="{Binding EventTimestamp}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="200" Header="EventDisplayPropertyValue">
+                                <GridViewColumn Width="Auto" Header="Display Property">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding EventDisplayPropertyName}" ToolTip="{Binding EventDisplayPropertyName}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="Auto" Header="Display Property Value">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding EventDisplayPropertyValue}" ToolTip="{Binding EventDisplayPropertyValue}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="200" Header="Watcher">
+                                <GridViewColumn Width="Auto" Header="Watcher">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding WatcherName}" ToolTip="{Binding WatcherName}" />
