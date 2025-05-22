@@ -2,188 +2,187 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace WmiExplorer.PropertyGrid
+namespace WmiExplorer.PropertyGrid;
+
+/// <summary>
+/// Provides a content control that displays an appropriate editor for a property based on its type.
+/// </summary>
+public class CustomPropertyEditor : ContentControl
 {
-    /// <summary>
-    /// Provides a content control that displays an appropriate editor for a property based on its type.
-    /// </summary>
-    public class CustomPropertyEditor : ContentControl
+    public static readonly DependencyProperty PropertyItemProperty =
+        DependencyProperty.Register(nameof(PropertyItem), typeof(PropertyHierarchyItem), typeof(CustomPropertyEditor),
+            new PropertyMetadata(null, OnPropertyItemChanged));
+
+    static CustomPropertyEditor()
     {
-        public static readonly DependencyProperty PropertyItemProperty =
-            DependencyProperty.Register(nameof(PropertyItem), typeof(PropertyHierarchyItem), typeof(CustomPropertyEditor),
-                new PropertyMetadata(null, OnPropertyItemChanged));
+        DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPropertyEditor),
+            new FrameworkPropertyMetadata(typeof(CustomPropertyEditor)));
+    }
 
-        static CustomPropertyEditor()
+    /// <summary>
+    /// Gets or sets the property item to edit.
+    /// </summary>
+    public PropertyHierarchyItem PropertyItem
+    {
+        get => (PropertyHierarchyItem)GetValue(PropertyItemProperty);
+        set => SetValue(PropertyItemProperty, value);
+    }
+
+    private static void OnPropertyItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is CustomPropertyEditor editor && e.NewValue is PropertyHierarchyItem propertyItem)
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPropertyEditor),
-                new FrameworkPropertyMetadata(typeof(CustomPropertyEditor)));
+            editor.UpdateEditor(propertyItem);
+        }
+    }
+
+    private void UpdateEditor(PropertyHierarchyItem? propertyItem)
+    {
+        // Exit if property is read-only or null
+        if (propertyItem == null || propertyItem.IsReadOnly)
+        {
+            // For read-only properties, use a TextBlock
+            var textBlock = new TextBlock
+            {
+                Text = propertyItem?.FormattedValue ?? string.Empty,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 0, 0)
+            };
+            Content = textBlock;
+            return;
         }
 
-        /// <summary>
-        /// Gets or sets the property item to edit.
-        /// </summary>
-        public PropertyHierarchyItem PropertyItem
+        // Handle different property types
+        var propertyType = propertyItem.PropertyType;
+
+        if (propertyType == typeof(bool) || propertyType == typeof(bool?))
         {
-            get => (PropertyHierarchyItem)GetValue(PropertyItemProperty);
-            set => SetValue(PropertyItemProperty, value);
+            // Use CheckBox for boolean properties
+            var checkBox = new CheckBox
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 0, 0)
+            };
+
+            var binding = new Binding("Value")
+            {
+                Source = propertyItem,
+                Mode = BindingMode.TwoWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+
+            checkBox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            Content = checkBox;
         }
-
-        private static void OnPropertyItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        else if (propertyType.IsEnum)
         {
-            if (d is CustomPropertyEditor editor && e.NewValue is PropertyHierarchyItem propertyItem)
+            // Use ComboBox for enum properties
+            var comboBox = new ComboBox
             {
-                editor.UpdateEditor(propertyItem);
-            }
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(3, 0, 0, 0),
+                ItemsSource = Enum.GetValues(propertyType)
+            };
+
+            var binding = new Binding("Value")
+            {
+                Source = propertyItem,
+                Mode = BindingMode.TwoWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+
+            comboBox.SetBinding(ComboBox.SelectedItemProperty, binding);
+            Content = comboBox;
         }
-
-        private void UpdateEditor(PropertyHierarchyItem? propertyItem)
+        else if (propertyType == typeof(int) || propertyType == typeof(double) ||
+                propertyType == typeof(float) || propertyType == typeof(decimal))
         {
-            // Exit if property is read-only or null
-            if (propertyItem == null || propertyItem.IsReadOnly)
+            // Use a TextBox with numeric validation for numeric types
+            var textBox = new TextBox
             {
-                // For read-only properties, use a TextBlock
-                var textBlock = new TextBlock
-                {
-                    Text = propertyItem?.FormattedValue ?? string.Empty,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(5, 0, 0, 0)
-                };
-                Content = textBlock;
-                return;
-            }
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(3, 0, 0, 0)
+            };
 
-            // Handle different property types
-            var propertyType = propertyItem.PropertyType;
-
-            if (propertyType == typeof(bool) || propertyType == typeof(bool?))
+            var binding = new Binding("Value")
             {
-                // Use CheckBox for boolean properties
-                var checkBox = new CheckBox
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(5, 0, 0, 0)
-                };
+                Source = propertyItem,
+                Mode = BindingMode.TwoWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
+            };
 
-                var binding = new Binding("Value")
-                {
-                    Source = propertyItem,
-                    Mode = BindingMode.TwoWay,
-                    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-                };
-
-                checkBox.SetBinding(CheckBox.IsCheckedProperty, binding);
-                Content = checkBox;
-            }
-            else if (propertyType.IsEnum)
+            textBox.SetBinding(TextBox.TextProperty, binding);
+            Content = textBox;
+        }
+        else if (propertyType == typeof(string))
+        {
+            // Use TextBox for string properties
+            var textBox = new TextBox
             {
-                // Use ComboBox for enum properties
-                var comboBox = new ComboBox
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(3, 0, 0, 0),
-                    ItemsSource = Enum.GetValues(propertyType)
-                };
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(3, 0, 0, 0)
+            };
 
-                var binding = new Binding("Value")
-                {
-                    Source = propertyItem,
-                    Mode = BindingMode.TwoWay,
-                    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-                };
-
-                comboBox.SetBinding(ComboBox.SelectedItemProperty, binding);
-                Content = comboBox;
-            }
-            else if (propertyType == typeof(int) || propertyType == typeof(double) ||
-                    propertyType == typeof(float) || propertyType == typeof(decimal))
+            var binding = new Binding("Value")
             {
-                // Use a TextBox with numeric validation for numeric types
-                var textBox = new TextBox
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(3, 0, 0, 0)
-                };
+                Source = propertyItem,
+                Mode = BindingMode.TwoWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
+            };
 
-                var binding = new Binding("Value")
-                {
-                    Source = propertyItem,
-                    Mode = BindingMode.TwoWay,
-                    UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-                };
-
-                textBox.SetBinding(TextBox.TextProperty, binding);
-                Content = textBox;
-            }
-            else if (propertyType == typeof(string))
+            textBox.SetBinding(TextBox.TextProperty, binding);
+            Content = textBox;
+        }
+        else if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
+        {
+            // Use DatePicker for DateTime properties
+            var datePicker = new DatePicker
             {
-                // Use TextBox for string properties
-                var textBox = new TextBox
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(3, 0, 0, 0)
-                };
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(3, 0, 0, 0)
+            };
 
-                var binding = new Binding("Value")
-                {
-                    Source = propertyItem,
-                    Mode = BindingMode.TwoWay,
-                    UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
-                };
-
-                textBox.SetBinding(TextBox.TextProperty, binding);
-                Content = textBox;
-            }
-            else if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
+            var binding = new Binding("Value")
             {
-                // Use DatePicker for DateTime properties
-                var datePicker = new DatePicker
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(3, 0, 0, 0)
-                };
+                Source = propertyItem,
+                Mode = BindingMode.TwoWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
 
-                var binding = new Binding("Value")
-                {
-                    Source = propertyItem,
-                    Mode = BindingMode.TwoWay,
-                    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-                };
-
-                datePicker.SetBinding(DatePicker.SelectedDateProperty, binding);
-                Content = datePicker;
-            }
-            else
+            datePicker.SetBinding(DatePicker.SelectedDateProperty, binding);
+            Content = datePicker;
+        }
+        else
+        {
+            // Default to TextBox for other types
+            var textBox = new TextBox
             {
-                // Default to TextBox for other types
-                var textBox = new TextBox
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(3, 0, 0, 0),
-                    Text = propertyItem.FormattedValue
-                };
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(3, 0, 0, 0),
+                Text = propertyItem.FormattedValue
+            };
 
-                textBox.TextChanged += (sender, e) =>
+            textBox.TextChanged += (sender, e) =>
+            {
+                if (sender is TextBox tb && propertyItem != null)
                 {
-                    if (sender is TextBox tb && propertyItem != null)
+                    try
                     {
-                        try
+                        // Try to convert the text to the property type
+                        var converter = System.ComponentModel.TypeDescriptor.GetConverter(propertyItem.PropertyType);
+                        if (converter != null && converter.CanConvertFrom(typeof(string)))
                         {
-                            // Try to convert the text to the property type
-                            var converter = System.ComponentModel.TypeDescriptor.GetConverter(propertyItem.PropertyType);
-                            if (converter != null && converter.CanConvertFrom(typeof(string)))
-                            {
-                                propertyItem.Value = converter.ConvertFromString(tb.Text);
-                            }
-                        }
-                        catch
-                        {
-                            // If conversion fails, don't update the value
+                            propertyItem.Value = converter.ConvertFromString(tb.Text);
                         }
                     }
-                };
+                    catch
+                    {
+                        // If conversion fails, don't update the value
+                    }
+                }
+            };
 
-                Content = textBox;
-            }
+            Content = textBox;
         }
     }
 }

@@ -1,89 +1,88 @@
 using System.ComponentModel;
 
-namespace WmiExplorer.PropertyGrid
+namespace WmiExplorer.PropertyGrid;
+
+/// <summary>
+/// Manages category expansion state for the property grid.
+/// </summary>
+public class CategoryExpansionManager : INotifyPropertyChanged
 {
     /// <summary>
-    /// Manages category expansion state for the property grid.
+    /// Event that is raised when a category's expanded state changes.
     /// </summary>
-    public class CategoryExpansionManager : INotifyPropertyChanged
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private static readonly Dictionary<string, bool> _expandedCategories = new Dictionary<string, bool>();
+    private static CategoryExpansionManager? _instance;
+
+    // Private constructor for singleton pattern
+    private CategoryExpansionManager()
+    { }
+
+    /// <summary>
+    /// Gets the singleton instance of the category expansion manager.
+    /// </summary>
+    public static CategoryExpansionManager Instance
     {
-        private static readonly Dictionary<string, bool> _expandedCategories = new Dictionary<string, bool>();
-        private static CategoryExpansionManager? _instance;
-
-        // Private constructor for singleton pattern
-        private CategoryExpansionManager()
-        { }
-
-        /// <summary>
-        /// Event that is raised when a category's expanded state changes.
-        /// </summary>
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        /// <summary>
-        /// Gets the singleton instance of the category expansion manager.
-        /// </summary>
-        public static CategoryExpansionManager Instance
+        get
         {
-            get
+            if (_instance == null)
             {
-                if (_instance == null)
-                {
-                    _instance = new CategoryExpansionManager();
-                }
-                return _instance;
+                _instance = new CategoryExpansionManager();
             }
+            return _instance;
         }
+    }
 
-        /// <summary>
-        /// Raises the PropertyChanged event.
-        /// </summary>
-        protected void OnPropertyChanged(string propertyName)
+    /// <summary>
+    /// Gets whether a category is expanded.
+    /// </summary>
+    public bool IsCategoryExpanded(string category)
+    {
+        if (string.IsNullOrEmpty(category))
+            return true;
+
+        if (!_expandedCategories.ContainsKey(category))
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            // Default to expanded for new categories
+            _expandedCategories[category] = true;
         }
 
-        /// <summary>
-        /// Gets whether a category is expanded.
-        /// </summary>
-        public bool IsCategoryExpanded(string category)
+        return _expandedCategories[category];
+    }
+
+    /// <summary>
+    /// Sets the expanded state of a category.
+    /// </summary>
+    public void SetCategoryExpanded(string category, bool expanded)
+    {
+        if (string.IsNullOrEmpty(category))
+            return;
+
+        if (!_expandedCategories.ContainsKey(category) || _expandedCategories[category] != expanded)
         {
-            if (string.IsNullOrEmpty(category))
-                return true;
-
-            if (!_expandedCategories.ContainsKey(category))
-            {
-                // Default to expanded for new categories
-                _expandedCategories[category] = true;
-            }
-
-            return _expandedCategories[category];
+            _expandedCategories[category] = expanded;
+            OnPropertyChanged(category);
         }
+    }
 
-        /// <summary>
-        /// Sets the expanded state of a category.
-        /// </summary>
-        public void SetCategoryExpanded(string category, bool expanded)
-        {
-            if (string.IsNullOrEmpty(category))
-                return;
+    /// <summary>
+    /// Toggles the expanded state of a category.
+    /// </summary>
+    public void ToggleCategory(string category)
+    {
+        if (string.IsNullOrEmpty(category))
+            return;
 
-            if (!_expandedCategories.ContainsKey(category) || _expandedCategories[category] != expanded)
-            {
-                _expandedCategories[category] = expanded;
-                OnPropertyChanged(category);
-            }
-        }
+        bool currentState = IsCategoryExpanded(category);
+        SetCategoryExpanded(category, !currentState);
+    }
 
-        /// <summary>
-        /// Toggles the expanded state of a category.
-        /// </summary>
-        public void ToggleCategory(string category)
-        {
-            if (string.IsNullOrEmpty(category))
-                return;
-
-            bool currentState = IsCategoryExpanded(category);
-            SetCategoryExpanded(category, !currentState);
-        }
+    /// <summary>
+    /// Raises the PropertyChanged event.
+    /// </summary>
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

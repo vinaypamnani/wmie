@@ -1,41 +1,40 @@
-namespace WmiExplorer.PropertyGrid
+namespace WmiExplorer.PropertyGrid;
+
+/// <summary>
+/// Represents a category node in the property hierarchy.
+/// </summary>
+public class PropertyCategoryItem : PropertyHierarchyItem
 {
     /// <summary>
-    /// Represents a category node in the property hierarchy.
+    /// Creates a new category item.
     /// </summary>
-    public class PropertyCategoryItem : PropertyHierarchyItem
+    public PropertyCategoryItem(string categoryName)
     {
-        /// <summary>
-        /// Creates a new category item.
-        /// </summary>
-        public PropertyCategoryItem(string categoryName)
-        {
-            Name = categoryName;
-            DisplayName = categoryName;
-            Category = categoryName;
-            IsCategory = true;
-            HasItems = true;
+        Name = categoryName;
+        DisplayName = categoryName;
+        Category = categoryName;
+        IsCategory = true;
+        HasItems = true;
 
-            // Check initial expansion state from the manager
-            IsExpanded = CategoryExpansionManager.Instance.IsCategoryExpanded(categoryName);
-        }
+        // Check initial expansion state from the manager
+        IsExpanded = CategoryExpansionManager.Instance.IsCategoryExpanded(categoryName);
+    }
 
-        /// <summary>
-        /// Override to toggle category expansion state in the manager.
-        /// </summary>
-        public override bool IsExpanded
+    /// <summary>
+    /// Override to toggle category expansion state in the manager.
+    /// </summary>
+    public override bool IsExpanded
+    {
+        get => base.IsExpanded;
+        set
         {
-            get => base.IsExpanded;
-            set
+            // Set the value in the base property
+            if (base.IsExpanded != value)
             {
-                // Set the value in the base property
-                if (base.IsExpanded != value)
-                {
-                    base.IsExpanded = value;
+                base.IsExpanded = value;
 
-                    // Update the expansion state in the category manager
-                    CategoryExpansionManager.Instance.SetCategoryExpanded(Name, value);
-                }
+                // Update the expansion state in the category manager
+                CategoryExpansionManager.Instance.SetCategoryExpanded(Name, value);
             }
         }
     }
