@@ -1,27 +1,25 @@
 using WmiExplorer.Common.Base;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.ViewModels
+namespace WmiExplorer.Presentation.ViewModels;
+
+public class WmiMethodViewModel : MessagingViewModelBase
 {
-    public class WmiMethodViewModel : MessagingViewModelBase
+    private readonly IWmiService _wmiService;
+
+    public WmiMethodViewModel(IMessagingService messagingService, IWmiService wmiService)
     {
-        private readonly IWmiService _wmiService;
+        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
 
-        public WmiMethodViewModel(IMessagingService messagingService, IWmiService wmiService)
-        {
-            _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+        // Initialize messaging
+        InitializeMessaging(messagingService);
 
-            // Initialize messaging
-            InitializeMessaging(messagingService);
-
-            // Subscribe to messages about selected class changes
-            // This will allow the methods view to update when a different class is selected
-        }
-
-        // Future implementation will include:
-        // 1. Property to store list of class methods
-        // 2. Logic to fetch and display class methods
-        // 3. Method invocation capabilities
-        // 4. Parameter handling for method execution
+        // Subscribe to messages about selected class changes
+        // This will allow the methods view to update when a different class is selected
     }
+    // Future implementation will include:
+    // 1. Property to store list of class methods
+    // 2. Logic to fetch and display class methods
+    // 3. Method invocation capabilities
+    // 4. Parameter handling for method execution
 }

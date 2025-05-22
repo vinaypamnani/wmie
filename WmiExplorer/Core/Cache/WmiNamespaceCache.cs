@@ -1,26 +1,22 @@
-using System;
-using System.Collections.Generic;
+namespace WmiExplorer.Core.Cache;
 
-namespace WmiExplorer.Core.Cache
+/// <summary>
+/// Represents cached metadata for all classes in a WMI namespace.
+/// </summary>
+public class WmiNamespaceCache
 {
     /// <summary>
-    /// Represents cached metadata for all classes in a WMI namespace.
+    /// The list of cached class metadata for this namespace.
     /// </summary>
-    public class WmiNamespaceCache
-    {
-        /// <summary>
-        /// The full WMI namespace path (e.g., "root\\cimv2").
-        /// </summary>
-        public string NamespacePath { get; set; } = string.Empty;
+    public List<WmiClassCache> Classes { get; set; } = new List<WmiClassCache>();
 
-        /// <summary>
-        /// The UTC timestamp when this cache entry was last updated.
-        /// </summary>
-        public DateTime LastUpdatedUtc { get; set; }
+    /// <summary>
+    /// The UTC timestamp when this cache entry was last updated.
+    /// </summary>
+    public DateTime LastUpdatedUtc { get; set; }
 
-        /// <summary>
-        /// The list of cached class metadata for this namespace.
-        /// </summary>
-        public List<WmiClassCache> Classes { get; set; } = new List<WmiClassCache>();
-    }
+    /// <summary>
+    /// The full WMI namespace path (e.g., "root\\cimv2").
+    /// </summary>
+    public string NamespacePath { get; set; } = string.Empty;
 }

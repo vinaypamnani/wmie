@@ -1,137 +1,135 @@
-using System;
 using System.ComponentModel;
 using System.Management;
 using WmiExplorer.PropertyGrid;
 
-namespace WmiExplorer.Core.Models
+namespace WmiExplorer.Core.Models;
+
+/// <summary>
+/// Represents a WMI event received from a watcher.
+/// </summary>
+public class WmiEvent
 {
-    /// <summary>
-    /// Represents a WMI event received from a watcher.
-    /// </summary>
-    public class WmiEvent
+    public WmiEvent(string watcherName, ManagementBaseObject eventData, string eventDisplayPropertyName)
     {
-        public string WatcherName { get; }
+        WatcherName = watcherName ?? throw new ArgumentNullException(nameof(watcherName));
+        EventData = eventData as ManagementBaseObject ?? throw new ArgumentNullException(nameof(eventData));
+        EventTimestamp = DateTime.Now;
 
-        public string EventClassName { get; }
-
-        [Category("Event")]
-        public DateTime EventTimestamp { get; }
-
-        [Category("Event")]
-        public string EventDisplayProperty { get; }
-
-        [Category("Event")]
-        [ShowChildrenAsParent]
-        public ManagementBaseObject EventData { get; }
-
-        [Category("Event")]
-        [ShowChildrenAsParent]
-        public PropertyChangeTracker? EventChanges { get; }
-
-        public WmiEvent(string watcherName, ManagementBaseObject eventData, string eventDisplayPropertyName)
+        // Generic handling: find any property with name starting with "Target" or "Previous"
+        ManagementBaseObject? targetObject = null;
+        ManagementBaseObject? previousObject = null;
+        try
         {
-            WatcherName = watcherName ?? throw new ArgumentNullException(nameof(watcherName));
-            EventData = eventData as ManagementBaseObject ?? throw new ArgumentNullException(nameof(eventData));
-            EventTimestamp = DateTime.Now;
-
-            // Generic handling: find any property with name starting with "Target" or "Previous"
-            ManagementBaseObject? targetObject = null;
-            ManagementBaseObject? previousObject = null;
-            try
+            foreach (PropertyData prop in eventData.Properties)
             {
-                foreach (PropertyData prop in eventData.Properties)
+                if (prop.Name.StartsWith("Target", StringComparison.OrdinalIgnoreCase) && prop.Value is ManagementBaseObject mboTarget)
                 {
-                    if (prop.Name.StartsWith("Target", StringComparison.OrdinalIgnoreCase) && prop.Value is ManagementBaseObject mboTarget)
-                    {
-                        targetObject ??= mboTarget;
-                    }
-                    else if (prop.Name.StartsWith("Previous", StringComparison.OrdinalIgnoreCase) && prop.Value is ManagementBaseObject mboPrev)
-                    {
-                        previousObject ??= mboPrev;
-                    }
+                    targetObject ??= mboTarget;
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Embedded instance access error: {ex.Message}");
-            }
-
-            // Try to use the requested display property, fallback to __RELPATH
-            string displayValue = string.Empty;
-            if (!string.IsNullOrWhiteSpace(eventDisplayPropertyName) && targetObject != null)
-            {
-                try
+                else if (prop.Name.StartsWith("Previous", StringComparison.OrdinalIgnoreCase) && prop.Value is ManagementBaseObject mboPrev)
                 {
-                    var val = targetObject[eventDisplayPropertyName];
-                    if (val != null)
-                        displayValue = val?.ToString() ?? string.Empty;
+                    previousObject ??= mboPrev;
                 }
-                catch { /* Ignore property not found */ }
-            }
-            if (string.IsNullOrEmpty(displayValue))
-            {
-                displayValue = targetObject?["__RELPATH"]?.ToString() ?? "<Unknown>";
-            }
-            EventDisplayProperty = displayValue;
-            EventClassName = eventData.ClassPath?.ClassName ?? "<Unknown>";
-
-            if (targetObject != null && previousObject != null)
-            {
-                EventChanges = GetPropertyDifferences(previousObject, targetObject);
             }
         }
-
-        /// <summary>
-        /// Utility to diff two ManagementBaseObject instances.
-        /// </summary>
-        public static PropertyChangeTracker GetPropertyDifferences(ManagementBaseObject? previous, ManagementBaseObject? current)
+        catch (Exception ex)
         {
-            var diff = new PropertyChangeTracker();
-            if (previous == null || current == null)
-                return diff;
+            System.Diagnostics.Debug.WriteLine($"Embedded instance access error: {ex.Message}");
+        }
 
-            foreach (PropertyData property in current.Properties)
+        // Try to use the requested display property, fallback to __RELPATH
+        string displayValue = string.Empty;
+        if (!string.IsNullOrWhiteSpace(eventDisplayPropertyName) && targetObject != null)
+        {
+            try
             {
-                var propName = property.Name;
-                var newValue = property.Value;
-                var oldValue = previous.Properties[propName]?.Value;
-                if (!Equals(newValue, oldValue))
-                {
-                    diff.ChangedProperties.Add(new PropertyChangeTracker.DiffEntry
-                    {
-                        PropertyName = propName,
-                        OldValue = oldValue,
-                        NewValue = newValue
-                    });
-                }
+                var val = targetObject[eventDisplayPropertyName];
+                if (val != null)
+                    displayValue = val?.ToString() ?? string.Empty;
             }
-            return diff;
+            catch { /* Ignore property not found */ }
+        }
+        if (string.IsNullOrEmpty(displayValue))
+        {
+            displayValue = targetObject?["__RELPATH"]?.ToString() ?? "<Unknown>";
+        }
+        EventDisplayProperty = displayValue;
+        EventClassName = eventData.ClassPath?.ClassName ?? "<Unknown>";
+
+        if (targetObject != null && previousObject != null)
+        {
+            EventChanges = GetPropertyDifferences(previousObject, targetObject);
         }
     }
 
-    /// <summary>
-    /// Represents the difference between two WMI instances.
-    /// </summary>
-    public class PropertyChangeTracker
-    {
-        public class DiffEntry
-        {
-            public string PropertyName { get; set; } = string.Empty;
-            public object? OldValue { get; set; }
-            public object? NewValue { get; set; }
+    [Category("Event")]
+    [ShowChildrenAsParent]
+    public WmiEventChangeTracker? EventChanges { get; }
 
-            public override string ToString()
+    public string EventClassName { get; }
+
+    [Category("Event")]
+    [ShowChildrenAsParent]
+    public ManagementBaseObject EventData { get; }
+
+    [Category("Event")]
+    public string EventDisplayProperty { get; }
+
+    [Category("Event")]
+    public DateTime EventTimestamp { get; }
+
+    public string WatcherName { get; }
+
+    /// <summary>
+    /// Utility to diff two ManagementBaseObject instances.
+    /// </summary>
+    public static WmiEventChangeTracker GetPropertyDifferences(ManagementBaseObject? previous, ManagementBaseObject? current)
+    {
+        var diff = new WmiEventChangeTracker();
+        if (previous == null || current == null)
+            return diff;
+
+        foreach (PropertyData property in current.Properties)
+        {
+            var propName = property.Name;
+            var newValue = property.Value;
+            var oldValue = previous.Properties[propName]?.Value;
+            if (!Equals(newValue, oldValue))
             {
-                return $"{PropertyName}: {OldValue} -> {NewValue}";
+                diff.ChangedProperties.Add(new WmiEventChangeTracker.DiffEntry
+                {
+                    PropertyName = propName,
+                    OldValue = oldValue,
+                    NewValue = newValue
+                });
             }
         }
+        return diff;
+    }
+}
 
-        [ExpandByDefault]
-        public List<DiffEntry> ChangedProperties { get; } = new List<DiffEntry>();
+/// <summary>
+/// Represents the difference between two WMI instances.
+/// </summary>
+public class WmiEventChangeTracker
+{
+    [ExpandByDefault]
+    public List<DiffEntry> ChangedProperties { get; } = new List<DiffEntry>();
+
+    public override string ToString()
+    {
+        return "Changed Properties: " + ChangedProperties.Count;
+    }
+
+    public class DiffEntry
+    {
+        public object? NewValue { get; set; }
+        public object? OldValue { get; set; }
+        public string PropertyName { get; set; } = string.Empty;
 
         public override string ToString()
         {
-            return "Changed Properties: " + ChangedProperties.Count;
+            return $"{PropertyName}: {OldValue} -> {NewValue}";
         }
     }
 }

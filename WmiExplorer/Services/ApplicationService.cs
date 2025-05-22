@@ -1,29 +1,28 @@
 using System.Windows;
 
-namespace WmiExplorer.Services
+namespace WmiExplorer.Services;
+
+/// <summary>
+/// Implementation of the clipboard service
+/// </summary>
+public class ApplicationService : IApplicationService
 {
     /// <summary>
-    /// Implementation of the clipboard service
+    /// Copies text to the clipboard
     /// </summary>
-    public class ApplicationService : IApplicationService
+    public void CopyToClipboard(string text)
     {
-        /// <summary>
-        /// Copies text to the clipboard
-        /// </summary>
-        public void CopyToClipboard(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return;
+        if (string.IsNullOrEmpty(text))
+            return;
 
-            try
-            {
-                Clipboard.SetText(text);
-            }
-            catch (Exception ex)
-            {
-                // Log or handle the exception as needed
-                System.Diagnostics.Debug.WriteLine($"Error copying to clipboard: {ex.Message}");
-            }
+        try
+        {
+            Clipboard.SetText(text);
+        }
+        catch (Exception ex)
+        {
+            // Log or handle the exception as needed
+            System.Diagnostics.Debug.WriteLine($"Error copying to clipboard: {ex.Message}");
         }
     }
 }

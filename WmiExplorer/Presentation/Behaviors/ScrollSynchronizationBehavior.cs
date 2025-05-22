@@ -1,61 +1,60 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace WmiExplorer.Presentation.Behaviors
+namespace WmiExplorer.Presentation.Behaviors;
+
+/// <summary>
+/// Behavior that synchronizes horizontal scrolling between two scroll viewers
+/// Commonly used to keep headers aligned with content in ListViews
+/// </summary>
+public static class ScrollSynchronizationBehavior
 {
-    /// <summary>
-    /// Behavior that synchronizes horizontal scrolling between two scroll viewers
-    /// Commonly used to keep headers aligned with content in ListViews
-    /// </summary>
-    public static class ScrollSynchronizationBehavior
+    public static readonly DependencyProperty SynchronizeWithProperty =
+        DependencyProperty.RegisterAttached(
+            "SynchronizeWith",
+            typeof(ScrollViewer),
+            typeof(ScrollSynchronizationBehavior),
+            new PropertyMetadata(null, OnSynchronizeWithChanged));
+
+    public static ScrollViewer GetSynchronizeWith(DependencyObject obj)
     {
-        public static readonly DependencyProperty SynchronizeWithProperty =
-            DependencyProperty.RegisterAttached(
-                "SynchronizeWith",
-                typeof(ScrollViewer),
-                typeof(ScrollSynchronizationBehavior),
-                new PropertyMetadata(null, OnSynchronizeWithChanged));
+        return (ScrollViewer)obj.GetValue(SynchronizeWithProperty);
+    }
 
-        public static ScrollViewer GetSynchronizeWith(DependencyObject obj)
-        {
-            return (ScrollViewer)obj.GetValue(SynchronizeWithProperty);
-        }
+    public static void SetSynchronizeWith(DependencyObject obj, ScrollViewer value)
+    {
+        obj.SetValue(SynchronizeWithProperty, value);
+    }
 
-        public static void SetSynchronizeWith(DependencyObject obj, ScrollViewer value)
+    private static void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (sender is ScrollViewer sourceScrollViewer && e.HorizontalChange != 0)
         {
-            obj.SetValue(SynchronizeWithProperty, value);
-        }
-
-        private static void OnSynchronizeWithChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is ScrollViewer scrollViewer)
+            // Only sync horizontal scrolling
+            var targetScrollViewer = GetSynchronizeWith(sourceScrollViewer);
+            if (targetScrollViewer != null && targetScrollViewer.HorizontalOffset != sourceScrollViewer.HorizontalOffset)
             {
-                var oldScrollViewer = e.OldValue as ScrollViewer;
-                if (oldScrollViewer != null)
-                {
-                    // Unsubscribe from previous scroll events
-                    scrollViewer.ScrollChanged -= OnScrollChanged;
-                }
-
-                var newScrollViewer = e.NewValue as ScrollViewer;
-                if (newScrollViewer != null)
-                {
-                    // Subscribe to scroll events
-                    scrollViewer.ScrollChanged += OnScrollChanged;
-                }
+                targetScrollViewer.ScrollToHorizontalOffset(sourceScrollViewer.HorizontalOffset);
             }
         }
+    }
 
-        private static void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+    private static void OnSynchronizeWithChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ScrollViewer scrollViewer)
         {
-            if (sender is ScrollViewer sourceScrollViewer && e.HorizontalChange != 0)
+            var oldScrollViewer = e.OldValue as ScrollViewer;
+            if (oldScrollViewer != null)
             {
-                // Only sync horizontal scrolling
-                var targetScrollViewer = GetSynchronizeWith(sourceScrollViewer);
-                if (targetScrollViewer != null && targetScrollViewer.HorizontalOffset != sourceScrollViewer.HorizontalOffset)
-                {
-                    targetScrollViewer.ScrollToHorizontalOffset(sourceScrollViewer.HorizontalOffset);
-                }
+                // Unsubscribe from previous scroll events
+                scrollViewer.ScrollChanged -= OnScrollChanged;
+            }
+
+            var newScrollViewer = e.NewValue as ScrollViewer;
+            if (newScrollViewer != null)
+            {
+                // Subscribe to scroll events
+                scrollViewer.ScrollChanged += OnScrollChanged;
             }
         }
     }

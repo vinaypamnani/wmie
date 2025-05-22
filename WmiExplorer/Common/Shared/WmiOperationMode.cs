@@ -1,11 +1,10 @@
-namespace WmiExplorer.Common.Shared
+namespace WmiExplorer.Common.Shared;
+
+/// <summary>
+/// Specifies the mode for WMI operations.
+/// </summary>
+public enum WmiOperationMode
 {
-    /// <summary>
-    /// Specifies the mode for WMI operations.
-    /// </summary>
-    public enum WmiOperationMode
-    {
-        Synchronous,
-        Asynchronous
-    }
+    Synchronous,
+    Asynchronous
 }

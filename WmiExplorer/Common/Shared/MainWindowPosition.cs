@@ -3,355 +3,342 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows;
 
-namespace WmiExplorer.Common.Shared
+namespace WmiExplorer.Common.Shared;
+
+/// <summary>
+/// Represents the position and size of the main window
+/// </summary>
+public class MainWindowPosition : INotifyPropertyChanged
 {
+    // Events
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    // Constants
+    public const double DEFAULT_COLUMN_WIDTH = 300;
+
+    public const double DEFAULT_HEIGHT = 900;
+    public const double DEFAULT_LEFT = 100;
+    public const double DEFAULT_TOP = 100;
+    public const double DEFAULT_WIDTH = 1440;
+    public const double FLUCTUATION_THRESHOLD = 1;
+    public const double MIN_COLUMN_WIDTH = 30;
+
+    // Private fields
+    private double _classesColumnWidth = DEFAULT_COLUMN_WIDTH;
+
+    private double _contentColumnStarWidth = 2.0;
+
+    // Default star value for property grid column (column 5)
+    private double _height = DEFAULT_HEIGHT;
+
+    private bool _isClassesExpanded = true;
+    private bool _isNamespacesExpanded = true;
+    private bool _isPropertyGridExpanded = true;
+    private bool _isWindowMaximized = false;
+    private double _left = DEFAULT_LEFT;
+    private double _namespaceColumnWidth = DEFAULT_COLUMN_WIDTH;
+
+    // Default star value for the content column (column 3)
+    private double _propertyGridColumnStarWidth = 1.0;
+
+    private double _top = DEFAULT_TOP;
+    private double _width = DEFAULT_WIDTH;
+
     /// <summary>
-    /// Represents the position and size of the main window
+    /// Gets a UI-friendly GridLength for the classes column width based on expander state
     /// </summary>
-    public class MainWindowPosition : INotifyPropertyChanged
+    [JsonIgnore]
+    public GridLength ClassesColumnGridLength
     {
-        // Constants
-        public const double DEFAULT_COLUMN_WIDTH = 300;
-        public const double DEFAULT_HEIGHT = 900;
-        public const double DEFAULT_LEFT = 100;
-        public const double DEFAULT_TOP = 100;
-        public const double DEFAULT_WIDTH = 1440;
-        public const double FLUCTUATION_THRESHOLD = 1;
-        public const double MIN_COLUMN_WIDTH = 30;        
-        
-        // Private fields
-        private double _classesColumnWidth = DEFAULT_COLUMN_WIDTH;
-        private double _namespaceColumnWidth = DEFAULT_COLUMN_WIDTH;
-        private double _contentColumnStarWidth = 2.0;  // Default star value for the content column (column 3)
-        private double _propertyGridColumnStarWidth = 1.0;  // Default star value for property grid column (column 5)
-        private double _height = DEFAULT_HEIGHT;
-        private double _width = DEFAULT_WIDTH;
-        private double _left = DEFAULT_LEFT;
-        private double _top = DEFAULT_TOP;
-        private bool _isClassesExpanded = true;
-        private bool _isNamespacesExpanded = true;
-        private bool _isPropertyGridExpanded = true;
-        private bool _isWindowMaximized = false;
-
-        // Events
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        #region Properties: Window geometry
-
-        /// <summary>
-        /// Gets or sets the window's left position
-        /// </summary>
-        public double Left
+        get => GetColumnWidth(IsClassesExpanded, _classesColumnWidth);
+        set
         {
-            get => _left;
-            set => SetProperty(ref _left, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the window's top position
-        /// </summary>
-        public double Top
-        {
-            get => _top;
-            set => SetProperty(ref _top, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the window's width
-        /// </summary>
-        public double Width
-        {
-            get => _width;
-            set => SetProperty(ref _width, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the window's height
-        /// </summary>
-        public double Height
-        {
-            get => _height;
-            set => SetProperty(ref _height, value);
-        }
-
-        /// <summary>
-        /// Gets or sets whether the window is maximized
-        /// </summary>
-        public bool IsWindowMaximized
-        {
-            get => _isWindowMaximized;
-            set => SetProperty(ref _isWindowMaximized, value);
-        }
-
-        #endregion
-
-        #region Properties: Column widths (raw values)
-
-        /// <summary>
-        /// Gets or sets the width of the classes column when expanded
-        /// </summary>
-        public double ClassesColumnWidth
-        {
-            get => _classesColumnWidth;
-            set
+            if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
+                IsClassesExpanded &&
+                Math.Abs(value.Value - _classesColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
             {
-                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _classesColumnWidth, value))
-                {
-                    OnPropertyChanged(nameof(ClassesColumnGridLength));
-                    System.Diagnostics.Debug.WriteLine($"Saved classes column width: {value}");
-                }
+                ClassesColumnWidth = value.Value;
             }
         }
+    }
 
-        /// <summary>
-        /// Gets or sets the width of the namespace column when expanded
-        /// </summary>
-        public double NamespaceColumnWidth
+    /// <summary>
+    /// Gets or sets the width of the classes column when expanded
+    /// </summary>
+    public double ClassesColumnWidth
+    {
+        get => _classesColumnWidth;
+        set
         {
-            get => _namespaceColumnWidth;
-            set
+            if (value > MIN_COLUMN_WIDTH && SetProperty(ref _classesColumnWidth, value))
             {
-                if (value > MIN_COLUMN_WIDTH && SetProperty(ref _namespaceColumnWidth, value))
-                {
-                    OnPropertyChanged(nameof(NamespaceColumnGridLength));
-                    System.Diagnostics.Debug.WriteLine($"Saved namespace column width: {value}");
-                }
+                OnPropertyChanged(nameof(ClassesColumnGridLength));
+                System.Diagnostics.Debug.WriteLine($"Saved classes column width: {value}");
             }
         }
+    }
 
-        /// <summary>
-        /// Gets or sets the star proportion for the content column (column 3)
-        /// </summary>
-        public double ContentColumnStarWidth
+    /// <summary>
+    /// Gets a UI-friendly star-based GridLength for the content column
+    /// </summary>
+    [JsonIgnore]
+    public GridLength ContentColumnStarGridLength
+    {
+        get => GetColumnWidth(true, _contentColumnStarWidth, GridUnitType.Star);
+        set
         {
-            get => _contentColumnStarWidth;
-            set
+            if (value.GridUnitType == GridUnitType.Star && value.Value > 0)
             {
-                if (value > 0 && SetProperty(ref _contentColumnStarWidth, value))
-                {
-                    OnPropertyChanged(nameof(ContentColumnStarGridLength));
-                    System.Diagnostics.Debug.WriteLine($"Saved content column star value: {value}");
-                }
+                ContentColumnStarWidth = value.Value;
             }
         }
+    }
 
-        /// <summary>
-        /// Gets or sets the star proportion for the property grid column (column 5)
-        /// </summary>
-        public double PropertyGridColumnStarWidth
+    /// <summary>
+    /// Gets or sets the star proportion for the content column (column 3)
+    /// </summary>
+    public double ContentColumnStarWidth
+    {
+        get => _contentColumnStarWidth;
+        set
         {
-            get => _propertyGridColumnStarWidth;
-            set
+            if (value > 0 && SetProperty(ref _contentColumnStarWidth, value))
             {
-                if (value > 0 && SetProperty(ref _propertyGridColumnStarWidth, value))
-                {
-                    OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
-                    System.Diagnostics.Debug.WriteLine($"Saved property grid column star value: {value}");
-                }
+                OnPropertyChanged(nameof(ContentColumnStarGridLength));
+                System.Diagnostics.Debug.WriteLine($"Saved content column star value: {value}");
             }
         }
+    }
 
-        #endregion
+    /// <summary>
+    /// Gets or sets the window's height
+    /// </summary>
+    public double Height
+    {
+        get => _height;
+        set => SetProperty(ref _height, value);
+    }
 
-        #region Properties: Column widths (UI-friendly GridLength)
-
-        /// <summary>
-        /// Gets a UI-friendly GridLength for the classes column width based on expander state
-        /// </summary>
-        [JsonIgnore]
-        public GridLength ClassesColumnGridLength
+    /// <summary>
+    /// Gets or sets the Classes expander's expansion state
+    /// </summary>
+    public bool IsClassesExpanded
+    {
+        get => _isClassesExpanded;
+        set
         {
-            get => GetColumnWidth(IsClassesExpanded, _classesColumnWidth);
-            set
+            if (_isClassesExpanded != value)
             {
-                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
-                    IsClassesExpanded &&
-                    Math.Abs(value.Value - _classesColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
-                {
-                    ClassesColumnWidth = value.Value;
-                }
+                SetProperty(ref _isClassesExpanded, value);
+                OnPropertyChanged(nameof(ClassesColumnGridLength));
             }
         }
+    }
 
-        /// <summary>
-        /// Gets a UI-friendly GridLength for the namespaces column width based on expander state
-        /// </summary>
-        [JsonIgnore]
-        public GridLength NamespaceColumnGridLength
+    /// <summary>
+    /// Gets or sets the Namespace expander's expansion state
+    /// </summary>
+    public bool IsNamespacesExpanded
+    {
+        get => _isNamespacesExpanded;
+        set
         {
-            get => GetColumnWidth(IsNamespacesExpanded, _namespaceColumnWidth);
-            set
+            if (_isNamespacesExpanded != value)
             {
-                if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
-                    IsNamespacesExpanded &&
-                    Math.Abs(value.Value - _namespaceColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
-                {
-                    NamespaceColumnWidth = value.Value;
-                }
+                SetProperty(ref _isNamespacesExpanded, value);
+                OnPropertyChanged(nameof(NamespaceColumnGridLength));
             }
         }
+    }
 
-        /// <summary>
-        /// Gets a UI-friendly star-based GridLength for the content column 
-        /// </summary>
-        [JsonIgnore]
-        public GridLength ContentColumnStarGridLength
+    /// <summary>
+    /// Gets or sets the Property Grid expander's expansion state
+    /// </summary>
+    public bool IsPropertyGridExpanded
+    {
+        get => _isPropertyGridExpanded;
+        set
         {
-            get => GetColumnWidth(true, _contentColumnStarWidth, GridUnitType.Star);
-            set
+            if (_isPropertyGridExpanded != value)
             {
-                if (value.GridUnitType == GridUnitType.Star && value.Value > 0)
+                SetProperty(ref _isPropertyGridExpanded, value);
+                OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
+
+                // When toggling expander state, we need to ensure the correct column widths
+                if (value == false)
                 {
-                    ContentColumnStarWidth = value.Value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a UI-friendly GridLength for the property grid column
-        /// </summary>
-        [JsonIgnore]
-        public GridLength PropertyGridColumnStarGridLength
-        {
-            get => GetColumnWidth(IsPropertyGridExpanded, _propertyGridColumnStarWidth, GridUnitType.Star);
-            set
-            {
-                if (value.GridUnitType == GridUnitType.Star && value.Value > 0 &&
-                    IsPropertyGridExpanded)
-                {
-                    PropertyGridColumnStarWidth = value.Value;
-                }
-            }
-        }
-
-        #endregion
-
-        #region Properties: Expansion states
-
-        /// <summary>
-        /// Gets or sets the Classes expander's expansion state
-        /// </summary>
-        public bool IsClassesExpanded
-        {
-            get => _isClassesExpanded;
-            set
-            {
-                if (_isClassesExpanded != value)
-                {
-                    SetProperty(ref _isClassesExpanded, value);
-                    OnPropertyChanged(nameof(ClassesColumnGridLength));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the Namespace expander's expansion state
-        /// </summary>
-        public bool IsNamespacesExpanded
-        {
-            get => _isNamespacesExpanded;
-            set
-            {
-                if (_isNamespacesExpanded != value)
-                {
-                    SetProperty(ref _isNamespacesExpanded, value);
-                    OnPropertyChanged(nameof(NamespaceColumnGridLength));
-                }
-            }
-        }
-        
-        /// <summary>
-        /// Gets or sets the Property Grid expander's expansion state
-        /// </summary>
-        public bool IsPropertyGridExpanded
-        {
-            get => _isPropertyGridExpanded;
-            set
-            {
-                if (_isPropertyGridExpanded != value)
-                {
-                    SetProperty(ref _isPropertyGridExpanded, value);
-                    OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
-                    
-                    // When toggling expander state, we need to ensure the correct column widths
-                    if (value == false)
-                    {
-                        // When collapsing, we store the current star value for later
-                        // No additional action needed as PropertyGridColumnStarGridLength handles this
-                    }
-                    else
-                    {
-                        // When expanding, we ensure we have a reasonable star value
-                        if (_propertyGridColumnStarWidth <= 0)
-                        {
-                            _propertyGridColumnStarWidth = 1.0;
-                            OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
-                        }
-                    }
-                }
-            }
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Updates the position with new values (only window geometry)
-        /// </summary>
-        public void UpdatePosition(
-            double left,
-            double top,
-            double width,
-            double height)
-        {
-            Left = left;
-            Top = top;
-            Width = width;
-            Height = height;
-        }
-
-        #region Helper Methods
-
-        // Returns a GridLength for a column, using Pixel, Star or Auto based on unitType
-        private GridLength GetColumnWidth(bool isExpanded, double savedWidth, GridUnitType unitType = GridUnitType.Pixel)
-        {
-            if (isExpanded)
-            {
-                // Use saved width (or safe default) when expanded
-                if (unitType == GridUnitType.Star)
-                {
-                    // For star units, just use the value directly (must be > 0)
-                    return new GridLength(savedWidth > 0 ? savedWidth : 1.0, GridUnitType.Star);
+                    // When collapsing, we store the current star value for later
+                    // No additional action needed as PropertyGridColumnStarGridLength handles this
                 }
                 else
                 {
-                    // For pixel units, apply minimum width
-                    double width = savedWidth >= MIN_COLUMN_WIDTH ? savedWidth : DEFAULT_COLUMN_WIDTH;
-                    return new GridLength(width, unitType);
+                    // When expanding, we ensure we have a reasonable star value
+                    if (_propertyGridColumnStarWidth <= 0)
+                    {
+                        _propertyGridColumnStarWidth = 1.0;
+                        OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
+                    }
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether the window is maximized
+    /// </summary>
+    public bool IsWindowMaximized
+    {
+        get => _isWindowMaximized;
+        set => SetProperty(ref _isWindowMaximized, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the window's left position
+    /// </summary>
+    public double Left
+    {
+        get => _left;
+        set => SetProperty(ref _left, value);
+    }
+
+    /// <summary>
+    /// Gets a UI-friendly GridLength for the namespaces column width based on expander state
+    /// </summary>
+    [JsonIgnore]
+    public GridLength NamespaceColumnGridLength
+    {
+        get => GetColumnWidth(IsNamespacesExpanded, _namespaceColumnWidth);
+        set
+        {
+            if (value.GridUnitType == GridUnitType.Pixel && value.Value > MIN_COLUMN_WIDTH &&
+                IsNamespacesExpanded &&
+                Math.Abs(value.Value - _namespaceColumnWidth) > FLUCTUATION_THRESHOLD) // Avoid minor fluctuations
+            {
+                NamespaceColumnWidth = value.Value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the width of the namespace column when expanded
+    /// </summary>
+    public double NamespaceColumnWidth
+    {
+        get => _namespaceColumnWidth;
+        set
+        {
+            if (value > MIN_COLUMN_WIDTH && SetProperty(ref _namespaceColumnWidth, value))
+            {
+                OnPropertyChanged(nameof(NamespaceColumnGridLength));
+                System.Diagnostics.Debug.WriteLine($"Saved namespace column width: {value}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets a UI-friendly GridLength for the property grid column
+    /// </summary>
+    [JsonIgnore]
+    public GridLength PropertyGridColumnStarGridLength
+    {
+        get => GetColumnWidth(IsPropertyGridExpanded, _propertyGridColumnStarWidth, GridUnitType.Star);
+        set
+        {
+            if (value.GridUnitType == GridUnitType.Star && value.Value > 0 &&
+                IsPropertyGridExpanded)
+            {
+                PropertyGridColumnStarWidth = value.Value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the star proportion for the property grid column (column 5)
+    /// </summary>
+    public double PropertyGridColumnStarWidth
+    {
+        get => _propertyGridColumnStarWidth;
+        set
+        {
+            if (value > 0 && SetProperty(ref _propertyGridColumnStarWidth, value))
+            {
+                OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
+                System.Diagnostics.Debug.WriteLine($"Saved property grid column star value: {value}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the window's top position
+    /// </summary>
+    public double Top
+    {
+        get => _top;
+        set => SetProperty(ref _top, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the window's width
+    /// </summary>
+    public double Width
+    {
+        get => _width;
+        set => SetProperty(ref _width, value);
+    }
+
+    /// <summary>
+    /// Updates the position with new values (only window geometry)
+    /// </summary>
+    public void UpdatePosition(
+        double left,
+        double top,
+        double width,
+        double height)
+    {
+        Left = left;
+        Top = top;
+        Width = width;
+        Height = height;
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (Equals(storage, value))
+            return false;
+
+        storage = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
+
+    // Returns a GridLength for a column, using Pixel, Star or Auto based on unitType
+    private GridLength GetColumnWidth(bool isExpanded, double savedWidth, GridUnitType unitType = GridUnitType.Pixel)
+    {
+        if (isExpanded)
+        {
+            // Use saved width (or safe default) when expanded
+            if (unitType == GridUnitType.Star)
+            {
+                // For star units, just use the value directly (must be > 0)
+                return new GridLength(savedWidth > 0 ? savedWidth : 1.0, GridUnitType.Star);
             }
             else
             {
-                // When collapsed, return Auto width
-                // The expander header width is controlled by the fixed Border width in XAML
-                return new GridLength(0, GridUnitType.Auto);
+                // For pixel units, apply minimum width
+                double width = savedWidth >= MIN_COLUMN_WIDTH ? savedWidth : DEFAULT_COLUMN_WIDTH;
+                return new GridLength(width, unitType);
             }
         }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        else
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            // When collapsed, return Auto width
+            // The expander header width is controlled by the fixed Border width in XAML
+            return new GridLength(0, GridUnitType.Auto);
         }
-
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (Equals(storage, value))
-                return false;
-
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
-
-        #endregion
     }
 }

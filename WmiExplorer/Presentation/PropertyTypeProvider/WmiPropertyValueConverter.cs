@@ -1,108 +1,112 @@
 using System.Management;
 using WmiExplorer.PropertyGrid.Abstractions;
 
-namespace WmiExplorer.Presentation.PropertyTypeProvider
+namespace WmiExplorer.Presentation.PropertyTypeProvider;
+
+/// <summary>
+/// Converter for WMI-specific value formatting and editing.
+/// </summary>
+public class WmiPropertyValueConverter : IPropertyValueConverter
 {
     /// <summary>
-    /// Converter for WMI-specific value formatting and editing.
+    /// Gets the priority of this converter.
     /// </summary>
-    public class WmiPropertyValueConverter : IPropertyValueConverter
+    public int Priority => 100;
+
+    /// <summary>
+    /// Determines
+    /// <summary>
+    /// Determines if this converter can handle the specified property type.
+    /// </summary>
+
+    // Higher priority than default converter
+
+    public bool CanConvert(Type? propertyType)
     {
-        /// <summary>
-        /// Gets the priority of this converter.
-        /// </summary>
-        public int Priority => 100; // Higher priority than default converter
-
-        /// <summary>
-        /// Determines if this converter can handle the specified property type.
-        /// </summary>
-        public bool CanConvert(Type? propertyType)
-        {
-            if (propertyType == null)
-                return false;
-
-            // Check if this is a WMI type
-            return typeof(ManagementBaseObject).IsAssignableFrom(propertyType) ||
-                   typeof(PropertyData).IsAssignableFrom(propertyType) ||
-                   typeof(QualifierData).IsAssignableFrom(propertyType) ||
-                   typeof(ManagementPath).IsAssignableFrom(propertyType) ||
-                   typeof(ManagementScope).IsAssignableFrom(propertyType);
-        }
-
-        /// <summary>
-        /// Converts a string value back to the property's type.
-        /// </summary>
-        public object? ConvertFromString(string value, Type propertyType)
-        {
-            // Most WMI types don't support conversion from string
-            return null;
-        }
-
-        /// <summary>
-        /// Converts a property value to a string for display.
-        /// </summary>
-        public string ConvertToString(object? value, Type propertyType)
-        {
-            if (value == null)
-                return "<null>";
-
-            // Special handling for WMI types
-            if (value is ManagementBaseObject mbo)
-            {
-                // Try __RELPATH value
-                var relPath = mbo.SystemProperties["__RELPATH"]?.Value as string;
-                if (!string.IsNullOrEmpty(relPath))
-                    return $"[Embedded: {relPath}]";
-
-                // Fallback: use ClassPath.Path
-                var classPath = mbo.ClassPath?.Path ?? "Object";
-                string? displayName = null;
-                // Try to get DisplayName or Name property value
-                if (mbo.Properties["DisplayName"] != null && mbo.Properties["DisplayName"].Value is string dn && !string.IsNullOrEmpty(dn))
-                    displayName = dn;
-                else if (mbo.Properties["Name"] != null && mbo.Properties["Name"].Value is string n && !string.IsNullOrEmpty(n))
-                    displayName = n;
-
-                if (!string.IsNullOrEmpty(displayName))
-                    return $"[Embedded: {classPath} ({displayName})]";
-                else
-                    return $"[Embedded: {classPath}]";
-            }
-            if (value is ManagementBaseObject[] mboArray)
-            {
-                return $"[Embedded Array: {mboArray.Length} object(s)]";
-            }
-
-            if (value is PropertyData propertyData)
-            {
-                if (propertyData.IsArray && propertyData.Value is Array pdArray)
-                    return $"{propertyData.Type} Array[{pdArray.Length}]";
-
-                if (propertyData.Value != null)
-                    return propertyData.Value.ToString() ?? "<null value>";
-
-                return "PropertyData";
-            }
-
-            if (value is QualifierData qualifierData)
-            {
-                if (qualifierData.Value != null)
-                    return qualifierData.Value?.ToString() ?? "<null value>";
-
-                return "QualifierData";
-            }
-
-            // Default to class name for other types
-            return value.GetType().Name;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the specified property type should be edited with a custom editor.
-        /// </summary>
-        public bool RequiresCustomEditor(Type? propertyType)
-        {
-            // WMI types generally can't be edited directly
+        if (propertyType == null)
             return false;
+
+        // Check if this is a WMI type
+        return typeof(ManagementBaseObject).IsAssignableFrom(propertyType) ||
+               typeof(PropertyData).IsAssignableFrom(propertyType) ||
+               typeof(QualifierData).IsAssignableFrom(propertyType) ||
+               typeof(ManagementPath).IsAssignableFrom(propertyType) ||
+               typeof(ManagementScope).IsAssignableFrom(propertyType);
+    }
+
+    /// <summary>
+    /// Converts a string value back to the property's type.
+    /// </summary>
+    public object? ConvertFromString(string value, Type propertyType)
+    {
+        // Most WMI types don't support conversion from string
+        return null;
+    }
+
+    /// <summary>
+    /// Converts a property value to a string for display.
+    /// </summary>
+    public string ConvertToString(object? value, Type propertyType)
+    {
+        if (value == null)
+            return "<null>";
+
+        // Special handling for WMI types
+        if (value is ManagementBaseObject mbo)
+        {
+            // Try __RELPATH value
+            var relPath = mbo.SystemProperties["__RELPATH"]?.Value as string;
+            if (!string.IsNullOrEmpty(relPath))
+                return $"[Embedded: {relPath}]";
+
+            // Fallback: use ClassPath.Path
+            var classPath = mbo.ClassPath?.Path ?? "Object";
+            string? displayName = null;
+            // Try to get DisplayName or Name property value
+            if (mbo.Properties["DisplayName"] != null && mbo.Properties["DisplayName"].Value is string dn && !string.IsNullOrEmpty(dn))
+                displayName = dn;
+            else if (mbo.Properties["Name"] != null && mbo.Properties["Name"].Value is string n && !string.IsNullOrEmpty(n))
+                displayName = n;
+
+            if (!string.IsNullOrEmpty(displayName))
+                return $"[Embedded: {classPath} ({displayName})]";
+            else
+                return $"[Embedded: {classPath}]";
         }
+        if (value is ManagementBaseObject[] mboArray)
+        {
+            return $"[Embedded Array: {mboArray.Length} object(s)]";
+        }
+
+        if (value is PropertyData propertyData)
+        {
+            if (propertyData.IsArray && propertyData.Value is Array pdArray)
+                return $"{propertyData.Type} Array[{pdArray.Length}]";
+
+            if (propertyData.Value != null)
+                return propertyData.Value.ToString() ?? "<null value>";
+
+            return "PropertyData";
+        }
+
+        if (value is QualifierData qualifierData)
+        {
+            if (qualifierData.Value != null)
+                return qualifierData.Value?.ToString() ?? "<null value>";
+
+            return "QualifierData";
+        }
+
+        // Default to class name for other types
+        return value.GetType().Name;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the specified property type should be edited with a custom editor.
+    /// </summary>
+    public bool RequiresCustomEditor(Type? propertyType)
+    {
+        // WMI types generally can't be edited directly
+        return false;
     }
 }

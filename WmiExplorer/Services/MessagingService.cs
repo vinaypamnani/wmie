@@ -1,244 +1,247 @@
 using System.Collections.Concurrent;
+using Application = System.Windows.Application;
 using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Presentation.Views;
-using Application = System.Windows.Application;
 
-namespace WmiExplorer.Services
+namespace WmiExplorer.Services;
+
+/// <summary>
+/// A robust implementation of the message bus pattern that facilitates communication
+/// between components without creating tight coupling.
+/// </summary>
+public class MessagingService : IMessagingService
 {
+    private int _isPublishing;
+
+    // Using ConcurrentDictionary for thread safety
+    private readonly ConcurrentDictionary<Type, List<SubscriberInfo>> _subscribers = new();
+
     /// <summary>
-    /// A robust implementation of the message bus pattern that facilitates communication
-    /// between components without creating tight coupling.
+    /// Publishes a message to all subscribers
     /// </summary>
-    public class MessagingService : IMessagingService
+    public void Publish<TMessage>(TMessage message)
     {
-        // Using ConcurrentDictionary for thread safety
-        private readonly ConcurrentDictionary<Type, List<SubscriberInfo>> _subscribers = new();
+        if (message == null)
+            return;
 
-        private int _isPublishing;
+        // Debug logging for all messages
+        System.Diagnostics.Debug.WriteLine($"[MessagingService] Publishing: {typeof(TMessage).Name}");
 
-        /// <summary>
-        /// Thread-safe removal of a subscriber
-        /// </summary>
-        private void RemoveSubscriber(Type messageType, SubscriberInfo subscriber)
+        // Special handling for ApplicationStateMessage
+        if (message is ApplicationStateMessage appStateMsg)
         {
-            // If we're currently publishing, defer the remove operation
-            if (Interlocked.CompareExchange(ref _isPublishing, 0, 0) != 0)
+            System.Diagnostics.Debug.WriteLine($"[MessagingService] ApplicationState: {appStateMsg.State.State}, Message={appStateMsg.State.Message}");                // Update the MainWindow status bar
+            if (MainWindow.Current != null)
             {
-                Application.Current?.Dispatcher.InvokeAsync(() => RemoveSubscriber(messageType, subscriber));
-                return;
-            }
-
-            if (_subscribers.TryGetValue(messageType, out var subscribers))
-            {
-                lock (subscribers)
+                // Also update the view model for binding
+                if (MainWindow.Current.DataContext is MainViewModel mainVm)
                 {
-                    subscribers.Remove(subscriber);
-
-                    if (subscribers.Count == 0)
+                    Application.Current?.Dispatcher.InvokeAsync(() =>
                     {
-                        _subscribers.TryRemove(messageType, out _);
-                    }
+                        mainVm.CurrentApplicationState = appStateMsg.State;
+                    });
                 }
             }
         }
 
-        /// <summary>
-        /// Publishes a message to all subscribers
-        /// </summary>
-        public void Publish<TMessage>(TMessage message)
+        var messageType = typeof(TMessage);
+        if (!_subscribers.TryGetValue(messageType, out var subscribersList) || subscribersList.Count == 0)
         {
-            if (message == null)
-                return;
+            return;
+        }
 
-            // Debug logging for all messages
-            System.Diagnostics.Debug.WriteLine($"[MessagingService] Publishing: {typeof(TMessage).Name}");
+        // Set flag that we're publishing to prevent concurrent modification issues
+        Interlocked.Increment(ref _isPublishing);
 
-            // Special handling for ApplicationStateMessage
-            if (message is ApplicationStateMessage appStateMsg)
+        try
+        {
+            // Create a snapshot to avoid issues if the collection changes during enumeration
+            var currentSubscribers = subscribersList.ToList();
+            var expiredSubscribers = new List<SubscriberInfo>();
+
+            foreach (var subscriber in currentSubscribers)
             {
-                System.Diagnostics.Debug.WriteLine($"[MessagingService] ApplicationState: {appStateMsg.State.State}, Message={appStateMsg.State.Message}");                // Update the MainWindow status bar
-                if (MainWindow.Current != null)
+                if (subscriber.IsAlive && subscriber.IsOwnerAlive())
                 {
-                    // Also update the view model for binding
-                    if (MainWindow.Current.DataContext is MainViewModel mainVm)
+                    try
                     {
-                        Application.Current?.Dispatcher.InvokeAsync(() =>
+                        // Invoke on UI thread if needed, otherwise invoke directly
+                        if (subscriber.ShouldRunOnUIThread && Application.Current != null)
                         {
-                            mainVm.CurrentApplicationState = appStateMsg.State;
-                        });
-                    }
-                }
-            }
-
-            var messageType = typeof(TMessage);
-            if (!_subscribers.TryGetValue(messageType, out var subscribersList) || subscribersList.Count == 0)
-            {
-                return;
-            }
-
-            // Set flag that we're publishing to prevent concurrent modification issues
-            Interlocked.Increment(ref _isPublishing);
-
-            try
-            {
-                // Create a snapshot to avoid issues if the collection changes during enumeration
-                var currentSubscribers = subscribersList.ToList();
-                var expiredSubscribers = new List<SubscriberInfo>();
-
-                foreach (var subscriber in currentSubscribers)
-                {
-                    if (subscriber.IsAlive && subscriber.IsOwnerAlive())
-                    {
-                        try
-                        {
-                            // Invoke on UI thread if needed, otherwise invoke directly
-                            if (subscriber.ShouldRunOnUIThread && Application.Current != null)
+                            Application.Current.Dispatcher.InvokeAsync(() =>
                             {
-                                Application.Current.Dispatcher.InvokeAsync(() =>
+                                if (subscriber.IsAlive)
                                 {
-                                    if (subscriber.IsAlive)
-                                    {
-                                        subscriber.DeliverMessage(message);
-                                    }
-                                });
-                            }
-                            else
-                            {
-                                subscriber.DeliverMessage(message);
-                            }
+                                    subscriber.DeliverMessage(message);
+                                }
+                            });
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            System.Diagnostics.Debug.WriteLine($"[MessagingService] Error delivering message: {ex.Message}");
+                            subscriber.DeliverMessage(message);
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        expiredSubscribers.Add(subscriber);
+                        System.Diagnostics.Debug.WriteLine($"[MessagingService] Error delivering message: {ex.Message}");
                     }
                 }
-
-                // Clean up expired subscribers
-                foreach (var expired in expiredSubscribers)
+                else
                 {
-                    RemoveSubscriber(messageType, expired);
+                    expiredSubscribers.Add(subscriber);
                 }
             }
-            finally
+
+            // Clean up expired subscribers
+            foreach (var expired in expiredSubscribers)
             {
-                Interlocked.Decrement(ref _isPublishing);
+                RemoveSubscriber(messageType, expired);
             }
         }
-
-        /// <summary>
-        /// Subscribes to a specific message type with thread-safe handling
-        /// </summary>
-        public IDisposable Subscribe<TMessage>(Action<TMessage> action, bool runOnUIThread = false)
+        finally
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            Interlocked.Decrement(ref _isPublishing);
+        }
+    }
 
-            var messageType = typeof(TMessage);
-            var owner = new WeakReference<object>(action.Target ?? this);
-            var subscriber = new SubscriberInfo<TMessage>(action, owner, runOnUIThread);
+    /// <summary>
+    /// Subscribes to a specific message type with thread-safe handling
+    /// </summary>
+    public IDisposable Subscribe<TMessage>(Action<TMessage> action, bool runOnUIThread = false)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
 
-            // Get or add thread-safely
-            var subscribersList = _subscribers.GetOrAdd(
-                messageType,
-                _ => new List<SubscriberInfo>()
-            );
+        var messageType = typeof(TMessage);
+        var owner = new WeakReference<object>(action.Target ?? this);
+        var subscriber = new SubscriberInfo<TMessage>(action, owner, runOnUIThread);
 
-            // Wait if publishing is in progress
-            while (Interlocked.CompareExchange(ref _isPublishing, 0, 0) != 0)
-            {
-                Thread.Sleep(1);
-            }
+        // Get or add thread-safely
+        var subscribersList = _subscribers.GetOrAdd(
+            messageType,
+            _ => new List<SubscriberInfo>()
+        );
 
-            // Add the subscriber
-            lock (subscribersList)
-            {
-                subscribersList.Add(subscriber);
-            }
-
-            System.Diagnostics.Debug.WriteLine($"[MessagingService] Subscribed to {messageType.Name}, RunOnUIThread={runOnUIThread}");
-
-            return new SubscriptionToken(
-                () => RemoveSubscriber(messageType, subscriber),
-                $"Subscription: {messageType.Name}"
-            );
+        // Wait if publishing is in progress
+        while (Interlocked.CompareExchange(ref _isPublishing, 0, 0) != 0)
+        {
+            Thread.Sleep(1);
         }
 
-        /// <summary>
-        /// Abstract base class for subscriber information
-        /// </summary>
-        private abstract class SubscriberInfo
+        // Add the subscriber
+        lock (subscribersList)
         {
-            protected SubscriberInfo(WeakReference<object> owner, bool runOnUIThread)
-            {
-                Owner = owner;
-                ShouldRunOnUIThread = runOnUIThread;
-            }
-
-            public abstract bool IsAlive { get; }
-            public WeakReference<object> Owner { get; }
-            public bool ShouldRunOnUIThread { get; }
-
-            public abstract void DeliverMessage<TMessage>(TMessage message);
-
-            public bool IsOwnerAlive()
-            {
-                return Owner.TryGetTarget(out _);
-            }
+            subscribersList.Add(subscriber);
         }
 
-        /// <summary>
-        /// Type-specific subscriber that can deliver properly typed messages
-        /// </summary>
-        private class SubscriberInfo<TMessage> : SubscriberInfo
+        System.Diagnostics.Debug.WriteLine($"[MessagingService] Subscribed to {messageType.Name}, RunOnUIThread={runOnUIThread}");
+
+        return new SubscriptionToken(
+            () => RemoveSubscriber(messageType, subscriber),
+            $"Subscription: {messageType.Name}"
+        );
+    }
+
+    /// <summary>
+    /// Thread-safe removal of a subscriber
+    /// </summary>
+    private void RemoveSubscriber(Type messageType, SubscriberInfo subscriber)
+    {
+        // If we're currently publishing, defer the remove operation
+        if (Interlocked.CompareExchange(ref _isPublishing, 0, 0) != 0)
         {
-            private readonly WeakReference<Action<TMessage>> _action;
+            Application.Current?.Dispatcher.InvokeAsync(() => RemoveSubscriber(messageType, subscriber));
+            return;
+        }
 
-            public SubscriberInfo(Action<TMessage> action, WeakReference<object> owner, bool runOnUIThread)
-                : base(owner, runOnUIThread)
+        if (_subscribers.TryGetValue(messageType, out var subscribers))
+        {
+            lock (subscribers)
             {
-                _action = new WeakReference<Action<TMessage>>(action);
-            }
+                subscribers.Remove(subscriber);
 
-            public override bool IsAlive => _action.TryGetTarget(out _);
-
-            public override void DeliverMessage<T>(T message)
-            {
-                if (message is TMessage typedMessage && _action.TryGetTarget(out var action))
+                if (subscribers.Count == 0)
                 {
-                    action(typedMessage);
+                    _subscribers.TryRemove(messageType, out _);
                 }
             }
         }
+    }
 
-        /// <summary>
-        /// Token returned when subscribing that can be used to unsubscribe
-        /// </summary>
-        private class SubscriptionToken : IDisposable
+    /// <summary>
+    /// Abstract base class for subscriber information
+    /// </summary>
+    private abstract class SubscriberInfo
+    {
+        protected SubscriberInfo(WeakReference<object> owner, bool runOnUIThread)
         {
-            private readonly string _description;
-            private readonly Action _unsubscribeAction;
-            private bool _isDisposed;
+            Owner = owner;
+            ShouldRunOnUIThread = runOnUIThread;
+        }
 
-            public SubscriptionToken(Action unsubscribeAction, string description)
-            {
-                _unsubscribeAction = unsubscribeAction;
-                _description = description;
-            }
+        public abstract bool IsAlive { get; }
+        public WeakReference<object> Owner { get; }
+        public bool ShouldRunOnUIThread { get; }
 
-            public void Dispose()
+        public abstract void DeliverMessage<TMessage>(TMessage message);
+
+        public bool IsOwnerAlive()
+        {
+            return Owner.TryGetTarget(out _);
+        }
+    }
+
+    /// <summary>
+    /// Type-specific subscriber that can deliver properly typed messages
+    /// </summary>
+    private class SubscriberInfo<TMessage> : SubscriberInfo
+    {
+        private readonly WeakReference<Action<TMessage>> _action;
+
+        public override bool IsAlive => _action.TryGetTarget(out _);
+
+        public override void DeliverMessage<T>(T message)
+        {
+            if (message is TMessage typedMessage && _action.TryGetTarget(out var action))
             {
-                if (!_isDisposed)
-                {
-                    _unsubscribeAction?.Invoke();
-                    _isDisposed = true;
-                    System.Diagnostics.Debug.WriteLine($"[MessagingService] Disposed {_description}");
-                }
+                action(typedMessage);
             }
         }
+
+        public SubscriberInfo(Action<TMessage> action, WeakReference<object> owner, bool runOnUIThread)
+            : base(owner, runOnUIThread)
+        {
+            _action = new WeakReference<Action<TMessage>>(action);
+        }
+    }
+
+    /// <summary>
+    /// Token returned when subscribing that can be used to unsubscribe
+    /// </summary>
+    private class SubscriptionToken : IDisposable
+    {
+        private readonly string _description;
+        private readonly Action _unsubscribeAction;
+
+        public SubscriptionToken(Action unsubscribeAction, string description)
+        {
+            _unsubscribeAction = unsubscribeAction;
+            _description = description;
+        }
+
+        #region IDisposable
+        private bool _isDisposed;
+
+        public void Dispose()
+        {
+            if (!_isDisposed)
+            {
+                _unsubscribeAction?.Invoke();
+                _isDisposed = true;
+                System.Diagnostics.Debug.WriteLine($"[MessagingService] Disposed {_description}");
+            }
+        }
+
+        #endregion
     }
 }
