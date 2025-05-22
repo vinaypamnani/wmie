@@ -53,7 +53,7 @@ public class WmiEvent
         {
             displayValue = targetObject?["__RELPATH"]?.ToString() ?? "<Unknown>";
         }
-        EventDisplayProperty = displayValue;
+        EventDisplayPropertyValue = displayValue;
         EventClassName = eventData.ClassPath?.ClassName ?? "<Unknown>";
 
         if (targetObject != null && previousObject != null)
@@ -73,7 +73,7 @@ public class WmiEvent
     public ManagementBaseObject EventData { get; }
 
     [Category("Event")]
-    public string EventDisplayProperty { get; }
+    public string EventDisplayPropertyValue { get; }
 
     [Category("Event")]
     public DateTime EventTimestamp { get; }

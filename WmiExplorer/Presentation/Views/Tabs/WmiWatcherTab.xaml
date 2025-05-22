@@ -97,7 +97,7 @@
                                 IsEditable="True"
                                 ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassPropertyList}"
                                 SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClassProperty, UpdateSourceTrigger=PropertyChanged}"
-                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassEnabled}" />
+                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassPropertyEnabled}" />
                         </GroupBox>
                         <!--  Condition  -->
                         <GroupBox Margin="0" Header="Property Value [optional]">
@@ -428,10 +428,10 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Width="200" Header="EventDisplayProperty">
+                                <GridViewColumn Width="200" Header="EventDisplayPropertyValue">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding EventDisplayProperty}" ToolTip="{Binding EventDisplayProperty}" />
+                                            <TextBlock Text="{Binding EventDisplayPropertyValue}" ToolTip="{Binding EventDisplayPropertyValue}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>

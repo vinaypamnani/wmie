@@ -46,13 +46,16 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             {
                 BuildQuery();
                 OnPropertyChanged(nameof(IsTargetClassEnabled));
+                OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
                 OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
                 OnPropertyChanged(nameof(EventClass));
+
                 // Clear EventPropertyValue if property value entry is now disabled
                 if (!IsEventPropertyValueEnabled && !string.IsNullOrEmpty(EventPropertyValue))
                 {
                     EventPropertyValue = string.Empty;
                 }
+
                 // Save and clear EventTargetClass and EventTargetClassProperty if selector is now disabled
                 if (!IsTargetClassEnabled)
                 {
@@ -168,6 +171,7 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             {
                 OnPropertyChanged(nameof(IsWithinEnabled));
                 OnPropertyChanged(nameof(IsTargetClassEnabled));
+                OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
                 OnPropertyChanged(nameof(IsEventPropertyEnabled));
             }
         }
@@ -177,6 +181,18 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     /// True if the TargetClass selector should be enabled in the UI.
     /// </summary>
     public bool IsTargetClassEnabled
+    {
+        get
+        {
+            // Use the helper for __Namespace* or __Class* events
+            return IsIntrinsicEvent && !IsNamespaceEvent(EventClass);
+        }
+    }
+
+    /// <summary>
+    /// True if the TargetClassProperty selector should be enabled in the UI.
+    /// </summary>
+    public bool IsTargetClassPropertyEnabled
     {
         get
         {
@@ -287,11 +303,29 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     }
 
     /// <summary>
+    /// Helper to determine if the event class disables property value entry (for __Namespace* or __Class* events).
+    /// </summary>
+    private bool IsClassEvent(string? eventClass)
+    {
+        if (string.IsNullOrWhiteSpace(eventClass)) return false;
+        return eventClass.StartsWith("__Class", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// Determines if the event class is intrinsic (starts with '__').
     /// </summary>
     private bool IsIntrinsic(string? eventClass)
     {
         return !string.IsNullOrWhiteSpace(eventClass) && eventClass.StartsWith("__");
+    }
+
+    /// <summary>
+    /// Helper to determine if the event class disables property value entry (for __Namespace* or __Class* events).
+    /// </summary>
+    private bool IsNamespaceEvent(string? eventClass)
+    {
+        if (string.IsNullOrWhiteSpace(eventClass)) return false;
+        return eventClass.StartsWith("__Namespace", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
