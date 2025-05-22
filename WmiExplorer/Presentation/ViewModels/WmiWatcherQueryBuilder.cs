@@ -11,11 +11,10 @@ namespace WmiExplorer.Presentation.ViewModels
         private int _eventWithin = 5;
         private string? _eventProperty = null;
         private string? _eventTargetClass = "";
-        private string? _eventCondition = "";
+        private string? _eventPropertyValue = "";
         private string? _eventQuery = "";
         private string? _validationError = null;
         private bool _isIntrinsicEvent = true;
-        private bool _isCustomQuery = false;
 
         public string? EventClass
         {
@@ -26,6 +25,7 @@ namespace WmiExplorer.Presentation.ViewModels
                 {
                     BuildQuery();
                     OnPropertyChanged(nameof(IsTargetClassEnabled));
+                    OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
                 }
             }
         }
@@ -62,12 +62,12 @@ namespace WmiExplorer.Presentation.ViewModels
                 }
             }
         }
-        public string EventCondition
+        public string EventPropertyValue
         {
-            get => _eventCondition ?? string.Empty;
+            get => _eventPropertyValue ?? string.Empty;
             set
             {
-                if (SetProperty(ref _eventCondition, value))
+                if (SetProperty(ref _eventPropertyValue, value))
                 {
                     BuildQuery();
                 }
@@ -96,11 +96,6 @@ namespace WmiExplorer.Presentation.ViewModels
                 }
             }
         }
-        public bool IsCustomQuery
-        {
-            get => _isCustomQuery;
-            set => SetProperty(ref _isCustomQuery, value);
-        }
 
         public string? AdditionalSelectFields {
             get => _additionalSelectFields;
@@ -117,6 +112,22 @@ namespace WmiExplorer.Presentation.ViewModels
         private string? _additionalSelectFields; // Optional: comma-separated fields
 
         public string? NamespaceContext { get; set; } // For validation, not used in query
+
+        private string? _eventTargetClassProperty = null;
+        /// <summary>
+        /// Gets or sets the selected property of the EventTargetClass.
+        /// </summary>
+        public string? EventTargetClassProperty
+        {
+            get => _eventTargetClassProperty;
+            set
+            {
+                if (SetProperty(ref _eventTargetClassProperty, value))
+                {
+                    BuildQuery();
+                }
+            }
+        }
 
         /// <summary>
         /// Determines if the event class is intrinsic (starts with '__').
@@ -179,7 +190,7 @@ namespace WmiExplorer.Presentation.ViewModels
             // WHERE clause construction
             string whereClause = string.Empty;
             bool hasTargetClass = !string.IsNullOrWhiteSpace(EventTargetClass);
-            bool hasCondition = !string.IsNullOrWhiteSpace(EventCondition);
+            bool hasPropertyValue = !string.IsNullOrWhiteSpace(EventPropertyValue);
             var whereParts = new List<string>();
 
             // Only add ISA filter for intrinsic events and if event property is set
@@ -187,11 +198,19 @@ namespace WmiExplorer.Presentation.ViewModels
             {
                 whereParts.Add($"{eventProp} ISA '{EventTargetClass}'");
             }
-            // For extrinsic events, do not add ISA filter
 
-            if (hasCondition)
+            // Add property value condition
+            if (hasPropertyValue)
             {
-                whereParts.Add(EventCondition!);
+                if (IsTargetClassEnabled && !string.IsNullOrWhiteSpace(EventTargetClassProperty))
+                {
+                    // Use EventProperty.EventTargetClassProperty = 'PropertyValue'
+                    whereParts.Add($"{eventProp}.{EventTargetClassProperty} = '{EventPropertyValue}'");
+                }
+                else if (!string.IsNullOrWhiteSpace(eventProp))
+                {
+                    whereParts.Add($"{eventProp} = '{EventPropertyValue}'");
+                }
             }
 
             if (whereParts.Count > 0)
@@ -216,16 +235,50 @@ namespace WmiExplorer.Presentation.ViewModels
         {
             get
             {
-                // Disable for extrinsic and for any __Namespace* events (case-insensitive)
-                if (!IsIntrinsicEvent) return false;
-                if (!string.IsNullOrWhiteSpace(EventClass) && EventClass.StartsWith("__Namespace", StringComparison.OrdinalIgnoreCase)) return false;
-                return true;
+                // Use the helper for __Namespace* or __Class* events
+                bool enabled = IsIntrinsicEvent && !IsNamespaceOrClassEvent(EventClass);
+
+                // If disabling, clear EventTargetClass and EventTargetClassProperty
+                if (!enabled)
+                {
+                    if (!string.IsNullOrEmpty(EventTargetClass))
+                        EventTargetClass = string.Empty;
+                    if (!string.IsNullOrEmpty(EventTargetClassProperty))
+                        EventTargetClassProperty = null;
+                }
+                return enabled;
             }
         }
 
         /// <summary>
         /// True if the EventProperty selector should be enabled in the UI (intrinsic events only).
         /// </summary>
-        public bool IsEventPropertyEnabled => IsIntrinsicEvent;
+        public bool IsEventPropertyEnabled => true;
+
+        /// <summary>
+        /// Helper to determine if the event class disables property value entry (for __Namespace* or __Class* events).
+        /// </summary>
+        private bool IsNamespaceOrClassEvent(string? eventClass)
+        {
+            if (string.IsNullOrWhiteSpace(eventClass)) return false;
+            return eventClass.StartsWith("__Namespace", StringComparison.OrdinalIgnoreCase)
+                || eventClass.StartsWith("__Class", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// True if the property value entry should be enabled in the UI.
+        /// </summary>
+        public bool IsEventPropertyValueEnabled
+        {
+            get
+            {
+                bool enabled = !IsNamespaceOrClassEvent(EventClass);
+                if (!enabled && !string.IsNullOrEmpty(EventPropertyValue))
+                {
+                    EventPropertyValue = string.Empty;
+                }
+                return enabled;
+            }
+        }
     }
 }

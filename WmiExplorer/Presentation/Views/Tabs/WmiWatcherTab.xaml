@@ -30,7 +30,7 @@
             <GroupBox
                 HorizontalContentAlignment="Stretch"
                 BorderThickness="1"
-                Header="Configuration">
+                Header="Event Query Builder">
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -77,7 +77,7 @@
                                 IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyEnabled}" />
                         </GroupBox>
                         <!--  Target Class  -->
-                        <GroupBox Margin="0" Header="Target Class">
+                        <GroupBox Margin="0" Header="Target Class (ISA)">
                             <ComboBox
                                 Width="180"
                                 Height="26"
@@ -88,13 +88,25 @@
                                 Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassSearchText, UpdateSourceTrigger=PropertyChanged}"
                                 IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassEnabled}" />
                         </GroupBox>
+                        <!--  Target Class Property  -->
+                        <GroupBox Margin="0" Header="Target Class Property">
+                            <ComboBox
+                                Width="180"
+                                Height="26"
+                                VerticalContentAlignment="Center"
+                                IsEditable="True"
+                                ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassPropertyList}"
+                                SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClassProperty, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassEnabled}" />
+                        </GroupBox>
                         <!--  Condition  -->
-                        <GroupBox Margin="0" Header="Condition [optional]">
+                        <GroupBox Margin="0" Header="Property Value [optional]">
                             <TextBox
                                 Width="180"
                                 Height="26"
                                 HorizontalContentAlignment="Left"
-                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventCondition, UpdateSourceTrigger=PropertyChanged}" />
+                                Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventPropertyValue, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyValueEnabled}" />
                         </GroupBox>
                         <!--  EventDisplayProperty  -->
                         <GroupBox Margin="0" Header="Event Display Property [optional]">
