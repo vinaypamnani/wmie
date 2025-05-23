@@ -45,6 +45,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private WmiNamespaceViewModel? _selectedNamespace;
     private string? _selectedWatcherName;
     private readonly ObservableCollection<WmiWatcherItem> _watchers = new();
+    private int _watcherId = 1;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
@@ -334,15 +335,19 @@ public class WmiWatcherViewModel : MessagingViewModelBase
 
         try
         {
-            // Compose watcher name as <EventType>_<TargetClass>
+            // Compose watcher name as <EventType>_<TargetClass>_<Id>
             string watcherName = string.IsNullOrWhiteSpace(EventQueryBuilder.EventClass) ? "Unknown" : EventQueryBuilder.EventClass;
             if (!string.IsNullOrWhiteSpace(EventQueryBuilder.EventTargetClass))
                 watcherName += "_" + EventQueryBuilder.EventTargetClass;
+            watcherName += $"_{_watcherId}";
 
             var watcher = new WmiEventWatcher(
                 watcherName,
                 EventQueryBuilder.EventQuery,
                 SelectedNamespace.ManagementScope);
+
+            // Start the watcher before adding to the collection
+            watcher.Start();
 
             var watcherViewModel = new WmiWatcherItem(
                 watcher,
@@ -352,7 +357,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
                 EventDisplayProperty.Name
             );
             _watchers.Add(watcherViewModel);
-            watcher.Start();
+            _watcherId++; // Increment for next watcher
             PublishSuccessState($"Added watcher: {watcher.Name}");
         }
         catch (Exception ex)
