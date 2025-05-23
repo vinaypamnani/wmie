@@ -20,9 +20,7 @@
     <DebugType>embedded</DebugType>
 
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25104.5739" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
     <PackageReference Include="System.Management" Version="9.0.5" />
   </ItemGroup>

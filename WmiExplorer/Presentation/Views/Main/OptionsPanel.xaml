@@ -1,15 +1,14 @@
-<UserControl
-    x:Class="WmiExplorer.Presentation.Views.Main.OptionsPanel"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
-    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
-    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-    d:DesignWidth="800"
-    mc:Ignorable="d">
+<UserControl x:Class="WmiExplorer.Presentation.Views.Main.OptionsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:colorpicker="clr-namespace:WmiExplorer.Presentation.ColorPicker"
+             xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
+             xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+             d:DesignWidth="800"
+             mc:Ignorable="d">
 
     <UserControl.Resources>
         <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
@@ -26,18 +25,16 @@
         </Grid.ColumnDefinitions>
         <GroupBox Grid.Column="0" Header="Computer Name">
             <StackPanel Orientation="Horizontal">
-                <TextBox
-                    MinWidth="120"
-                    Margin="{StaticResource MarginSmall}"
-                    VerticalContentAlignment="Center"
-                    Tag="Enter computer name..."
-                    Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" />
-                <Button
-                    Height="28"
-                    MinWidth="75"
-                    Margin="{StaticResource MarginSmall}"
-                    Command="{Binding ConnectCommand}"
-                    Content="Connect" />
+                <TextBox MinWidth="120"
+                         Margin="{StaticResource MarginSmall}"
+                         VerticalContentAlignment="Center"
+                         Tag="Enter computer name..."
+                         Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Height="28"
+                        MinWidth="75"
+                        Margin="{StaticResource MarginSmall}"
+                        Command="{Binding ConnectCommand}"
+                        Content="Connect" />
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="1" Header="Mode">
@@ -48,85 +45,55 @@
         </GroupBox>
         <GroupBox Grid.Column="2" Header="Class Enumeration">
             <StackPanel Margin="{StaticResource MarginHorizontalTiny}" Orientation="Horizontal">
-                <CheckBox
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Margin="{StaticResource MarginSmall}"
-                    Content="Include CIM Classes"
-                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}" />
-                <CheckBox
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    Margin="{StaticResource MarginSmall}"
-                    Content="Include MSFT Classes"
-                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}" />
-                <CheckBox
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Margin="{StaticResource MarginSmall}"
-                    Content="Include Perf Classes"
-                    IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}" />
-                <Button
-                    Grid.Row="0"
-                    Grid.RowSpan="2"
-                    Grid.Column="2"
-                    Height="28"
-                    MinWidth="100"
-                    Margin="{StaticResource MarginSmall}"
-                    Content="Reload Classes"
-                    Command="{Binding ReloadClassesCommand}"
-                    IsEnabled="{Binding SelectedNamespace, Converter={StaticResource NullToBoolConverter}}" />
+                <CheckBox Grid.Row="0"
+                          Grid.Column="1"
+                          Margin="{StaticResource MarginSmall}"
+                          Content="Include CIM Classes"
+                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}" />
+                <CheckBox Grid.Row="1"
+                          Grid.Column="0"
+                          Margin="{StaticResource MarginSmall}"
+                          Content="Include MSFT Classes"
+                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}" />
+                <CheckBox Grid.Row="1"
+                          Grid.Column="1"
+                          Margin="{StaticResource MarginSmall}"
+                          Content="Include Perf Classes"
+                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}" />
+                <Button Grid.Row="0"
+                        Grid.RowSpan="2"
+                        Grid.Column="2"
+                        Height="28"
+                        MinWidth="100"
+                        Margin="{StaticResource MarginSmall}"
+                        Command="{Binding ReloadClassesCommand}"
+                        Content="Reload Classes"
+                        IsEnabled="{Binding SelectedNamespace, Converter={StaticResource NullToBoolConverter}}" />
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="3" Header="Accent Colors">
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                <StackPanel
-                    Margin="{StaticResource MarginLeftSmall}"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
-                    <TextBlock
-                        Margin="{StaticResource MarginHorizontalSmall}"
-                        VerticalAlignment="Center"
-                        Text="Primary"
-                        TextAlignment="Left" />
-                    <xctk:ColorPicker
-                        Width="80"
-                        Background="{DynamicResource SecondaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        DisplayColorAndName="False"
-                        DisplayColorTooltip="False"
-                        DropDownBackground="{DynamicResource PrimaryBackgroundBrush}"
-                        Foreground="{DynamicResource PrimaryForegroundBrush}"
-                        HeaderBackground="{DynamicResource SecondaryBackgroundBrush}"
-                        HeaderForeground="{DynamicResource PrimaryForegroundBrush}"
-                        SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
-                        ShowRecentColors="True"
-                        TabBackground="{DynamicResource SecondaryBackgroundBrush}"
-                        TabForeground="{DynamicResource PrimaryForegroundBrush}" />
+                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
+                               VerticalAlignment="Center"
+                               Text="Primary"
+                               TextAlignment="Left" />
+                    <colorpicker:ColorPicker Width="48"
+                                             Height="24"
+                                             SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
+                                             ShowAlphaChannel="True"
+                                             ShowRecentColors="True" />
                 </StackPanel>
-                <StackPanel
-                    Margin="{StaticResource MarginLeftSmall}"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
-                    <TextBlock
-                        Margin="{StaticResource MarginHorizontalSmall}"
-                        VerticalAlignment="Center"
-                        Text="Secondary"
-                        TextAlignment="Left" />
-                    <xctk:ColorPicker
-                        Width="80"
-                        Background="{DynamicResource SecondaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        DisplayColorAndName="False"
-                        DisplayColorTooltip="False"
-                        DropDownBackground="{DynamicResource PrimaryBackgroundBrush}"
-                        Foreground="{DynamicResource PrimaryForegroundBrush}"
-                        HeaderBackground="{DynamicResource SecondaryBackgroundBrush}"
-                        HeaderForeground="{DynamicResource PrimaryForegroundBrush}"
-                        SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
-                        ShowRecentColors="True"
-                        TabBackground="{DynamicResource SecondaryBackgroundBrush}"
-                        TabForeground="{DynamicResource PrimaryForegroundBrush}" />
+                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                    <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
+                               VerticalAlignment="Center"
+                               Text="Secondary"
+                               TextAlignment="Left" />
+                    <colorpicker:ColorPicker Width="48"
+                                             Height="24"
+                                             SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
+                                             ShowAlphaChannel="True"
+                                             ShowRecentColors="True" />
                 </StackPanel>
             </StackPanel>
         </GroupBox>

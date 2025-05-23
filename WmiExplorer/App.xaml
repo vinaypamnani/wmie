@@ -2,16 +2,17 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:WmiExplorer"
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              StartupUri="Presentation/Views/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Main Theme will be loaded dynamically by ThemeManager from the Themes folder -->
                 <!-- Load modular styles -->
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/MainStyles.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
-                <!-- Theme will be loaded dynamically by ThemeManager from the Themes folder -->
+                <!-- Control styles -->
+                <ResourceDictionary Source="/Presentation/ColorPicker/ColorPickerTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
