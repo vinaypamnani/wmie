@@ -15,9 +15,9 @@ public class WmiClassCache
     public bool IsSystemClass { get; set; }
 
     /// <summary>
-    /// List of property names for the WMI class, excluding system properties (those starting with "__").
+    /// List of property name/type pairs for the WMI class.
     /// </summary>
-    public List<string> PropertyNames { get; set; } = new List<string>();
+    public List<WmiPropertyCache> Properties { get; set; } = new List<WmiPropertyCache>();
 
     public string RelativePath { get; set; } = string.Empty;
 }

@@ -9,11 +9,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="3">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="3">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
@@ -46,24 +45,22 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <DockPanel LastChildFill="True">
-                        <Border
-                            x:Name="Border"
-                            Width="16"
-                            Height="16"
-                            Margin="{StaticResource MarginRightMedium}"
-                            VerticalAlignment="Center"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8">
-                            <Ellipse
-                                x:Name="RadioDot"
-                                Width="10"
-                                Height="10"
-                                HorizontalAlignment="Center"
+                        <Border x:Name="Border"
+                                Width="16"
+                                Height="16"
+                                Margin="{StaticResource MarginRightMedium}"
                                 VerticalAlignment="Center"
-                                Fill="{DynamicResource PrimaryForegroundBrush}"
-                                Visibility="Collapsed" />
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <Ellipse x:Name="RadioDot"
+                                     Width="10"
+                                     Height="10"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     Fill="{DynamicResource PrimaryForegroundBrush}"
+                                     Visibility="Collapsed" />
                         </Border>
                         <ContentPresenter VerticalAlignment="Center" />
                     </DockPanel>
@@ -103,34 +100,29 @@
                             <ColumnDefinition Width="16" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border
-                            x:Name="Border"
-                            Grid.Column="0"
-                            Width="16"
-                            Height="16"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="1">
-                            <Path
-                                x:Name="CheckMark"
-                                HorizontalAlignment="Center"
+                        <Border x:Name="Border"
+                                Grid.Column="0"
+                                Width="16"
+                                Height="16"
+                                HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                Data="M 2 8 L 6 12 L 12 4"
-                                SnapsToDevicePixels="True"
-                                Stroke="{TemplateBinding Foreground}"
-                                StrokeEndLineCap="Square"
-                                StrokeLineJoin="Miter"
-                                StrokeStartLineCap="Square"
-                                StrokeThickness="1"
-                                Visibility="Collapsed" />
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="1">
+                            <Path x:Name="CheckMark"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M 2 8 L 6 12 L 12 4"
+                                  SnapsToDevicePixels="True"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeEndLineCap="Square"
+                                  StrokeLineJoin="Miter"
+                                  StrokeStartLineCap="Square"
+                                  StrokeThickness="1"
+                                  Visibility="Collapsed" />
                         </Border>
-                        <ContentPresenter
-                            Grid.Column="1"
-                            Margin="{StaticResource MarginLeftMedium}"
-                            VerticalAlignment="Center" />
+                        <ContentPresenter Grid.Column="1" Margin="{StaticResource MarginLeftMedium}" VerticalAlignment="Center" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
@@ -157,6 +149,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+
     <!--  ComboBox: Modern Flat Style  -->
     <Style TargetType="ComboBox">
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
@@ -174,94 +167,100 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="32" />
                         </Grid.ColumnDefinitions>
+
+                        <!--  Main Border - Spans entire control  -->
+                        <Border x:Name="Border"
+                                Grid.ColumnSpan="2"
+                                Panel.ZIndex="0"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3" />
+
+                        <!--  Separate border for arrow section to enhance visibility when disabled  -->
+                        <Border x:Name="ArrowBorder"
+                                Grid.Column="1"
+                                Panel.ZIndex="1"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                CornerRadius="0 3 3 0" />
+
+                        <!--  Vertical Separator between content and arrow  -->
+                        <Rectangle x:Name="Separator"
+                                   Grid.Column="1"
+                                   Width="1"
+                                   HorizontalAlignment="Left"
+                                   Fill="{TemplateBinding BorderBrush}"
+                                   Visibility="Collapsed" />
+
                         <!--  Overlay ToggleButton for full-area click  -->
-                        <ToggleButton
-                            x:Name="FullAreaToggle"
-                            Grid.ColumnSpan="2"
-                            Panel.ZIndex="3"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            ClickMode="Press"
-                            Focusable="False"
-                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                            IsHitTestVisible="True"
-                            KeyboardNavigation.IsTabStop="False"
-                            Opacity="0" />
-                        <Border
-                            x:Name="Border"
-                            Grid.ColumnSpan="2"
-                            Panel.ZIndex="0"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="3" />
-                        <TextBox
-                            x:Name="PART_EditableTextBox"
-                            Grid.Column="0"
-                            Margin="6,0,2,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Panel.ZIndex="2"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            CaretBrush="{DynamicResource PrimaryForegroundBrush}"
-                            Focusable="True"
-                            Foreground="{TemplateBinding Foreground}"
-                            IsReadOnly="False"
-                            SelectionBrush="{DynamicResource PrimaryAccentBrush}"
-                            Visibility="Collapsed" />
-                        <ContentPresenter
-                            x:Name="ContentSite"
-                            Grid.Column="0"
-                            Margin="6,0,2,0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Panel.ZIndex="2"
-                            Content="{TemplateBinding SelectionBoxItem}"
-                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                            RecognizesAccessKey="True" />
-                        <!--  Arrow ToggleButton (for visual only, not hit-test visible)  -->
-                        <ToggleButton
-                            x:Name="ToggleButton"
-                            Grid.Column="1"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            Panel.ZIndex="2"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            ClickMode="Press"
-                            Focusable="False"
-                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                            IsHitTestVisible="False">
-                            <Grid>
-                                <Path
-                                    x:Name="Arrow"
-                                    Width="16"
-                                    Height="16"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Data="M 2 6 L 8 12 L 14 6 Z"
-                                    Fill="{DynamicResource PrimaryAccentBrush}" />
-                            </Grid>
-                        </ToggleButton>
-                        <Popup
-                            x:Name="PART_Popup"
-                            Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
-                            AllowsTransparency="True"
-                            Focusable="False"
-                            IsOpen="{TemplateBinding IsDropDownOpen}"
-                            Placement="Bottom"
-                            PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
-                            PopupAnimation="Fade"
-                            StaysOpen="False">
-                            <Border
-                                x:Name="PopupBorder"
-                                Background="{DynamicResource SecondaryBackgroundBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="3"
-                                SnapsToDevicePixels="True">
+                        <ToggleButton x:Name="FullAreaToggle"
+                                      Grid.ColumnSpan="2"
+                                      Panel.ZIndex="3"
+                                      Background="Transparent"
+                                      BorderThickness="0"
+                                      ClickMode="Press"
+                                      Focusable="False"
+                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                      IsHitTestVisible="True"
+                                      KeyboardNavigation.IsTabStop="False"
+                                      Opacity="0" />
+
+                        <!--  Content elements  -->
+                        <TextBox x:Name="PART_EditableTextBox"
+                                 Grid.Column="0"
+                                 Margin="6,0,2,0"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center"
+                                 Panel.ZIndex="2"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 CaretBrush="{DynamicResource PrimaryForegroundBrush}"
+                                 Focusable="True"
+                                 Foreground="{TemplateBinding Foreground}"
+                                 IsReadOnly="False"
+                                 SelectionBrush="{DynamicResource PrimaryAccentBrush}"
+                                 Visibility="Collapsed" />
+
+                        <ContentPresenter x:Name="ContentSite"
+                                          Grid.Column="0"
+                                          Margin="6,0,2,0"
+                                          HorizontalAlignment="Left"
+                                          VerticalAlignment="Center"
+                                          Panel.ZIndex="2"
+                                          Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                          RecognizesAccessKey="True" />
+
+                        <!--  Arrow visuals but not interactive  -->
+                        <Path x:Name="Arrow"
+                              Grid.Column="1"
+                              Width="16"
+                              Height="16"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Panel.ZIndex="2"
+                              Data="M 2 6 L 8 12 L 14 6 Z"
+                              Fill="{DynamicResource PrimaryAccentBrush}" />
+
+                        <!--  Popup for dropdown items  -->
+                        <Popup x:Name="PART_Popup"
+                               Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                               AllowsTransparency="True"
+                               Focusable="False"
+                               IsOpen="{TemplateBinding IsDropDownOpen}"
+                               Placement="Bottom"
+                               PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                               PopupAnimation="Fade"
+                               StaysOpen="False">
+                            <Border x:Name="PopupBorder"
+                                    Background="{DynamicResource SecondaryBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    SnapsToDevicePixels="True">
                                 <ScrollViewer Margin="0" SnapsToDevicePixels="True">
                                     <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                 </ScrollViewer>
@@ -277,22 +276,35 @@
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                         </Trigger>
+
                         <Trigger Property="IsEditable" Value="False">
                             <Setter TargetName="ContentSite" Property="Visibility" Value="Visible" />
                             <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
                         </Trigger>
+
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                            <Setter TargetName="Border" Property="BorderThickness" Value="0.5" />
                             <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                            <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource DisabledForegroundBrush}" />
+                            <Setter TargetName="ArrowBorder" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter TargetName="ArrowBorder" Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                            <Setter TargetName="ArrowBorder" Property="BorderThickness" Value="1" />
+                            <Setter TargetName="Separator" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Separator" Property="Fill" Value="{DynamicResource DisabledBorderBrush}" />
                         </Trigger>
+
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
                         </Trigger>
+
                         <Trigger Property="IsDropDownOpen" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
                         </Trigger>
+
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
                         </Trigger>

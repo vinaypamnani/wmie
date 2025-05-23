@@ -178,14 +178,20 @@ public class WmiService : IWmiService, IDisposable
                 var derivation = mo["__Derivation"] as string[] ?? Array.Empty<string>();
                 var isEvent = derivation.Contains("__Event") || className == "__Event";
 
-                // Get property names, excluding system properties (those starting with "__")
-                var propertyNames = new List<string>();
+                // Get property name/type pairs, excluding system properties (those starting with "__")
+                var propertyList = new List<WmiPropertyCache>();
                 try
                 {
                     foreach (PropertyData prop in mo.Properties)
                     {
                         if (!prop.Name.StartsWith("__"))
-                            propertyNames.Add(prop.Name);
+                        {
+                            propertyList.Add(new WmiPropertyCache
+                            {
+                                Name = prop.Name,
+                                Type = prop.Type.ToString()
+                            });
+                        }
                     }
                 }
                 catch { /* Ignore property enumeration errors */ }
@@ -196,7 +202,7 @@ public class WmiService : IWmiService, IDisposable
                     RelativePath = relativePath,
                     IsSystemClass = isSystem,
                     IsEventClass = isEvent,
-                    PropertyNames = propertyNames
+                    Properties = propertyList
                 });
             }
             catch { /* Ignore individual class errors */ }

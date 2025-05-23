@@ -78,6 +78,11 @@ public class WmiEvent
 
     public string WatcherName { get; }
 
+    public override string ToString()
+    {
+        return $"{EventDisplayPropertyName}: {EventDisplayPropertyValue}";
+    }
+
     /// <summary>
     /// Utility to diff two ManagementBaseObject instances.
     /// </summary>

@@ -20,36 +20,20 @@ public class WmiWatcherQueryBuilder : ViewModelBase
         Method
     }
 
-    private string? _additionalSelectFields;
     private string? _eventClass = "__InstanceCreationEvent";
-    private string? _eventProperty = null;
+    private PropertyDisplayInfo? _eventProperty = null;
     private string? _eventPropertyValue = "";
     private string? _eventQuery = "";
     private string? _eventTargetClass = "";
 
     // For validation, not used in query
 
-    private string? _eventTargetClassProperty = null;
+    private PropertyDisplayInfo? _eventTargetClassProperty = null;
 
     private string? _eventTargetClassPropertyValue = "";
     private int _eventWithin = 5;
     private bool _isIntrinsicEvent = true;
-    private string? _lastEventTargetClass = null;
     private string? _validationError = null;
-
-    public string? AdditionalSelectFields
-    {
-        get => _additionalSelectFields;
-        set
-        {
-            if (_additionalSelectFields != value)
-            {
-                _additionalSelectFields = value;
-                OnPropertyChanged();
-                BuildQuery();
-            }
-        }
-    }
 
     public string? EventClass
     {
@@ -59,45 +43,24 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             if (SetProperty(ref _eventClass, value))
             {
                 BuildQuery();
-                OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
-                OnPropertyChanged(nameof(IsTargetClassEnabled));
-                OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
-                OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
-                OnPropertyChanged(nameof(EventClass));
-
+                NotifyEventUiStateProperties();
                 // Clear EventPropertyValue if property value entry is now disabled
                 if (!IsEventPropertyValueEnabled && !string.IsNullOrEmpty(EventPropertyValue))
                 {
                     EventPropertyValue = string.Empty;
                 }
-
-                // Save and clear EventTargetClass and EventTargetClassProperty if selector is now disabled
-                if (!IsTargetClassEnabled)
-                {
-                    if (!string.IsNullOrEmpty(EventTargetClass))
-                    {
-                        _lastEventTargetClass = EventTargetClass;
-                        EventTargetClass = string.Empty;
-                    }
-                    if (!string.IsNullOrEmpty(EventTargetClassProperty))
-                        EventTargetClassProperty = null;
-                }
-                // Restore EventTargetClass if selector is now enabled and we have a previous value
-                else if (string.IsNullOrEmpty(EventTargetClass) && !string.IsNullOrEmpty(_lastEventTargetClass))
-                {
-                    EventTargetClass = _lastEventTargetClass;
-                }
             }
         }
     }
 
-    public string? EventProperty
+    public PropertyDisplayInfo? EventProperty
     {
         get => _eventProperty;
         set
         {
             if (SetProperty(ref _eventProperty, value))
             {
+                NotifyEventUiStateProperties();
                 BuildQuery();
             }
         }
@@ -136,15 +99,15 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     /// <summary>
     /// Gets or sets the selected property of the EventTargetClass.
     /// </summary>
-    public string? EventTargetClassProperty
+    public PropertyDisplayInfo? EventTargetClassProperty
     {
         get => _eventTargetClassProperty;
         set
         {
             if (SetProperty(ref _eventTargetClassProperty, value))
             {
-                BuildQuery();
                 OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
+                BuildQuery();
             }
         }
     }
@@ -211,11 +174,8 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     {
         get
         {
-            // Disabled for instance events
-            if (EventType == WmiEventType.Instance)
-                return false;
-            // Only compute, do not mutate state
-            return EventType != WmiEventType.Namespace && EventType != WmiEventType.Class;
+            // True by default, but false if EventProperty.Type is "object"
+            return !(EventProperty != null && string.Equals(EventProperty.Type, "object", StringComparison.OrdinalIgnoreCase));
         }
     }
 
@@ -226,11 +186,8 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     {
         get
         {
-            if (EventType == WmiEventType.Extrinsic)
-                return false;
-            if (!IsTargetClassPropertyEnabled)
-                return false;
-            return !string.IsNullOrWhiteSpace(EventTargetClassProperty);
+            // True if IsTargetClassPropertyEnabled, else false
+            return IsTargetClassPropertyEnabled;
         }
     }
 
@@ -257,14 +214,8 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     {
         get
         {
-            // Disable for extrinsic events
-            if (EventType == WmiEventType.Extrinsic)
-                return false;
-            if (EventType == WmiEventType.Instance || EventType == WmiEventType.Class)
-                return true;
-            if (EventType == WmiEventType.Namespace)
-                return false;
-            return true;
+            // True if EventProperty.Type == "object", else false
+            return EventProperty != null && string.Equals(EventProperty.Type, "object", StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -275,10 +226,9 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     {
         get
         {
-            if (EventType == WmiEventType.Extrinsic)
+            // True if IsTargetClassEnabled, except for Class and Namespace event types
+            if (!IsTargetClassEnabled)
                 return false;
-            if (EventType == WmiEventType.Instance)
-                return true;
             if (EventType == WmiEventType.Class || EventType == WmiEventType.Namespace)
                 return false;
             return true;
@@ -326,54 +276,45 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             return;
         }
 
-        // Select fields
-        string selectFields = string.IsNullOrWhiteSpace(AdditionalSelectFields) ? "*" : AdditionalSelectFields;
-
         // Start query
-        string query = $"SELECT {selectFields} FROM {EventClass}";
+        string query = $"SELECT * FROM {EventClass}";
         if (isIntrinsic)
         {
             query += $" WITHIN {EventWithin}";
         }
 
         // Determine event property
-        string eventProp = string.IsNullOrWhiteSpace(EventProperty) ? GetDefaultEventProperty(EventClass) : EventProperty!;
+        string eventProp = EventProperty?.Name ?? GetDefaultEventProperty(EventClass);
+
+        // Use has* variables for clarity and safety
+        bool hasTargetClass = IsTargetClassEnabled && !string.IsNullOrWhiteSpace(EventTargetClass);
+        bool hasEventPropertyValue = IsEventPropertyValueEnabled && !string.IsNullOrWhiteSpace(EventPropertyValue);
+        bool hasTargetClassPropertyValue = IsEventTargetClassPropertyValueEnabled &&
+            !string.IsNullOrWhiteSpace(EventTargetClassPropertyValue) &&
+            !string.IsNullOrWhiteSpace(EventTargetClass) &&
+            !string.IsNullOrWhiteSpace(EventTargetClassProperty?.Name);
 
         // WHERE clause construction
         string whereClause = string.Empty;
-        bool hasTargetClass = !string.IsNullOrWhiteSpace(EventTargetClass);
-        bool hasEventPropertyValue = !string.IsNullOrWhiteSpace(EventPropertyValue);
-        bool hasTargetClassPropertyValue = !string.IsNullOrWhiteSpace(EventTargetClassPropertyValue);
         var whereParts = new List<string>();
 
-        // Only add ISA filter for intrinsic events and if event property is set
+        // Only add ISA filter for intrinsic events and if event property is set and TargetClass is enabled
         if (isIntrinsic && hasTargetClass && !string.IsNullOrWhiteSpace(eventProp))
         {
             whereParts.Add($"{eventProp} ISA '{EventTargetClass}'");
         }
 
         // Add property value condition for EventPropertyValue
-        if (hasEventPropertyValue && IsEventPropertyValueEnabled)
+        if (hasEventPropertyValue && !string.IsNullOrWhiteSpace(eventProp))
         {
-            if (IsTargetClassEnabled && !string.IsNullOrWhiteSpace(EventTargetClassProperty))
-            {
-                // Use EventProperty.EventTargetClassProperty = 'PropertyValue'
-                whereParts.Add($"{eventProp}.{EventTargetClassProperty} = '{EventPropertyValue}'");
-            }
-            else if (!string.IsNullOrWhiteSpace(eventProp))
-            {
-                whereParts.Add($"{eventProp} = '{EventPropertyValue}'");
-            }
+            whereParts.Add($"{eventProp} = '{EventPropertyValue}'");
         }
 
         // Add property value condition for EventTargetClassPropertyValue
-        if (hasTargetClassPropertyValue && IsEventTargetClassPropertyValueEnabled)
+        if (hasTargetClassPropertyValue)
         {
-            if (!string.IsNullOrWhiteSpace(EventTargetClassProperty))
-            {
-                // Use EventProperty.EventTargetClassProperty = 'TargetClassPropertyValue'
-                whereParts.Add($"{eventProp}.{EventTargetClassProperty} = '{EventTargetClassPropertyValue}'");
-            }
+            // EventTargetClassProperty is guaranteed not null here due to hasTargetClassPropertyValue
+            whereParts.Add($"{eventProp}.{EventTargetClassProperty!.Name} = '{EventTargetClassPropertyValue}'");
         }
 
         if (whereParts.Count > 0)
@@ -397,5 +338,16 @@ public class WmiWatcherQueryBuilder : ViewModelBase
         if (eventClass.StartsWith("__Namespace")) return "TargetNamespace";
         if (eventClass.StartsWith("__Method")) return "Method";
         return ""; // For extrinsic or unknown
+    }
+
+    /// <summary>
+    /// Raises property changed notifications for all computed UI state properties that depend on EventClass or EventProperty.
+    /// </summary>
+    private void NotifyEventUiStateProperties()
+    {
+        OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
+        OnPropertyChanged(nameof(IsTargetClassEnabled));
+        OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
+        OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
     }
 }

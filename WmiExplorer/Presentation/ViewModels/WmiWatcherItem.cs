@@ -24,7 +24,8 @@ public class WmiWatcherItem : ViewModelBase, IDisposable
         Action<WmiWatcherItem> onRemove,
         Action<WmiEvent> onEventReceived,
         string eventType,
-        string eventDisplayPropertyName)
+        string eventDisplayPropertyName = ""
+    )
     {
         _watcher = watcher ?? throw new ArgumentNullException(nameof(watcher));
         _onRemove = onRemove ?? throw new ArgumentNullException(nameof(onRemove));

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Reflection.Emit;
 using System.Windows.Data;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
@@ -9,6 +10,15 @@ using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
+
+public class PropertyDisplayInfo
+{
+    public string Display => string.IsNullOrEmpty(Type) ? Name : $"{Name} [{Type}]";
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+
+    public override string ToString() => Display;
+}
 
 /// <summary>
 /// View model for WMI Event Watcher tab
@@ -20,14 +30,14 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private bool _canAddWatcher = false;
     private readonly DebounceDispatcher _debouncer = new();
     private readonly ObservableCollection<string> _eventClassList = new ObservableCollection<string>();
-    private readonly ObservableCollection<string> _eventDisplayPropertyList = new ObservableCollection<string>();
-    private string _eventDisplayPropertyName = "__RELPATH";
-    private readonly ObservableCollection<string> _eventPropertyList = new ObservableCollection<string>();
+    private PropertyDisplayInfo _eventDisplayProperty = new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
+    private readonly ObservableCollection<PropertyDisplayInfo> _eventDisplayPropertyList = new ObservableCollection<PropertyDisplayInfo>();
+    private readonly ObservableCollection<PropertyDisplayInfo> _eventPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private readonly WmiWatcherQueryBuilder _eventQueryBuilder;
     private readonly ObservableCollection<WmiEvent> _events = new();
     private ICollectionView? _eventsView;
     private readonly ObservableCollection<string> _eventTargetClassList = new ObservableCollection<string>();
-    private readonly ObservableCollection<string> _eventTargetClassPropertyList = new ObservableCollection<string>();
+    private readonly ObservableCollection<PropertyDisplayInfo> _eventTargetClassPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private bool _isCustomQuery = false;
     private readonly IMessagingService _messagingService;
     private string _pendingEventTargetClassSearch = string.Empty;
@@ -88,11 +98,11 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         RemoveAllCommand = new RelayCommand(_ => RemoveAllWatchers(), _ => _watchers.Count > 0);
 
         // Collection for event properties
-        EventPropertyList = new ReadOnlyObservableCollection<string>(_eventPropertyList);
+        EventPropertyList = new ReadOnlyObservableCollection<PropertyDisplayInfo>(_eventPropertyList);
         // New: ReadOnly collection for EventTargetClassPropertyList
-        EventTargetClassPropertyList = new ReadOnlyObservableCollection<string>(_eventTargetClassPropertyList);
+        EventTargetClassPropertyList = new ReadOnlyObservableCollection<PropertyDisplayInfo>(_eventTargetClassPropertyList);
         // New: ReadOnly collection for EventDisplayPropertyList
-        EventDisplayPropertyList = new ReadOnlyObservableCollection<string>(_eventDisplayPropertyList);
+        EventDisplayPropertyList = new ReadOnlyObservableCollection<PropertyDisplayInfo>(_eventDisplayPropertyList);
 
         // Subscribe to builder property changes for UI sync and CanAddWatcher
         _eventQueryBuilder.PropertyChanged += EventQueryBuilder_PropertyChanged;
@@ -130,27 +140,28 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     public ReadOnlyObservableCollection<string> EventClassList { get; }
 
     public ICollectionView EventClassListView { get; }
-    public ReadOnlyObservableCollection<string> EventDisplayPropertyList { get; }
 
     /// <summary>
     /// Gets or sets the property name to use for event display
     /// </summary>
-    public string EventDisplayPropertyName
+    public PropertyDisplayInfo EventDisplayProperty
     {
-        get => _eventDisplayPropertyName;
+        get => _eventDisplayProperty;
         set
         {
-            if (SetProperty(ref _eventDisplayPropertyName, value))
+            if (SetProperty(ref _eventDisplayProperty, value))
             {
                 // Optionally, update watchers or events if needed
             }
         }
     }
 
+    public ReadOnlyObservableCollection<PropertyDisplayInfo> EventDisplayPropertyList { get; }
+
     /// <summary>
     /// Gets a collection of intrinsic WMI event properties for the selected event class
     /// </summary>
-    public ReadOnlyObservableCollection<string> EventPropertyList { get; }
+    public ReadOnlyObservableCollection<PropertyDisplayInfo> EventPropertyList { get; }
 
     /// <summary>
     /// Gets or sets the WMI event query
@@ -189,7 +200,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
 
     public ReadOnlyObservableCollection<string> EventTargetClassList { get; }
     public ICollectionView EventTargetClassListView { get; }
-    public ReadOnlyObservableCollection<string> EventTargetClassPropertyList { get; }
+    public ReadOnlyObservableCollection<PropertyDisplayInfo> EventTargetClassPropertyList { get; }
 
     /// <summary>
     /// Gets or sets the search text for filtering classes
@@ -338,7 +349,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
                 RemoveWatcher,
                 OnEventReceived,
                 EventQueryBuilder.EventClass ?? "Unknown",
-                EventDisplayPropertyName
+                EventDisplayProperty.Name
             );
             _watchers.Add(watcherViewModel);
             watcher.Start();
@@ -397,10 +408,12 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     /// <summary>
     /// Helper method to retrieve WMI class properties from either in-memory classes or cache
     /// </summary>
-    private async Task GetAndPopulateWmiClassPropertiesAsync(string? className, ObservableCollection<string> targetCollection, Action<IEnumerable<string>>? setDefaultProperty = null)
+    private async Task GetAndPopulateWmiClassPropertiesAsync(
+    string? className,
+    ObservableCollection<PropertyDisplayInfo> targetCollection)
     {
         targetCollection.Clear();
-        IEnumerable<string> propertyNames = Enumerable.Empty<string>();
+        IEnumerable<PropertyDisplayInfo> propertyInfos = Enumerable.Empty<PropertyDisplayInfo>();
 
         if (_selectedNamespace != null && !string.IsNullOrEmpty(className))
         {
@@ -408,9 +421,13 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             var inMemoryClass = _selectedNamespace.Classes?.FirstOrDefault(c => c.ClassName == className);
             if (inMemoryClass != null && inMemoryClass.WmiClass != null && inMemoryClass.WmiClass.Properties != null && inMemoryClass.WmiClass.Properties.Count > 0)
             {
-                propertyNames = inMemoryClass.WmiClass.Properties
+                propertyInfos = inMemoryClass.WmiClass.Properties
                     .Cast<System.Management.PropertyData>()
-                    .Select(p => p.Name);
+                    .Select(p => new PropertyDisplayInfo
+                    {
+                        Name = p.Name,
+                        Type = p.Type.ToString() != null ? p.Type.ToString() : string.Empty
+                    });
             }
             else
             {
@@ -420,9 +437,13 @@ public class WmiWatcherViewModel : MessagingViewModelBase
                     if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
                     {
                         var cachedClass = nsCache.Classes.FirstOrDefault(c => c.ClassName == className);
-                        if (cachedClass != null && cachedClass.PropertyNames != null && cachedClass.PropertyNames.Count > 0)
+                        if (cachedClass != null && cachedClass.Properties != null && cachedClass.Properties.Count > 0)
                         {
-                            propertyNames = cachedClass.PropertyNames;
+                            propertyInfos = cachedClass.Properties.Select(p => new PropertyDisplayInfo
+                            {
+                                Name = p.Name,
+                                Type = p.Type ?? string.Empty
+                            });
                         }
                     }
                 }
@@ -434,19 +455,12 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         }
 
         // Exclude TIME_CREATED and SECURITY_DESCRIPTOR
-        propertyNames = propertyNames.Where(n =>
-            !string.Equals(n, "TIME_CREATED", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(n, "SECURITY_DESCRIPTOR", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(n => n, StringComparer.Ordinal);
+        propertyInfos = propertyInfos.Where(p =>
+            !string.Equals(p.Name, "TIME_CREATED", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(p.Name, "SECURITY_DESCRIPTOR", StringComparison.OrdinalIgnoreCase));
 
-        // Populate the collection
-        foreach (var name in propertyNames)
-        {
-            targetCollection.Add(name);
-        }
-
-        // Apply default property selection if callback provided
-        setDefaultProperty?.Invoke(propertyNames);
+        foreach (var prop in propertyInfos)
+            targetCollection.Add(prop);
     }
 
     /// <summary>
@@ -487,6 +501,68 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             while (_events.Count > maxEvents)
                 _events.RemoveAt(0);
         });
+    }
+
+    /// <summary>
+    /// Helper to populate class lists for event or target classes
+    /// </summary>
+    private async Task PopulateClassListAsync(bool eventClassesOnly, ObservableCollection<string> targetCollection, ICollectionView viewToRefresh)
+    {
+        targetCollection.Clear();
+        IEnumerable<string> classNames = Enumerable.Empty<string>();
+
+        if (_selectedNamespace != null)
+        {
+            // Prefer in-memory classes if available
+            var inMemory = _selectedNamespace.Classes?
+                .Where(c => eventClassesOnly ? c.IsEventClass : !c.IsEventClass)
+                .Select(c => c.ClassName)
+                .ToList();
+            if (inMemory != null && inMemory.Count > 0)
+            {
+                classNames = inMemory;
+            }
+            else
+            {
+                try
+                {
+                    var nsCache = await _cacheService.GetNamespaceCacheAsync(_selectedNamespace.NamespacePath);
+                    if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
+                    {
+                        classNames = nsCache.Classes
+                            .Where(c => eventClassesOnly ? c.IsEventClass : !c.IsEventClass)
+                            .Select(c => c.ClassName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Cache error: {ex.Message}");
+                }
+            }
+        }
+
+        if (eventClassesOnly && !classNames.Any())
+        {
+            // Fallback to default event class list
+            classNames = new[]
+            {
+                "__InstanceCreationEvent",
+                "__InstanceModificationEvent",
+                "__InstanceDeletionEvent",
+                "__InstanceOperationEvent",
+                "__ClassCreationEvent",
+                "__ClassModificationEvent",
+                "__ClassDeletionEvent",
+            };
+        }
+
+        // Sort: system classes (names starting with "__") first, then others, both groups sorted ascending (A-Z)
+        var systemClasses = classNames.Where(n => n.StartsWith("__")).Distinct().OrderBy(n => n, StringComparer.Ordinal);
+        var userClasses = classNames.Where(n => !n.StartsWith("__")).Distinct().OrderBy(n => n, StringComparer.Ordinal);
+        foreach (var name in systemClasses.Concat(userClasses))
+            targetCollection.Add(name);
+
+        viewToRefresh.Refresh();
     }
 
     private void RemoveAllWatchers()
@@ -532,71 +608,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
 
     private async void UpdateEventClassList()
     {
-        _eventClassList.Clear();
-        var eventClassNames = Enumerable.Empty<string>();
-
-        if (_selectedNamespace != null)
-        {
-            // Prefer in-memory classes if available
-            var inMemory = _selectedNamespace
-                .Classes?.Where(c => c.IsEventClass)
-                .Select(c => c.ClassName)
-                .ToList();
-            if (inMemory != null && inMemory.Count > 0)
-            {
-                eventClassNames = inMemory;
-            }
-            else
-            {
-                try
-                {
-                    // Use cache service directly
-                    var nsCache = await _cacheService.GetNamespaceCacheAsync(
-                        _selectedNamespace.NamespacePath
-                    );
-                    if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
-                    {
-                        eventClassNames = nsCache
-                            .Classes.Where(c => c.IsEventClass)
-                            .Select(c => c.ClassName);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log or handle cache retrieval errors gracefully
-                    System.Diagnostics.Debug.WriteLine($"Cache error: {ex.Message}");
-                }
-            }
-        }
-
-        if (!eventClassNames.Any())
-        {
-            // Fallback to default list
-            eventClassNames =
-            [
-                "__InstanceCreationEvent",
-                    "__InstanceModificationEvent",
-                    "__InstanceDeletionEvent",
-                    "__InstanceOperationEvent",
-                    "__ClassCreationEvent",
-                    "__ClassModificationEvent",
-                    "__ClassDeletionEvent",
-                ];
-        }
-
-        // Sort event class names: system classes (names starting with "__") first, then others, both groups sorted ascending (A-Z)
-        var systemEvents = eventClassNames
-            .Where(n => n.StartsWith("__"))
-            .Distinct()
-            .OrderBy(n => n, StringComparer.Ordinal);
-        var userEvents = eventClassNames
-            .Where(n => !n.StartsWith("__"))
-            .Distinct()
-            .OrderBy(n => n, StringComparer.Ordinal);
-        foreach (var name in systemEvents.Concat(userEvents))
-            _eventClassList.Add(name);
-
-        EventClassListView.Refresh();
+        await PopulateClassListAsync(true, _eventClassList, EventClassListView);
     }
 
     private void UpdateEventDisplayPropertyList()
@@ -618,102 +630,86 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         }
         else
         {
-            _eventDisplayPropertyList.Add("__RELPATH");
+            _eventDisplayPropertyList.Add(new PropertyDisplayInfo
+            {
+                Name = "__RELPATH",
+                Type = "string"
+            });
         }
+
         // Set default if needed
-        if (!_eventDisplayPropertyList.Contains(EventDisplayPropertyName))
-        {
-            EventDisplayPropertyName = _eventDisplayPropertyList.FirstOrDefault() ?? "__RELPATH";
-        }
+        EventDisplayProperty = _eventDisplayPropertyList.FirstOrDefault() ?? new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
     }
 
     private async void UpdateEventPropertyList()
     {
-        await GetAndPopulateWmiClassPropertiesAsync(EventQueryBuilder.EventClass, _eventPropertyList, propertyNames =>
+        await GetAndPopulateWmiClassPropertiesAsync(EventQueryBuilder.EventClass, _eventPropertyList);
+        if (_eventPropertyList.Count > 0)
         {
-            // Set default EventProperty: prefer property starting with "Target", else first item, else null
-            var targetProp = propertyNames.FirstOrDefault(n => n.StartsWith("Target", StringComparison.OrdinalIgnoreCase));
-            if (targetProp != null)
-                EventQueryBuilder.EventProperty = targetProp;
-            else
-                EventQueryBuilder.EventProperty = propertyNames.FirstOrDefault();
-            UpdateEventDisplayPropertyList(); // Ensure display property list is updated after event property list changes
-        });
+            // Look for properties starting with "Target"
+            PropertyDisplayInfo? targetProp = null;
+            targetProp = _eventPropertyList
+                .FirstOrDefault(p => p.Name.StartsWith("Target", StringComparison.OrdinalIgnoreCase));
+
+            // If no target property found, use the first property
+            if (targetProp == null && _eventPropertyList.Count > 0)
+            {
+                targetProp = _eventPropertyList[0];
+            }
+
+            // Set the property - We're using the actual object reference from _eventPropertyList
+            EventQueryBuilder.EventProperty = targetProp;
+
+            // Update related UI elements
+            UpdateEventDisplayPropertyList();
+        }
     }
 
-    /// <summary>
-    /// Updates the target classes collection based on the selected namespace
-    /// </summary>
     private async Task UpdateEventTargetClassListAsync()
     {
-        _eventTargetClassList.Clear();
-        IEnumerable<string> classNames = Enumerable.Empty<string>();
-
-        if (_selectedNamespace != null)
-        {
-            // Prefer in-memory classes if available
-            var inMemory = _selectedNamespace
-                .Classes?.Where(c => !c.IsEventClass)
-                .Select(c => c.ClassName)
-                .ToList();
-            if (inMemory != null && inMemory.Count > 0)
-            {
-                classNames = inMemory;
-            }
-            else
-            {
-                try
-                {
-                    var nsCache = await _cacheService.GetNamespaceCacheAsync(
-                        _selectedNamespace.NamespacePath
-                    );
-                    if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
-                    {
-                        classNames = nsCache
-                            .Classes.Where(c => !c.IsEventClass)
-                            .Select(c => c.ClassName);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Cache error: {ex.Message}");
-                }
-            }
-        }
-
-        // Add classes from the namespace and sort them
-        foreach (var className in classNames.OrderBy(n => n, StringComparer.Ordinal))
-        {
-            _eventTargetClassList.Add(className);
-        }
+        await PopulateClassListAsync(false, _eventTargetClassList, EventTargetClassListView);
 
         // Check if current target class still exists
         if (!string.IsNullOrEmpty(EventQueryBuilder.EventTargetClass) && !_eventTargetClassList.Contains(EventQueryBuilder.EventTargetClass))
         {
             EventQueryBuilder.EventTargetClass = string.Empty;
         }
-
-        // Refresh the view
-        EventTargetClassListView.Refresh();
     }
 
     private async void UpdateEventTargetClassPropertyList()
     {
-        await GetAndPopulateWmiClassPropertiesAsync(EventQueryBuilder.EventTargetClass, _eventTargetClassPropertyList, propertyNames =>
+        await GetAndPopulateWmiClassPropertiesAsync(EventQueryBuilder.EventTargetClass, _eventTargetClassPropertyList);
+        if (_eventTargetClassPropertyList.Count > 0)
         {
-            // Set default EventTargetClassProperty if not already set and if the EventTargetClass has changed
-            if (string.IsNullOrEmpty(EventQueryBuilder.EventTargetClassProperty) && propertyNames.Any())
-            {
-                // Prefer a property that might contain identifying information like ID, Name, or DisplayName
-                var preferredProperty = propertyNames.FirstOrDefault(n =>
-                    n.EndsWith("Id", StringComparison.OrdinalIgnoreCase) ||
-                    n.EndsWith("Name", StringComparison.OrdinalIgnoreCase) ||
-                    n.Contains("Display", StringComparison.OrdinalIgnoreCase));
+            // Find the preferred property in the actual _eventTargetClassPropertyList collection
+            PropertyDisplayInfo? preferredPropInList = null;
 
-                EventQueryBuilder.EventTargetClassProperty = preferredProperty ?? propertyNames.FirstOrDefault();
+            // Look for identifying properties first
+            var preferredPropName = _eventTargetClassPropertyList
+                .FirstOrDefault(p =>
+                    p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase) ||
+                    p.Name.EndsWith("Name", StringComparison.OrdinalIgnoreCase) ||
+                    p.Name.Contains("Display", StringComparison.OrdinalIgnoreCase))?.Name;
+
+            if (preferredPropName != null)
+            {
+                // Find this property in the actual _eventTargetClassPropertyList (to get the correct object reference)
+                preferredPropInList = _eventTargetClassPropertyList.FirstOrDefault(p =>
+                    p.Name.Equals(preferredPropName, StringComparison.OrdinalIgnoreCase));
             }
-            UpdateEventDisplayPropertyList(); // Ensure display property list is updated after target class property list changes
-        });
+
+            // If no preferred property found, use the first property
+            if (preferredPropInList == null && _eventTargetClassPropertyList.Count > 0)
+            {
+                preferredPropInList = _eventTargetClassPropertyList[0];
+            }
+
+            // Set the property using the actual object reference from _eventTargetClassPropertyList
+            EventQueryBuilder.EventTargetClassProperty = preferredPropInList;
+
+            // Update related UI elements
+            UpdateEventDisplayPropertyList();
+        }
     }
 
     private void UpdateWatcherNames()

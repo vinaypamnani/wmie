@@ -14,7 +14,6 @@
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="NotBoolToVisibilityConverter" Invert="True" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <converters:BooleanToStyleConverter x:Key="BooleanToStyleConverter" />
     </UserControl.Resources>
 
     <Grid>
@@ -71,6 +70,7 @@
                                 <ComboBox
                                     Width="200"
                                     Height="26"
+                                    DisplayMemberPath="Display"
                                     IsEditable="False"
                                     IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsEventPropertyEnabled}"
                                     IsTextSearchEnabled="True"
@@ -106,6 +106,7 @@
                                     Width="180"
                                     Height="26"
                                     VerticalContentAlignment="Center"
+                                    DisplayMemberPath="Display"
                                     IsEditable="True"
                                     IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassPropertyEnabled}"
                                     ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassPropertyList}"
@@ -130,7 +131,7 @@
                                     Height="26"
                                     HorizontalContentAlignment="Left"
                                     ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyList}"
-                                    SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayPropertyName, UpdateSourceTrigger=PropertyChanged}" />
+                                    SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventDisplayProperty, UpdateSourceTrigger=PropertyChanged}" />
                             </GroupBox>
                         </DockPanel>
 
@@ -165,7 +166,6 @@
                                 VerticalContentAlignment="Center"
                                 AcceptsReturn="True"
                                 IsReadOnly="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsQueryReadOnly}"
-                                Style="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.IsQueryReadOnly, Converter={StaticResource BooleanToStyleConverter}, ConverterParameter='ReadOnlyTextBoxStyle'}"
                                 Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventQuery, UpdateSourceTrigger=PropertyChanged}"
                                 TextWrapping="Wrap" />
                             <!--  Add Watcher Button  -->
