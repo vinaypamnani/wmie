@@ -1,8 +1,7 @@
-using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels;
 
-namespace WmiExplorer.Services;
+namespace WmiExplorer.Common.Shared;
 
 #region classes
 

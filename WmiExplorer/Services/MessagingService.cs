@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Application = System.Windows.Application;
 using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Presentation.Views;
+using WmiExplorer.Common.Shared;
 
 namespace WmiExplorer.Services;
 

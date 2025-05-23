@@ -3,6 +3,7 @@ using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
+using WmiExplorer.Common.Shared;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
