@@ -35,7 +35,7 @@ public class SettingsService : ISettingsService
         // Load settings from file
         LoadSettings();
 
-        Debug.WriteLine($"SettingsService initialized with ClassTypeFilter: {_classTypeFilter}");
+        Debug.WriteLine($"SettingsService initialized with file path: {_filePath}");
     }
 
     // ClassTypeFilter property with change notification

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using MessageBox = System.Windows.MessageBox;
 using WmiExplorer.Presentation.PropertyTypeProvider;
@@ -13,8 +15,19 @@ namespace WmiExplorer;
 /// </summary>
 public partial class App : Application
 {
+    private const int ATTACH_PARENT_PROCESS = -1;
+
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Enable debug logging to console if -v is present
+        if (e.Args.Contains("-debug"))
+        {
+            AttachConsole(ATTACH_PARENT_PROCESS);
+            Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
+            Trace.AutoFlush = true;
+            Trace.WriteLine("=== DEBUG logging enabled ===");
+        }
+
         base.OnStartup(e);
         ConfigureServices();
 
@@ -26,6 +39,9 @@ public partial class App : Application
         var wmiService = ServiceLocator.Instance.Get<IWmiService>();
         ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());
     }
+
+    [DllImport("kernel32.dll")]
+    private static extern bool AttachConsole(int dwProcessId);
 
     /// <summary>
     /// Configures the service locator with all required services
@@ -94,5 +110,8 @@ public partial class App : Application
             File.AppendAllText(logPath, $"[{DateTime.Now}] {title}: {exception}\n");
         }
         catch { /* Ignore logging errors */ }
+
+        // Ensure the application exits after showing the error
+        Application.Current?.Shutdown();
     }
 }
