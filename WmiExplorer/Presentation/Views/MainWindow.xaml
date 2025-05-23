@@ -11,6 +11,7 @@
         xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
         xmlns:tabs="clr-namespace:WmiExplorer.Presentation.Views.Tabs"
         xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+        xmlns:local="clr-namespace:WmiExplorer"
         Title="WmiExplorer"
         Background="{DynamicResource PrimaryBackgroundBrush}"
         BorderBrush="{DynamicResource BorderBrush}"
@@ -55,7 +56,9 @@
                 <MenuItem Header="Paste" />
             </MenuItem>
             <TextBlock>
-                <Hyperlink>Version</Hyperlink>
+                <Hyperlink>
+                    <Run Text="{x:Static local:VersionInfo.AppVersion}" />
+                </Hyperlink>
             </TextBlock>
             <MenuItem x:Name="ThemeToggle"
                       Margin="{StaticResource MarginHorizontalLarge}"
