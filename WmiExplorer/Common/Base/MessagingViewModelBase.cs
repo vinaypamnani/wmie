@@ -11,7 +11,6 @@ namespace WmiExplorer.Common.Base;
 public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
 {
     private readonly List<IDisposable> _messageSubscriptions = new();
-    private readonly Dictionary<object, Delegate> _strongHandlers = new Dictionary<object, Delegate>();
 
     /// <summary>
     /// Gets the messaging service for publishing and subscribing to messages
@@ -105,9 +104,7 @@ public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
         {
             return Application.Current.Dispatcher.InvokeAsync(asyncAction).Task;
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Subscribe to a message of type T and keep a strong reference to the handler
     /// </summary>
     /// <typeparam name="T">The message type</typeparam>
@@ -119,10 +116,8 @@ public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
         if (MessageService == null)
             throw new InvalidOperationException("Call InitializeMessaging before subscribing to messages");
 
-        // Store the handler with a unique key to prevent garbage collection
-        _strongHandlers[Guid.NewGuid()] = handler;
-
-        var subscription = MessageService.Subscribe(handler, runOnUIThread);
+        // Use the service's StrongSubscribe method which maintains strong references internally
+        var subscription = MessageService.StrongSubscribe(handler, runOnUIThread);
         _messageSubscriptions.Add(subscription);
         return subscription;
     }

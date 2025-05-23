@@ -105,6 +105,20 @@ public class MessagingService : IMessagingService
     }
 
     /// <summary>
+    /// Subscribes to a specific message type using strong references to prevent garbage collection
+    /// </summary>
+    public IDisposable StrongSubscribe<TMessage>(Action<TMessage> action, bool runOnUIThread = false)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        var messageType = typeof(TMessage);
+        var subscriber = new StrongSubscriberInfo<TMessage>(action, runOnUIThread);
+
+        return AddSubscriber(messageType, subscriber, "StrongSubscription");
+    }
+
+    /// <summary>
     /// Subscribes to a specific message type with thread-safe handling
     /// </summary>
     public IDisposable Subscribe<TMessage>(Action<TMessage> action, bool runOnUIThread = false)
@@ -116,6 +130,14 @@ public class MessagingService : IMessagingService
         var owner = new WeakReference<object>(action.Target ?? this);
         var subscriber = new SubscriberInfo<TMessage>(action, owner, runOnUIThread);
 
+        return AddSubscriber(messageType, subscriber, "Subscription");
+    }
+
+    /// <summary>
+    /// Common method to add subscribers with thread-safe handling
+    /// </summary>
+    private IDisposable AddSubscriber(Type messageType, SubscriberInfo subscriber, string subscriptionType)
+    {
         // Get or add thread-safely
         var subscribersList = _subscribers.GetOrAdd(
             messageType,
@@ -134,11 +156,11 @@ public class MessagingService : IMessagingService
             subscribersList.Add(subscriber);
         }
 
-        System.Diagnostics.Debug.WriteLine($"[MessagingService] Subscribed to {messageType.Name}, RunOnUIThread={runOnUIThread}");
+        System.Diagnostics.Debug.WriteLine($"[MessagingService] {subscriptionType} to {messageType.Name}, RunOnUIThread={subscriber.ShouldRunOnUIThread}");
 
         return new SubscriptionToken(
             () => RemoveSubscriber(messageType, subscriber),
-            $"Subscription: {messageType.Name}"
+            $"{subscriptionType}: {messageType.Name}"
         );
     }
 
@@ -169,6 +191,34 @@ public class MessagingService : IMessagingService
     }
 
     /// <summary>
+    /// Type-specific subscriber that maintains strong references to prevent garbage collection
+    /// </summary>
+    private class StrongSubscriberInfo<TMessage> : SubscriberInfo
+    {
+        private readonly Action<TMessage> _action;
+
+        // Strong reference
+
+        public override bool IsAlive => true;
+
+        // Always alive since we maintain strong reference
+
+        public override void DeliverMessage<T>(T message)
+        {
+            if (message is TMessage typedMessage)
+            {
+                _action(typedMessage);
+            }
+        }
+
+        public StrongSubscriberInfo(Action<TMessage> action, bool runOnUIThread)
+            : base(new WeakReference<object>(action.Target ?? action), runOnUIThread)
+        {
+            _action = action; // Keep strong reference
+        }
+    }
+
+    /// <summary>
     /// Abstract base class for subscriber information
     /// </summary>
     private abstract class SubscriberInfo
@@ -192,7 +242,7 @@ public class MessagingService : IMessagingService
     }
 
     /// <summary>
-    /// Type-specific subscriber that can deliver properly typed messages
+    /// Type-specific subscriber that can deliver properly typed messages using weak references
     /// </summary>
     private class SubscriberInfo<TMessage> : SubscriberInfo
     {
