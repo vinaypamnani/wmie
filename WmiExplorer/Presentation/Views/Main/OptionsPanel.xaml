@@ -78,8 +78,8 @@
                                VerticalAlignment="Center"
                                Text="Primary"
                                TextAlignment="Left" />
-                    <colorpicker:ColorPicker Width="48"
-                                             Height="24"
+                    <colorpicker:ColorPicker Width="40"
+                                             Height="20"
                                              SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
                                              ShowAlphaChannel="True"
                                              ShowRecentColors="True" />
@@ -89,8 +89,8 @@
                                VerticalAlignment="Center"
                                Text="Secondary"
                                TextAlignment="Left" />
-                    <colorpicker:ColorPicker Width="48"
-                                             Height="24"
+                    <colorpicker:ColorPicker Width="40"
+                                             Height="20"
                                              SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
                                              ShowAlphaChannel="True"
                                              ShowRecentColors="True" />
