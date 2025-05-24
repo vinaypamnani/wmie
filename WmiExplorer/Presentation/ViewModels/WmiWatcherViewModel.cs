@@ -28,6 +28,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private ICommand? _addWatcherCommand;
     private readonly ICacheService _cacheService;
     private bool _canAddWatcher = false;
+    private readonly string _defaultEventclass = "__InstanceCreationEvent";
     private readonly ObservableCollection<string> _eventClassList = new ObservableCollection<string>();
     private PropertyDisplayInfo _eventDisplayProperty = new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
     private readonly ObservableCollection<PropertyDisplayInfo> _eventDisplayPropertyList = new ObservableCollection<PropertyDisplayInfo>();
@@ -657,6 +658,16 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private async void UpdateEventClassList()
     {
         await PopulateClassListAsync(true, _eventClassList, EventClassListView);
+
+        if (_eventClassList.Contains(_defaultEventclass))
+        {
+            EventQueryBuilder.EventClass = _defaultEventclass;
+        }
+        else if (_eventClassList.Count > 0 && EventQueryBuilder.EventClass != _eventClassList[0])
+        {
+            // Set to the first class in the list
+            EventQueryBuilder.EventClass = _eventClassList[0];
+        }
     }
 
     private void UpdateEventDisplayPropertyList()
