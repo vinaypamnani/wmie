@@ -19,6 +19,22 @@ public interface IWmiService
     ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions? options = null);
 
     /// <summary>
+    /// Executes a search for classes, methods, or properties in the given scope.
+    /// </summary>
+    /// <param name="scope">The ManagementScope to use for the query</param>
+    /// <param name="searchType">The type of search (Class, Method, Property)</param>
+    /// <param name="searchText">The search text to filter results</param>
+    /// <param name="recursive">Whether to search recursively</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A list of tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class</returns>
+    Task<IEnumerable<(object match, ManagementBaseObject parent)>> ExecuteSearchAsync(
+        ManagementScope scope,
+        WmiSearchType searchType,
+        string searchText,
+        bool recursive,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously gets child namespaces for a given WMI namespace
     /// </summary>
     /// <param name="scope">The ManagementScope to use for the query</param>

@@ -8,14 +8,18 @@ namespace WmiExplorer.Core.Models;
 public class WmiMethod
 {
     private readonly MethodData _methodData;
+    private readonly ManagementClass? _parentClass;
 
-    public WmiMethod(MethodData methodData)
+    public WmiMethod(MethodData methodData, ManagementClass? parentClass = null)
     {
         _methodData = methodData ?? throw new ArgumentNullException(nameof(methodData));
+        _parentClass = parentClass;
         InParameters = new WmiParameterCollection(_methodData.InParameters);
         OutParameters = new WmiParameterCollection(_methodData.OutParameters);
     }
 
+    public string ClassName => _parentClass?["__Class"]?.ToString() ?? string.Empty;
+    public string ClassPath => _parentClass?.Path?.Path ?? string.Empty;
     public string Description => _methodData.Qualifiers?["Description"]?.Value?.ToString() ?? string.Empty;
     public WmiParameterCollection InParameters { get; }
 

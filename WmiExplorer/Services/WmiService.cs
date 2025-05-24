@@ -36,6 +36,83 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Executes a search for classes, methods, or properties based on the search type.
+    /// Returns tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class.
+    /// </summary>
+    public Task<IEnumerable<(object match, ManagementBaseObject parent)>> ExecuteSearchAsync(
+        ManagementScope scope,
+        WmiSearchType searchType,
+        string searchText,
+        bool recursive,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() =>
+        {
+            EnsureScopeConnected(scope);
+            var results = new List<(object match, ManagementBaseObject parent)>();
+
+            switch (searchType)
+            {
+                case WmiSearchType.Class:
+                    var classQuery = new SelectQuery("meta_class");
+                    using (var searcher = new ManagementObjectSearcher(scope, classQuery))
+                    {
+                        foreach (ManagementClass wmiClass in searcher.Get())
+                        {
+                            if (cancellationToken.IsCancellationRequested) break;
+                            var className = wmiClass["__Class"]?.ToString() ?? string.Empty;
+                            if (string.IsNullOrWhiteSpace(searchText) || className.Contains(searchText, System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                // For classes, match and parent are the same
+                                results.Add((wmiClass, wmiClass));
+                            }
+                        }
+                    }
+                    break;
+
+                case WmiSearchType.Method:
+                    var methodClassQuery = new SelectQuery("meta_class");
+                    using (var searcher = new ManagementObjectSearcher(scope, methodClassQuery))
+                    {
+                        foreach (ManagementClass wmiClass in searcher.Get())
+                        {
+                            if (cancellationToken.IsCancellationRequested) break;
+                            foreach (MethodData method in wmiClass.Methods)
+                            {
+                                if (string.IsNullOrWhiteSpace(searchText) || method.Name.Contains(searchText, System.StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // Return the MethodData object directly
+                                    results.Add((method, wmiClass));
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case WmiSearchType.Property:
+                    var propertyClassQuery = new SelectQuery("meta_class");
+                    using (var searcher = new ManagementObjectSearcher(scope, propertyClassQuery))
+                    {
+                        foreach (ManagementClass wmiClass in searcher.Get())
+                        {
+                            if (cancellationToken.IsCancellationRequested) break;
+                            foreach (PropertyData prop in wmiClass.Properties)
+                            {
+                                if (string.IsNullOrWhiteSpace(searchText) || prop.Name.Contains(searchText, System.StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // Return the PropertyData object directly
+                                    results.Add((prop, wmiClass));
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+            return (IEnumerable<(object, ManagementBaseObject)>)results;
+        }, cancellationToken);
+    }
+
+    /// <summary>
     /// Asynchronously gets child namespaces for a given WMI namespace
     /// </summary>
     public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)

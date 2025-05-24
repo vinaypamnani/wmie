@@ -3,6 +3,9 @@
         <!--  Include theme-specific resources (will be loaded by your theme system)  -->
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Generic.xaml" />
 
+        <!--  Converters -->
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/Converters.xaml" />
+
         <!--  Include all of our modular style files  -->
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/TextControlStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ButtonStyles.xaml" />

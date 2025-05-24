@@ -117,6 +117,19 @@ public class SelectedNamespaceChangedMessage : MessageBase
 }
 
 /// <summary>
+/// Message sent when selected search result changes
+/// </summary>
+public class SelectedSearchResultChangedMessage : MessageBase
+{
+    public SelectedSearchResultChangedMessage(WmiSearchResult? selectedResult)
+    {
+        SelectedResult = selectedResult;
+    }
+
+    public WmiSearchResult? SelectedResult { get; }
+}
+
+/// <summary>
 /// Message sent when theme changes
 /// </summary>
 public class ThemeChangedMessage : MessageBase

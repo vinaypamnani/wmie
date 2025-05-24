@@ -15,6 +15,7 @@ public class MainViewModel : MessagingViewModelBase
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private WmiWatcherViewModel? _eventWatcherViewModel;
     private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
+    private WmiSearchViewModel? _searchViewModel;
     private WmiClassViewModel? _selectedClass;
     private WmiInstanceViewModel? _selectedInstance;
     private WmiNamespaceViewModel? _selectedNamespace;
@@ -23,7 +24,6 @@ public class MainViewModel : MessagingViewModelBase
     private string _temporaryComputerName = Environment.MachineName;
     private readonly ThemeManager _themeManager;
     private MainWindowPosition _windowPosition;
-
     private readonly IWmiService _wmiService;
 
     public MainViewModel(
@@ -56,6 +56,7 @@ public class MainViewModel : MessagingViewModelBase
         StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
         StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
+        StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
 
         // Subscribe to theme change messages
         StrongSubscribe<ThemeChangedMessage>(_ =>
@@ -69,6 +70,8 @@ public class MainViewModel : MessagingViewModelBase
 
         // Initialize the Event Watcher ViewModel
         _eventWatcherViewModel = new WmiWatcherViewModel(messagingService, _cacheService);
+        // Initialize the Search ViewModel
+        _searchViewModel = new WmiSearchViewModel(messagingService, wmiService);
 
         // Log initial class filter
         System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
@@ -188,6 +191,11 @@ public class MainViewModel : MessagingViewModelBase
         _ => SelectedNamespace?.LoadClassesCommand.Execute(null),
         _ => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
     );
+
+    /// <summary>
+    /// Gets the view model for the WMI Search
+    /// </summary>
+    public WmiSearchViewModel SearchViewModel => _searchViewModel!;
 
     /// <summary>
     /// Currently selected class in the tree
@@ -508,6 +516,28 @@ public class MainViewModel : MessagingViewModelBase
 
         // Use the new method to update the status bar
         UpdateNamespaceStatus(message.NamespaceViewModel);
+    }
+
+    /// <summary>
+    /// Handles when a search result is selected to update the property grid
+    /// </summary>
+    private void HandleSelectedSearchResultChangedMessage(SelectedSearchResultChangedMessage message)
+    {        // Set SelectedObject to the underlying WMI object for the property grid
+        if (message?.SelectedResult != null)
+        {
+            if (message.SelectedResult.Class != null)
+                SelectedObject = message.SelectedResult.Class;
+            else if (message.SelectedResult.Method != null)
+                SelectedObject = message.SelectedResult.Method;
+            else if (message.SelectedResult.Property != null)
+                SelectedObject = message.SelectedResult.Property;
+            else
+                SelectedObject = message.SelectedResult.Match;
+        }
+        else
+        {
+            SelectedObject = null;
+        }
     }
 
     /// <summary>
