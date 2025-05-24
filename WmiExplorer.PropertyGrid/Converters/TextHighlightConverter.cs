@@ -21,7 +21,6 @@ public class TextHighlightConverter : IMultiValueConverter
                 string fallbackText = values?[0]?.ToString() ?? string.Empty;
                 return new TextBlock { Text = fallbackText };
             }
-
             string text = values[0]?.ToString() ?? string.Empty;
             string searchTerm = values[1]?.ToString() ?? string.Empty;
 
@@ -43,10 +42,16 @@ public class TextHighlightConverter : IMultiValueConverter
                 }
             }
 
-            // If no search term or empty, just return the original text
+            // Early return for empty search term - no highlighting needed
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
                 textBlock.Text = text;
+                return textBlock;
+            }
+
+            // Early return for empty text
+            if (string.IsNullOrEmpty(text))
+            {
                 return textBlock;
             }
 

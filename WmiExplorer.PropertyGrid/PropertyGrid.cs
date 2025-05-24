@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Converters;
 using WmiExplorer.PropertyGrid.Providers;
@@ -153,13 +154,24 @@ public class PropertyGrid : Control
         "Toggle Category", "ToggleCategory", typeof(PropertyGrid));
 
     private TextBlock? _helpTextBlock;
+    private string _pendingSearchText = string.Empty;
     private TreeView? _propertiesTreeView;
     private TextBox? _searchBox;
+
+    // Debouncing fields for search functionality
+    private readonly DispatcherTimer _searchDebounceTimer;
 
     public PropertyGrid()
     {
         Loaded += PropertyGrid_Loaded;
         Unloaded += PropertyGrid_Unloaded;
+
+        // Initialize debounce timer (300ms delay)
+        _searchDebounceTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(300)
+        };
+        _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
 
         // Initialize the ClearSearchCommand
         ClearSearchCommand = new RelayCommand(
@@ -398,30 +410,6 @@ public class PropertyGrid : Control
         }
     }
 
-    private void PropertyGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-        // Load properties if an object is selected
-        if (SelectedObject != null)
-        {
-            LoadProperties();
-        }
-    }
-
-    private void PropertyGrid_Unloaded(object sender, RoutedEventArgs e)
-    {
-        // Unsubscribe from event handlers to prevent memory leaks
-        if (_searchBox != null)
-        {
-            _searchBox.TextChanged -= SearchBox_TextChanged;
-        }
-
-        if (_propertiesTreeView != null)
-        {
-            _propertiesTreeView.SelectedItemChanged -= TreeView_SelectedItemChanged;
-            _propertiesTreeView.PreviewMouseWheel -= TreeView_PreviewMouseWheel;
-        }
-    }
-
     private void GridSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
     {
         // Get the main grid that contains our help pane
@@ -628,11 +616,43 @@ public class PropertyGrid : Control
         }
     }
 
+    /// <summary>
+    /// Handles the debounce timer tick event to perform the actual search
+    /// </summary>
+    private void OnSearchDebounceTimerTick(object? sender, EventArgs e)
+    {
+        _searchDebounceTimer.Stop();
+
+        // Update the SearchText property with the pending text
+        SearchText = _pendingSearchText;
+
+        // Perform the search update
+        if (_propertiesTreeView != null)
+        {
+            UpdateTreeViewSearch();
+        }
+    }
+
     private static void OnSearchTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is PropertyGrid grid && grid._searchBox != null)
+        if (d is PropertyGrid grid)
         {
-            grid._searchBox.Text = (string)e.NewValue;
+            string newSearchText = (string)e.NewValue ?? string.Empty;
+
+            // Update the search box text if it's different from the new value
+            if (grid._searchBox != null && grid._searchBox.Text != newSearchText)
+            {
+                grid._searchBox.Text = newSearchText;
+            }
+
+            // Update pending search text to keep it in sync
+            grid._pendingSearchText = newSearchText;
+
+            // Trigger search update if the property changed from external source
+            if (grid._propertiesTreeView != null)
+            {
+                grid.UpdateTreeViewSearch();
+            }
         }
     }
 
@@ -680,6 +700,33 @@ public class PropertyGrid : Control
         }
     }
 
+    private void PropertyGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Load properties if an object is selected
+        if (SelectedObject != null)
+        {
+            LoadProperties();
+        }
+    }
+
+    private void PropertyGrid_Unloaded(object sender, RoutedEventArgs e)
+    {
+        // Stop and clean up the debounce timer
+        _searchDebounceTimer?.Stop();
+
+        // Unsubscribe from event handlers to prevent memory leaks
+        if (_searchBox != null)
+        {
+            _searchBox.TextChanged -= SearchBox_TextChanged;
+        }
+
+        if (_propertiesTreeView != null)
+        {
+            _propertiesTreeView.SelectedItemChanged -= TreeView_SelectedItemChanged;
+            _propertiesTreeView.PreviewMouseWheel -= TreeView_PreviewMouseWheel;
+        }
+    }
+
     /// <summary>
     /// Register the default providers and converters with the PropertyTypeProviderRegistry
     /// </summary>
@@ -696,19 +743,18 @@ public class PropertyGrid : Control
     }
 
     /// <summary>
-    /// Handles search box text changes for TreeView mode
+    /// Handles search box text changes for TreeView mode with debouncing
     /// </summary>
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (sender is TextBox textBox)
         {
-            // Update the SearchText property to sync with the search box
-            SearchText = textBox.Text ?? string.Empty;
-        }
+            // Store the pending search text
+            _pendingSearchText = textBox.Text ?? string.Empty;
 
-        if (_propertiesTreeView != null)
-        {
-            UpdateTreeViewSearch();
+            // Reset the debounce timer
+            _searchDebounceTimer.Stop();
+            _searchDebounceTimer.Start();
         }
     }
 
@@ -827,7 +873,8 @@ public class PropertyGrid : Control
         if (_propertiesTreeView == null || !(_propertiesTreeView.ItemsSource is IEnumerable<PropertyHierarchyItem> items))
             return;
 
-        string? searchText = _searchBox?.Text?.Trim();
+        // Use the SearchText property which contains the current search text
+        string? searchText = SearchText?.Trim();
         bool hasSearchText = !string.IsNullOrEmpty(searchText);
 
         if (!hasSearchText)
