@@ -9,10 +9,97 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid>
-        <TextBlock
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            FontSize="16"
-            Text="Search View - To Be Implemented" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Search Criteria GroupBox -->
+        <GroupBox Grid.Row="0" Header="Search Criteria" Margin="8" HorizontalContentAlignment="Stretch">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Help Text -->
+                <TextBlock Grid.Row="0" Margin="4,4,4,4" Text="Select what to search and enter a search term. Use Recursive for deep search." />
+
+                <!-- Search Controls Row -->
+                <Grid Grid.Row="1" Margin="4,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" /> <!-- Classes -->
+                        <ColumnDefinition Width="Auto" /> <!-- Methods -->
+                        <ColumnDefinition Width="Auto" /> <!-- Properties -->
+                        <ColumnDefinition Width="*" />   <!-- Search TextBox -->
+                        <ColumnDefinition Width="Auto" /> <!-- Recursive -->
+                        <ColumnDefinition Width="Auto" /> <!-- Search Button -->
+                    </Grid.ColumnDefinitions>
+                    <RadioButton Grid.Column="0" Content="Classes" Margin="0,0,8,0" GroupName="SearchType" VerticalAlignment="Center" />
+                    <RadioButton Grid.Column="1" Content="Methods" Margin="0,0,8,0" GroupName="SearchType" VerticalAlignment="Center" />
+                    <RadioButton Grid.Column="2" Content="Properties" Margin="0,0,16,0" GroupName="SearchType" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="3" Height="26" Style="{StaticResource TextBoxWithClearButton}" Tag="Search..." Margin="0,0,8,0" VerticalAlignment="Center" HorizontalAlignment="Stretch" MinWidth="120" />
+                    <CheckBox Grid.Column="4" Content="Recursive" Margin="0,0,8,0" VerticalAlignment="Center" />
+                    <Button Grid.Column="5" Content="Search" Width="80" Height="26" />
+                </Grid>
+
+                <!-- Note Text -->
+                <TextBlock Grid.Row="2" Margin="4,0,4,4" Foreground="OrangeRed" FontWeight="Bold" Text="NOTE: Search can take a long time depending on scope and recursion." />
+            </Grid>
+        </GroupBox>
+
+        <!-- Results GroupBox -->
+        <GroupBox Grid.Row="1" Header="Search Results" Margin="8" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <!-- Filter TextBox -->
+                <TextBox Grid.Row="0" Margin="4,4,4,4" Height="26" Style="{StaticResource TextBoxWithClearButton}" Tag="Filter results..." />
+                <!-- Results ListView -->
+                <ListView Grid.Row="1" Margin="0" BorderThickness="0" Style="{StaticResource ModernGridListViewStyle}" ItemContainerStyle="{StaticResource FlatListViewItemStyle}">
+                    <ListView.View>
+                        <GridView>
+                            <GridView.ColumnHeaderContainerStyle>
+                                <Style BasedOn="{StaticResource FlatGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
+                            </GridView.ColumnHeaderContainerStyle>
+                            <GridViewColumn Width="180" Header="Name">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="120" Header="Type">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Type}" ToolTip="{Binding Type}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="220" Header="Class">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ClassName}" ToolTip="{Binding ClassName}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="240" Header="Description">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Description}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Description}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </GroupBox>
     </Grid>
 </UserControl>
