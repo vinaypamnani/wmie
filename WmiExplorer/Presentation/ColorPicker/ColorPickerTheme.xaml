@@ -1,189 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:WmiExplorer.Presentation.ColorPicker">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="ColorPickerStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
     <!--  Converters  -->
     <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-    <local:ColorToNameConverter x:Key="ColorToNameConverter" />
-
-    <!--  Button Style for color preview  -->
-    <Style x:Key="ColorPickerButtonStyle" TargetType="Button">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="2">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Border" Property="Opacity" Value="0.5" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!--  Style for the color cells in the palette  -->
-    <Style x:Key="ColorCellStyle" TargetType="Button">
-        <Setter Property="Width" Value="20" />
-        <Setter Property="Height" Value="20" />
-        <Setter Property="Margin" Value="4" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="ToolTip" Value="{Binding Converter={StaticResource ColorToNameConverter}}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Grid>
-                        <!--  Checkerboard background for transparency  -->
-                        <Grid x:Name="Checkerboard" Visibility="Collapsed">
-                            <Rectangle Fill="#FFF" />
-                            <Rectangle Width="10"
-                                       Height="10"
-                                       HorizontalAlignment="Left"
-                                       VerticalAlignment="Top"
-                                       Fill="#CCC" />
-                            <Rectangle Width="10"
-                                       Height="10"
-                                       HorizontalAlignment="Right"
-                                       VerticalAlignment="Bottom"
-                                       Fill="#CCC" />
-                        </Grid>
-                        <Border x:Name="Border"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="0">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <!--  Show checkerboard if Background is Transparent  -->
-                        <DataTrigger Binding="{Binding Background.(SolidColorBrush.Color), RelativeSource={RelativeSource Self}}" Value="{x:Static Colors.Transparent}">
-                            <Setter TargetName="Checkerboard" Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Border" Property="Opacity" Value="0.5" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!--  Tab Control Style  -->
-    <Style x:Key="ColorPickerTabControlStyle" TargetType="TabControl">
-        <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="TabStripPlacement" Value="Top" />
-        <Setter Property="BorderThickness" Value="0" />
-    </Style>
-
-    <!--  Tab Item Style  -->
-    <Style x:Key="ColorPickerTabItemStyle" TargetType="TabItem">
-        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="Padding" Value="8,4" />
-        <Setter Property="Margin" Value="0,0,4,0" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TabItem">
-                    <Border x:Name="Border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1,1,1,0"
-                            CornerRadius="4,4,0,0">
-                        <ContentPresenter x:Name="ContentSite"
-                                          Margin="{TemplateBinding Padding}"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"
-                                          ContentSource="Header" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!--  Custom Slider Style  -->
-    <Style x:Key="ColorPickerSliderStyle" TargetType="Slider">
-        <Setter Property="Height" Value="20" />
-        <Setter Property="Margin" Value="0,0,0,4" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Slider">
-                    <Grid>
-                        <Border x:Name="TrackBackground"
-                                Height="4"
-                                Margin="0,8,0,8"
-                                VerticalAlignment="Center"
-                                Background="{DynamicResource SecondaryBackgroundBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="2" />
-                        <Track x:Name="PART_Track" VerticalAlignment="Center" IsDirectionReversed="True">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton x:Name="PART_DecreaseRepeatButton" Command="Slider.DecreaseLarge" Focusable="False">
-                                    <RepeatButton.Template>
-                                        <ControlTemplate TargetType="RepeatButton">
-                                            <Border x:Name="DecreaseButton" Background="Transparent" BorderThickness="0" />
-                                        </ControlTemplate>
-                                    </RepeatButton.Template>
-                                </RepeatButton>
-                            </Track.DecreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb x:Name="Thumb" Focusable="False">
-                                    <Thumb.Template>
-                                        <ControlTemplate TargetType="Thumb">
-                                            <Ellipse x:Name="ThumbCircle"
-                                                     Width="16"
-                                                     Height="16"
-                                                     Fill="{DynamicResource PrimaryBackgroundBrush}"
-                                                     Stroke="{DynamicResource PrimaryAccentBrush}"
-                                                     StrokeThickness="2" />
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="ThumbCircle" Property="Stroke" Value="{DynamicResource PrimaryAccentBrush}" />
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Thumb.Template>
-                                </Thumb>
-                            </Track.Thumb>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton x:Name="PART_IncreaseRepeatButton" Command="Slider.IncreaseLarge" Focusable="False">
-                                    <RepeatButton.Template>
-                                        <ControlTemplate TargetType="RepeatButton">
-                                            <Border x:Name="IncreaseButton" Background="Transparent" BorderThickness="0" />
-                                        </ControlTemplate>
-                                    </RepeatButton.Template>
-                                </RepeatButton>
-                            </Track.IncreaseRepeatButton>
-                        </Track>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
 
     <!--  Default Style for ColorPicker Control  -->
     <Style TargetType="{x:Type local:ColorPicker}">
@@ -229,15 +52,15 @@
                                     <TabControl Grid.Row="0" Style="{StaticResource ColorPickerTabControlStyle}">
                                         <TabItem Header="Colors" Style="{StaticResource ColorPickerTabItemStyle}">
                                             <StackPanel>
-                                                <!--  Available Colors  -->
-                                                <TextBlock Margin="0,0,0,4"
+                                                <!--  Standard Colors  -->
+                                                <TextBlock Margin="0,8,0,4"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                                           Text="Available Colors" />
-                                                <ItemsControl ItemsSource="{Binding AvailableColors, RelativeSource={RelativeSource TemplatedParent}}">
+                                                           Text="Standard Colors" />
+                                                <ItemsControl ItemsSource="{Binding StandardColors, RelativeSource={RelativeSource TemplatedParent}}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
-                                                            <UniformGrid Columns="11" />
+                                                            <UniformGrid Columns="11" Rows="1" />
                                                         </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
@@ -249,16 +72,15 @@
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-
-                                                <!--  Standard Colors  -->
-                                                <TextBlock Margin="0,8,0,4"
+                                                <!--  Available Colors  -->
+                                                <TextBlock Margin="0,0,0,4"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                                           Text="Standard Colors" />
-                                                <ItemsControl ItemsSource="{Binding StandardColors, RelativeSource={RelativeSource TemplatedParent}}">
+                                                           Text="Available Colors" />
+                                                <ItemsControl ItemsSource="{Binding AvailableColors, RelativeSource={RelativeSource TemplatedParent}}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
-                                                            <UniformGrid Columns="11" Rows="1" />
+                                                            <UniformGrid Columns="11" />
                                                         </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
@@ -465,6 +287,7 @@
                                                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                        Text="H:" />
                                             <TextBox MinWidth="40"
+                                                     Width="100"
                                                      Margin="4,2,0,2"
                                                      VerticalAlignment="Center"
                                                      Text="{Binding Hue, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" />
@@ -513,7 +336,7 @@
                                                        VerticalAlignment="Center"
                                                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                        Text="S:" />
-                                            <TextBox MinWidth="40"
+                                            <TextBox MinWidth="40" Width="100"
                                                      Margin="4,2,0,2"
                                                      VerticalAlignment="Center"
                                                      Text="{Binding Saturation, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" />
@@ -543,7 +366,7 @@
                                                        VerticalAlignment="Center"
                                                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                        Text="V:" />
-                                            <TextBox MinWidth="40"
+                                            <TextBox MinWidth="40" Width="100"
                                                      Margin="4,2,0,2"
                                                      VerticalAlignment="Center"
                                                      Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" />
