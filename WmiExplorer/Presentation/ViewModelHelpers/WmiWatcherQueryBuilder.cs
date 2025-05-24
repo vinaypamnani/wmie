@@ -20,17 +20,13 @@ public class WmiWatcherQueryBuilder : ViewModelBase
         Method
     }
 
-    private string? _eventClass = "__InstanceCreationEvent";
+    private string? _eventClass = string.Empty;
     private PropertyDisplayInfo? _eventProperty = null;
-    private string? _eventPropertyValue = "";
-    private string? _eventQuery = "";
-    private string? _eventTargetClass = "";
-
-    // For validation, not used in query
-
+    private string? _eventPropertyValue = string.Empty;
+    private string? _eventQuery = string.Empty;
+    private string? _eventTargetClass = string.Empty;
     private PropertyDisplayInfo? _eventTargetClassProperty = null;
-
-    private string? _eventTargetClassPropertyValue = "";
+    private string? _eventTargetClassPropertyValue = string.Empty;
     private int _eventWithin = 5;
     private bool _isIntrinsicEvent = true;
     private string? _validationError = null;
