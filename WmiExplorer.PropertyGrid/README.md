@@ -63,13 +63,13 @@ Add the namespace and use the control:
 ```xml
 xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
 
-<pg:CustomPropertyGrid SelectedObject="{Binding MyObject}" />
+<pg:PropertyGrid SelectedObject="{Binding MyObject}" />
 ```
 
 #### Example Usage
 
 ```xml
-<pg:CustomPropertyGrid
+<pg:PropertyGrid
     SelectedObject="{Binding SelectedItem}"
     ShowHelpPane="True"
     ShowSearchBox="True"

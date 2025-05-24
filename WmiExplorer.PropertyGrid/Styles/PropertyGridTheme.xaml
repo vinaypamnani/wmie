@@ -93,7 +93,7 @@
                                     Background="Transparent"
                                     BorderBrush="Transparent"
                                     BorderThickness="0"
-                                    Command="{Binding ClearSearchCommand, RelativeSource={RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}}"
+                                    Command="{Binding ClearSearchCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}"
                                     Cursor="Hand"
                                     Focusable="False"
                                     ToolTip="Clear">
@@ -161,7 +161,7 @@
     <!--  ================================================================  -->
     <!--  CUSTOM PROPERTY GRID TEMPLATE  -->
     <!--  ================================================================  -->
-    <ControlTemplate x:Key="CustomPropertyGridTemplate" TargetType="local:CustomPropertyGrid">
+    <ControlTemplate x:Key="PropertyGridTemplate" TargetType="local:PropertyGrid">
         <Border Padding="5"
                 Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -278,8 +278,8 @@
                                      TextWrapping="Wrap">
                                 <TextBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Command="{x:Static local:CustomPropertyGrid.HelpPaneCopyCommand}" Header="Copy" />
-                                        <MenuItem Command="{x:Static local:CustomPropertyGrid.HelpPaneSelectAllCommand}" Header="Select All" />
+                                        <MenuItem Command="{x:Static local:PropertyGrid.HelpPaneCopyCommand}" Header="Copy" />
+                                        <MenuItem Command="{x:Static local:PropertyGrid.HelpPaneSelectAllCommand}" Header="Select All" />
                                     </ContextMenu>
                                 </TextBox.ContextMenu>
                             </TextBox>
@@ -293,13 +293,13 @@
     <!--  ================================================================  -->
     <!--  CUSTOM PROPERTY GRID STYLE  -->
     <!--  ================================================================  -->
-    <Style TargetType="{x:Type local:CustomPropertyGrid}">
+    <Style TargetType="{x:Type local:PropertyGrid}">
         <Setter Property="Background" Value="{DynamicResource PropertyGridBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="MinWidth" Value="200" />
         <Setter Property="MinHeight" Value="150" />
-        <Setter Property="Template" Value="{StaticResource CustomPropertyGridTemplate}" />
+        <Setter Property="Template" Value="{StaticResource PropertyGridTemplate}" />
     </Style>
 
 </ResourceDictionary>

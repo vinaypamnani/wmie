@@ -12,7 +12,7 @@ namespace WmiExplorer.PropertyGrid;
 /// A custom PropertyGrid control that mimics Visual Studio's PropertyGrid appearance
 /// with better dark mode support and improved contrast.
 /// </summary>
-public class CustomPropertyGrid : Control
+public class PropertyGrid : Control
 {
     // TreeView for hierarchical display
 
@@ -22,7 +22,7 @@ public class CustomPropertyGrid : Control
     /// Command to copy text to clipboard
     /// </summary>
     public static readonly RoutedUICommand CopyToClipboardCommand = new RoutedUICommand(
-        "Copy To Clipboard", "CopyToClipboard", typeof(CustomPropertyGrid));
+        "Copy To Clipboard", "CopyToClipboard", typeof(PropertyGrid));
 
     /// <summary>
     /// Whether to enable UI virtualization for better performance with large property sets.
@@ -31,14 +31,14 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(EnableVirtualization),
             typeof(bool),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(false, OnVirtualizationChanged));
 
     /// <summary>
     /// Command to copy text from the help pane
     /// </summary>
     public static readonly RoutedUICommand HelpPaneCopyCommand = new RoutedUICommand(
-        string.Empty, "HelpPaneCopy", typeof(CustomPropertyGrid));
+        string.Empty, "HelpPaneCopy", typeof(PropertyGrid));
 
     /// <summary>
     /// The height of the help pane.
@@ -47,14 +47,14 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(HelpPaneHeight),
             typeof(double),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(90.0));
 
     /// <summary>
     /// Command to select all text in the help pane
     /// </summary>
     public static readonly RoutedUICommand HelpPaneSelectAllCommand = new RoutedUICommand(
-        string.Empty, "HelpPaneSelectAll", typeof(CustomPropertyGrid));
+        string.Empty, "HelpPaneSelectAll", typeof(PropertyGrid));
 
     /// <summary>
     /// Whether to include properties with null values in the property grid.
@@ -63,7 +63,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(IncludeNullValues),
             typeof(bool),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(false, OnIncludeNullValuesChanged));
 
     /// <summary>
@@ -73,7 +73,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(IncludeSystemProperties),
             typeof(bool),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(true, OnIncludeSystemPropertiesChanged));
 
     /// <summary>
@@ -83,7 +83,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(NameColumnWidth),
             typeof(double),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(200.0));
 
     /// <summary>
@@ -93,7 +93,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(SearchText),
             typeof(string),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(string.Empty, OnSearchTextChanged));
 
     /// <summary>
@@ -103,7 +103,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(SelectedHierarchyItem),
             typeof(PropertyHierarchyItem),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(null, OnSelectedHierarchyItemChanged));
 
     /// <summary>
@@ -113,7 +113,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(SelectedObject),
             typeof(object),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(null, OnSelectedObjectChanged));
 
     /// <summary>
@@ -123,7 +123,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(ShowDescriptionByTooltip),
             typeof(bool),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(true));
 
     /// <summary>
@@ -133,7 +133,7 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(ShowHelpPane),
             typeof(bool),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(true));
 
     /// <summary>
@@ -143,23 +143,23 @@ public class CustomPropertyGrid : Control
         DependencyProperty.Register(
             nameof(ShowSearchBox),
             typeof(bool),
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new PropertyMetadata(true));
 
     /// <summary>
     /// Command to toggle a category's expanded state
     /// </summary>
     public static readonly RoutedUICommand ToggleCategoryCommand = new RoutedUICommand(
-        "Toggle Category", "ToggleCategory", typeof(CustomPropertyGrid));
+        "Toggle Category", "ToggleCategory", typeof(PropertyGrid));
 
     private TextBlock? _helpTextBlock;
     private TreeView? _propertiesTreeView;
     private TextBox? _searchBox;
 
-    public CustomPropertyGrid()
+    public PropertyGrid()
     {
-        Loaded += CustomPropertyGrid_Loaded;
-        Unloaded += CustomPropertyGrid_Unloaded;
+        Loaded += PropertyGrid_Loaded;
+        Unloaded += PropertyGrid_Unloaded;
 
         // Initialize the ClearSearchCommand
         ClearSearchCommand = new RelayCommand(
@@ -168,26 +168,26 @@ public class CustomPropertyGrid : Control
         );
     }
 
-    static CustomPropertyGrid()
+    static PropertyGrid()
     {
-        DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPropertyGrid),
-            new FrameworkPropertyMetadata(typeof(CustomPropertyGrid)));
+        DefaultStyleKeyProperty.OverrideMetadata(typeof(PropertyGrid),
+            new FrameworkPropertyMetadata(typeof(PropertyGrid)));
 
         // Register the default providers and converters
         RegisterDefaultProvidersAndConverters();
 
         // Register command bindings
         CommandManager.RegisterClassCommandBinding(
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new CommandBinding(ToggleCategoryCommand, OnToggleCategoryExecuted));
         CommandManager.RegisterClassCommandBinding(
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new CommandBinding(CopyToClipboardCommand, OnCopyToClipboardExecuted, OnCopyToClipboardCanExecute));
         CommandManager.RegisterClassCommandBinding(
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new CommandBinding(HelpPaneCopyCommand, OnHelpPaneCopyExecuted, OnHelpPaneCopyCanExecute));
         CommandManager.RegisterClassCommandBinding(
-            typeof(CustomPropertyGrid),
+            typeof(PropertyGrid),
             new CommandBinding(HelpPaneSelectAllCommand, OnHelpPaneSelectAllExecuted, OnHelpPaneSelectAllCanExecute));
     }
 
@@ -398,7 +398,7 @@ public class CustomPropertyGrid : Control
         }
     }
 
-    private void CustomPropertyGrid_Loaded(object sender, RoutedEventArgs e)
+    private void PropertyGrid_Loaded(object sender, RoutedEventArgs e)
     {
         // Load properties if an object is selected
         if (SelectedObject != null)
@@ -407,7 +407,7 @@ public class CustomPropertyGrid : Control
         }
     }
 
-    private void CustomPropertyGrid_Unloaded(object sender, RoutedEventArgs e)
+    private void PropertyGrid_Unloaded(object sender, RoutedEventArgs e)
     {
         // Unsubscribe from event handlers to prevent memory leaks
         if (_searchBox != null)
@@ -614,7 +614,7 @@ public class CustomPropertyGrid : Control
 
     private static void OnIncludeNullValuesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is CustomPropertyGrid grid)
+        if (d is PropertyGrid grid)
         {
             grid.LoadProperties();
         }
@@ -622,7 +622,7 @@ public class CustomPropertyGrid : Control
 
     private static void OnIncludeSystemPropertiesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is CustomPropertyGrid grid)
+        if (d is PropertyGrid grid)
         {
             grid.LoadProperties();
         }
@@ -630,7 +630,7 @@ public class CustomPropertyGrid : Control
 
     private static void OnSearchTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is CustomPropertyGrid grid && grid._searchBox != null)
+        if (d is PropertyGrid grid && grid._searchBox != null)
         {
             grid._searchBox.Text = (string)e.NewValue;
         }
@@ -638,7 +638,7 @@ public class CustomPropertyGrid : Control
 
     private static void OnSelectedHierarchyItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is CustomPropertyGrid grid && grid.SelectedHierarchyItem != null && grid.ShowHelpPane && !string.IsNullOrEmpty(grid.SelectedHierarchyItem.Description))
+        if (d is PropertyGrid grid && grid.SelectedHierarchyItem != null && grid.ShowHelpPane && !string.IsNullOrEmpty(grid.SelectedHierarchyItem.Description))
         {
             // Disabled auto sizing help pane for now
             // grid.AutoAdjustHelpPaneHeight(grid.SelectedHierarchyItem.Description);
@@ -647,7 +647,7 @@ public class CustomPropertyGrid : Control
 
     private static void OnSelectedObjectChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is CustomPropertyGrid grid)
+        if (d is PropertyGrid grid)
         {
             grid.LoadProperties();
         }
@@ -666,7 +666,7 @@ public class CustomPropertyGrid : Control
 
     private static void OnVirtualizationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not CustomPropertyGrid grid)
+        if (d is not PropertyGrid grid)
             return;
 
         bool enableVirtualization = (bool)e.NewValue;        // Apply virtualization settings to TreeView

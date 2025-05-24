@@ -7,16 +7,16 @@ namespace WmiExplorer.PropertyGrid;
 /// <summary>
 /// Provides a content control that displays an appropriate editor for a property based on its type.
 /// </summary>
-public class CustomPropertyEditor : ContentControl
+public class PropertyEditor : ContentControl
 {
     public static readonly DependencyProperty PropertyItemProperty =
-        DependencyProperty.Register(nameof(PropertyItem), typeof(PropertyHierarchyItem), typeof(CustomPropertyEditor),
+        DependencyProperty.Register(nameof(PropertyItem), typeof(PropertyHierarchyItem), typeof(PropertyEditor),
             new PropertyMetadata(null, OnPropertyItemChanged));
 
-    static CustomPropertyEditor()
+    static PropertyEditor()
     {
-        DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPropertyEditor),
-            new FrameworkPropertyMetadata(typeof(CustomPropertyEditor)));
+        DefaultStyleKeyProperty.OverrideMetadata(typeof(PropertyEditor),
+            new FrameworkPropertyMetadata(typeof(PropertyEditor)));
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public class CustomPropertyEditor : ContentControl
 
     private static void OnPropertyItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is CustomPropertyEditor editor && e.NewValue is PropertyHierarchyItem propertyItem)
+        if (d is PropertyEditor editor && e.NewValue is PropertyHierarchyItem propertyItem)
         {
             editor.UpdateEditor(propertyItem);
         }

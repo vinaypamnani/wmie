@@ -156,7 +156,7 @@
                                                            TextTrimming="CharacterEllipsis" />
                                             </Border>
 
-                                            <pg:CustomPropertyGrid x:Name="PropertyGrid"
+                                            <pg:PropertyGrid x:Name="PropertyGrid"
                                                                    Grid.Row="1"
                                                                    Margin="{StaticResource MarginRightSmall}"
                                                                    Background="{DynamicResource PropertyGridBackgroundBrush}"

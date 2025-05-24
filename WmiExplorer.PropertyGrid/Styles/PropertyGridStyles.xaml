@@ -98,13 +98,13 @@
         <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
 
-    <!--  Style for the CustomPropertyEditor  -->
-    <Style TargetType="{x:Type local:CustomPropertyEditor}">
+    <!--  Style for the PropertyEditor  -->
+    <Style TargetType="{x:Type local:PropertyEditor}">
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type local:CustomPropertyEditor}">
+                <ControlTemplate TargetType="{x:Type local:PropertyEditor}">
                     <Border Padding="{TemplateBinding Padding}" Background="Transparent" SnapsToDevicePixels="True">
                         <ContentPresenter
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"

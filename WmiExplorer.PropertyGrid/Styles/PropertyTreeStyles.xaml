@@ -144,7 +144,7 @@
         <Grid>
             <Grid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" Header="Copy Name &amp; Value">
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" Header="Copy Name &amp; Value">
                         <MenuItem.CommandParameter>
                             <MultiBinding Converter="{StaticResource NameValueToStringConverter}">
                                 <Binding Path="Name" />
@@ -152,14 +152,14 @@
                             </MultiBinding>
                         </MenuItem.CommandParameter>
                     </MenuItem>
-                    <MenuItem Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" Header="Copy Name" />
-                    <MenuItem Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" Header="Copy Value" />
-                    <MenuItem Command="{x:Static local:CustomPropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" Header="Copy Description" />
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" Header="Copy Name" />
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" Header="Copy Value" />
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" Header="Copy Description" />
 
                 </ContextMenu>
             </Grid.ContextMenu>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding NameColumnWidth, RelativeSource={RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}}" />
+                <ColumnDefinition Width="{Binding NameColumnWidth, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <!--  Property Name - using column 0 now  -->
@@ -171,7 +171,7 @@
                     <ContentPresenter.Content>
                         <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
                             <Binding Path="DisplayName" />
-                            <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}" />
+                            <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
                         </MultiBinding>
                     </ContentPresenter.Content>
                     <ContentPresenter.ToolTip>
@@ -185,7 +185,7 @@
                     <ContentPresenter.Content>
                         <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
                             <Binding Path="FormattedValue" />
-                            <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}" />
+                            <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
                         </MultiBinding>
                     </ContentPresenter.Content>
                 </ContentPresenter>
@@ -216,7 +216,7 @@
                         <ContentPresenter.Content>
                             <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="CategoryTextStyle">
                                 <Binding Path="DisplayName" />
-                                <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:CustomPropertyGrid}}" />
+                                <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
                             </MultiBinding>
                         </ContentPresenter.Content>
                     </ContentPresenter>
