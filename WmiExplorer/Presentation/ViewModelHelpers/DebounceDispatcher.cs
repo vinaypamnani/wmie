@@ -1,6 +1,6 @@
 using System.Windows.Threading;
 
-namespace WmiExplorer.Common.Shared;
+namespace WmiExplorer.Presentation.ViewModelHelpers;
 
 /// <summary>
 /// Utility for debouncing actions in WPF ViewModels.

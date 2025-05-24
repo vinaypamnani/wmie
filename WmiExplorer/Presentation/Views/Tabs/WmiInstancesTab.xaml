@@ -19,13 +19,13 @@
                 VerticalAlignment="Center"
                 Style="{StaticResource TextBoxWithClearButton}"
                 Tag="Filter Instances..."
-                Text="{Binding SelectedNamespace.SelectedClass.QuickFilterInstances, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding SelectedNamespace.SelectedClass.InstanceFilterText, UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
 
         <ListView
             Grid.Row="1"
             BorderThickness="0"
-            ItemsSource="{Binding SelectedNamespace.SelectedClass.WmiInstancesView}"
+            ItemsSource="{Binding SelectedNamespace.SelectedClass.InstancesView}"
             SelectedItem="{Binding SelectedNamespace.SelectedClass.SelectedInstance}"
             SelectionMode="Single"
             Style="{StaticResource ScrollableListViewStyle}">

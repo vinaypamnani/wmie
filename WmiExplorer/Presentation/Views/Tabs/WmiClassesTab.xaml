@@ -62,7 +62,7 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource TextBoxWithClearButton}"
                             Tag="Filter Classes..."
-                            Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />
+                            Text="{Binding SelectedNamespace.ClassFilterText, UpdateSourceTrigger=PropertyChanged}" />
                         <ListView
                             Grid.Row="2"
                             behaviors:ListViewAutoScrollBehavior.AutoScroll="True"

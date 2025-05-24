@@ -6,6 +6,7 @@ using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
@@ -27,7 +28,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private ICommand? _addWatcherCommand;
     private readonly ICacheService _cacheService;
     private bool _canAddWatcher = false;
-    private readonly DebounceDispatcher _debouncer = new();
     private readonly ObservableCollection<string> _eventClassList = new ObservableCollection<string>();
     private PropertyDisplayInfo _eventDisplayProperty = new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
     private readonly ObservableCollection<PropertyDisplayInfo> _eventDisplayPropertyList = new ObservableCollection<PropertyDisplayInfo>();
@@ -40,12 +40,13 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private readonly ObservableCollection<PropertyDisplayInfo> _eventTargetClassPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private bool _isCustomQuery = false;
     private readonly IMessagingService _messagingService;
-    private string _pendingEventTargetClassSearch = string.Empty;
     private WmiEvent? _selectedEvent;
     private WmiNamespaceViewModel? _selectedNamespace;
     private string? _selectedWatcherName;
     private int _watcherId = 1;
     private readonly ObservableCollection<WmiWatcherItem> _watchers = new();
+    private readonly FilterHelper<string> _eventTargetClassFilterHelper;
+    private readonly DebounceDispatcher _eventFilterDebouncer = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
@@ -61,13 +62,17 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
         _eventQueryBuilder = new WmiWatcherQueryBuilder();
+        _eventTargetClassFilterHelper = new FilterHelper<string>(
+            _eventTargetClassList,
+            (className, filter) => string.IsNullOrEmpty(filter) ||
+                className.Contains(filter, StringComparison.OrdinalIgnoreCase)
+        );
 
         InitializeMessaging(_messagingService);
 
         // Collection view for target classes
         EventTargetClassList = new ReadOnlyObservableCollection<string>(_eventTargetClassList);
-        EventTargetClassListView = CollectionViewSource.GetDefaultView(EventTargetClassList);
-        EventTargetClassListView.Filter = ClassSearchFilter;
+        EventTargetClassListView = _eventTargetClassFilterHelper.CollectionView;
 
         EventClassList = new ReadOnlyObservableCollection<string>(_eventClassList);
         EventClassListView = CollectionViewSource.GetDefaultView(EventClassList);
@@ -169,7 +174,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         {
             if (SetProperty(ref _eventFilterText, value))
             {
-                EventsView.Refresh();
+                _eventFilterDebouncer.Debounce(() =>
+                {
+                    RunOnUIThread(() => EventsView.Refresh());
+                });
             }
         }
     }
@@ -221,17 +229,15 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     /// <summary>
     /// Gets or sets the search text for filtering classes
     /// </summary>
-    public string EventTargetClassSearchText
+    public string EventTargetClassFilter
     {
-        get => _pendingEventTargetClassSearch;
+        get => _eventTargetClassFilterHelper.FilterText;
         set
         {
-            if (SetProperty(ref _pendingEventTargetClassSearch, value))
+            if (_eventTargetClassFilterHelper.FilterText != value)
             {
-                _debouncer.Debounce(() =>
-                {
-                    EventTargetClassListView.Refresh();
-                });
+                _eventTargetClassFilterHelper.FilterText = value;
+                OnPropertyChanged();
             }
         }
     }
@@ -397,39 +403,33 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         }
     }
 
-    /// <summary>
-    /// Filter predicate for class search
-    /// </summary>
-    private bool ClassSearchFilter(object item)
-    {
-        if (string.IsNullOrEmpty(_pendingEventTargetClassSearch))
-            return true;
-
-        if (item is string className)
-            return className.Contains(_pendingEventTargetClassSearch, StringComparison.OrdinalIgnoreCase);
-
-        return false;
-    }
-
     private bool CombinedEventFilter(object obj)
     {
+        // Ensure the object is a WmiEvent
         if (obj is not WmiEvent evt)
             return false;
-        // Filter by watcher name (existing logic)
+
+        // Filter by watcher name if not "All"
         if (!string.IsNullOrEmpty(SelectedWatcherName) && SelectedWatcherName != "All" && evt.WatcherName != SelectedWatcherName)
             return false;
-        // Filter by event filter text
+
+        // Filter by event filter text (case-insensitive, checks main fields)
         if (!string.IsNullOrWhiteSpace(EventFilterText))
         {
             var filter = EventFilterText.Trim();
-            // Check main fields for match
-            if (!(evt.EventDisplayPropertyName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0
-                || evt.EventDisplayPropertyValue?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0
-                || evt.WatcherName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0))
-            {
+            bool matches =
+                (!string.IsNullOrEmpty(evt.EventDisplayPropertyName) &&
+                    evt.EventDisplayPropertyName.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(evt.EventDisplayPropertyValue) &&
+                    evt.EventDisplayPropertyValue.Contains(filter, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(evt.WatcherName) &&
+                    evt.WatcherName.Contains(filter, StringComparison.OrdinalIgnoreCase));
+
+            if (!matches)
                 return false;
-            }
         }
+
+        // Passed all filters
         return true;
     }
 
@@ -451,16 +451,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             // Update CanAddWatcher whenever the query changes
             CanAddWatcher = SelectedNamespace != null && !string.IsNullOrWhiteSpace(EventQueryBuilder.EventQuery);
         }
-    }
-
-    private bool FilterByWatcherName(object obj)
-    {
-        if (obj is not WmiEvent evt)
-            return false;
-        // If "All" is selected, show all events
-        if (string.IsNullOrEmpty(SelectedWatcherName) || SelectedWatcherName == "All")
-            return true;
-        return evt.WatcherName == SelectedWatcherName;
     }
 
     /// <summary>
@@ -783,5 +773,16 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             if (_selectedWatcherName != "All")
                 SelectedWatcherName = "All";
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _eventTargetClassFilterHelper.Dispose();
+            _eventFilterDebouncer.Dispose();
+            // Dispose of other managed resources if needed
+        }
+        base.Dispose(disposing);
     }
 }

@@ -96,9 +96,9 @@
                                     VerticalContentAlignment="Center"
                                     IsEditable="True"
                                     IsEnabled="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.IsTargetClassEnabled}"
-                                    ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassList}"
+                                    ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassListView}"
                                     SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventQueryBuilder.EventTargetClass, UpdateSourceTrigger=PropertyChanged}"
-                                    Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassSearchText, UpdateSourceTrigger=PropertyChanged}" />
+                                    Text="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventTargetClassFilter, UpdateSourceTrigger=PropertyChanged}" />
                             </GroupBox>
                             <!--  Target Class Property  -->
                             <GroupBox Margin="0" Header="Target Class Property">

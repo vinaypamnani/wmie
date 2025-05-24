@@ -6,6 +6,7 @@ using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
@@ -18,13 +19,12 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private readonly IApplicationService _applicationService;
     private readonly ObservableCollection<WmiNamespaceViewModel> _children = new();
     private readonly ObservableCollection<WmiClassViewModel> _classes = new();
-    private ICollectionView? _classesView;
+    private readonly FilterHelper<WmiClassViewModel> _classFilterHelper;
     private ClassLoadState _classLoadState = ClassLoadState.Unknown;
     private readonly object _collectionLock = new();
     private string _computerName = string.Empty;
     private ICommand? _copyRelativePathCommand;
     private readonly CancellationTokenSource _cts = new();
-    private readonly DebounceDispatcher _debouncer = new();
     private ICommand? _expandCommand;
     private bool _hasLoadedChildren;
     private bool _isExpanded;
@@ -33,8 +33,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private ManagementScope? _managementScope;
     private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
-    private string _pendingQuickFilter = string.Empty;
-    private string _quickFilterClasses = string.Empty;
     private WmiClassViewModel? _selectedClass;
     private readonly ISettingsService _settingsService;
     private readonly WmiNamespace _wmiNamespace;
@@ -57,8 +55,17 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         InitializeMessaging(messagingService);
 
         // The collection view is used for filtering and sorting classes in the UI.
-        _classesView = CollectionViewSource.GetDefaultView(_classes);
-        _classesView.Filter = QuickFilterClassesPredicate;
+        _classFilterHelper = new FilterHelper<WmiClassViewModel>(
+            _classes,
+            (classVm, filter) =>
+            {
+                bool isSystemClass = classVm.ClassName.StartsWith("__");
+                if (isSystemClass && !_settingsService.ShowSystemClasses)
+                    return false;
+                if (!string.IsNullOrWhiteSpace(filter))
+                    return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+                return true;
+            });
 
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
         Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
@@ -70,7 +77,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         // Subscribe to ShowSystemClassesChanged to refresh filter
         _settingsService.ShowSystemClassesChanged += (s, show) =>
         {
-            _classesView?.Refresh();
+            _classFilterHelper.CollectionView.Refresh();
             PublishMessage(new ClassesFilteredMessage(this));
         };
 
@@ -88,7 +95,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     /// </summary>
     public ReadOnlyObservableCollection<WmiClassViewModel> Classes { get; }
 
-    public ICollectionView ClassesView => _classesView ?? (_classesView = CollectionViewSource.GetDefaultView(Classes));
+    public ICollectionView ClassesView => _classFilterHelper.CollectionView;
 
     public ClassLoadState ClassLoadState
     {
@@ -217,22 +224,16 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         set => SetProperty(ref _parentNamespaceViewModel, value);
     }
 
-    public string QuickFilterClasses
+    public string ClassFilterText
     {
-        get => _pendingQuickFilter;
+        get => _classFilterHelper.FilterText;
         set
         {
-            if (SetProperty(ref _pendingQuickFilter, value))
+            if (_classFilterHelper.FilterText != value)
             {
-                _debouncer.Debounce(() =>
-                {
-                    if (_quickFilterClasses != _pendingQuickFilter)
-                    {
-                        _quickFilterClasses = _pendingQuickFilter;
-                        _classesView?.Refresh();
-                        PublishMessage(new ClassesFilteredMessage(this));
-                    }
-                });
+                _classFilterHelper.FilterText = value;
+                OnPropertyChanged();
+                PublishMessage(new ClassesFilteredMessage(this));
             }
         }
     }
@@ -458,7 +459,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         {
             _cts.Cancel();
             _cts.Dispose();
-            _debouncer.Dispose();
+            _classFilterHelper.Dispose();
         }
 
         base.Dispose(disposing);
@@ -478,7 +479,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         if (message == null) return;
 
         // No more System flag logic here, just refresh and publish
-        _classesView?.Refresh();
+        _classFilterHelper.CollectionView.Refresh();
         PublishMessage(new ClassesFilteredMessage(this));
     }
 
@@ -496,26 +497,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private void NotifyNamespaceSelected()
     {
         PublishMessage(new SelectedNamespaceChangedMessage(this));
-    }
-
-    private bool QuickFilterClassesPredicate(object item)
-    {
-        // Predicate for filtering classes by quick filter text (case-insensitive substring match).
-        if (item is WmiClassViewModel classVm)
-        {
-            // System class filtering: only show system classes if the setting is enabled
-            bool isSystemClass = classVm.ClassName.StartsWith("__");
-            if (isSystemClass && !_settingsService.ShowSystemClasses)
-                return false;
-
-            // Quick filter text
-            if (!string.IsNullOrWhiteSpace(_quickFilterClasses))
-            {
-                return classVm.ClassName.IndexOf(_quickFilterClasses, StringComparison.OrdinalIgnoreCase) >= 0;
-            }
-            return true;
-        }
-        return false;
     }
 }
 

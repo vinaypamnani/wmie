@@ -6,6 +6,7 @@ using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
@@ -18,16 +19,13 @@ public class WmiClassViewModel : MessagingViewModelBase
     private readonly IApplicationService _applicationService;
     private readonly object _collectionLock = new();
     private readonly CancellationTokenSource _cts = new();
-    private readonly DebounceDispatcher _debouncer = new();
-    private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
+    private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
-    private string _pendingQuickFilter = string.Empty;
-    private string _quickFilterInstances = string.Empty;
     private WmiInstanceViewModel? _selectedInstance;
     private readonly WmiClass _wmiClass;
-    private ICollectionView? _wmiInstancesView;
     private readonly IWmiService _wmiService;
+    private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
 
     public WmiClassViewModel(
         WmiClass wmiClass,
@@ -51,8 +49,11 @@ public class WmiClassViewModel : MessagingViewModelBase
         StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
 
         // The collection view is used for filtering and sorting instances in the UI.
-        _wmiInstancesView = CollectionViewSource.GetDefaultView(_instances);
-        _wmiInstancesView.Filter = QuickFilterInstancesPredicate;
+        _instanceFilterHelper = new FilterHelper<WmiInstanceViewModel>(
+            _instances,
+            (instance, filter) => string.IsNullOrWhiteSpace(filter) ||
+                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0
+        );
 
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
     }
@@ -78,21 +79,15 @@ public class WmiClassViewModel : MessagingViewModelBase
     public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
 
-    public string QuickFilterInstances
+    public string InstanceFilterText
     {
-        get => _pendingQuickFilter;
+        get => _instanceFilterHelper.FilterText;
         set
         {
-            if (SetProperty(ref _pendingQuickFilter, value))
+            if (_instanceFilterHelper.FilterText != value)
             {
-                _debouncer.Debounce(() =>
-                {
-                    if (_quickFilterInstances != _pendingQuickFilter)
-                    {
-                        _quickFilterInstances = _pendingQuickFilter;
-                        _wmiInstancesView?.Refresh();
-                    }
-                });
+                _instanceFilterHelper.FilterText = value;
+                OnPropertyChanged();
             }
         }
     }
@@ -110,7 +105,7 @@ public class WmiClassViewModel : MessagingViewModelBase
     }
 
     public WmiClass WmiClass => _wmiClass;
-    public ICollectionView WmiInstancesView => _wmiInstancesView ?? (_wmiInstancesView = CollectionViewSource.GetDefaultView(Instances));
+    public ICollectionView InstancesView => _instanceFilterHelper.CollectionView;
 
     public static ObservableCollection<WmiClassViewModel> CreateFromCollection(
         IEnumerable<WmiClass> wmiClasses,
@@ -178,16 +173,8 @@ public class WmiClassViewModel : MessagingViewModelBase
                         _instances.Add(vm);
                     }
                 }
-
-                if (_wmiInstancesView != null)
-                {
-                    // Reapply the filter to the existing view if it exists.
-                    _wmiInstancesView.Filter = QuickFilterInstancesPredicate;
-                    _wmiInstancesView.Refresh();
-                }
-
-                OnPropertyChanged(nameof(QuickFilterInstances));
-
+                // No need to reapply filter or refresh, FilterHelper handles it.
+                OnPropertyChanged(nameof(InstanceFilterText));
                 return Task.CompletedTask;
             });
 
@@ -214,7 +201,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         {
             _cts.Cancel();
             _cts.Dispose();
-            _debouncer.Dispose();
+            _instanceFilterHelper.Dispose();
         }
 
         base.Dispose(disposing);
@@ -236,20 +223,6 @@ public class WmiClassViewModel : MessagingViewModelBase
         {
             SelectedInstance = message.InstanceViewModel;
         }
-    }
-
-    private bool QuickFilterInstancesPredicate(object item)
-    {
-        // Predicate for filtering instances by quick filter text (case-insensitive substring match).
-        if (string.IsNullOrWhiteSpace(_quickFilterInstances))
-            return true;
-
-        if (item is WmiInstanceViewModel instanceVm)
-        {
-            return instanceVm.InstanceName.IndexOf(_quickFilterInstances, StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        return false;
     }
 }
 
