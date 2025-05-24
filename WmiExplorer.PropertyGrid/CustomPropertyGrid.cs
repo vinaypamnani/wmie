@@ -87,6 +87,16 @@ public class CustomPropertyGrid : Control
             new PropertyMetadata(200.0));
 
     /// <summary>
+    /// The current search text for filtering properties.
+    /// </summary>
+    public static readonly DependencyProperty SearchTextProperty =
+        DependencyProperty.Register(
+            nameof(SearchText),
+            typeof(string),
+            typeof(CustomPropertyGrid),
+            new PropertyMetadata(string.Empty, OnSearchTextChanged));
+
+    /// <summary>
     /// Gets or sets the currently selected property hierarchy item.
     /// </summary>
     public static readonly DependencyProperty SelectedHierarchyItemProperty =
@@ -229,6 +239,15 @@ public class CustomPropertyGrid : Control
     {
         get => (double)GetValue(NameColumnWidthProperty);
         set => SetValue(NameColumnWidthProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the current search text for filtering properties.
+    /// </summary>
+    public string SearchText
+    {
+        get => (string)GetValue(SearchTextProperty);
+        set => SetValue(SearchTextProperty, value);
     }
 
     /// <summary>
@@ -609,6 +628,14 @@ public class CustomPropertyGrid : Control
         }
     }
 
+    private static void OnSearchTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is CustomPropertyGrid grid && grid._searchBox != null)
+        {
+            grid._searchBox.Text = (string)e.NewValue;
+        }
+    }
+
     private static void OnSelectedHierarchyItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is CustomPropertyGrid grid && grid.SelectedHierarchyItem != null && grid.ShowHelpPane && !string.IsNullOrEmpty(grid.SelectedHierarchyItem.Description))
@@ -642,9 +669,7 @@ public class CustomPropertyGrid : Control
         if (d is not CustomPropertyGrid grid)
             return;
 
-        bool enableVirtualization = (bool)e.NewValue;
-
-        // Apply virtualization settings to TreeView
+        bool enableVirtualization = (bool)e.NewValue;        // Apply virtualization settings to TreeView
         if (grid._propertiesTreeView != null)
         {
             VirtualizingStackPanel.SetIsVirtualizing(grid._propertiesTreeView, enableVirtualization);
@@ -675,6 +700,12 @@ public class CustomPropertyGrid : Control
     /// </summary>
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (sender is TextBox textBox)
+        {
+            // Update the SearchText property to sync with the search box
+            SearchText = textBox.Text ?? string.Empty;
+        }
+
         if (_propertiesTreeView != null)
         {
             UpdateTreeViewSearch();
