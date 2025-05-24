@@ -179,8 +179,12 @@ public class WmiClassViewModel : MessagingViewModelBase
                     }
                 }
 
-                _wmiInstancesView = CollectionViewSource.GetDefaultView(Instances);
-                _wmiInstancesView.Filter = QuickFilterInstancesPredicate;
+                if (_wmiInstancesView != null)
+                {
+                    // Reapply the filter to the existing view if it exists.
+                    _wmiInstancesView.Filter = QuickFilterInstancesPredicate;
+                    _wmiInstancesView.Refresh();
+                }
 
                 OnPropertyChanged(nameof(QuickFilterInstances));
 
