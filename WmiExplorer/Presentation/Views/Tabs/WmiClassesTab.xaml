@@ -60,8 +60,8 @@
                         <TextBox
                             Grid.Row="1"
                             VerticalAlignment="Center"
-                            Style="{StaticResource TextBoxWithPlaceholder}"
-                            Tag="Quick Filter Classes..."
+                            Style="{StaticResource TextBoxWithClearButton}"
+                            Tag="Filter Classes..."
                             Text="{Binding SelectedNamespace.QuickFilterClasses, UpdateSourceTrigger=PropertyChanged}" />
                         <ListView
                             Grid.Row="2"

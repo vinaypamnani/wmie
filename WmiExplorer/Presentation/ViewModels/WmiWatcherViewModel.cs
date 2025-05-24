@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Reflection.Emit;
 using System.Windows.Data;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
@@ -32,6 +31,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private readonly ObservableCollection<string> _eventClassList = new ObservableCollection<string>();
     private PropertyDisplayInfo _eventDisplayProperty = new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
     private readonly ObservableCollection<PropertyDisplayInfo> _eventDisplayPropertyList = new ObservableCollection<PropertyDisplayInfo>();
+    private string _eventFilterText = string.Empty;
     private readonly ObservableCollection<PropertyDisplayInfo> _eventPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private readonly WmiWatcherQueryBuilder _eventQueryBuilder;
     private readonly ObservableCollection<WmiEvent> _events = new();
@@ -44,8 +44,8 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private WmiEvent? _selectedEvent;
     private WmiNamespaceViewModel? _selectedNamespace;
     private string? _selectedWatcherName;
-    private readonly ObservableCollection<WmiWatcherItem> _watchers = new();
     private int _watcherId = 1;
+    private readonly ObservableCollection<WmiWatcherItem> _watchers = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
@@ -160,6 +160,21 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     public ReadOnlyObservableCollection<PropertyDisplayInfo> EventDisplayPropertyList { get; }
 
     /// <summary>
+    /// Gets or sets the filter text for events.
+    /// </summary>
+    public string EventFilterText
+    {
+        get => _eventFilterText;
+        set
+        {
+            if (SetProperty(ref _eventFilterText, value))
+            {
+                EventsView.Refresh();
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets a collection of intrinsic WMI event properties for the selected event class
     /// </summary>
     public ReadOnlyObservableCollection<PropertyDisplayInfo> EventPropertyList { get; }
@@ -193,7 +208,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             if (_eventsView == null)
             {
                 _eventsView = CollectionViewSource.GetDefaultView(Events);
-                _eventsView.Filter = FilterByWatcherName;
+                _eventsView.Filter = CombinedEventFilter;
             }
             return _eventsView;
         }
@@ -394,6 +409,28 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             return className.Contains(_pendingEventTargetClassSearch, StringComparison.OrdinalIgnoreCase);
 
         return false;
+    }
+
+    private bool CombinedEventFilter(object obj)
+    {
+        if (obj is not WmiEvent evt)
+            return false;
+        // Filter by watcher name (existing logic)
+        if (!string.IsNullOrEmpty(SelectedWatcherName) && SelectedWatcherName != "All" && evt.WatcherName != SelectedWatcherName)
+            return false;
+        // Filter by event filter text
+        if (!string.IsNullOrWhiteSpace(EventFilterText))
+        {
+            var filter = EventFilterText.Trim();
+            // Check main fields for match
+            if (!(evt.EventDisplayPropertyName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0
+                || evt.EventDisplayPropertyValue?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0
+                || evt.WatcherName?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void EventQueryBuilder_PropertyChanged(object? sender, PropertyChangedEventArgs e)

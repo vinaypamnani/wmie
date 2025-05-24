@@ -17,8 +17,8 @@
         <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
             <TextBox
                 VerticalAlignment="Center"
-                Style="{StaticResource TextBoxWithPlaceholder}"
-                Tag="Quick Filter Instances..."
+                Style="{StaticResource TextBoxWithClearButton}"
+                Tag="Filter Instances..."
                 Text="{Binding SelectedNamespace.SelectedClass.QuickFilterInstances, UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
 
