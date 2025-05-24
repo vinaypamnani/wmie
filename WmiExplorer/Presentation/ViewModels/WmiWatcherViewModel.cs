@@ -320,7 +320,23 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     /// </summary>
     public ReadOnlyObservableCollection<WmiWatcherItem> Watchers { get; }
 
-    public void ClearEvents() => _events.Clear();
+    public void ClearEvents()
+    {
+        // Dispose each event to release unmanaged resources
+        foreach (var evt in _events)
+        {
+            try
+            {
+                evt.Dispose();
+            }
+            catch (Exception ex)
+            {
+                // Log or handle disposal errors gracefully
+                System.Diagnostics.Debug.WriteLine($"Error disposing WmiEvent: {ex.Message}");
+            }
+        }
+        _events.Clear();
+    }
 
     /// <summary>
     /// Adds a new watcher based on the current event query

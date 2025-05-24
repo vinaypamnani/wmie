@@ -426,6 +426,7 @@
                         Margin="0"
                         BorderThickness="0"
                         IsSynchronizedWithCurrentItem="True"
+                        VirtualizingStackPanel.IsVirtualizing="True"
                         ItemContainerStyle="{StaticResource FlatListViewItemStyle}"
                         ItemsSource="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.EventsView}"
                         SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.EventWatcherViewModel.SelectedEvent, Mode=TwoWay}"

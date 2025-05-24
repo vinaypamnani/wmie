@@ -7,7 +7,7 @@ namespace WmiExplorer.Core.Models;
 /// <summary>
 /// Represents a WMI event received from a watcher.
 /// </summary>
-public class WmiEvent
+public class WmiEvent : IDisposable
 {
     public WmiEvent(string watcherName, ManagementBaseObject eventData, string eventDisplayPropertyName)
     {
@@ -77,6 +77,13 @@ public class WmiEvent
     public DateTime EventTimestamp { get; }
 
     public string WatcherName { get; }
+
+    public void Dispose()
+    {
+        // Dispose the main ManagementBaseObject
+        EventData?.Dispose();
+        // No other disposable fields currently held
+    }
 
     public override string ToString()
     {
