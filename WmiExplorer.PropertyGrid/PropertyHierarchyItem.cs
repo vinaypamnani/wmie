@@ -321,7 +321,7 @@ public class PropertyHierarchyItem : DependencyObject, INotifyPropertyChanged
     /// <summary>
     /// Loads child items when the property is expandable.
     /// </summary>
-    protected virtual void LoadChildren(bool includeSystemProperties = true, bool includeNullValues = true)
+    public virtual void LoadChildren(bool includeSystemProperties = true, bool includeNullValues = true)
     {
         if (Value == null || !HasItems)
             return;

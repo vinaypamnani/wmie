@@ -422,6 +422,23 @@ public class CustomPropertyGrid : Control
     }
 
     /// <summary>
+    /// Recursively loads all children for the given property hierarchy item.
+    /// </summary>
+    private void LoadAllChildrenRecursive(PropertyHierarchyItem item)
+    {
+        // If the item is expandable and has no children, load them
+        if (item.HasItems && item.Children.Count == 0)
+        {
+            item.LoadChildren(true, true);
+        }
+        // Recursively load children for each child
+        foreach (var child in item.Children)
+        {
+            LoadAllChildrenRecursive(child);
+        }
+    }
+
+    /// <summary>
     /// Load properties of the selected object based on the current view mode
     /// </summary>
     private void LoadProperties()
@@ -664,6 +681,80 @@ public class CustomPropertyGrid : Control
         }
     }
 
+    /// <summary>
+    /// Recursively searches property hierarchy items for a match and sets visibility/expansion accordingly.
+    /// Expands all parent categories of a match.
+    /// </summary>
+    private bool SearchPropertyRecursive(PropertyHierarchyItem item, string searchText)
+    {
+        // Early exit if search text is null or empty
+        if (string.IsNullOrEmpty(searchText))
+        {
+            item.Visibility = Visibility.Visible;
+            return true;
+        }
+
+        // Use StringComparison.OrdinalIgnoreCase consistently and cache it
+        const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+
+        // Pre-convert search text to avoid repeated operations
+        // Check if this item matches the search with more efficient null-safe checks
+        bool isMatch = false;
+
+        // Check name fields first (most likely to match)
+        if (!string.IsNullOrEmpty(item.Name))
+            isMatch = item.Name.Contains(searchText, comparison);
+
+        if (!isMatch && !string.IsNullOrEmpty(item.DisplayName))
+            isMatch = item.DisplayName.Contains(searchText, comparison);
+
+        // Only check description and value if name fields don't match
+        if (!isMatch && !string.IsNullOrEmpty(item.Description))
+            isMatch = item.Description.Contains(searchText, comparison);
+
+        if (!isMatch && item.Value != null)
+        {
+            // Use null-conditional operator and fallback to empty string to avoid nullable warning
+            string valueString = item.Value?.ToString() ?? string.Empty;
+            if (!string.IsNullOrEmpty(valueString))
+                isMatch = valueString.Contains(searchText, comparison);
+        }
+
+        bool hasVisibleChild = false;
+
+        // Only search children if they exist - avoid unnecessary iterations
+        if (item.Children?.Count > 0)
+        {
+            // Use for loop instead of foreach for better performance with collections
+            for (int i = 0; i < item.Children.Count; i++)
+            {
+                if (SearchPropertyRecursive(item.Children[i], searchText))
+                {
+                    hasVisibleChild = true;
+                    // Don't break here - we need to process all children for proper visibility
+                }
+            }
+        }
+
+        // Determine final visibility
+        bool shouldBeVisible = isMatch || hasVisibleChild;
+        Visibility targetVisibility = shouldBeVisible ? Visibility.Visible : Visibility.Collapsed;
+
+        // Only set visibility if it actually needs to change
+        if (item.Visibility != targetVisibility)
+        {
+            item.Visibility = targetVisibility;
+        }
+
+        // Only modify expansion state if the item can be expanded AND the state needs to change
+        if (item.HasItems && item.IsExpanded != shouldBeVisible)
+        {
+            item.IsExpanded = shouldBeVisible;
+        }
+
+        return shouldBeVisible;
+    }
+
     // Handle mouse wheel events to properly scroll the TreeView
     private void TreeView_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
@@ -698,6 +789,7 @@ public class CustomPropertyGrid : Control
 
     /// <summary>
     /// Updates the TreeView to filter items based on the search text.
+    /// Loads all children on demand if a search is performed.
     /// </summary>
     private void UpdateTreeViewSearch()
     {
@@ -709,43 +801,34 @@ public class CustomPropertyGrid : Control
 
         if (!hasSearchText)
         {
+            // Expand all categories when search is cleared
+            ExpandAllCategories();
+
+            // Collapse all root items (categories) so only categories are expanded, not their children
             foreach (var category in items.OfType<PropertyCategoryItem>())
             {
-                category.IsExpanded = CategoryExpansionManager.Instance.IsCategoryExpanded(category.Name);
+                foreach (var child in category.Children)
+                {
+                    if (child.HasItems && child.IsExpanded)
+                        child.IsExpanded = false;
+
+                }
                 category.Visibility = Visibility.Visible;
                 category.ResetVisibilityRecursive();
             }
             return;
         }
 
+        // On-demand: load all children for all root items before searching
         foreach (var category in items.OfType<PropertyCategoryItem>())
         {
-            bool hasMatchInCategory = false;
-            foreach (var property in category.Children)
-            {
-                bool isMatch = (property.Name?.IndexOf(searchText!, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                               (property.DisplayName?.IndexOf(searchText!, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                               (property.Description?.IndexOf(searchText!, StringComparison.OrdinalIgnoreCase) >= 0);
-                if (isMatch)
-                {
-                    property.Visibility = Visibility.Visible;
-                    hasMatchInCategory = true;
-                }
-                else
-                {
-                    property.Visibility = Visibility.Collapsed;
-                }
-            }
-            if (hasMatchInCategory)
-            {
-                category.IsExpanded = true;
-                category.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                category.IsExpanded = false;
-                category.Visibility = Visibility.Collapsed;
-            }
+            LoadAllChildrenRecursive(category);
+        }
+
+        // Recursive search for all categories
+        foreach (var category in items.OfType<PropertyCategoryItem>())
+        {
+            SearchPropertyRecursive(category, searchText!);
         }
     }
 }
