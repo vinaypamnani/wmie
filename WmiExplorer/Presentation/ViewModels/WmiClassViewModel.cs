@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Management;
-using System.Windows.Data;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
@@ -20,12 +19,12 @@ public class WmiClassViewModel : MessagingViewModelBase
     private readonly object _collectionLock = new();
     private readonly CancellationTokenSource _cts = new();
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
+    private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
     private WmiInstanceViewModel? _selectedInstance;
     private readonly WmiClass _wmiClass;
     private readonly IWmiService _wmiService;
-    private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
 
     public WmiClassViewModel(
         WmiClass wmiClass,
@@ -51,8 +50,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         // The collection view is used for filtering and sorting instances in the UI.
         _instanceFilterHelper = new FilterHelper<WmiInstanceViewModel>(
             _instances,
-            (instance, filter) => string.IsNullOrWhiteSpace(filter) ||
-                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0
+            InstanceMatchesFilter
         );
 
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
@@ -61,23 +59,6 @@ public class WmiClassViewModel : MessagingViewModelBase
     public string ClassName => _wmiClass.ClassName;
     public ICommand CopyRelativePathCommand { get; }
     public string Description => _wmiClass.Description;
-
-    /// <summary>
-    /// Instances of this class (read-only).
-    /// </summary>
-    public ReadOnlyObservableCollection<WmiInstanceViewModel> Instances { get; }
-
-    public bool IsEventClass => WmiClass.Derivation.Contains("__Event") || WmiClass.ClassName == "__Event";
-    public ICommand LoadInstancesCommand { get; }
-
-    public InstanceLoadState LoadState
-    {
-        get => _loadState;
-        set => SetProperty(ref _loadState, value);
-    }
-
-    public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
-    public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
 
     public string InstanceFilterText
     {
@@ -92,6 +73,24 @@ public class WmiClassViewModel : MessagingViewModelBase
         }
     }
 
+    /// <summary>
+    /// Instances of this class (read-only).
+    /// </summary>
+    public ReadOnlyObservableCollection<WmiInstanceViewModel> Instances { get; }
+
+    public ICollectionView InstancesView => _instanceFilterHelper.CollectionView;
+    public bool IsEventClass => WmiClass.Derivation.Contains("__Event") || WmiClass.ClassName == "__Event";
+    public ICommand LoadInstancesCommand { get; }
+
+    public InstanceLoadState LoadState
+    {
+        get => _loadState;
+        set => SetProperty(ref _loadState, value);
+    }
+
+    public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
+    public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
+
     public WmiInstanceViewModel? SelectedInstance
     {
         get => _selectedInstance;
@@ -105,7 +104,6 @@ public class WmiClassViewModel : MessagingViewModelBase
     }
 
     public WmiClass WmiClass => _wmiClass;
-    public ICollectionView InstancesView => _instanceFilterHelper.CollectionView;
 
     public static ObservableCollection<WmiClassViewModel> CreateFromCollection(
         IEnumerable<WmiClass> wmiClasses,
@@ -223,6 +221,12 @@ public class WmiClassViewModel : MessagingViewModelBase
         {
             SelectedInstance = message.InstanceViewModel;
         }
+    }
+
+    private bool InstanceMatchesFilter(WmiInstanceViewModel instance, string filter)
+    {
+        return string.IsNullOrWhiteSpace(filter) ||
+               instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }
 

@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Management;
-using System.Windows.Data;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
@@ -57,15 +56,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         // The collection view is used for filtering and sorting classes in the UI.
         _classFilterHelper = new FilterHelper<WmiClassViewModel>(
             _classes,
-            (classVm, filter) =>
-            {
-                bool isSystemClass = classVm.ClassName.StartsWith("__");
-                if (isSystemClass && !_settingsService.ShowSystemClasses)
-                    return false;
-                if (!string.IsNullOrWhiteSpace(filter))
-                    return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-                return true;
-            });
+            ClassMatchesFilter
+        );
 
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
         Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
@@ -96,6 +88,20 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     public ReadOnlyObservableCollection<WmiClassViewModel> Classes { get; }
 
     public ICollectionView ClassesView => _classFilterHelper.CollectionView;
+
+    public string ClassFilterText
+    {
+        get => _classFilterHelper.FilterText;
+        set
+        {
+            if (_classFilterHelper.FilterText != value)
+            {
+                _classFilterHelper.FilterText = value;
+                OnPropertyChanged();
+                PublishMessage(new ClassesFilteredMessage(this));
+            }
+        }
+    }
 
     public ClassLoadState ClassLoadState
     {
@@ -222,20 +228,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     {
         get => _parentNamespaceViewModel;
         set => SetProperty(ref _parentNamespaceViewModel, value);
-    }
-
-    public string ClassFilterText
-    {
-        get => _classFilterHelper.FilterText;
-        set
-        {
-            if (_classFilterHelper.FilterText != value)
-            {
-                _classFilterHelper.FilterText = value;
-                OnPropertyChanged();
-                PublishMessage(new ClassesFilteredMessage(this));
-            }
-        }
     }
 
     public WmiClassViewModel? SelectedClass
@@ -497,6 +489,16 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private void NotifyNamespaceSelected()
     {
         PublishMessage(new SelectedNamespaceChangedMessage(this));
+    }
+
+    private bool ClassMatchesFilter(WmiClassViewModel classVm, string filter)
+    {
+        bool isSystemClass = classVm.ClassName.StartsWith("__");
+        if (isSystemClass && !_settingsService.ShowSystemClasses)
+            return false;
+        if (!string.IsNullOrWhiteSpace(filter))
+            return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+        return true;
     }
 }
 
