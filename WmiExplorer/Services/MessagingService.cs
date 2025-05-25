@@ -25,13 +25,14 @@ public class MessagingService : IMessagingService
         if (message == null)
             return;
 
-        // Debug logging for all messages
-        System.Diagnostics.Debug.WriteLine($"[MessagingService] Publishing: {typeof(TMessage).Name}");
+        // Debug logging for all messages except ApplicationStateMessage
+        if (message is not ApplicationStateMessage)
+            System.Diagnostics.Debug.WriteLine($"[MessagingService] Publishing: {typeof(TMessage).Name}");
 
         // Special handling for ApplicationStateMessage
         if (message is ApplicationStateMessage appStateMsg)
         {
-            System.Diagnostics.Debug.WriteLine($"[MessagingService] ApplicationState: {appStateMsg.State.State}, Message={appStateMsg.State.Message}");                // Update the MainWindow status bar
+            // System.Diagnostics.Debug.WriteLine($"[MessagingService] ApplicationState: {appStateMsg.State.State}, Message={appStateMsg.State.Message}");                // Update the MainWindow status bar
             if (MainWindow.Current != null)
             {
                 // Also update the view model for binding
@@ -157,7 +158,7 @@ public class MessagingService : IMessagingService
             subscribersList.Add(subscriber);
         }
 
-        System.Diagnostics.Debug.WriteLine($"[MessagingService] {subscriptionType} to {messageType.Name}, RunOnUIThread={subscriber.ShouldRunOnUIThread}");
+        // System.Diagnostics.Debug.WriteLine($"[MessagingService] {subscriptionType} to {messageType.Name}, RunOnUIThread={subscriber.ShouldRunOnUIThread}");
 
         return new SubscriptionToken(
             () => RemoveSubscriber(messageType, subscriber),
@@ -198,11 +199,8 @@ public class MessagingService : IMessagingService
     {
         private readonly Action<TMessage> _action;
 
-        // Strong reference
-
-        public override bool IsAlive => true;
-
         // Always alive since we maintain strong reference
+        public override bool IsAlive => true;
 
         public override void DeliverMessage<T>(T message)
         {
@@ -289,7 +287,7 @@ public class MessagingService : IMessagingService
             {
                 _unsubscribeAction?.Invoke();
                 _isDisposed = true;
-                System.Diagnostics.Debug.WriteLine($"[MessagingService] Disposed {_description}");
+                // System.Diagnostics.Debug.WriteLine($"[MessagingService] Disposed {_description}");
             }
         }
 
