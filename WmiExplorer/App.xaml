@@ -6,13 +6,13 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Main Theme will be loaded dynamically by ThemeManager from the Themes folder -->
-                <!-- Load modular styles -->
+                <!--  Main Theme will be loaded dynamically by ThemeManager from the Themes folder  -->
+                <!--  Load modular styles  -->
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/MainStyles.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
-                <!-- Control styles -->
+                <!--  Control styles  -->
                 <ResourceDictionary Source="/Presentation/ColorPicker/ColorPickerTheme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

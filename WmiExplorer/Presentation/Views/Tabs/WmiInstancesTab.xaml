@@ -27,9 +27,9 @@
             ItemsSource="{Binding SelectedNamespace.SelectedClass.InstancesView}"
             SelectedItem="{Binding SelectedNamespace.SelectedClass.SelectedInstance}"
             SelectionMode="Single"
-            Style="{StaticResource ScrollableListViewStyle}">
+            Style="{StaticResource ModernListViewStyle}">
             <ListView.ItemContainerStyle>
-                <Style BasedOn="{StaticResource BaseListViewItemStyle}" TargetType="{x:Type ListViewItem}">
+                <Style BasedOn="{StaticResource ModernListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>

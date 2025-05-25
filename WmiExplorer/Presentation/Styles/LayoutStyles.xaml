@@ -46,6 +46,7 @@
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
     </Style>
+
     <!--  GridSplitter  -->
     <Style TargetType="GridSplitter">
         <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />

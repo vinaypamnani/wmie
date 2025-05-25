@@ -30,7 +30,7 @@
                       behaviors:TreeViewSelectedItemBehavior.SelectedItem="{Binding SelectedNamespace}"
                       ItemsSource="{Binding Namespaces}">
                 <TreeView.ItemContainerStyle>
-                    <Style BasedOn="{StaticResource BaseTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
+                    <Style BasedOn="{StaticResource ModernTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                         <Setter Property="behaviors:TreeViewItemDoubleClickBehavior.Command" Value="{Binding LoadClassesCommand}" />
