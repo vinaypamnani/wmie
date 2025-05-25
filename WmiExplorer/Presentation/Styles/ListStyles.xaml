@@ -16,11 +16,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListView}">
-                    <Border
-                        x:Name="Border"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
                         <ScrollViewer x:Name="ScrollViewer" Padding="{StaticResource PaddingTiny}" Style="{DynamicResource ModernScrollViewerStyle}">
                             <ItemsPresenter />
                         </ScrollViewer>
@@ -39,6 +38,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+
     <!--  ListViewItem  -->
     <Style x:Key="BaseListViewItemStyle" TargetType="ListViewItem">
         <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -52,11 +52,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListViewItem">
-                    <Border
-                        x:Name="Bd"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        SnapsToDevicePixels="True">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Border>
                     <ControlTemplate.Triggers>

@@ -2,19 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
-             xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              x:Name="ThisControl"
              d:DesignHeight="600"
              d:DesignWidth="1000"
              mc:Ignorable="d">
-
-    <UserControl.Resources>
-        <converters:BoolToVisibilityConverter x:Key="NotBoolToVisibilityConverter" Invert="True" />
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -253,7 +246,7 @@
                                                             BorderThickness="0"
                                                             Command="{Binding StartCommand}"
                                                             ToolTip="Start"
-                                                            Visibility="{Binding IsRunning, Converter={StaticResource NotBoolToVisibilityConverter}}">
+                                                            Visibility="{Binding IsRunning, Converter={StaticResource InverseBooleanConverter}}">
                                                         <Path Width="12"
                                                               Height="12"
                                                               HorizontalAlignment="Center"

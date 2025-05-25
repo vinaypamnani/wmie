@@ -1,8 +1,9 @@
-<!--
-     SpacingStyles.xaml: Defines standard spacing sizes for consistent Margin/Padding usage throughout the application.
-     Naming convention: TypeSize (e.g., SpacingTiny, SpacingSmall, SpacingMedium, SpacingLarge)
--->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:System="clr-namespace:System;assembly=mscorlib">
+
+     <!--
+          SpacingStyles.xaml: Defines standard spacing sizes for consistent Margin/Padding usage throughout the application.
+          Naming convention: TypeSize (e.g., SpacingTiny, SpacingSmall, SpacingMedium, SpacingLarge)
+     -->
 
      <!--  Spacing Values (Uniform)  -->
      <System:Double x:Key="SpacingTiny">2</System:Double>

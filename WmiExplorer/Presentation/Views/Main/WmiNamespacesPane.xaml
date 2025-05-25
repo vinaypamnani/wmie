@@ -1,22 +1,20 @@
-<UserControl
-    x:Class="WmiExplorer.Presentation.Views.Main.WmiNamespacesPane"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
-    d:DesignHeight="450"
-    d:DesignWidth="300"
-    mc:Ignorable="d">
+<UserControl x:Class="WmiExplorer.Presentation.Views.Main.WmiNamespacesPane"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
+             d:DesignHeight="450"
+             d:DesignWidth="300"
+             mc:Ignorable="d">
     <Grid>
-        <Expander
-            Name="ExpanderNamespaces"
-            Padding="{StaticResource PaddingTopSmall}"
-            BorderThickness="0"
-            ExpandDirection="Right"
-            IsExpanded="{Binding WindowPosition.IsNamespacesExpanded, Mode=TwoWay}"
-            Style="{StaticResource VerticalHeaderExpanderStyle}">
+        <Expander Name="ExpanderNamespaces"
+                  Padding="{StaticResource PaddingTopSmall}"
+                  BorderThickness="0"
+                  ExpandDirection="Right"
+                  IsExpanded="{Binding WindowPosition.IsNamespacesExpanded, Mode=TwoWay}"
+                  Style="{StaticResource VerticalHeaderExpanderStyle}">
             <Expander.Header>
                 <Border Width="25">
                     <TextBlock FontSize="15" FontWeight="SemiBold" Text="Namespaces">
@@ -26,12 +24,11 @@
                     </TextBlock>
                 </Border>
             </Expander.Header>
-            <TreeView
-                Name="WmiNamespaces"
-                Margin="{StaticResource MarginSmall}"
-                behaviors:TreeViewAutoScrollBehavior.AutoScroll="True"
-                behaviors:TreeViewSelectedItemBehavior.SelectedItem="{Binding SelectedNamespace}"
-                ItemsSource="{Binding Namespaces}">
+            <TreeView Name="WmiNamespaces"
+                      Margin="{StaticResource MarginSmall}"
+                      behaviors:TreeViewAutoScrollBehavior.AutoScroll="True"
+                      behaviors:TreeViewSelectedItemBehavior.SelectedItem="{Binding SelectedNamespace}"
+                      ItemsSource="{Binding Namespaces}">
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource BaseTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -52,11 +49,10 @@
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
                             <Grid Width="16" Height="16" Margin="{StaticResource MarginTiny}">
-                                <Ellipse
-                                    Width="10"
-                                    Height="10"
-                                    RenderTransformOrigin="0.5,0.5"
-                                    Style="{DynamicResource StatusIndicatorStyle}" />
+                                <Ellipse Width="10"
+                                         Height="10"
+                                         RenderTransformOrigin="0.5,0.5"
+                                         Style="{DynamicResource StatusIndicatorStyle}" />
                             </Grid>
                             <TextBlock Margin="{StaticResource MarginTiny}" Text="{Binding Name}" />
                         </StackPanel>

@@ -1,8 +1,7 @@
-<ResourceDictionary
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
-    xmlns:scm="clr-namespace:System.ComponentModel;assembly=PresentationFramework">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+                    xmlns:scm="clr-namespace:System.ComponentModel;assembly=PresentationFramework">
 
     <!--  Override ALL system brushes that cause gradients  -->
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource PrimaryAccentColor}" />
@@ -20,15 +19,15 @@
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Rectangle
-                        SnapsToDevicePixels="true"
-                        Stroke="{DynamicResource BorderBrush}"
-                        StrokeDashArray="1 2"
-                        StrokeThickness="1" />
+                    <Rectangle SnapsToDevicePixels="true"
+                               Stroke="{DynamicResource BorderBrush}"
+                               StrokeDashArray="1 2"
+                               StrokeThickness="1" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+
     <!--  Completely flat ListViewItem style with no gradients  -->
     <Style x:Key="FlatListViewItemStyle" TargetType="{x:Type ListViewItem}">
         <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -39,11 +38,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListViewItem}">
-                    <Border
-                        x:Name="Border"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        SnapsToDevicePixels="true">
+                    <Border x:Name="Border"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            SnapsToDevicePixels="true">
                         <!--  This element preserves GridView functionality  -->
                         <GridViewRowPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Border>
@@ -82,44 +80,40 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
-                    <Border
-                        x:Name="HeaderBorder"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <Border x:Name="HeaderBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ContentPresenter
-                                Grid.Column="0"
-                                Margin="{TemplateBinding Padding}"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                            <Path
-                                x:Name="SortArrow"
-                                Grid.Column="1"
-                                Width="{StaticResource SpacingSmall}"
-                                Height="{StaticResource SpacingSmall}"
-                                Margin="{StaticResource MarginRightLarge}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Data="M 0,0 L 5,5 L 10,0"
-                                Fill="{TemplateBinding Foreground}"
-                                Opacity="0.7"
-                                RenderTransformOrigin="0.5,0.5"
-                                Stretch="Uniform"
-                                StrokeThickness="0"
-                                Visibility="Collapsed" />
-                            <Thumb
-                                x:Name="PART_HeaderGripper"
-                                Grid.Column="1"
-                                Width="{StaticResource SpacingLarge}"
-                                Margin="0,0,-3,0"
-                                HorizontalAlignment="Right"
-                                Cursor="SizeWE"
-                                Opacity="0" />
+                            <ContentPresenter Grid.Column="0"
+                                              Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            <Path x:Name="SortArrow"
+                                  Grid.Column="1"
+                                  Width="10"
+                                  Height="10"
+                                  Margin="0,0,8,0"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M 0,0 L 5,5 L 10,0"
+                                  Fill="{TemplateBinding Foreground}"
+                                  Opacity="0.7"
+                                  RenderTransformOrigin="0.5,0.5"
+                                  Stretch="Uniform"
+                                  StrokeThickness="0"
+                                  Visibility="Collapsed" />
+                            <Thumb x:Name="PART_HeaderGripper"
+                                   Grid.Column="1"
+                                   Width="{StaticResource SpacingLarge}"
+                                   Margin="0,0,-3,0"
+                                   HorizontalAlignment="Right"
+                                   Cursor="SizeWE"
+                                   Opacity="0" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>

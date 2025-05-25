@@ -2,19 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:colorpicker="clr-namespace:WmiExplorer.Presentation.ColorPicker"
-             xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
              xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
              d:DesignWidth="800"
              mc:Ignorable="d">
-
-    <UserControl.Resources>
-        <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
-        <converters:EnumFlagsToBooleanConverter x:Key="EnumFlagsToBooleanConverter" />
-        <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
-    </UserControl.Resources>
 
     <Grid Name="OptionsGrid">
         <Grid.ColumnDefinitions>
