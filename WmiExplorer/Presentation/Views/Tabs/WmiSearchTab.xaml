@@ -127,7 +127,7 @@
                     <ListView.View>
                         <GridView>
                             <!--  Name Column  -->
-                            <GridViewColumn Width="200" Header="Name">
+                            <GridViewColumn Width="Auto" Header="Name">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock>
@@ -142,11 +142,41 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <!--  Path Column  -->
-                            <GridViewColumn Width="250" Header="Path">
+                            <!--  Type Column - Only visible for Property searches  -->
+                            <GridViewColumn Header="Type">
+                                <GridViewColumn.Width>
+                                    <Binding Converter="{StaticResource BooleanToDoubleConverter}"
+                                             ConverterParameter="{x:Static shared:WmiSearchType.Property}"
+                                             Path="DataContext.SearchType"
+                                             RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                </GridViewColumn.Width>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock TextTrimming="CharacterEllipsis">                                            <TextBlock.Text>
+                                        <TextBlock Text="{Binding Property.Type}" Visibility="{Binding DataContext.SearchType, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter={x:Static shared:WmiSearchType.Property}}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                            <!--  IsStatic Column - Only visible for Method searches  -->
+                            <GridViewColumn Header="IsStatic">
+                                <GridViewColumn.Width>
+                                    <Binding Converter="{StaticResource BooleanToDoubleConverter}"
+                                             ConverterParameter="{x:Static shared:WmiSearchType.Method}"
+                                             Path="DataContext.SearchType"
+                                             RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                </GridViewColumn.Width>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Method.IsStatic}" Visibility="{Binding DataContext.SearchType, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter={x:Static shared:WmiSearchType.Method}}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <!--  Path Column  -->
+                            <GridViewColumn Width="Auto" Header="Path">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextTrimming="CharacterEllipsis">
+                                            <TextBlock.Text>
                                                 <PriorityBinding>
                                                     <Binding Path="Class.ClassPath" />
                                                     <Binding Path="Method.ClassPath" />
@@ -158,7 +188,7 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
                             <!--  Description Column  -->
-                            <GridViewColumn Width="300" Header="Description">
+                            <GridViewColumn Width="Auto" Header="Description">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
@@ -169,6 +199,13 @@
                                                     <Binding Converter="{StaticResource NewLineToSpaceConverter}" Path="Property.Description" />
                                                 </PriorityBinding>
                                             </TextBlock.Text>
+                                            <TextBlock.ToolTip>
+                                                <PriorityBinding>
+                                                    <Binding Path="Class.Description" />
+                                                    <Binding Path="Method.Description" />
+                                                    <Binding Path="Property.Description" />
+                                                </PriorityBinding>
+                                            </TextBlock.ToolTip>
                                         </TextBlock>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
