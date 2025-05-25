@@ -25,9 +25,9 @@
                              Duration="0:0:1.2" />
         </Storyboard>
     </UserControl.Resources>
-    <Border Padding="2,0,6,0"
-            Background="{DynamicResource BorderBrush}"
-            BorderBrush="{DynamicResource BorderBrush}"
+    <Border Padding="2,0,10,0"
+            Background="Transparent"
+            BorderBrush="Transparent"
             BorderThickness="1"
             CornerRadius="10">
         <Grid>
@@ -194,11 +194,12 @@
 
             <!--  Border Glow Effect for Busy State  -->
             <Border x:Name="BorderGlowEffect"
+                    Grid.Column="0"
                     Grid.ColumnSpan="2"
-                    Margin="0.5"
+                    Margin="0"
                     BorderBrush="{DynamicResource SecondaryAccentBrush}"
                     BorderThickness="1"
-                    CornerRadius="9"
+                    CornerRadius="8"
                     Opacity="0">
                 <Border.Style>
                     <Style TargetType="Border">
