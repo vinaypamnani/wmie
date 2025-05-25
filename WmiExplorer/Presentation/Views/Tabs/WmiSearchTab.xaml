@@ -75,7 +75,11 @@
                              VerticalAlignment="Center"
                              Style="{StaticResource TextBoxWithClearButton}"
                              Tag="Search..."
-                             Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding SearchCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
                     <CheckBox Grid.Column="4"
                               Margin="0,0,8,0"
                               VerticalAlignment="Center"
@@ -109,13 +113,24 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <!--  Filter TextBox  -->
-                <TextBox Grid.Row="0"
-                         Height="26"
-                         Margin="4,4,4,4"
-                         Style="{StaticResource TextBoxWithClearButton}"
-                         Tag="Filter results..."
-                         Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" />
+                <!--  Filter TextBox and Clear Button  -->
+                <Grid Grid.Row="0" Margin="4,4,4,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0"
+                             Height="26"
+                             Margin="0,0,8,0"
+                             Style="{StaticResource TextBoxWithClearButton}"
+                             Tag="Filter results..."
+                             Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Grid.Column="1"
+                            Width="80"
+                            Height="26"
+                            Command="{Binding ClearResultsCommand}"
+                            Content="Clear Results" />
+                </Grid>
                 <!--  Results ListView  -->
                 <ListView Grid.Row="1"
                           Margin="0"

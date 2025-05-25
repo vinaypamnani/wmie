@@ -20,6 +20,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
     private ICollectionView? _resultsView;
     private string _searchQuery = string.Empty;
     private WmiSearchType _searchType = WmiSearchType.Class;
+    private readonly Dictionary<WmiSearchType, SearchTypeState> _searchTypeStates = new();
     private WmiNamespaceViewModel? _selectedNamespace;
     private WmiSearchResult? _selectedResult;
     private readonly IWmiService _wmiService;
@@ -34,6 +35,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
 
         // Initialize commands
         SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, CanExecuteSearch);
+        ClearResultsCommand = new RelayCommand(_ => ClearCurrentTypeResults());
         _filterHelper = new FilterHelper<WmiSearchResult>(
             _results,
             SearchResultsFilterPredicate
@@ -41,6 +43,8 @@ public class WmiSearchViewModel : MessagingViewModelBase
         _resultsView = _filterHelper.CollectionView;
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
     }
+
+    public ICommand ClearResultsCommand { get; }
 
     public string FilterText
     {
@@ -84,7 +88,40 @@ public class WmiSearchViewModel : MessagingViewModelBase
     public WmiSearchType SearchType
     {
         get => _searchType;
-        set { if (SetProperty(ref _searchType, value)) RefreshResultsView(); }
+        set
+        {
+            var oldValue = _searchType;
+            if (SetProperty(ref _searchType, value))
+            {                // Store current state for the previous type
+                if (!_searchTypeStates.ContainsKey(oldValue))
+                    _searchTypeStates[oldValue] = new SearchTypeState();
+
+                // Always store the results
+                _searchTypeStates[oldValue].Results = new List<WmiSearchResult>(_results);
+
+                // Only update the stored query if the current query is not empty
+                // (to preserve the original query that generated the results)
+                if (!string.IsNullOrWhiteSpace(_searchQuery))
+                {
+                    _searchTypeStates[oldValue].SearchQuery = _searchQuery;
+                }
+
+                // Clear current results and query
+                _results.Clear();
+                _searchQuery = string.Empty;
+
+                // Restore state for the new type if available
+                if (_searchTypeStates.TryGetValue(value, out var state) && state.Results.Count > 0)
+                {
+                    foreach (var result in state.Results)
+                        _results.Add(result);
+                    _searchQuery = state.SearchQuery;
+                }
+
+                RefreshResultsView();
+                OnPropertyChanged(nameof(SearchQuery));
+            }
+        }
     }
 
     public WmiNamespaceViewModel? SelectedNamespace
@@ -106,6 +143,20 @@ public class WmiSearchViewModel : MessagingViewModelBase
         }
     }
 
+    // Clear results for the current search type only
+    public void ClearCurrentTypeResults()
+    {
+        _results.Clear();
+        if (_searchTypeStates.ContainsKey(_searchType))
+        {
+            _searchTypeStates[_searchType].Results.Clear();
+            _searchTypeStates[_searchType].SearchQuery = string.Empty;
+        }
+        _searchQuery = string.Empty;
+        RefreshResultsView();
+        OnPropertyChanged(nameof(SearchQuery));
+    }
+
     private bool CanExecuteSearch()
     {
         return !string.IsNullOrWhiteSpace(SearchQuery) && !_isSearching;
@@ -116,6 +167,11 @@ public class WmiSearchViewModel : MessagingViewModelBase
         IsSearching = true;
         PublishBusyState("Executing search...");
         _results.Clear();
+        // Only clear the stored state for the current search type
+        if (!_searchTypeStates.ContainsKey(SearchType))
+            _searchTypeStates[SearchType] = new SearchTypeState();
+        _searchTypeStates[SearchType].Results.Clear();
+        _searchTypeStates[SearchType].SearchQuery = string.Empty;
 
         try
         {
@@ -132,6 +188,10 @@ public class WmiSearchViewModel : MessagingViewModelBase
                 var searchResult = new WmiSearchResult(SearchType, match, parent);
                 _results.Add(searchResult);
             }
+
+            // Store results and query for this type after search
+            _searchTypeStates[SearchType].Results = new List<WmiSearchResult>(_results);
+            _searchTypeStates[SearchType].SearchQuery = SearchQuery;
 
             PublishSuccessState($"Found {_results.Count} results.");
         }
@@ -183,5 +243,12 @@ public class WmiSearchViewModel : MessagingViewModelBase
             || SafeContains(() => result.Path)
             || SafeContains(() => result.Description)
             || SafeContains(() => result.TypeInfo);
+    }
+
+    // Helper class to store search state for each type
+    private class SearchTypeState
+    {
+        public List<WmiSearchResult> Results { get; set; } = new();
+        public string SearchQuery { get; set; } = string.Empty;
     }
 }
