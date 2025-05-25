@@ -422,39 +422,58 @@ public class WmiService : IWmiService, IDisposable
         }
     }
 
-    #region IDisposable
-    private bool _disposed;
-
     /// <summary>
-    /// Disposes of the managed and unmanaged resources
+    /// Recursively searches in child namespaces
     /// </summary>
-    protected virtual void Dispose(bool disposing)
+    private async Task SearchInChildNamespacesRecursivelyAsync(
+        ManagementScope parentScope,
+        WmiSearchType searchType,
+        string searchText,
+        List<(object match, ManagementBaseObject parent)> results,
+        CancellationToken cancellationToken)
     {
-        if (!_disposed)
+        try
         {
-            if (disposing)
-            {
-                foreach (var disposable in _disposables)
-                {
-                    disposable?.Dispose();
-                }
-                _disposables.Clear();
-            }
+            // Get child namespaces for the current scope
+            var childNamespaces = await GetChildNamespacesAsync(parentScope, cancellationToken);
 
-            _disposed = true;
+            foreach (var childNamespace in childNamespaces)
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+
+                try
+                {
+                    // Get the namespace name from the child namespace object
+                    var namespaceName = childNamespace.Properties["Name"]?.Value?.ToString();
+                    if (string.IsNullOrEmpty(namespaceName)) continue;
+
+                    // Build the child namespace path
+                    var parentPath = parentScope.Path?.Path ?? string.Empty;
+                    var childNamespacePath = $"{parentPath}\\{namespaceName}";
+
+                    // Create a new scope for the child namespace
+                    var childScope = CreateManagementScope(childNamespacePath, parentScope.Options);
+
+                    // Search in the child namespace
+                    await SearchInNamespaceAsync(childScope, searchType, searchText, results, cancellationToken);
+
+                    // Recursively search in grandchild namespaces
+                    await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but continue with other namespaces
+                    System.Diagnostics.Debug.WriteLine($"Error searching in child namespace: {ex.Message}");
+                    // Continue processing other child namespaces
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log the error but don't propagate to avoid breaking the entire search
+            System.Diagnostics.Debug.WriteLine($"Error getting child namespaces for recursive search: {ex.Message}");
         }
     }
-
-    /// <summary>
-    /// Implements IDisposable to clean up WMI resources
-    /// </summary>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    #endregion
 
     /// <summary>
     /// Searches for classes, methods, or properties in a specific namespace
@@ -528,56 +547,37 @@ public class WmiService : IWmiService, IDisposable
         }, cancellationToken);
     }
 
+    #region IDisposable
+    private bool _disposed;
+
     /// <summary>
-    /// Recursively searches in child namespaces
+    /// Disposes of the managed and unmanaged resources
     /// </summary>
-    private async Task SearchInChildNamespacesRecursivelyAsync(
-        ManagementScope parentScope,
-        WmiSearchType searchType,
-        string searchText,
-        List<(object match, ManagementBaseObject parent)> results,
-        CancellationToken cancellationToken)
+    protected virtual void Dispose(bool disposing)
     {
-        try
+        if (!_disposed)
         {
-            // Get child namespaces for the current scope
-            var childNamespaces = await GetChildNamespacesAsync(parentScope, cancellationToken);
-
-            foreach (var childNamespace in childNamespaces)
+            if (disposing)
             {
-                if (cancellationToken.IsCancellationRequested) break;
-
-                try
+                foreach (var disposable in _disposables)
                 {
-                    // Get the namespace name from the child namespace object
-                    var namespaceName = childNamespace.Properties["Name"]?.Value?.ToString();
-                    if (string.IsNullOrEmpty(namespaceName)) continue;
-
-                    // Build the child namespace path
-                    var parentPath = parentScope.Path?.Path ?? string.Empty;
-                    var childNamespacePath = $"{parentPath}\\{namespaceName}";
-
-                    // Create a new scope for the child namespace
-                    var childScope = CreateManagementScope(childNamespacePath, parentScope.Options);
-
-                    // Search in the child namespace
-                    await SearchInNamespaceAsync(childScope, searchType, searchText, results, cancellationToken);
-
-                    // Recursively search in grandchild namespaces
-                    await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken);
+                    disposable?.Dispose();
                 }
-                catch (Exception ex)
-                {
-                    // Log the error but continue with other namespaces
-                    System.Diagnostics.Debug.WriteLine($"Error searching in child namespace: {ex.Message}");
-                    // Continue processing other child namespaces
-                }
+                _disposables.Clear();
             }
-        }
-        catch (Exception ex)
-        {
-            // Log the error but don't propagate to avoid breaking the entire search
-            System.Diagnostics.Debug.WriteLine($"Error getting child namespaces for recursive search: {ex.Message}");
+
+            _disposed = true;
         }
     }
+
+    /// <summary>
+    /// Implements IDisposable to clean up WMI resources
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    #endregion
 }
