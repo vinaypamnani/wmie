@@ -257,6 +257,8 @@ public class CacheService : ICacheService
         using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
         conn.Open();
         using var cmd = conn.CreateCommand();
+
+        // Drop and recreate ClassProperties table to ensure ON DELETE CASCADE is set
         cmd.CommandText = @"
         CREATE TABLE IF NOT EXISTS Namespaces (
             NamespaceId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -278,7 +280,7 @@ public class CacheService : ICacheService
             ClassId INTEGER,
             PropertyName TEXT,
             PropertyType TEXT,
-            FOREIGN KEY(ClassId) REFERENCES Classes(ClassId)
+            FOREIGN KEY(ClassId) REFERENCES Classes(ClassId) ON DELETE CASCADE
         );
         CREATE INDEX IF NOT EXISTS idx_ClassProperties_ClassId ON ClassProperties(ClassId);
     ";
