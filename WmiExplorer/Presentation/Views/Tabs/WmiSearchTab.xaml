@@ -139,6 +139,11 @@
                           ItemsSource="{Binding ResultsView}"
                           SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                           Style="{StaticResource ModernGridListViewStyle}">
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Jump to class" Command="{Binding JumpToClassCommand}" />
+                        </ContextMenu>
+                    </ListView.ContextMenu>
                     <ListView.View>
                         <GridView>
                             <!--  Name Column  -->

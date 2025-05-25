@@ -25,6 +25,7 @@ public class MainViewModel : MessagingViewModelBase
     private readonly ThemeManager _themeManager;
     private MainWindowPosition _windowPosition;
     private readonly IWmiService _wmiService;
+    private int _selectedTabIndex;
 
     public MainViewModel(
         IMessagingService messagingService,
@@ -57,6 +58,7 @@ public class MainViewModel : MessagingViewModelBase
         StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
         StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
+        StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
 
         // Subscribe to theme change messages
         StrongSubscribe<ThemeChangedMessage>(_ =>
@@ -305,6 +307,15 @@ public class MainViewModel : MessagingViewModelBase
     {
         get => _windowPosition;
         set => SetProperty(ref _windowPosition, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the selected tab index for the main window
+    /// </summary>
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set => SetProperty(ref _selectedTabIndex, value);
     }
 
     /// <summary>
@@ -569,5 +580,116 @@ public class MainViewModel : MessagingViewModelBase
             PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
             return;
         }
+    }
+
+    /// <summary>
+    /// Handles JumpToClassMessage to navigate to the correct namespace and class, handling lazy loading and tab switching.
+    /// </summary>
+    private async void HandleJumpToClassMessage(JumpToClassMessage message)
+    {
+        if (message == null)
+            return;
+
+        try
+        {
+            // Debug logging for incoming message
+            System.Diagnostics.Debug.WriteLine($"[JumpToClass] Received JumpToClassMessage: NamespacePath='{message.NamespacePath}', ClassName='{message.ClassName}'");
+
+            // Switch to Classes tab (assume tab index 0 is Classes)
+            SelectedTabIndex = 0;
+
+            // Find or expand the namespace path recursively
+            var nsVm = await FindOrExpandNamespaceAsync(message.NamespacePath);
+            if (nsVm == null)
+            {
+                PublishErrorState($"Namespace '{message.NamespacePath}' not found.");
+                return;
+            }
+
+            // Select the namespace
+            SelectedNamespace = nsVm;
+            nsVm.IsSelected = true;
+            nsVm.IsExpanded = true;
+
+            // Ensure classes are loaded
+            if (nsVm.ClassLoadState != ClassLoadState.Success)
+                await nsVm.LoadClassesAsync();
+
+            // Find the class
+            var classVm = nsVm.Classes.FirstOrDefault(c => c.ClassName == message.ClassName);
+            if (classVm == null)
+            {
+                PublishErrorState($"Class '{message.ClassName}' not found in namespace '{message.NamespacePath}'.");
+                return;
+            }
+
+            // Select the class
+            nsVm.SelectedClass = classVm;
+            classVm.ForceSelection();
+
+            // Publish success state for user feedback
+            PublishSuccessState($"Jumped to class '{message.ClassName}' in namespace '{message.NamespacePath}'.");
+        }
+        catch (Exception ex)
+        {
+            PublishErrorState($"Jump to class failed: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Finds or expands namespaces to reach the target path, starting from the correct root namespace and following the path segments.
+    /// </summary>
+    private async Task<WmiNamespaceViewModel?> FindOrExpandNamespaceAsync(string targetNamespacePath)
+    {
+        // Normalize path for comparison
+        string Normalize(string path) => path.Trim().TrimEnd('\\').ToLowerInvariant();
+        var target = Normalize(targetNamespacePath);
+
+        // First, try to find a root namespace that matches the root of the target path
+        var rootMatch = Namespaces.FirstOrDefault(ns => target.StartsWith(Normalize(ns.NamespacePath)));
+        if (rootMatch == null)
+            return null;
+
+        // If the root itself is the target, return it
+        if (Normalize(rootMatch.NamespacePath) == target)
+            return rootMatch;
+
+        var current = rootMatch;
+        // Split the target path into segments
+        var targetSegments = target.Split('\\');
+        var currentSegments = Normalize(current.NamespacePath).Split('\\');
+
+        // Walk down the path segments from the root
+        for (int i = currentSegments.Length; i < targetSegments.Length; i++)
+        {
+            // Expand children if not loaded
+            if (!current.HasLoadedChildren)
+                await current.ExpandAsync();
+
+            var nextSegment = string.Join("\\", targetSegments.Take(i + 1));
+            var next = current.Children.FirstOrDefault(ns => Normalize(ns.NamespacePath) == nextSegment);
+            if (next == null)
+                return null;
+            current = next;
+        }
+        return current;
+    }
+
+    private async Task<WmiNamespaceViewModel?> FindOrExpandNamespaceRecursiveAsync(WmiNamespaceViewModel current, string target)
+    {
+        string Normalize(string path) => path.Trim().TrimEnd('\\').ToLowerInvariant();
+        if (Normalize(current.NamespacePath) == target)
+            return current;
+
+        if (!current.HasLoadedChildren)
+            await current.ExpandAsync();
+
+        foreach (var child in current.Children)
+        {
+            var found = await FindOrExpandNamespaceRecursiveAsync(child, target);
+            if (found != null)
+                return found;
+        }
+        return null;
     }
 }

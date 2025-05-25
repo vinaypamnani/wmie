@@ -251,4 +251,32 @@ public class WmiSearchViewModel : MessagingViewModelBase
         public List<WmiSearchResult> Results { get; set; } = new();
         public string SearchQuery { get; set; } = string.Empty;
     }
+
+    public ICommand JumpToClassCommand => new RelayCommand(_ => ExecuteJumpToClass(), _ => SelectedResult != null);
+
+    private void ExecuteJumpToClass()
+    {
+        if (SelectedResult == null)
+            return;
+
+        // Use the NamespacePath property from the search result for robust navigation
+        string? namespacePath = SelectedResult.NamespacePath;
+        string? className = null;
+        switch (SelectedResult.SearchType)
+        {
+            case WmiSearchType.Class:
+                className = SelectedResult.Class?.ClassName;
+                break;
+            case WmiSearchType.Method:
+                className = SelectedResult.Method?.ClassName;
+                break;
+            case WmiSearchType.Property:
+                className = SelectedResult.Property?.ClassName;
+                break;
+        }
+        if (!string.IsNullOrWhiteSpace(namespacePath) && !string.IsNullOrWhiteSpace(className))
+        {
+            _messagingService.Publish(new JumpToClassMessage(namespacePath, className));
+        }
+    }
 }

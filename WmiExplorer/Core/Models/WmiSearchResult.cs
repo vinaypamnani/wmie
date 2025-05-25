@@ -17,14 +17,18 @@ public class WmiSearchResult
         {
             case WmiSearchType.Class when match is ManagementClass managementClass:
                 Class = new WmiClass(managementClass);
+                NamespacePath = Class.Scope?.Path?.Path ?? string.Empty; // Use full path (\\machine\root\cimv2)
                 break;
-
             case WmiSearchType.Method when match is MethodData methodData && parent is ManagementClass parentClass:
                 Method = new WmiMethod(methodData, parentClass);
+                NamespacePath = parentClass.Scope?.Path?.Path ?? string.Empty;
                 break;
-
             case WmiSearchType.Property when match is PropertyData propertyData && parent is ManagementClass parentClass:
                 Property = new WmiProperty(propertyData, parentClass);
+                NamespacePath = parentClass.Scope?.Path?.Path ?? string.Empty;
+                break;
+            default:
+                NamespacePath = string.Empty;
                 break;
         }
     }
@@ -70,6 +74,8 @@ public class WmiSearchResult
         WmiSearchType.Property => Property?.Type ?? string.Empty,
         _ => null
     };
+
+    public string NamespacePath { get; }
 
     private static string? ExtractName(object obj)
     {

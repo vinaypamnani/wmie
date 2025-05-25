@@ -88,7 +88,7 @@
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
                                   Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-                    <TabControl Grid.Column="2">
+                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="Classes">
                             <!--  All the grid content has been moved to WmiClassesTab  -->
                             <tabs:WmiClassesTab />

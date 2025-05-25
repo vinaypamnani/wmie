@@ -142,4 +142,19 @@ public class ThemeChangedMessage : MessageBase
     public string Theme { get; }
 }
 
+/// <summary>
+/// Message sent to request navigation to a class in a namespace (from search results)
+/// </summary>
+public class JumpToClassMessage : MessageBase
+{
+    public JumpToClassMessage(string namespacePath, string className)
+    {
+        NamespacePath = namespacePath;
+        ClassName = className;
+    }
+
+    public string NamespacePath { get; }
+    public string ClassName { get; }
+}
+
 #endregion
