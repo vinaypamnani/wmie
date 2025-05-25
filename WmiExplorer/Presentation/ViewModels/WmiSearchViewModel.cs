@@ -1,16 +1,17 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Data;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
 public class WmiSearchViewModel : MessagingViewModelBase
 {
+    private readonly FilterHelper<WmiSearchResult> _filterHelper;
     private string _filterText = string.Empty;
     private bool _isSearching;
     private readonly IMessagingService _messagingService;
@@ -33,15 +34,22 @@ public class WmiSearchViewModel : MessagingViewModelBase
 
         // Initialize commands
         SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, CanExecuteSearch);
-        _resultsView = CollectionViewSource.GetDefaultView(_results);
-        _resultsView.Filter = FilterResult;
+        _filterHelper = new FilterHelper<WmiSearchResult>(
+            _results,
+            SearchResultMatchesFilter
+        );
+        _resultsView = _filterHelper.CollectionView;
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
     }
 
     public string FilterText
     {
         get => _filterText;
-        set { if (SetProperty(ref _filterText, value)) _resultsView?.Refresh(); }
+        set
+        {
+            if (SetProperty(ref _filterText, value))
+                _filterHelper.FilterText = value;
+        }
     }
 
     public bool IsSearching
@@ -137,22 +145,6 @@ public class WmiSearchViewModel : MessagingViewModelBase
         }
     }
 
-    private bool FilterResult(object obj)
-    {
-        if (obj is not WmiSearchResult result)
-            return false;
-
-        if (string.IsNullOrWhiteSpace(FilterText))
-            return true;
-
-        var filter = FilterText.ToLowerInvariant();
-
-        return result.Name.ToLowerInvariant().Contains(filter)
-            || result.Path.ToLowerInvariant().Contains(filter)
-            || result.Description.ToLowerInvariant().Contains(filter)
-            || (result.TypeInfo?.ToLowerInvariant().Contains(filter) == true);
-    }
-
     private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
     {
         if (message?.NamespaceViewModel == null)
@@ -163,5 +155,33 @@ public class WmiSearchViewModel : MessagingViewModelBase
     private void RefreshResultsView()
     {
         _resultsView?.Refresh();
+    }
+
+    private bool SearchResultMatchesFilter(WmiSearchResult result, string filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter))
+            return true;
+        var lower = filter.ToLowerInvariant();
+
+        // Helper to safely access a property for filtering
+        bool SafeContains(Func<string?> propertyAccessor)
+        {
+            try
+            {
+                var value = propertyAccessor();
+                return value != null && value.ToLowerInvariant().Contains(lower);
+            }
+            catch
+            {
+                // Ignore exceptions from WMI property access
+                return false;
+            }
+        }
+
+        // Match on multiple properties, safely
+        return SafeContains(() => result.Name)
+            || SafeContains(() => result.Path)
+            || SafeContains(() => result.Description)
+            || SafeContains(() => result.TypeInfo);
     }
 }
