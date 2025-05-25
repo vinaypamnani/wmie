@@ -15,7 +15,6 @@ public class MainViewModel : MessagingViewModelBase
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private WmiWatcherViewModel? _eventWatcherViewModel;
     private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
-    private WmiSearchViewModel? _searchViewModel;
     private WmiClassViewModel? _selectedClass;
     private WmiInstanceViewModel? _selectedInstance;
     private WmiNamespaceViewModel? _selectedNamespace;
@@ -72,8 +71,6 @@ public class MainViewModel : MessagingViewModelBase
 
         // Initialize the Event Watcher ViewModel
         _eventWatcherViewModel = new WmiWatcherViewModel(messagingService, _cacheService);
-        // Initialize the Search ViewModel
-        _searchViewModel = new WmiSearchViewModel(messagingService, wmiService);
 
         // Log initial class filter
         System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
@@ -193,11 +190,6 @@ public class MainViewModel : MessagingViewModelBase
         _ => SelectedNamespace?.LoadClassesCommand.Execute(null),
         _ => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
     );
-
-    /// <summary>
-    /// Gets the view model for the WMI Search
-    /// </summary>
-    public WmiSearchViewModel SearchViewModel => _searchViewModel!;
 
     /// <summary>
     /// Currently selected class in the tree
@@ -619,7 +611,7 @@ public class MainViewModel : MessagingViewModelBase
             var classVm = nsVm.Classes.FirstOrDefault(c => c.ClassName == message.ClassName);
             if (classVm == null)
             {
-                PublishErrorState($"Class '{message.ClassName}' not found in namespace '{message.NamespacePath}'.");
+                PublishErrorState($"Class '{message.ClassName}' not found in namespace '{message.NamespacePath}'. Check Class Enumeration options.");
                 return;
             }
 

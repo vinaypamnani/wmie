@@ -99,7 +99,7 @@
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
-                            <tabs:WmiWatcherTab />
+                            <tabs:WmiWatcherTab DataContext="{Binding EventWatcherViewModel}" />
                         </TabItem>
                     </TabControl>
 
