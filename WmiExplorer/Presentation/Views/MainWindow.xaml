@@ -4,6 +4,7 @@
         xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
         xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:WmiExplorer"
         xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
@@ -11,7 +12,6 @@
         xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
         xmlns:tabs="clr-namespace:WmiExplorer.Presentation.Views.Tabs"
         xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels"
-        xmlns:local="clr-namespace:WmiExplorer"
         Title="WmiExplorer"
         Background="{DynamicResource PrimaryBackgroundBrush}"
         BorderBrush="{DynamicResource BorderBrush}"
@@ -23,12 +23,8 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:BoolAndNotBoolToVisibilityConverter x:Key="BoolAndNotBoolToVisibilityConverter" />
         <converters:NotBoolAndNotBoolToVisibilityConverter x:Key="NotBoolAndNotBoolToVisibilityConverter" />
-        <converters:ApplicationStateToCursorConverter x:Key="ApplicationStateToCursorConverter" />
         <converters:EnumFlagsToBooleanConverter x:Key="EnumFlagsToBooleanConverter" />
     </Window.Resources>
-    <Window.Cursor>
-        <Binding Converter="{StaticResource ApplicationStateToCursorConverter}" Path="CurrentApplicationState" />
-    </Window.Cursor>
     <Grid Name="MainGrid">
         <Grid.RowDefinitions>
             <!--  Menu  -->
@@ -157,13 +153,13 @@
                                             </Border>
 
                                             <pg:PropertyGrid x:Name="PropertyGrid"
-                                                                   Grid.Row="1"
-                                                                   Margin="{StaticResource MarginRightSmall}"
-                                                                   Background="{DynamicResource PropertyGridBackgroundBrush}"
-                                                                   EnableVirtualization="True"
-                                                                   NameColumnWidth="150"
-                                                                   SelectedObject="{Binding SelectedObject, Mode=OneWay}"
-                                                                   ShowSearchBox="True" />
+                                                             Grid.Row="1"
+                                                             Margin="{StaticResource MarginRightSmall}"
+                                                             Background="{DynamicResource PropertyGridBackgroundBrush}"
+                                                             EnableVirtualization="True"
+                                                             NameColumnWidth="150"
+                                                             SelectedObject="{Binding SelectedObject, Mode=OneWay}"
+                                                             ShowSearchBox="True" />
                                         </Grid>
                                     </Border>
                                 </Grid>
