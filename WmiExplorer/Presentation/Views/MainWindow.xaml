@@ -159,16 +159,12 @@
                 </Grid>
             </DockPanel>
         </Grid>
-
         <StatusBar Grid.Row="2" Margin="{StaticResource MarginTopSmall}">
             <StatusBarItem>
-                <TextBlock x:Name="StatusBarText" Margin="{StaticResource MarginHorizontalSmall}" Text="{Binding CurrentApplicationState.Message}" />
+                <main:EnhancedStatusIndicator Margin="4,0" DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <StackPanel Margin="{StaticResource MarginRightSmall}" Orientation="Horizontal">
-                    <!-- <TextBlock Text="{Binding ComputerName}" Margin="0,0,8,0" VerticalAlignment="Center" /> -->
-                    <main:StatusIndicator DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
-                </StackPanel>
+                <!--  Reserved space for additional status items if needed  -->
             </StatusBarItem>
         </StatusBar>
     </Grid>
