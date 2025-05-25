@@ -129,14 +129,14 @@
                             <Setter TargetName="SortArrow" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <!--  Sort Arrow Direction - Modern Chevron Style  -->
-                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(behaviors:ListViewSortBehavior.SortDirection)}" Value="Ascending">
+                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(behaviors:ListViewSortBehavior.SortDirection)}" Value="Descending">
                             <Setter TargetName="SortArrow" Property="RenderTransform">
                                 <Setter.Value>
                                     <RotateTransform Angle="180" />
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(behaviors:ListViewSortBehavior.SortDirection)}" Value="Descending">
+                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(behaviors:ListViewSortBehavior.SortDirection)}" Value="Ascending">
                             <Setter TargetName="SortArrow" Property="RenderTransform">
                                 <Setter.Value>
                                     <RotateTransform Angle="0" />
