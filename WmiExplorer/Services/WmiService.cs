@@ -491,7 +491,7 @@ public class WmiService : IWmiService, IDisposable
             {
                 case WmiSearchType.Class:
                     var classQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, classQuery))
+                    using (var searcher = new ManagementObjectSearcher(scope, classQuery, _enumOptions))
                     {
                         foreach (ManagementClass wmiClass in searcher.Get())
                         {
@@ -508,7 +508,7 @@ public class WmiService : IWmiService, IDisposable
 
                 case WmiSearchType.Method:
                     var methodClassQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, methodClassQuery))
+                    using (var searcher = new ManagementObjectSearcher(scope, methodClassQuery, _enumOptions))
                     {
                         foreach (ManagementClass wmiClass in searcher.Get())
                         {
@@ -527,7 +527,7 @@ public class WmiService : IWmiService, IDisposable
 
                 case WmiSearchType.Property:
                     var propertyClassQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, propertyClassQuery))
+                    using (var searcher = new ManagementObjectSearcher(scope, propertyClassQuery, _enumOptions))
                     {
                         foreach (ManagementClass wmiClass in searcher.Get())
                         {

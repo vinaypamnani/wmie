@@ -20,7 +20,23 @@ public class WmiMethod
 
     public string ClassName => _parentClass?["__Class"]?.ToString() ?? string.Empty;
     public string ClassPath => _parentClass?.Path?.Path ?? string.Empty;
-    public string Description => _methodData.Qualifiers?["Description"]?.Value?.ToString() ?? string.Empty;
+
+    public string Description
+    {
+        get
+        {
+            try
+            {
+                return _methodData.Qualifiers?["Description"]?.Value?.ToString() ?? string.Empty;
+            }
+            catch (ManagementException)
+            {
+                // Handle the case when the "Description" qualifier doesn't exist
+                return string.Empty;
+            }
+        }
+    }
+
     public WmiParameterCollection InParameters { get; }
 
     public bool IsStatic
