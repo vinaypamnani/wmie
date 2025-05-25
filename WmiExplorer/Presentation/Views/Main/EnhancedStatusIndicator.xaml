@@ -122,6 +122,28 @@
                         </EventTrigger>
                     </Ellipse.Triggers>
                 </Ellipse>
+
+                <!--  Warning Indicator (Yellow/Orange)  -->
+                <Ellipse Width="14"
+                         Height="14"
+                         HorizontalAlignment="Center"
+                         Fill="{DynamicResource WarningBrush}">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Warning}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                    <Ellipse.Triggers>
+                        <EventTrigger RoutedEvent="Ellipse.Loaded">
+                            <BeginStoryboard Storyboard="{StaticResource PulseStoryboard}" />
+                        </EventTrigger>
+                    </Ellipse.Triggers>
+                </Ellipse>
             </Grid>
 
             <!--  Progress Bar for Busy state  -->

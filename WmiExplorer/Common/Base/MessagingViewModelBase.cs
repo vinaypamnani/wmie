@@ -74,6 +74,15 @@ public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Helper method for publishing warning application state
+    /// </summary>
+    /// <param name="message">The warning message to display</param>
+    protected void PublishWarningState(string message)
+    {
+        PublishMessage(new ApplicationStateMessage(ApplicationState.Warning(message)));
+    }
+
+    /// <summary>
     /// Helper method to execute an action on the UI thread
     /// </summary>
     /// <param name="action">The action to execute</param>
@@ -104,7 +113,9 @@ public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
         {
             return Application.Current.Dispatcher.InvokeAsync(asyncAction).Task;
         }
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Subscribe to a message of type T and keep a strong reference to the handler
     /// </summary>
     /// <typeparam name="T">The message type</typeparam>

@@ -34,6 +34,11 @@ public class ApplicationState
     public bool IsIndeterminate => State == AppState.Indeterminate;
 
     /// <summary>
+    /// Indicates if the application is in a warning state
+    /// </summary>
+    public bool IsWarning => State == AppState.Warning;
+
+    /// <summary>
     /// Message describing the current state
     /// </summary>
     public string Message { get; }
@@ -77,6 +82,12 @@ public class ApplicationState
     /// </summary>
     public static ApplicationState Success(string message)
         => new ApplicationState(AppState.Success, message);
+
+    /// <summary>
+    /// Creates a Warning state
+    /// </summary>
+    public static ApplicationState Warning(string message)
+        => new ApplicationState(AppState.Warning, message);
 }
 
 /// <summary>
@@ -88,5 +99,6 @@ public enum AppState
     Busy,
     Error,
     Success,
+    Warning,
     Indeterminate
 }

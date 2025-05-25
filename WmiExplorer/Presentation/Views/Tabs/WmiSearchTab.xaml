@@ -46,6 +46,8 @@
                         <!--  Recursive  -->
                         <ColumnDefinition Width="Auto" />
                         <!--  Search Button  -->
+                        <ColumnDefinition Width="Auto" />
+                        <!--  Cancel Button  -->
                     </Grid.ColumnDefinitions>
                     <RadioButton Grid.Column="0"
                                  Margin="0,0,8,0"
@@ -89,6 +91,13 @@
                             Command="{Binding SearchCommand}"
                             Content="Search"
                             IsEnabled="{Binding IsSearching, Converter={StaticResource InverseBooleanConverter}}" />
+                    <Button Grid.Column="6"
+                            Width="80"
+                            Height="26"
+                            Margin="4,0,8,0"
+                            Command="{Binding CancelSearchCommand}"
+                            Content="Cancel"
+                            IsEnabled="{Binding IsSearching}" />
                 </Grid>
 
                 <!--  Note Text  -->

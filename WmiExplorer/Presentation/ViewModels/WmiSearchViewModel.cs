@@ -11,6 +11,7 @@ namespace WmiExplorer.Presentation.ViewModels;
 
 public class WmiSearchViewModel : MessagingViewModelBase
 {
+    private CancellationTokenSource? _cts;
     private readonly FilterHelper<WmiSearchResult> _filterHelper;
     private string _filterText = string.Empty;
     private bool _isSearching;
@@ -31,11 +32,10 @@ public class WmiSearchViewModel : MessagingViewModelBase
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
 
         // Initialize messaging
-        InitializeMessaging(messagingService);
-
-        // Initialize commands
+        InitializeMessaging(messagingService);        // Initialize commands
         SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, CanExecuteSearch);
         ClearResultsCommand = new RelayCommand(_ => ClearCurrentTypeResults());
+        CancelSearchCommand = new RelayCommand(_ => CancelSearch(), _ => IsSearching);
         _filterHelper = new FilterHelper<WmiSearchResult>(
             _results,
             SearchResultsFilterPredicate
@@ -44,6 +44,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
     }
 
+    public ICommand CancelSearchCommand { get; private set; }
     public ICommand ClearResultsCommand { get; }
 
     public string FilterText
@@ -61,6 +62,8 @@ public class WmiSearchViewModel : MessagingViewModelBase
         get => _isSearching;
         set => SetProperty(ref _isSearching, value);
     }
+
+    public ICommand JumpToClassCommand => new RelayCommand(_ => ExecuteJumpToClass(), _ => SelectedResult != null);
 
     public bool Recursive
     {
@@ -157,9 +160,54 @@ public class WmiSearchViewModel : MessagingViewModelBase
         OnPropertyChanged(nameof(SearchQuery));
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _cts?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
+    // Cancel the search operation
+    private void CancelSearch()
+    {
+        if (!IsSearching || _cts == null)
+            return;
+
+        PublishBusyState("Cancelling search...");
+        _cts.Cancel();
+    }
+
     private bool CanExecuteSearch()
     {
         return !string.IsNullOrWhiteSpace(SearchQuery) && !_isSearching;
+    }
+
+    private void ExecuteJumpToClass()
+    {
+        if (SelectedResult == null)
+            return;
+
+        // Use the NamespacePath property from the search result for robust navigation
+        string? namespacePath = SelectedResult.NamespacePath;
+        string? className = null;
+        switch (SelectedResult.SearchType)
+        {
+            case WmiSearchType.Class:
+                className = SelectedResult.Class?.ClassName;
+                break;
+            case WmiSearchType.Method:
+                className = SelectedResult.Method?.ClassName;
+                break;
+            case WmiSearchType.Property:
+                className = SelectedResult.Property?.ClassName;
+                break;
+        }
+        if (!string.IsNullOrWhiteSpace(namespacePath) && !string.IsNullOrWhiteSpace(className))
+        {
+            _messagingService.Publish(new JumpToClassMessage(namespacePath, className));
+        }
     }
 
     private async Task ExecuteSearchAsync()
@@ -173,6 +221,10 @@ public class WmiSearchViewModel : MessagingViewModelBase
         _searchTypeStates[SearchType].Results.Clear();
         _searchTypeStates[SearchType].SearchQuery = string.Empty;
 
+        // Create a new cancellation token source for this operation
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+
         try
         {
             if (SelectedNamespace == null)
@@ -181,7 +233,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
                 return;
             }
             var scope = SelectedNamespace.ManagementScope;
-            var searchResults = await _wmiService.ExecuteSearchAsync(scope, SearchType, SearchQuery, Recursive);
+            var searchResults = await _wmiService.ExecuteSearchAsync(scope, SearchType, SearchQuery, Recursive, _cts.Token);
 
             foreach (var (match, parent) in searchResults)
             {
@@ -193,7 +245,18 @@ public class WmiSearchViewModel : MessagingViewModelBase
             _searchTypeStates[SearchType].Results = new List<WmiSearchResult>(_results);
             _searchTypeStates[SearchType].SearchQuery = SearchQuery;
 
-            PublishSuccessState($"Found {_results.Count} results.");
+            if (_cts.IsCancellationRequested)
+            {
+                PublishWarningState($"Found {_results.Count} results before search was cancelled.");
+            }
+            else
+            {
+                PublishSuccessState($"Found {_results.Count} results.");
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            PublishWarningState("Search cancelled.");
         }
         catch (Exception ex)
         {
@@ -202,6 +265,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
         finally
         {
             IsSearching = false;
+            CommandManager.InvalidateRequerySuggested(); // Refresh command state
         }
     }
 
@@ -250,33 +314,5 @@ public class WmiSearchViewModel : MessagingViewModelBase
     {
         public List<WmiSearchResult> Results { get; set; } = new();
         public string SearchQuery { get; set; } = string.Empty;
-    }
-
-    public ICommand JumpToClassCommand => new RelayCommand(_ => ExecuteJumpToClass(), _ => SelectedResult != null);
-
-    private void ExecuteJumpToClass()
-    {
-        if (SelectedResult == null)
-            return;
-
-        // Use the NamespacePath property from the search result for robust navigation
-        string? namespacePath = SelectedResult.NamespacePath;
-        string? className = null;
-        switch (SelectedResult.SearchType)
-        {
-            case WmiSearchType.Class:
-                className = SelectedResult.Class?.ClassName;
-                break;
-            case WmiSearchType.Method:
-                className = SelectedResult.Method?.ClassName;
-                break;
-            case WmiSearchType.Property:
-                className = SelectedResult.Property?.ClassName;
-                break;
-        }
-        if (!string.IsNullOrWhiteSpace(namespacePath) && !string.IsNullOrWhiteSpace(className))
-        {
-            _messagingService.Publish(new JumpToClassMessage(namespacePath, className));
-        }
     }
 }
