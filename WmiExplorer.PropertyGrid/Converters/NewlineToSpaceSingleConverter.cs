@@ -2,12 +2,14 @@ using System.Globalization;
 using System.Text;
 using System.Windows.Data;
 
-namespace WmiExplorer.Presentation.Converters;
+namespace WmiExplorer.PropertyGrid.Converters;
 
 /// <summary>
-/// Converts newlines in a string to spaces for single-line display in UI.
+/// Converts newlines in a string to spaces for single-line display in the property grid.
+/// Single-value converter version for use in converter chains.
+/// Optimized for performance with early returns and minimal allocations.
 /// </summary>
-public class NewLineToSpaceConverter : IValueConverter
+public class NewlineToSpaceSingleConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -35,7 +37,6 @@ public class NewLineToSpaceConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        // Not needed for one-way binding
-        return value;
+        throw new NotImplementedException();
     }
 }

@@ -4,7 +4,7 @@
                     xmlns:local="clr-namespace:WmiExplorer.PropertyGrid">
     <!--  Converters  -->
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
-    <conv:NewlineToSpaceConverter x:Key="NewlineToSpaceConverter" />
+    <conv:NewlineToSpaceSingleConverter x:Key="NewlineToSpaceSingleConverter" />
     <conv:NameValueToStringConverter x:Key="NameValueToStringConverter" />
     <conv:TextHighlightConverter x:Key="TextHighlightConverter" />
 
@@ -184,7 +184,7 @@
                 <ContentPresenter Margin="5,0,0,0">
                     <ContentPresenter.Content>
                         <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
-                            <Binding Path="FormattedValue" />
+                            <Binding Converter="{StaticResource NewlineToSpaceSingleConverter}" Path="FormattedValue" />
                             <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
                         </MultiBinding>
                     </ContentPresenter.Content>
