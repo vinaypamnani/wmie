@@ -142,7 +142,7 @@
                 <ListView Grid.Row="1"
                           Margin="0"
                           BorderThickness="0"
-                          ItemContainerStyle="{StaticResource FlatListViewItemStyle}"
+                          ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
                           ItemsSource="{Binding ResultsView}"
                           SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                           Style="{StaticResource ModernGridListViewStyle}">

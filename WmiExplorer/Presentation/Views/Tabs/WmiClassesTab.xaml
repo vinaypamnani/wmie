@@ -68,7 +68,7 @@
                             <ListView.View>
                                 <GridView AllowsColumnReorder="True">
                                     <GridView.ColumnHeaderContainerStyle>
-                                        <Style BasedOn="{StaticResource FlatGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
+                                        <Style BasedOn="{StaticResource ModernGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
                                     </GridView.ColumnHeaderContainerStyle>
                                     <GridViewColumn Width="200" behaviors:ListViewSortBehavior.SortProperty="ClassName" Header="Class Name">
                                         <GridViewColumn.CellTemplate>
@@ -111,7 +111,7 @@
                                 </GridView>
                             </ListView.View>
                             <ListView.ItemContainerStyle>
-                                <Style BasedOn="{StaticResource FlatListViewItemStyle}" TargetType="{x:Type ListViewItem}">
+                                <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                                     <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
                                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
                                 </Style>

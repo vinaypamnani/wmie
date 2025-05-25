@@ -26,7 +26,7 @@
     </Style>
 
     <!--  Completely flat ListViewItem style with no gradients  -->
-    <Style x:Key="FlatListViewItemStyle" TargetType="{x:Type ListViewItem}">
+    <Style x:Key="ModernGridListViewItemStyle" TargetType="{x:Type ListViewItem}">
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -67,7 +67,7 @@
     </Style>
 
     <!--  Completely flat style for GridViewColumnHeader - no gradients  -->
-    <Style x:Key="FlatGridViewColumnHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
+    <Style x:Key="ModernGridViewColumnHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
         <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
@@ -178,7 +178,7 @@
                                           VerticalScrollBarVisibility="Disabled">
                                 <!--  Wrap in a border to provide the background  -->
                                 <Border Background="{DynamicResource SecondaryBackgroundBrush}">
-                                    <GridViewHeaderRowPresenter Margin="{StaticResource MarginHorizontalTiny}" ColumnHeaderContainerStyle="{DynamicResource FlatGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    <GridViewHeaderRowPresenter Margin="{StaticResource MarginHorizontalTiny}" ColumnHeaderContainerStyle="{DynamicResource ModernGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </Border>
                             </ScrollViewer>
 
