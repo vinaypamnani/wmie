@@ -30,7 +30,7 @@
                       Style="{StaticResource VerticalHeaderExpanderStyle}">
                 <Expander.Header>
                     <Border Width="25">
-                        <TextBlock FontSize="15" FontWeight="SemiBold" Text="Classes">
+                        <TextBlock FontSize="15" FontWeight="Light" Text="Classes">
                             <TextBlock.LayoutTransform>
                                 <RotateTransform Angle="90" />
                             </TextBlock.LayoutTransform>

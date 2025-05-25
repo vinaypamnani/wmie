@@ -59,7 +59,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <DockPanel Grid.Row="0" Margin="{StaticResource MarginHorizontalSmall}" VerticalAlignment="Top">
+            <DockPanel Grid.Row="0" VerticalAlignment="Top">
                 <main:OptionsPanel />
             </DockPanel>
             <DockPanel Grid.Row="1" Margin="{StaticResource MarginHorizontalSmall}">
@@ -112,7 +112,7 @@
                                   Style="{StaticResource VerticalHeaderExpanderStyle}">
                             <Expander.Header>
                                 <Border Width="25">
-                                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="Properties">
+                                    <TextBlock FontSize="15" FontWeight="Light" Text="Properties">
                                         <TextBlock.LayoutTransform>
                                             <RotateTransform Angle="90" />
                                         </TextBlock.LayoutTransform>

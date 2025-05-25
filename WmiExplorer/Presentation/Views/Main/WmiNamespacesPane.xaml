@@ -17,7 +17,7 @@
                   Style="{StaticResource VerticalHeaderExpanderStyle}">
             <Expander.Header>
                 <Border Width="25">
-                    <TextBlock FontSize="15" FontWeight="SemiBold" Text="Namespaces">
+                    <TextBlock FontSize="15" FontWeight="Light" Text="Namespaces">
                         <TextBlock.LayoutTransform>
                             <RotateTransform Angle="90" />
                         </TextBlock.LayoutTransform>
