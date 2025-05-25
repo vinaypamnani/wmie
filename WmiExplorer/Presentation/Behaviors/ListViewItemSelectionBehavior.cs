@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels;
 
 namespace WmiExplorer.Presentation.Behaviors;
@@ -58,8 +60,24 @@ public static class ListViewItemSelectionBehavior
                 {
                     instanceViewModel.ForceSelection();
                 }
+                // Special handling for event items: get parent ListView's DataContext
+                else if (item.DataContext is WmiEvent && FindParentListView(item) is ListView listView && listView.DataContext is WmiWatcherViewModel watcherViewModel)
+                {
+                    watcherViewModel.ForceSelection();
+                }
                 // Don't mark as handled - this allows double-click to still work
             }
         }
+    }
+
+    // Helper to find parent ListView
+    private static DependencyObject? FindParentListView(DependencyObject child)
+    {
+        DependencyObject? parent = VisualTreeHelper.GetParent(child);
+        while (parent != null && parent is not ListView)
+        {
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        return parent;
     }
 }

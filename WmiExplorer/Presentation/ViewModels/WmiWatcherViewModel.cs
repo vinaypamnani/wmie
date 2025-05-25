@@ -796,4 +796,18 @@ public class WmiWatcherViewModel : MessagingViewModelBase
                 SelectedWatcherName = "All";
         }
     }
+
+    /// <summary>
+    /// Forces the selection logic for the currently selected event.
+    /// Used by ListViewItemSelectionBehavior to re-publish the SelectedEventChangedMessage
+    /// even if the same event is clicked again.
+    /// </summary>
+    public void ForceSelection()
+    {
+        if (_selectedEvent != null)
+        {
+            // Re-publish the message for the currently selected event
+            _messagingService.Publish(new SelectedEventChangedMessage(_selectedEvent));
+        }
+    }
 }
