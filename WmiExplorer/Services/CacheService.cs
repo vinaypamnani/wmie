@@ -272,7 +272,7 @@ public class CacheService : ICacheService
             RelativePath TEXT,
             IsSystemClass INTEGER,
             IsEventClass INTEGER,
-            FOREIGN KEY(NamespaceId) REFERENCES Namespaces(NamespaceId)
+            FOREIGN KEY(NamespaceId) REFERENCES Namespaces(NamespaceId) ON DELETE CASCADE
         );
         CREATE INDEX IF NOT EXISTS idx_Classes_NamespaceId ON Classes(NamespaceId);
         CREATE TABLE IF NOT EXISTS ClassProperties (
