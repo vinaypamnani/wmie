@@ -32,11 +32,13 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private readonly ObservableCollection<string> _eventClassList = new ObservableCollection<string>();
     private PropertyDisplayInfo _eventDisplayProperty = new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
     private readonly ObservableCollection<PropertyDisplayInfo> _eventDisplayPropertyList = new ObservableCollection<PropertyDisplayInfo>();
+    private readonly DebounceDispatcher _eventFilterDebouncer = new();
     private string _eventFilterText = string.Empty;
     private readonly ObservableCollection<PropertyDisplayInfo> _eventPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private readonly WmiWatcherQueryBuilder _eventQueryBuilder;
     private readonly ObservableCollection<WmiEvent> _events = new();
     private ICollectionView? _eventsView;
+    private readonly FilterHelper<string> _eventTargetClassFilterHelper;
     private readonly ObservableCollection<string> _eventTargetClassList = new ObservableCollection<string>();
     private readonly ObservableCollection<PropertyDisplayInfo> _eventTargetClassPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private bool _isCustomQuery = false;
@@ -46,8 +48,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private string? _selectedWatcherName;
     private int _watcherId = 1;
     private readonly ObservableCollection<WmiWatcherItem> _watchers = new();
-    private readonly FilterHelper<string> _eventTargetClassFilterHelper;
-    private readonly DebounceDispatcher _eventFilterDebouncer = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
@@ -223,10 +223,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         }
     }
 
-    public ReadOnlyObservableCollection<string> EventTargetClassList { get; }
-    public ICollectionView EventTargetClassListView { get; }
-    public ReadOnlyObservableCollection<PropertyDisplayInfo> EventTargetClassPropertyList { get; }
-
     /// <summary>
     /// Gets or sets the search text for filtering classes
     /// </summary>
@@ -242,6 +238,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             }
         }
     }
+
+    public ReadOnlyObservableCollection<string> EventTargetClassList { get; }
+    public ICollectionView EventTargetClassListView { get; }
+    public ReadOnlyObservableCollection<PropertyDisplayInfo> EventTargetClassPropertyList { get; }
 
     /// <summary>
     /// Gets or sets whether the query is a custom query
@@ -358,6 +358,17 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             }
         }
         _events.Clear();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _eventTargetClassFilterHelper.Dispose();
+            _eventFilterDebouncer.Dispose();
+            // Dispose of other managed resources if needed
+        }
+        base.Dispose(disposing);
     }
 
     /// <summary>
@@ -784,16 +795,5 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             if (_selectedWatcherName != "All")
                 SelectedWatcherName = "All";
         }
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _eventTargetClassFilterHelper.Dispose();
-            _eventFilterDebouncer.Dispose();
-            // Dispose of other managed resources if needed
-        }
-        base.Dispose(disposing);
     }
 }

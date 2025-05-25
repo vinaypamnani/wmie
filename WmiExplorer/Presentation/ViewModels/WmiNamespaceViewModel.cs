@@ -56,7 +56,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         // The collection view is used for filtering and sorting classes in the UI.
         _classFilterHelper = new FilterHelper<WmiClassViewModel>(
             _classes,
-            ClassMatchesFilter
+            ClassFilterPredicate
         );
 
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
@@ -491,7 +491,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         PublishMessage(new SelectedNamespaceChangedMessage(this));
     }
 
-    private bool ClassMatchesFilter(WmiClassViewModel classVm, string filter)
+    private bool ClassFilterPredicate(WmiClassViewModel classVm, string filter)
     {
         bool isSystemClass = classVm.ClassName.StartsWith("__");
         if (isSystemClass && !_settingsService.ShowSystemClasses)

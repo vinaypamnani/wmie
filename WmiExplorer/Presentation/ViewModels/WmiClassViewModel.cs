@@ -50,7 +50,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         // The collection view is used for filtering and sorting instances in the UI.
         _instanceFilterHelper = new FilterHelper<WmiInstanceViewModel>(
             _instances,
-            InstanceMatchesFilter
+            InstanceFilterPredicate
         );
 
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
@@ -223,7 +223,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         }
     }
 
-    private bool InstanceMatchesFilter(WmiInstanceViewModel instance, string filter)
+    private bool InstanceFilterPredicate(WmiInstanceViewModel instance, string filter)
     {
         return string.IsNullOrWhiteSpace(filter) ||
                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;

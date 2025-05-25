@@ -36,7 +36,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
         SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, CanExecuteSearch);
         _filterHelper = new FilterHelper<WmiSearchResult>(
             _results,
-            SearchResultMatchesFilter
+            SearchResultsFilterPredicate
         );
         _resultsView = _filterHelper.CollectionView;
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
@@ -157,7 +157,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
         _resultsView?.Refresh();
     }
 
-    private bool SearchResultMatchesFilter(WmiSearchResult result, string filter)
+    private bool SearchResultsFilterPredicate(WmiSearchResult result, string filter)
     {
         if (string.IsNullOrWhiteSpace(filter))
             return true;
