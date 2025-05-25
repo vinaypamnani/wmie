@@ -36,8 +36,7 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Executes a search for classes, methods, or properties based on the search type.
-    /// Returns tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class.
+    /// Executes a search for classes, methods, or properties based on the search type.    /// Returns tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class.
     /// </summary>
     public Task<IEnumerable<(object match, ManagementBaseObject parent)>> ExecuteSearchAsync(
         ManagementScope scope,
@@ -46,68 +45,20 @@ public class WmiService : IWmiService, IDisposable
         bool recursive,
         CancellationToken cancellationToken = default)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             EnsureScopeConnected(scope);
             var results = new List<(object match, ManagementBaseObject parent)>();
 
-            switch (searchType)
+            // Search in the current namespace
+            await SearchInNamespaceAsync(scope, searchType, searchText, results, cancellationToken);
+
+            // If recursive search is enabled, search in child namespaces
+            if (recursive && !cancellationToken.IsCancellationRequested)
             {
-                case WmiSearchType.Class:
-                    var classQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, classQuery))
-                    {
-                        foreach (ManagementClass wmiClass in searcher.Get())
-                        {
-                            if (cancellationToken.IsCancellationRequested) break;
-                            var className = wmiClass["__Class"]?.ToString() ?? string.Empty;
-                            if (string.IsNullOrWhiteSpace(searchText) || className.Contains(searchText, System.StringComparison.OrdinalIgnoreCase))
-                            {
-                                // For classes, match and parent are the same
-                                results.Add((wmiClass, wmiClass));
-                            }
-                        }
-                    }
-                    break;
-
-                case WmiSearchType.Method:
-                    var methodClassQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, methodClassQuery))
-                    {
-                        foreach (ManagementClass wmiClass in searcher.Get())
-                        {
-                            if (cancellationToken.IsCancellationRequested) break;
-                            foreach (MethodData method in wmiClass.Methods)
-                            {
-                                if (string.IsNullOrWhiteSpace(searchText) || method.Name.Contains(searchText, System.StringComparison.OrdinalIgnoreCase))
-                                {
-                                    // Return the MethodData object directly
-                                    results.Add((method, wmiClass));
-                                }
-                            }
-                        }
-                    }
-                    break;
-
-                case WmiSearchType.Property:
-                    var propertyClassQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, propertyClassQuery))
-                    {
-                        foreach (ManagementClass wmiClass in searcher.Get())
-                        {
-                            if (cancellationToken.IsCancellationRequested) break;
-                            foreach (PropertyData prop in wmiClass.Properties)
-                            {
-                                if (string.IsNullOrWhiteSpace(searchText) || prop.Name.Contains(searchText, System.StringComparison.OrdinalIgnoreCase))
-                                {
-                                    // Return the PropertyData object directly
-                                    results.Add((prop, wmiClass));
-                                }
-                            }
-                        }
-                    }
-                    break;
+                await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, cancellationToken);
             }
+
             return (IEnumerable<(object, ManagementBaseObject)>)results;
         }, cancellationToken);
     }
@@ -504,4 +455,129 @@ public class WmiService : IWmiService, IDisposable
     }
 
     #endregion
+
+    /// <summary>
+    /// Searches for classes, methods, or properties in a specific namespace
+    /// </summary>
+    private async Task SearchInNamespaceAsync(
+        ManagementScope scope,
+        WmiSearchType searchType,
+        string searchText,
+        List<(object match, ManagementBaseObject parent)> results,
+        CancellationToken cancellationToken)
+    {
+        await Task.Run(() =>
+        {
+            switch (searchType)
+            {
+                case WmiSearchType.Class:
+                    var classQuery = new SelectQuery("meta_class");
+                    using (var searcher = new ManagementObjectSearcher(scope, classQuery))
+                    {
+                        foreach (ManagementClass wmiClass in searcher.Get())
+                        {
+                            if (cancellationToken.IsCancellationRequested) break;
+                            var className = wmiClass["__Class"]?.ToString() ?? string.Empty;
+                            if (string.IsNullOrWhiteSpace(searchText) || className.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                            {
+                                // For classes, match and parent are the same
+                                results.Add((wmiClass, wmiClass));
+                            }
+                        }
+                    }
+                    break;
+
+                case WmiSearchType.Method:
+                    var methodClassQuery = new SelectQuery("meta_class");
+                    using (var searcher = new ManagementObjectSearcher(scope, methodClassQuery))
+                    {
+                        foreach (ManagementClass wmiClass in searcher.Get())
+                        {
+                            if (cancellationToken.IsCancellationRequested) break;
+                            foreach (MethodData method in wmiClass.Methods)
+                            {
+                                if (string.IsNullOrWhiteSpace(searchText) || method.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // Return the MethodData object directly
+                                    results.Add((method, wmiClass));
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case WmiSearchType.Property:
+                    var propertyClassQuery = new SelectQuery("meta_class");
+                    using (var searcher = new ManagementObjectSearcher(scope, propertyClassQuery))
+                    {
+                        foreach (ManagementClass wmiClass in searcher.Get())
+                        {
+                            if (cancellationToken.IsCancellationRequested) break;
+                            foreach (PropertyData prop in wmiClass.Properties)
+                            {
+                                if (string.IsNullOrWhiteSpace(searchText) || prop.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // Return the PropertyData object directly
+                                    results.Add((prop, wmiClass));
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Recursively searches in child namespaces
+    /// </summary>
+    private async Task SearchInChildNamespacesRecursivelyAsync(
+        ManagementScope parentScope,
+        WmiSearchType searchType,
+        string searchText,
+        List<(object match, ManagementBaseObject parent)> results,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get child namespaces for the current scope
+            var childNamespaces = await GetChildNamespacesAsync(parentScope, cancellationToken);
+
+            foreach (var childNamespace in childNamespaces)
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+
+                try
+                {
+                    // Get the namespace name from the child namespace object
+                    var namespaceName = childNamespace.Properties["Name"]?.Value?.ToString();
+                    if (string.IsNullOrEmpty(namespaceName)) continue;
+
+                    // Build the child namespace path
+                    var parentPath = parentScope.Path?.Path ?? string.Empty;
+                    var childNamespacePath = $"{parentPath}\\{namespaceName}";
+
+                    // Create a new scope for the child namespace
+                    var childScope = CreateManagementScope(childNamespacePath, parentScope.Options);
+
+                    // Search in the child namespace
+                    await SearchInNamespaceAsync(childScope, searchType, searchText, results, cancellationToken);
+
+                    // Recursively search in grandchild namespaces
+                    await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but continue with other namespaces
+                    System.Diagnostics.Debug.WriteLine($"Error searching in child namespace: {ex.Message}");
+                    // Continue processing other child namespaces
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log the error but don't propagate to avoid breaking the entire search
+            System.Diagnostics.Debug.WriteLine($"Error getting child namespaces for recursive search: {ex.Message}");
+        }
+    }
 }
