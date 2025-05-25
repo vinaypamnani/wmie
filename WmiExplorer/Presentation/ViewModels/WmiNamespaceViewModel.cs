@@ -36,6 +36,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private readonly ISettingsService _settingsService;
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
+    private WmiSearchViewModel _searchViewModel;
 
     public WmiNamespaceViewModel(
         WmiNamespace wmiNamespace,
@@ -75,6 +76,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
 
         // Set parent namespace if provided
         ParentNamespaceViewModel = parentNamespaceViewModel;
+
+        _searchViewModel = new WmiSearchViewModel(messagingService, wmiService);
     }
 
     /// <summary>
@@ -243,6 +246,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     }
 
     public WmiNamespace? WmiNamespace => _wmiNamespace;
+
+    public WmiSearchViewModel SearchViewModel => _searchViewModel;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
         IEnumerable<ManagementObject> mboCollection,
