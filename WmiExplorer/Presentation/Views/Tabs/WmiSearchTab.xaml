@@ -86,13 +86,13 @@
                               Content="Recursive"
                               IsChecked="{Binding Recursive}" />
                     <Button Grid.Column="5"
-                            Width="80"
+                            Width="64"
                             Height="26"
                             Command="{Binding SearchCommand}"
                             Content="Search"
                             IsEnabled="{Binding IsSearching, Converter={StaticResource InverseBooleanConverter}}" />
                     <Button Grid.Column="6"
-                            Width="80"
+                            Width="64"
                             Height="26"
                             Margin="4,0,8,0"
                             Command="{Binding CancelSearchCommand}"
