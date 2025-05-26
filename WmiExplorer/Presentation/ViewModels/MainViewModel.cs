@@ -529,7 +529,7 @@ public class MainViewModel : MessagingViewModelBase
     {
         if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectedNamespace)
         {
-            UpdateNamespaceStatus(message.NamespaceViewModel);
+            UpdateLoadStateStatus();
         }
     }
 
@@ -614,6 +614,9 @@ public class MainViewModel : MessagingViewModelBase
         // Update the selected object for the property grid
         SelectedObject = message.ClassViewModel.WmiClass;
 
+        // Use the new method to update the status bar
+        UpdateLoadStateStatus();
+
         // Update the auto-generated query
         UpdateAutoQueryText(SelectedClass);
     }
@@ -673,7 +676,7 @@ public class MainViewModel : MessagingViewModelBase
         SelectedObject = message.NamespaceViewModel.WmiNamespace;
 
         // Use the new method to update the status bar
-        UpdateNamespaceStatus(message.NamespaceViewModel);
+        UpdateLoadStateStatus();
     }
 
     /// <summary>
@@ -741,33 +744,60 @@ public class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Updates the status bar message based on the selected namespace's load states
+    /// Updates the status bar message based on the selected namespace or class load states
     /// </summary>
-    private void UpdateNamespaceStatus(WmiNamespaceViewModel? ns)
+    private void UpdateLoadStateStatus()
     {
-        if (ns == null)
+        // If no namespace is selected, do nothing
+        if (SelectedNamespace == null)
             return;
 
-        if (ns.ClassLoadState == ClassLoadState.Unknown)
+        // If a class is selected, show status based on class load state
+        if (SelectedNamespace.SelectedClass != null)
         {
-            PublishSuccessState($"Selected {ns.NamespacePath} Double-click to load classes.");
+            var selectedClass = SelectedNamespace.SelectedClass;
+            switch (selectedClass.LoadState)
+            {
+                case InstanceLoadState.Unknown:
+                    PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click to load instances.");
+                    break;
+                case InstanceLoadState.Loading:
+                    PublishBusyState($"Loading instances for class {selectedClass.ClassName}...");
+                    break;
+                case InstanceLoadState.Warning:
+                    PublishWarningState($"Showing partial results for class {selectedClass.ClassName}.");
+                    break;
+                case InstanceLoadState.Failed:
+                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click class to try again.");
+                    break;
+                case InstanceLoadState.Success:
+                    var count = selectedClass.Instances.Count;
+                    PublishSuccessState($"Showing {count} instances for class {selectedClass.ClassName}.");
+                    break;
+            }
             return;
         }
-        if (ns.ClassLoadState == ClassLoadState.Loading)
+
+        // Otherwise, show status based on namespace class load state
+        var ns = SelectedNamespace;
+        switch (ns.ClassLoadState)
         {
-            PublishBusyState($"Loading classes for {ns.NamespacePath}...");
-            return;
-        }
-        if (ns.ClassLoadState == ClassLoadState.Failed)
-        {
-            PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click namespace to try again.");
-            return;
-        }
-        if (ns.ClassLoadState == ClassLoadState.Success && ns.NamespaceLoadState == NamespaceLoadState.Success)
-        {
-            var count = ns.ClassesView.Cast<object>().Count();
-            PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
-            return;
+            case ClassLoadState.Unknown:
+                PublishSuccessState($"Selected {ns.NamespacePath} Double-click to load classes.");
+                break;
+            case ClassLoadState.Loading:
+                PublishBusyState($"Loading classes for {ns.NamespacePath}...");
+                break;
+            case ClassLoadState.Warning:
+                PublishBusyState($"Showing partial results for {ns.NamespacePath}.");
+                break;
+            case ClassLoadState.Failed:
+                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click namespace to try again.");
+                break;
+            case ClassLoadState.Success when ns.NamespaceLoadState == NamespaceLoadState.Success:
+                var count = ns.ClassesView.Cast<object>().Count();
+                PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
+                break;
         }
     }
 }

@@ -178,18 +178,12 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         {
             if (_namespaceLoadState == NamespaceLoadState.Loading || _classLoadState == ClassLoadState.Loading)
                 return LoadState.Loading;
-
-            if (_namespaceLoadState == NamespaceLoadState.Success && _classLoadState == ClassLoadState.Success)
-                return LoadState.Success;
-
-            if ((_namespaceLoadState == NamespaceLoadState.Success || _classLoadState == ClassLoadState.Success)
-                && _namespaceLoadState != NamespaceLoadState.Failed
-                && _classLoadState != ClassLoadState.Failed)
-                return LoadState.PartialSuccess;
-
             if (_namespaceLoadState == NamespaceLoadState.Failed || _classLoadState == ClassLoadState.Failed)
                 return LoadState.Failed;
-
+            if (_classLoadState == ClassLoadState.Warning)
+                return LoadState.Warning;
+            if (_namespaceLoadState == NamespaceLoadState.Success && _classLoadState == ClassLoadState.Success)
+                return LoadState.Success;
             return LoadState.Unknown;
         }
     }
@@ -511,6 +505,7 @@ public enum ClassLoadState
 {
     Unknown,
     Loading,
+    Warning,
     Success,
     Failed
 }
@@ -520,7 +515,7 @@ public enum LoadState
     Unknown,
     Loading,
     Success,
-    PartialSuccess,
+    Warning,
     Failed
 }
 
