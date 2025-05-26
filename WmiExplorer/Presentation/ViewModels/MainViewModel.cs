@@ -770,7 +770,7 @@ public class MainViewModel : MessagingViewModelBase
     private void UpdateLoadStateStatus()
     {
         // If no namespace is selected, do nothing
-        if (SelectedNamespace == null)
+        if (SelectedNamespace == null || SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
             return;
 
         // If a class is selected, show status based on class load state

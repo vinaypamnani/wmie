@@ -1,4 +1,5 @@
 using System.Management;
+using System.Windows.Threading;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Cache;
 
@@ -72,12 +73,12 @@ public class WmiService : IWmiService, IDisposable
         EnsureScopeConnected(scope);
 
         // Always use sync for child namespaces, even in async mode
-        return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+        // return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
 
-        // if (OperationMode == WmiOperationMode.Synchronous)
-        //     return await Task.Run(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
-        // else
-        //     return await GetChildNamespacesAsyncInternal(scope, cancellationToken);
+        if (OperationMode == WmiOperationMode.Synchronous)
+            return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+        else
+            return await GetChildNamespacesAsyncInternal(scope, cancellationToken);
     }
 
     /// <summary>
@@ -250,6 +251,7 @@ public class WmiService : IWmiService, IDisposable
 
     /// <summary>
     /// Optimized: Ensures scope is connected only if not already connected
+    /// Uses a cooperative non-blocking approach to prevent UI freezes
     /// </summary>
     private void EnsureScopeConnected(ManagementScope scope)
     {
@@ -257,7 +259,25 @@ public class WmiService : IWmiService, IDisposable
         {
             try
             {
-                scope.Connect();
+                // Use a SynchronizationContext-aware technique to prevent UI thread blocking
+                // while still maintaining the synchronous method signature
+                var connectTask = Task.Run(() => scope.Connect());
+
+                // Use a dispatcher frame approach to keep the UI responsive while waiting
+                var frame = new DispatcherFrame();
+
+                connectTask.ContinueWith(t =>
+                {
+                    // Stop the dispatcher frame when the task completes
+                    frame.Continue = false;
+                }, TaskScheduler.Default);
+
+                // This will process UI messages until the frame is stopped
+                Dispatcher.PushFrame(frame);
+
+                // Now get the result (should be immediate as task is complete)
+                // Will propagate exceptions if they occurred
+                connectTask.GetAwaiter().GetResult();
             }
             catch (ManagementException mex)
             {

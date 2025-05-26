@@ -324,8 +324,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", MessageService!);
         try
         {
-            NamespaceLoadState = NamespaceLoadState.Loading;
             PublishBusyState($"Loading {NamespacePath}...");
+            NamespaceLoadState = NamespaceLoadState.Loading;
 
             // Use the ViewModel's ManagementScope for the service call.
             var childNamespaces = await _wmiService.GetChildNamespacesAsync(
