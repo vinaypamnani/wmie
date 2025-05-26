@@ -156,9 +156,9 @@
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0"
                          Margin="{StaticResource MarginSmall}"
-                         IsEnabled="False"
+                         IsReadOnly="True"
                          Style="{StaticResource TextBoxWithPlaceholder}"
-                         Tag="Automatically created query here"
+                         Tag="Automatically created query..."
                          Text="{Binding AutoQueryText, Mode=OneWay}" />
                 <Button Grid.Column="1"
                         MinWidth="75"
