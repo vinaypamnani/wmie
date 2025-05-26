@@ -83,7 +83,7 @@
                                           Text="{Binding EventTargetClassFilter, UpdateSourceTrigger=PropertyChanged}" />
                             </GroupBox>
                             <!--  Target Class Property  -->
-                            <GroupBox Margin="0" Header="Target Class Property">
+                            <GroupBox Margin="0" Header="Target Class Property [optional]">
                                 <ComboBox Width="180"
                                           Height="26"
                                           VerticalContentAlignment="Center"
@@ -176,9 +176,8 @@
                           Margin="4"
                           HorizontalContentAlignment="Stretch"
                           VerticalContentAlignment="Stretch"
-                          Header="Watchers">
+                          Header="Event Watchers">
                     <DockPanel>
-
                         <StackPanel HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal">
                             <Button Width="80"
                                     Height="28"
@@ -328,28 +327,8 @@
             <!--  Right Panel: Events  -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-
-                <GroupBox Grid.Row="0"
-                          HorizontalContentAlignment="Stretch"
-                          VerticalContentAlignment="Stretch"
-                          Header="Event Filter">
-                    <DockPanel>
-                        <Button Width="100"
-                                Height="28"
-                                Command="{Binding ClearEventsCommand}"
-                                Content="Clear Events"
-                                DockPanel.Dock="Right" />
-                        <ComboBox Height="26"
-                                  MinWidth="150"
-                                  Margin="4"
-                                  IsEditable="False"
-                                  ItemsSource="{Binding WatcherNames}"
-                                  SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    </DockPanel>
-                </GroupBox>
 
                 <GroupBox Grid.Row="1"
                           HorizontalContentAlignment="Stretch"
@@ -359,17 +338,31 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0">
+                            <Button Width="100"
+                                    Height="28"
+                                    Command="{Binding ClearEventsCommand}"
+                                    Content="Clear Events"
+                                    DockPanel.Dock="Right" />
+                            <ComboBox Height="26"
+                                      MinWidth="150"
+                                      Margin="4"
+                                      IsEditable="False"
+                                      ItemsSource="{Binding WatcherNames}"
+                                      SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </DockPanel>
                         <!--  Filter TextBox for Events  -->
-                        <TextBox Grid.Row="0"
+                        <TextBox Grid.Row="1"
                                  Height="26"
                                  Margin="4,4,4,4"
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"
                                  Tag="Filter Events..."
                                  Text="{Binding EventFilterText, UpdateSourceTrigger=PropertyChanged}" />
-                        <ListView Grid.Row="1"
+                        <ListView Grid.Row="2"
                                   Margin="0"
                                   BorderThickness="0"
                                   IsSynchronizedWithCurrentItem="True"
