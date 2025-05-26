@@ -78,6 +78,22 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     /// </summary>
     public WmiInstance WmiInstance => _wmiInstance;
 
+    public enum InstanceLoadState
+    {
+        Unknown,
+        Success
+    }
+
+    private InstanceLoadState _loadState = InstanceLoadState.Unknown;
+    /// <summary>
+    /// Load state for the indicator. Success if ever selected, Unknown otherwise.
+    /// </summary>
+    public InstanceLoadState LoadState
+    {
+        get => _loadState;
+        set => SetProperty(ref _loadState, value);
+    }
+
     /// <summary>
     /// Creates a collection of WmiInstanceViewModel from a collection of WmiInstance models.
     /// </summary>

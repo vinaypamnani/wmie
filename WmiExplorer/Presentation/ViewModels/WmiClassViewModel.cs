@@ -108,6 +108,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         {
             if (SetProperty(ref _selectedInstance, value) && value != null)
             {
+                value.LoadState = WmiInstanceViewModel.InstanceLoadState.Success; // Mark as selected at least once
                 PublishMessage(new SelectedInstanceChangedMessage(value));
             }
         }
