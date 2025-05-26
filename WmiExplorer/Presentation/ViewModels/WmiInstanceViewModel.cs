@@ -81,7 +81,8 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     public enum InstanceLoadState
     {
         Unknown,
-        Success
+        Success,
+        Failed
     }
 
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;

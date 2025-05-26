@@ -645,7 +645,6 @@ public class MainViewModel : MessagingViewModelBase
         SelectedInstance = message.InstanceViewModel;
 
         // Update the selected object for the property grid
-        SelectedInstance.WmiInstance.ActualObject?.Get();
         SelectedObject = message.InstanceViewModel.WmiInstance;
 
         // Update the auto-generated query
