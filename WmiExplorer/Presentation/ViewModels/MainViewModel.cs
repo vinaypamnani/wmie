@@ -10,21 +10,23 @@ namespace WmiExplorer.Presentation.ViewModels;
 public class MainViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
+    private string _autoQueryText = string.Empty;
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private WmiWatcherViewModel? _eventWatcherViewModel;
+    private ICommand? _executeAutoQueryCommand;
     private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
     private WmiClassViewModel? _selectedClass;
     private WmiInstanceViewModel? _selectedInstance;
     private WmiNamespaceViewModel? _selectedNamespace;
     private object? _selectedObject;
+    private int _selectedTabIndex;
     private readonly ISettingsService _settingsService;
     private string _temporaryComputerName = Environment.MachineName;
     private readonly ThemeManager _themeManager;
     private MainWindowPosition _windowPosition;
     private readonly IWmiService _wmiService;
-    private int _selectedTabIndex;
 
     public MainViewModel(
         IMessagingService messagingService,
@@ -79,6 +81,15 @@ public class MainViewModel : MessagingViewModelBase
         {
             OnPropertyChanged(nameof(ShowSystemClasses));
         };
+    }
+
+    /// <summary>
+    /// Gets the auto-generated WQL query text for the selected class or instance
+    /// </summary>
+    public string AutoQueryText
+    {
+        get => _autoQueryText;
+        private set => SetProperty(ref _autoQueryText, value);
     }
 
     /// <summary>
@@ -157,6 +168,21 @@ public class MainViewModel : MessagingViewModelBase
     /// Gets the view model for the WMI Event Watcher
     /// </summary>
     public WmiWatcherViewModel EventWatcherViewModel => _eventWatcherViewModel!;
+
+    /// <summary>
+    /// Command to execute the current query
+    /// </summary>
+    public ICommand ExecuteAutoQueryCommand
+    {
+        get
+        {
+            _executeAutoQueryCommand ??= new RelayCommand(
+                _ => ExecuteAutoQuery(),
+                _ => !string.IsNullOrWhiteSpace(AutoQueryText)
+            );
+            return _executeAutoQueryCommand;
+        }
+    }
 
     /// <summary>
     /// Command to exit the application
@@ -269,6 +295,15 @@ public class MainViewModel : MessagingViewModelBase
         }
     }
 
+    /// <summary>
+    /// Gets or sets the selected tab index for the main window
+    /// </summary>
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set => SetProperty(ref _selectedTabIndex, value);
+    }
+
     public bool ShowSystemClasses
     {
         get => _settingsService.ShowSystemClasses;
@@ -299,15 +334,6 @@ public class MainViewModel : MessagingViewModelBase
     {
         get => _windowPosition;
         set => SetProperty(ref _windowPosition, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the selected tab index for the main window
-    /// </summary>
-    public int SelectedTabIndex
-    {
-        get => _selectedTabIndex;
-        set => SetProperty(ref _selectedTabIndex, value);
     }
 
     /// <summary>
@@ -413,219 +439,15 @@ public class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Handles application state messages
+    /// Executes the current WQL query
     /// </summary>
-    private void HandleApplicationStateMessage(ApplicationStateMessage message)
+    private void ExecuteAutoQuery()
     {
-        // Ensure application state updates happen on the UI thread
-        RunOnUIThread(() =>
-        {
-            CurrentApplicationState = message.State;
-        });
-
-        // Log state change for debugging
-        System.Diagnostics.Debug.WriteLine($"Application state changed: {message.State.State}, Message: {message.State.Message}");
-    }
-
-    /// <summary>
-    /// Handles when classes are filtered in the selected namespace to update the status bar
-    /// </summary>
-    private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
-    {
-        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectedNamespace)
-        {
-            UpdateNamespaceStatus(message.NamespaceViewModel);
-        }
-    }
-
-    /// <summary>
-    /// Handles class type filter changes
-    /// </summary>
-    private void HandleClassTypeFilterChangedMessage(ClassTypeFilterChangedMessage message)
-    {
-        if (message == null) return;
-
-        // Update UI if needed
-        OnPropertyChanged(nameof(ClassTypeFilter));
-
-        System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged: {_settingsService.ClassTypeFilter}");
-    }
-
-    /// <summary>
-    /// Handles when a class is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)
-    {
-        if (message?.ClassViewModel == null)
+        if (string.IsNullOrWhiteSpace(AutoQueryText))
             return;
 
-        // Update our selected class property
-        SelectedClass = message.ClassViewModel;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.ClassViewModel.WmiClass;
-    }
-
-    /// <summary>
-    /// Handles when a WMI event is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedEventChangedMessage(SelectedEventChangedMessage message)
-    {
-        if (message?.WmiEvent == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.WmiEvent;
-    }
-
-    /// <summary>
-    /// Handles when an instance is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)
-    {
-        if (message?.InstanceViewModel == null)
-            return;
-
-        // Update our selected instance property which is bound to the property grid
-        SelectedInstance = message.InstanceViewModel;
-
-        // Update the selected object for the property grid
-        SelectedInstance.WmiInstance.ActualObject?.Get();
-        SelectedObject = message.InstanceViewModel.WmiInstance;
-    }
-
-    /// <summary>
-    /// Handles when a namespace is selected to ensure it loads its children and updates the class count/status message
-    /// </summary>
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
-    {
-        if (message?.NamespaceViewModel == null)
-            return;
-
-        // Make sure we always trigger expansion, even for already selected items
-        if (!message.NamespaceViewModel.IsExpanded)
-        {
-            message.NamespaceViewModel.IsExpanded = true;
-        }
-
-        // Make sure our local SelectedNamespace property is synchronized
-        if (_selectedNamespace != message.NamespaceViewModel)
-        {
-            SelectedNamespace = message.NamespaceViewModel;
-        }
-
-        // Update the selected object for the property grid
-        SelectedObject = message.NamespaceViewModel.WmiNamespace;
-
-        // Use the new method to update the status bar
-        UpdateNamespaceStatus(message.NamespaceViewModel);
-    }
-
-    /// <summary>
-    /// Handles when a search result is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedSearchResultChangedMessage(SelectedSearchResultChangedMessage message)
-    {        // Set SelectedObject to the underlying WMI object for the property grid
-        if (message?.SelectedResult != null)
-        {
-            if (message.SelectedResult.Class != null)
-                SelectedObject = message.SelectedResult.Class;
-            else if (message.SelectedResult.Method != null)
-                SelectedObject = message.SelectedResult.Method;
-            else if (message.SelectedResult.Property != null)
-                SelectedObject = message.SelectedResult.Property;
-            else
-                SelectedObject = message.SelectedResult.Match;
-        }
-        else
-        {
-            SelectedObject = null;
-        }
-    }
-
-    /// <summary>
-    /// Updates the status bar message based on the selected namespace's load states
-    /// </summary>
-    private void UpdateNamespaceStatus(WmiNamespaceViewModel? ns)
-    {
-        if (ns == null)
-            return;
-
-        if (ns.ClassLoadState == ClassLoadState.Unknown)
-        {
-            PublishSuccessState($"Selected {ns.NamespacePath} Double-click to load classes.");
-            return;
-        }
-        if (ns.ClassLoadState == ClassLoadState.Loading)
-        {
-            PublishBusyState($"Loading classes for {ns.NamespacePath}...");
-            return;
-        }
-        if (ns.ClassLoadState == ClassLoadState.Failed)
-        {
-            PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click namespace to try again.");
-            return;
-        }
-        if (ns.ClassLoadState == ClassLoadState.Success && ns.NamespaceLoadState == NamespaceLoadState.Success)
-        {
-            var count = ns.ClassesView.Cast<object>().Count();
-            PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
-            return;
-        }
-    }
-
-    /// <summary>
-    /// Handles JumpToClassMessage to navigate to the correct namespace and class, handling lazy loading and tab switching.
-    /// </summary>
-    private async void HandleJumpToClassMessage(JumpToClassMessage message)
-    {
-        if (message == null)
-            return;
-
-        try
-        {
-            // Debug logging for incoming message
-            System.Diagnostics.Debug.WriteLine($"[JumpToClass] Received JumpToClassMessage: NamespacePath='{message.NamespacePath}', ClassName='{message.ClassName}'");
-
-            // Switch to Classes tab (assume tab index 0 is Classes)
-            SelectedTabIndex = 0;
-
-            // Find or expand the namespace path recursively
-            var nsVm = await FindOrExpandNamespaceAsync(message.NamespacePath);
-            if (nsVm == null)
-            {
-                PublishErrorState($"Namespace '{message.NamespacePath}' not found.");
-                return;
-            }
-
-            // Select the namespace
-            SelectedNamespace = nsVm;
-            nsVm.IsSelected = true;
-            nsVm.IsExpanded = true;
-
-            // Ensure classes are loaded
-            if (nsVm.ClassLoadState != ClassLoadState.Success)
-                await nsVm.LoadClassesAsync();
-
-            // Find the class
-            var classVm = nsVm.Classes.FirstOrDefault(c => c.ClassName == message.ClassName);
-            if (classVm == null)
-            {
-                PublishErrorState($"Class '{message.ClassName}' not found in namespace '{message.NamespacePath}'. Check Class Enumeration options.");
-                return;
-            }
-
-            // Select the class
-            nsVm.SelectedClass = classVm;
-            classVm.ForceSelection();
-
-            // Publish success state for user feedback
-            PublishSuccessState($"Jumped to class '{message.ClassName}' in namespace '{message.NamespacePath}'.");
-        }
-        catch (Exception ex)
-        {
-            PublishErrorState($"Jump to class failed: {ex.Message}", ex);
-        }
+        // Log the query execution
+        PublishWarningState($"[Not implemented] Executing query: {AutoQueryText}");
     }
 
     /// <summary>
@@ -683,5 +505,269 @@ public class MainViewModel : MessagingViewModelBase
                 return found;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Handles application state messages
+    /// </summary>
+    private void HandleApplicationStateMessage(ApplicationStateMessage message)
+    {
+        // Ensure application state updates happen on the UI thread
+        RunOnUIThread(() =>
+        {
+            CurrentApplicationState = message.State;
+        });
+
+        // Log state change for debugging
+        System.Diagnostics.Debug.WriteLine($"Application state changed: {message.State.State}, Message: {message.State.Message}");
+    }
+
+    /// <summary>
+    /// Handles when classes are filtered in the selected namespace to update the status bar
+    /// </summary>
+    private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
+    {
+        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectedNamespace)
+        {
+            UpdateNamespaceStatus(message.NamespaceViewModel);
+        }
+    }
+
+    /// <summary>
+    /// Handles class type filter changes
+    /// </summary>
+    private void HandleClassTypeFilterChangedMessage(ClassTypeFilterChangedMessage message)
+    {
+        if (message == null) return;
+
+        // Update UI if needed
+        OnPropertyChanged(nameof(ClassTypeFilter));
+
+        System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged: {_settingsService.ClassTypeFilter}");
+    }
+
+    /// <summary>
+    /// Handles JumpToClassMessage to navigate to the correct namespace and class, handling lazy loading and tab switching.
+    /// </summary>
+    private async void HandleJumpToClassMessage(JumpToClassMessage message)
+    {
+        if (message == null)
+            return;
+
+        try
+        {
+            // Debug logging for incoming message
+            System.Diagnostics.Debug.WriteLine($"[JumpToClass] Received JumpToClassMessage: NamespacePath='{message.NamespacePath}', ClassName='{message.ClassName}'");
+
+            // Switch to Classes tab (assume tab index 0 is Classes)
+            SelectedTabIndex = 0;
+
+            // Find or expand the namespace path recursively
+            var nsVm = await FindOrExpandNamespaceAsync(message.NamespacePath);
+            if (nsVm == null)
+            {
+                PublishErrorState($"Namespace '{message.NamespacePath}' not found.");
+                return;
+            }
+
+            // Select the namespace
+            SelectedNamespace = nsVm;
+            nsVm.IsSelected = true;
+            nsVm.IsExpanded = true;
+
+            // Ensure classes are loaded
+            if (nsVm.ClassLoadState != ClassLoadState.Success)
+                await nsVm.LoadClassesAsync();
+
+            // Find the class
+            var classVm = nsVm.Classes.FirstOrDefault(c => c.ClassName == message.ClassName);
+            if (classVm == null)
+            {
+                PublishErrorState($"Class '{message.ClassName}' not found in namespace '{message.NamespacePath}'. Check Class Enumeration options.");
+                return;
+            }
+
+            // Select the class
+            nsVm.SelectedClass = classVm;
+            classVm.ForceSelection();
+
+            // Publish success state for user feedback
+            PublishSuccessState($"Jumped to class '{message.ClassName}' in namespace '{message.NamespacePath}'.");
+        }
+        catch (Exception ex)
+        {
+            PublishErrorState($"Jump to class failed: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Handles when a class is selected to update the property grid
+    /// </summary>
+    private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)
+    {
+        if (message?.ClassViewModel == null)
+            return;
+
+        // Update our selected class property
+        SelectedClass = message.ClassViewModel;
+
+        // Update the selected object for the property grid
+        SelectedObject = message.ClassViewModel.WmiClass;
+
+        // Update the auto-generated query
+        UpdateAutoQueryText(SelectedClass);
+    }
+
+    /// <summary>
+    /// Handles when a WMI event is selected to update the property grid
+    /// </summary>
+    private void HandleSelectedEventChangedMessage(SelectedEventChangedMessage message)
+    {
+        if (message?.WmiEvent == null)
+            return;
+
+        // Update the selected object for the property grid
+        SelectedObject = message.WmiEvent;
+    }
+
+    /// <summary>
+    /// Handles when an instance is selected to update the property grid
+    /// </summary>
+    private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)
+    {
+        if (message?.InstanceViewModel == null)
+            return;
+
+        // Update our selected instance property which is bound to the property grid
+        SelectedInstance = message.InstanceViewModel;
+
+        // Update the selected object for the property grid
+        SelectedInstance.WmiInstance.ActualObject?.Get();
+        SelectedObject = message.InstanceViewModel.WmiInstance;
+
+        // Update the auto-generated query
+        UpdateAutoQueryText(SelectedInstance);
+    }
+
+    /// <summary>
+    /// Handles when a namespace is selected to ensure it loads its children and updates the class count/status message
+    /// </summary>
+    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
+    {
+        if (message?.NamespaceViewModel == null)
+            return;
+
+        // Make sure we always trigger expansion, even for already selected items
+        if (!message.NamespaceViewModel.IsExpanded)
+        {
+            message.NamespaceViewModel.IsExpanded = true;
+        }
+
+        // Make sure our local SelectedNamespace property is synchronized
+        if (_selectedNamespace != message.NamespaceViewModel)
+        {
+            SelectedNamespace = message.NamespaceViewModel;
+        }
+
+        // Update the selected object for the property grid
+        SelectedObject = message.NamespaceViewModel.WmiNamespace;
+
+        // Use the new method to update the status bar
+        UpdateNamespaceStatus(message.NamespaceViewModel);
+    }
+
+    /// <summary>
+    /// Handles when a search result is selected to update the property grid
+    /// </summary>
+    private void HandleSelectedSearchResultChangedMessage(SelectedSearchResultChangedMessage message)
+    {        // Set SelectedObject to the underlying WMI object for the property grid
+        if (message?.SelectedResult != null)
+        {
+            if (message.SelectedResult.Class != null)
+                SelectedObject = message.SelectedResult.Class;
+            else if (message.SelectedResult.Method != null)
+                SelectedObject = message.SelectedResult.Method;
+            else if (message.SelectedResult.Property != null)
+                SelectedObject = message.SelectedResult.Property;
+            else
+                SelectedObject = message.SelectedResult.Match;
+        }
+        else
+        {
+            SelectedObject = null;
+        }
+    }
+
+    /// <summary>
+    /// Updates the auto-generated WQL query text based on the selected class or instance
+    /// </summary>
+    private void UpdateAutoQueryText(object selectedObject)
+    {
+        var selectedClassName = SelectedClass?.ClassName ?? string.Empty;
+
+        if (selectedObject is WmiInstanceViewModel selectedInstance)
+        {
+            // Create query based on the instance
+            string className = selectedInstance.WmiInstance.ClassPath.ClassName
+                               ?? selectedClassName
+                               ?? string.Empty;
+            string relativePath = selectedInstance.InstanceName.Replace($"{className}.", string.Empty);
+            relativePath = relativePath.Replace(",", " AND ");
+            if (!string.IsNullOrEmpty(relativePath))
+            {
+                // For instances, use a direct reference query
+                AutoQueryText = $"SELECT * FROM {selectedClassName} WHERE {relativePath}";
+            }
+            else if (selectedClassName != null)
+            {
+                // Fallback to a class query
+                AutoQueryText = $"SELECT * FROM {selectedClassName}";
+            }
+            else
+            {
+                AutoQueryText = string.Empty;
+            }
+        }
+        else if (selectedObject is WmiClassViewModel selectedClass)
+
+        {
+            // Create query based on just the class
+            AutoQueryText = $"SELECT * FROM {selectedClassName}";
+        }
+        else
+        {
+            AutoQueryText = string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Updates the status bar message based on the selected namespace's load states
+    /// </summary>
+    private void UpdateNamespaceStatus(WmiNamespaceViewModel? ns)
+    {
+        if (ns == null)
+            return;
+
+        if (ns.ClassLoadState == ClassLoadState.Unknown)
+        {
+            PublishSuccessState($"Selected {ns.NamespacePath} Double-click to load classes.");
+            return;
+        }
+        if (ns.ClassLoadState == ClassLoadState.Loading)
+        {
+            PublishBusyState($"Loading classes for {ns.NamespacePath}...");
+            return;
+        }
+        if (ns.ClassLoadState == ClassLoadState.Failed)
+        {
+            PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click namespace to try again.");
+            return;
+        }
+        if (ns.ClassLoadState == ClassLoadState.Success && ns.NamespaceLoadState == NamespaceLoadState.Success)
+        {
+            var count = ns.ClassesView.Cast<object>().Count();
+            PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
+            return;
+        }
     }
 }

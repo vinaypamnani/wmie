@@ -158,10 +158,12 @@
                          Margin="{StaticResource MarginSmall}"
                          IsEnabled="False"
                          Style="{StaticResource TextBoxWithPlaceholder}"
-                         Tag="Automatically created query here" />
+                         Tag="Automatically created query here"
+                         Text="{Binding AutoQueryText, Mode=OneWay}" />
                 <Button Grid.Column="1"
                         MinWidth="75"
                         Margin="{StaticResource MarginSmall}"
+                        Command="{Binding ExecuteAutoQueryCommand}"
                         Content="Execute" />
             </Grid>
         </GroupBox>
