@@ -12,6 +12,9 @@
             <DataTrigger Binding="{Binding LoadState}" Value="Success">
                 <Setter Property="Fill" Value="{DynamicResource SuccessBrush}" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding LoadState}" Value="Warning">
+                <Setter Property="Fill" Value="{DynamicResource WarningBrush}" />
+            </DataTrigger>
             <DataTrigger Binding="{Binding LoadState}" Value="Failed">
                 <Setter Property="Fill" Value="{DynamicResource ErrorBrush}" />
             </DataTrigger>

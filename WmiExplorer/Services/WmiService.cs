@@ -379,6 +379,7 @@ public class WmiService : IWmiService, IDisposable
         var result = new List<ManagementObject>();
         var tcs = new TaskCompletionSource<List<ManagementObject>>();
         var observer = new ManagementOperationObserver();
+        var cancelCalled = false;
 
         observer.ObjectReady += (sender, e) =>
         {
@@ -388,26 +389,64 @@ public class WmiService : IWmiService, IDisposable
                 result.Add(obj);
             }
         };
+
         observer.Completed += (sender, e) =>
         {
             if (e.Status == ManagementStatus.NoError)
+            {
                 tcs.TrySetResult(result);
+            }
+            else if (e.Status == ManagementStatus.CallCanceled || e.Status == ManagementStatus.OperationCanceled)
+            {
+                // Return partial results when operation was canceled - don't treat as error
+                tcs.TrySetResult(result);
+            }
             else
+            {
                 tcs.TrySetException(new ManagementException($"WMI async query failed: {e.Status}"));
+            }
         };
+
         observer.Progress += (sender, e) =>
         {
-            if (cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested && !cancelCalled)
             {
-                observer.Cancel();
-                tcs.TrySetCanceled(cancellationToken);
+                cancelCalled = true;
+                // Make observer.Cancel() non-blocking by running it on a background thread
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        observer.Cancel();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error canceling WMI observer: {ex.Message}");
+                    }
+                });
+                // Don't set as cancelled here - let the Completed event handle it and return partial results
             }
         };
 
         using (cancellationToken.Register(() =>
         {
-            observer.Cancel();
-            tcs.TrySetCanceled(cancellationToken);
+            if (!cancelCalled)
+            {
+                cancelCalled = true;
+                // Make observer.Cancel() non-blocking by running it on a background thread
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        observer.Cancel();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error canceling WMI observer: {ex.Message}");
+                    }
+                });
+                // Don't set as cancelled here - let the Completed event handle it and return partial results
+            }
         }))
         {
             try

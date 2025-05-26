@@ -114,12 +114,15 @@
                                 <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                                     <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
                                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
-                                    <!-- Add ContextMenu for Copy Relative Path -->
+                                    <!-- ContextMenu for Copy Relative Path and Cancel loading -->
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu>
                                                 <MenuItem Header="Copy Relative Path"
                                                           Command="{Binding CopyRelativePathCommand}"
+                                                          CommandParameter="{Binding}" />
+                                                <MenuItem Header="Cancel loading"
+                                                          Command="{Binding CancelInstanceLoadCommand}"
                                                           CommandParameter="{Binding}" />
                                             </ContextMenu>
                                         </Setter.Value>

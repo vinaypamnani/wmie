@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using Application = System.Windows.Application;
+using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Presentation.Views;
-using WmiExplorer.Common.Shared;
 
 namespace WmiExplorer.Services;
 
@@ -146,13 +146,8 @@ public class MessagingService : IMessagingService
             _ => new List<SubscriberInfo>()
         );
 
-        // Wait if publishing is in progress
-        while (Interlocked.CompareExchange(ref _isPublishing, 0, 0) != 0)
-        {
-            Thread.Sleep(1);
-        }
-
-        // Add the subscriber
+        // Simply add the subscriber with lock - no waiting or retrying
+        // The lock is very short and shouldn't cause UI blocking
         lock (subscribersList)
         {
             subscribersList.Add(subscriber);

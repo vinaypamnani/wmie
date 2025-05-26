@@ -17,7 +17,7 @@ public class WmiClassViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
     private readonly object _collectionLock = new();
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource _cts = new();
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
     private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
@@ -41,8 +41,10 @@ public class WmiClassViewModel : MessagingViewModelBase
 
         InitializeMessaging(messagingService);
 
+        // Initialize commands
         LoadInstancesCommand = new AsyncRelayCommand(LoadInstancesAsync);
         CopyRelativePathCommand = new RelayCommand(CopyRelativePath);
+        CancelInstanceLoadCommand = new RelayCommand(_ => CancelInstanceLoad(), _ => LoadState == InstanceLoadState.Loading);
 
         // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
@@ -56,6 +58,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
     }
 
+    public ICommand CancelInstanceLoadCommand { get; }
     public string ClassName => _wmiClass.ClassName;
     public ICommand CopyRelativePathCommand { get; }
     public string Description => _wmiClass.Description;
@@ -85,7 +88,14 @@ public class WmiClassViewModel : MessagingViewModelBase
     public InstanceLoadState LoadState
     {
         get => _loadState;
-        set => SetProperty(ref _loadState, value);
+        set
+        {
+            if (SetProperty(ref _loadState, value))
+            {
+                // Notify that CanExecute state may have changed for the cancel command
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
     }
 
     public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
@@ -137,20 +147,18 @@ public class WmiClassViewModel : MessagingViewModelBase
         if (LoadState == InstanceLoadState.Loading)
             return;
 
+        // Always create a new CTS for each load to ensure proper cancellation
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+
         try
         {
             LoadState = InstanceLoadState.Loading;
-
-            PublishBusyState($"Loading instances for {ClassName}");
-
-            // Use the parent namespace's ManagementScope for the service call.
+            PublishBusyState($"Loading instances for {ClassName}");            // Use the parent namespace's ManagementScope for the service call.
             var wmiInstances = await _wmiService.GetInstancesAsync(
                 ParentNamespaceViewModel.ManagementScope,
                 ClassName,
                 _cts.Token);
-
-            if (_cts.IsCancellationRequested)
-                return;
 
             // Map ManagementObject to WmiInstance and create view models for all instances at once.
             var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo));
@@ -161,7 +169,8 @@ public class WmiClassViewModel : MessagingViewModelBase
                 _applicationService,
                 this);
 
-            await RunOnUIThreadAsync(() =>
+            // Use RunOnUIThread for synchronous UI updates to avoid hanging
+            RunOnUIThread(() =>
             {
                 lock (_collectionLock)
                 {
@@ -173,16 +182,31 @@ public class WmiClassViewModel : MessagingViewModelBase
                 }
                 // No need to reapply filter or refresh, FilterHelper handles it.
                 OnPropertyChanged(nameof(InstanceFilterText));
-                return Task.CompletedTask;
             });
 
-            LoadState = InstanceLoadState.Success;
-            PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
+            // Check if operation was cancelled and show appropriate message
+            if (_cts.Token.IsCancellationRequested)
+            {
+                LoadState = InstanceLoadState.Warning;
+                PublishWarningState($"Found {instanceViewModels.Count} instances for {ClassName} before loading was cancelled");
+            }
+            else
+            {
+                LoadState = InstanceLoadState.Success;
+                PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
+            }
         }
         catch (OperationCanceledException)
         {
-            LoadState = InstanceLoadState.Failed;
-            PublishErrorState($"Loading instances for {ClassName} was canceled");
+            // This should rarely happen now since we return partial results
+            LoadState = InstanceLoadState.Warning;
+            PublishWarningState($"Loading instances for {ClassName} was cancelled");
+        }
+        catch (ManagementException ex) when (ex.ErrorCode == ManagementStatus.CallCanceled || ex.ErrorCode == ManagementStatus.OperationCanceled)
+        {
+            // Handle WMI cancellation errors - show partial results that we already loaded
+            LoadState = InstanceLoadState.Warning;
+            PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
         }
         catch (Exception ex)
         {
@@ -203,6 +227,25 @@ public class WmiClassViewModel : MessagingViewModelBase
         }
 
         base.Dispose(disposing);
+    }
+
+    private void CancelInstanceLoad()
+    {
+        if (_cts == null || LoadState != InstanceLoadState.Loading)
+            return;
+
+        try
+        {
+            // Show immediate feedback that cancellation was requested
+            PublishBusyState($"Cancellation requested for {ClassName} - operation will stop soon");
+
+            // Request cancellation immediately - this is completely non-blocking
+            _cts.Cancel();
+        }
+        catch (Exception ex)
+        {
+            PublishErrorState($"Error requesting cancellation for {ClassName}: {ex.Message}", ex);
+        }
     }
 
     private void CopyRelativePath(object? parameter)
@@ -234,6 +277,7 @@ public enum InstanceLoadState
 {
     Unknown,
     Loading,
+    Warning,
     Success,
     Failed
 }
