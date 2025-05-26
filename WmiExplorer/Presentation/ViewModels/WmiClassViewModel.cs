@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Management;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
@@ -161,10 +162,13 @@ public class WmiClassViewModel : MessagingViewModelBase
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
+        using var timer = OperationTimer.Start($"Loading instances for {ClassName}", MessageService!);
         try
         {
             LoadState = InstanceLoadState.Loading;
-            PublishBusyState($"Loading instances for {ClassName}");            // Use the parent namespace's ManagementScope for the service call.
+            PublishBusyState($"Loading instances for {ClassName}");
+
+            // Use the parent namespace's ManagementScope for the service call.
             var wmiInstances = await _wmiService.GetInstancesAsync(
                 ParentNamespaceViewModel.ManagementScope,
                 ClassName,

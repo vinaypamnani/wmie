@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Management;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
@@ -32,11 +33,11 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private ManagementScope? _managementScope;
     private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
+    private WmiSearchViewModel _searchViewModel;
     private WmiClassViewModel? _selectedClass;
     private readonly ISettingsService _settingsService;
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
-    private WmiSearchViewModel _searchViewModel;
 
     public WmiNamespaceViewModel(
         WmiNamespace wmiNamespace,
@@ -227,6 +228,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         set => SetProperty(ref _parentNamespaceViewModel, value);
     }
 
+    public WmiSearchViewModel SearchViewModel => _searchViewModel;
+
     public WmiClassViewModel? SelectedClass
     {
         get => _selectedClass;
@@ -240,8 +243,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     }
 
     public WmiNamespace? WmiNamespace => _wmiNamespace;
-
-    public WmiSearchViewModel SearchViewModel => _searchViewModel;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
         IEnumerable<ManagementObject> mboCollection,
@@ -320,6 +321,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
             return;
         }
 
+        using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", MessageService!);
         try
         {
             NamespaceLoadState = NamespaceLoadState.Loading;
@@ -384,6 +386,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
 
     public async Task LoadClassesAsync()
     {
+        using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", MessageService!);
         try
         {
             ClassLoadState = ClassLoadState.Loading;
@@ -456,6 +459,16 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         base.Dispose(disposing);
     }
 
+    private bool ClassFilterPredicate(WmiClassViewModel classVm, string filter)
+    {
+        bool isSystemClass = classVm.ClassName.StartsWith("__");
+        if (isSystemClass && !_settingsService.ShowSystemClasses)
+            return false;
+        if (!string.IsNullOrWhiteSpace(filter))
+            return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+        return true;
+    }
+
     private void CopyRelativePath()
     {
         if (string.IsNullOrEmpty(NamespacePath))
@@ -488,16 +501,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private void NotifyNamespaceSelected()
     {
         PublishMessage(new SelectedNamespaceChangedMessage(this));
-    }
-
-    private bool ClassFilterPredicate(WmiClassViewModel classVm, string filter)
-    {
-        bool isSystemClass = classVm.ClassName.StartsWith("__");
-        if (isSystemClass && !_settingsService.ShowSystemClasses)
-            return false;
-        if (!string.IsNullOrWhiteSpace(filter))
-            return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-        return true;
     }
 }
 

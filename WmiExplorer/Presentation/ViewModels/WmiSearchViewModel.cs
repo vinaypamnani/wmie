@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
@@ -225,6 +226,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
+        using var timer = OperationTimer.Start($"Searching for {SearchType.ToString().ToLower()}s: {SearchQuery}", MessageService!);
         try
         {
             if (SelectedNamespace == null)

@@ -14,6 +14,7 @@ public class MainViewModel : MessagingViewModelBase
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
+    private string _elapsedTimeMessage = string.Empty;
     private WmiWatcherViewModel? _eventWatcherViewModel;
     private ICommand? _executeAutoQueryCommand;
     private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
@@ -57,9 +58,9 @@ public class MainViewModel : MessagingViewModelBase
         StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
         StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
         StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
-        StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
-        StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
+        StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage); StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
+        StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
 
         // Subscribe to theme change messages
         StrongSubscribe<ThemeChangedMessage>(_ =>
@@ -163,6 +164,15 @@ public class MainViewModel : MessagingViewModelBase
     /// Gets the current theme object
     /// </summary>
     public Theme CurrentTheme => _themeManager.CurrentThemeObject!;
+
+    /// <summary>
+    /// Elapsed time message for long-running operations
+    /// </summary>
+    public string ElapsedTimeMessage
+    {
+        get => _elapsedTimeMessage;
+        set => SetProperty(ref _elapsedTimeMessage, value);
+    }
 
     /// <summary>
     /// Gets the view model for the WMI Event Watcher
@@ -544,6 +554,18 @@ public class MainViewModel : MessagingViewModelBase
         OnPropertyChanged(nameof(ClassTypeFilter));
 
         System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged: {_settingsService.ClassTypeFilter}");
+    }
+
+    /// <summary>
+    /// Handles elapsed time messages for long-running operations
+    /// </summary>
+    private void HandleElapsedTimeMessage(ElapsedTimeMessage message)
+    {
+        // Ensure elapsed time updates happen on the UI thread
+        RunOnUIThread(() =>
+        {
+            ElapsedTimeMessage = message.Message;
+        });
     }
 
     /// <summary>

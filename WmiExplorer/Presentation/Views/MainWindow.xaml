@@ -162,9 +162,10 @@
         <StatusBar Grid.Row="2" Margin="{StaticResource MarginTopSmall}">
             <StatusBarItem>
                 <main:EnhancedStatusIndicator Margin="4,0" DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <!--  Reserved space for additional status items if needed  -->
+            </StatusBarItem>            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding ElapsedTimeMessage}"
+                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                           Margin="4,0" />
             </StatusBarItem>
         </StatusBar>
     </Grid>
