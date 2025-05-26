@@ -36,7 +36,8 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Executes a search for classes, methods, or properties based on the search type.    /// Returns tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class.
+    /// Executes a search for classes, methods, or properties based on the search type.
+    /// Returns tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class.
     /// </summary>
     public Task<IEnumerable<(object match, ManagementBaseObject parent)>> ExecuteSearchAsync(
         ManagementScope scope,
@@ -69,7 +70,9 @@ public class WmiService : IWmiService, IDisposable
     public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
     {
         EnsureScopeConnected(scope);
-        return await Task.Run(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+
+        // Always use sync for child namespaces, even in async mode
+        return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
 
         // if (OperationMode == WmiOperationMode.Synchronous)
         //     return await Task.Run(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
@@ -84,7 +87,7 @@ public class WmiService : IWmiService, IDisposable
     {
         EnsureScopeConnected(scope);
         if (OperationMode == WmiOperationMode.Synchronous)
-            return await Task.Run(() => GetClassesSync(scope, classTypeFilter, cancellationToken), cancellationToken);
+            return await ExecuteSyncWithTimeout(() => GetClassesSync(scope, classTypeFilter, cancellationToken), cancellationToken);
         else
             return await GetClassesAsyncInternal(scope, classTypeFilter, cancellationToken);
     }
@@ -96,7 +99,8 @@ public class WmiService : IWmiService, IDisposable
     {
         EnsureScopeConnected(scope);
         if (OperationMode == WmiOperationMode.Synchronous)
-            return await Task.Run(() => GetInstancesSync(scope, className, cancellationToken), cancellationToken);
+            // Instance loading can take longer, especially for classes with many instances like Win32_Directory
+            return await ExecuteSyncWithTimeout(() => GetInstancesSync(scope, className, cancellationToken), cancellationToken, 60000);
         else
             return await GetInstancesAsyncInternal(scope, className, cancellationToken);
     }
@@ -273,11 +277,49 @@ public class WmiService : IWmiService, IDisposable
         }
     }
 
+    /// <summary>
+    /// Executes a synchronous WMI operation with timeout-based cancellation support
+    /// </summary>
+    private async Task<T> ExecuteSyncWithTimeout<T>(Func<T> operation, CancellationToken cancellationToken, int timeoutMs = 30000)
+    {
+        return await Task.Run(() =>
+        {
+            // Check cancellation before starting
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Create a task to run the blocking operation
+            var operationTask = Task.Run(operation, cancellationToken);
+
+            // Wait for either completion or cancellation
+            try
+            {
+                if (operationTask.Wait(timeoutMs, cancellationToken))
+                {
+                    return operationTask.Result;
+                }
+                else
+                {
+                    // Operation timed out - this gives us a way to break out of long-running synchronous WMI calls
+                    throw new OperationCanceledException($"WMI synchronous operation timed out after {timeoutMs}ms - this may indicate a very large result set or unresponsive WMI provider");
+                }
+            }
+            catch (AggregateException ex) when (ex.InnerException is OperationCanceledException)
+            {
+                throw ex.InnerException;
+            }
+            catch (AggregateException ex)
+            {
+                // Unwrap other exceptions
+                throw ex.InnerException ?? ex;
+            }
+        }, cancellationToken);
+    }
+
     private async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsyncInternal(ManagementScope scope, CancellationToken cancellationToken)
     {
         var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
         _disposables.Add(nsClass);
-        return await RunWmiListAsync(obs => nsClass.GetInstances(obs), cancellationToken);
+        return await PerformWmiOperationAsync(obs => nsClass.GetInstances(obs), cancellationToken);
     }
 
     private IEnumerable<ManagementObject> GetChildNamespacesSync(ManagementScope scope, CancellationToken cancellationToken)
@@ -286,14 +328,27 @@ public class WmiService : IWmiService, IDisposable
         var result = new List<ManagementObject>();
         var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
         _disposables.Add(nsClass);
-        var instances = nsClass.GetInstances();
-        _disposables.Add(instances);
-        foreach (ManagementObject m in instances)
+
+        // Get the collection with periodic cancellation checks
+        ManagementObjectCollection? instances = null;
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            _disposables.Add(m);
-            result.Add(m);
+            instances = nsClass.GetInstances();
+            _disposables.Add(instances);
+
+            foreach (ManagementObject m in instances)
+            {
+                // Check for cancellation between each namespace
+                cancellationToken.ThrowIfCancellationRequested();
+                _disposables.Add(m);
+                result.Add(m);
+            }
         }
+        finally
+        {
+            instances?.Dispose();
+        }
+
         return result;
     }
 
@@ -303,7 +358,7 @@ public class WmiService : IWmiService, IDisposable
         var query = new ObjectQuery(queryString);
         var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
         _disposables.Add(searcher);
-        var result = await RunWmiListAsync(obs => searcher.Get(obs), cancellationToken);
+        var result = await PerformWmiOperationAsync(obs => searcher.Get(obs), cancellationToken);
         // Fire-and-forget cache update
         try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); } catch { /* Ignore cache errors */ }
         return result;
@@ -317,12 +372,27 @@ public class WmiService : IWmiService, IDisposable
         var query = new ObjectQuery(queryString);
         var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
         _disposables.Add(searcher);
-        foreach (ManagementObject classObject in searcher.Get())
+
+        // Get the collection with periodic cancellation checks
+        ManagementObjectCollection? collection = null;
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            _disposables.Add(classObject);
-            result.Add(classObject);
+            collection = searcher.Get();
+            _disposables.Add(collection);
+
+            foreach (ManagementObject classObject in collection)
+            {
+                // Check for cancellation between each class
+                cancellationToken.ThrowIfCancellationRequested();
+                _disposables.Add(classObject);
+                result.Add(classObject);
+            }
         }
+        finally
+        {
+            collection?.Dispose();
+        }
+
         // Fire-and-forget cache update
         try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); } catch { /* Ignore cache errors */ }
         return result;
@@ -333,7 +403,7 @@ public class WmiService : IWmiService, IDisposable
         var query = new ObjectQuery($"SELECT * FROM {className}");
         var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
         _disposables.Add(searcher);
-        return await RunWmiListAsync(obs => searcher.Get(obs), cancellationToken);
+        return await PerformWmiOperationAsync(obs => searcher.Get(obs), cancellationToken);
     }
 
     private IEnumerable<ManagementObject> GetInstancesSync(ManagementScope scope, string className, CancellationToken cancellationToken)
@@ -343,12 +413,27 @@ public class WmiService : IWmiService, IDisposable
         var query = new ObjectQuery($"SELECT * FROM {className}");
         var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
         _disposables.Add(searcher);
-        foreach (ManagementObject instanceObject in searcher.Get())
+
+        // Get the collection with periodic cancellation checks
+        ManagementObjectCollection? collection = null;
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            _disposables.Add(instanceObject);
-            result.Add(instanceObject);
+            collection = searcher.Get();
+            _disposables.Add(collection);
+
+            foreach (ManagementObject instanceObject in collection)
+            {
+                // Check for cancellation between each instance
+                cancellationToken.ThrowIfCancellationRequested();
+                _disposables.Add(instanceObject);
+                result.Add(instanceObject);
+            }
         }
+        finally
+        {
+            collection?.Dispose();
+        }
+
         return result;
     }
 
@@ -374,7 +459,7 @@ public class WmiService : IWmiService, IDisposable
     /// <summary>
     /// Helper for async WMI queries returning a list
     /// </summary>
-    private async Task<List<ManagementObject>> RunWmiListAsync(Action<ManagementOperationObserver> startAction, CancellationToken cancellationToken)
+    private async Task<List<ManagementObject>> PerformWmiOperationAsync(Action<ManagementOperationObserver> startAction, CancellationToken cancellationToken)
     {
         var result = new List<ManagementObject>();
         var tcs = new TaskCompletionSource<List<ManagementObject>>();

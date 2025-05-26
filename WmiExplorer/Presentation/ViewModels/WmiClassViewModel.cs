@@ -196,11 +196,19 @@ public class WmiClassViewModel : MessagingViewModelBase
                 PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            // This should rarely happen now since we return partial results
             LoadState = InstanceLoadState.Warning;
-            PublishWarningState($"Loading instances for {ClassName} was cancelled");
+            if (ex.Message.Contains("timed out"))
+            {
+                // Synchronous operation timed out
+                PublishWarningState($"Loading instances for {ClassName} timed out - this may indicate a very large result set. Consider switching to asynchronous mode for better cancellation support. Showing {_instances.Count} partial results");
+            }
+            else
+            {
+                // Regular cancellation
+                PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
+            }
         }
         catch (ManagementException ex) when (ex.ErrorCode == ManagementStatus.CallCanceled || ex.ErrorCode == ManagementStatus.OperationCanceled)
         {
