@@ -110,6 +110,7 @@ public class WmiClassViewModel : MessagingViewModelBase
             {
                 try
                 {
+                    // Attempt to load the instance data if not already loaded (useful for lazy props)
                     value.WmiInstance.ActualObject?.Get();
                     value.LoadState = WmiInstanceViewModel.InstanceLoadState.Success;
                 }
