@@ -21,7 +21,8 @@
                 <TextBox MinWidth="120"
                          Margin="{StaticResource MarginSmall}"
                          VerticalContentAlignment="Center"
-                         Tag="Enter computer name..."
+                         Style="{StaticResource TextBoxWithPlaceholder}"
+                         Tag="Computer Name..."
                          Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Height="28"
                         MinWidth="75"
@@ -77,7 +78,7 @@
                                              ShowAlphaChannel="True"
                                              ShowRecentColors="True" />
                 </StackPanel>
-                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                <StackPanel Margin="{StaticResource MarginHorizontalSmall}" VerticalAlignment="Center" Orientation="Horizontal">
                     <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
                                VerticalAlignment="Center"
                                Text="Secondary"
