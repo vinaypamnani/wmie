@@ -8,6 +8,96 @@
              d:DesignWidth="800"
              mc:Ignorable="d">
     <Grid x:Name="QueryGrid">
-        <!-- Content will be implemented later -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  Query Builder GroupBox  -->
+        <GroupBox Grid.Row="0"
+                  HorizontalContentAlignment="Stretch"
+                  Header="Query Builder">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!--  Query TextBox  -->
+                <TextBox Grid.Column="0"
+                         MinHeight="100"
+                         Margin="0,0,0,0"
+                         VerticalAlignment="Center"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto" />
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Top">
+
+                    <!--  Enumeration Options  -->
+                    <GroupBox MinWidth="100" Padding="4" Header="Options">
+                        <StackPanel>
+                            <CheckBox Margin="0,4,0,4" Content="EnumerateDeep" IsChecked="True" />
+                            <CheckBox Margin="0,0,0,4" Content="UseAmendedQualifiers" IsChecked="True" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <Button Width="80"
+                            Height="26"
+                            Margin="8,0,8,0"
+                            HorizontalAlignment="Left"
+                            Content="Execute" />
+                </StackPanel>
+            </Grid>
+
+        </GroupBox>
+
+        <!--  Results GroupBox  -->
+        <GroupBox Grid.Row="1"
+                  Margin="8"
+                  HorizontalContentAlignment="Stretch"
+                  VerticalContentAlignment="Stretch"
+                  Header="Query Results">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--  Filter TextBox  -->
+                <Grid Grid.Row="0" Margin="4,4,4,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             Height="26"
+                             Margin="0,0,8,0"
+                             Style="{StaticResource TextBoxWithClearButton}"
+                             Tag="Filter results..." />
+
+                    <Button Grid.Column="1"
+                            Width="80"
+                            Height="26"
+                            Content="Clear Results" />
+                </Grid>
+
+                <!--  Results ListView  -->
+                <ListView Grid.Row="1"
+                          Margin="0"
+                          BorderThickness="0"
+                          ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
+                          Style="{StaticResource ModernGridListViewStyle}">
+                    <ListView.View>
+                        <GridView>
+                            <!--  Properties as columns will be determined by query results  -->
+                            <GridViewColumn Width="Auto" Header="Property" />
+                            <GridViewColumn Width="Auto" Header="Value" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </GroupBox>
     </Grid>
 </UserControl>
