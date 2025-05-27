@@ -30,15 +30,24 @@
                          VerticalAlignment="Center"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto" />
+                         Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalScrollBarVisibility="Auto">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding ExecuteQueryCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Top">
 
                     <!--  Enumeration Options  -->
                     <GroupBox MinWidth="100" Padding="4" Header="Options">
                         <StackPanel>
-                            <CheckBox Margin="0,4,0,4" Content="EnumerateDeep" IsChecked="True" />
-                            <CheckBox Margin="0,0,0,4" Content="UseAmendedQualifiers" IsChecked="True" />
+                            <CheckBox Margin="0,4,0,4" 
+                                     Content="EnumerateDeep" 
+                                     IsChecked="{Binding EnumerateDeep}" />
+                            <CheckBox Margin="0,0,0,4" 
+                                     Content="UseAmendedQualifiers" 
+                                     IsChecked="{Binding UseAmendedQualifiers}" />
                         </StackPanel>
                     </GroupBox>
 
@@ -46,7 +55,9 @@
                             Height="26"
                             Margin="8,0,8,0"
                             HorizontalAlignment="Left"
-                            Content="Execute" />
+                            Command="{Binding ExecuteQueryCommand}"
+                            Content="Execute"
+                            IsEnabled="{Binding IsQuerying, Converter={StaticResource InverseBooleanConverter}}" />
                 </StackPanel>
             </Grid>
 
@@ -75,11 +86,13 @@
                              Height="26"
                              Margin="0,0,8,0"
                              Style="{StaticResource TextBoxWithClearButton}"
-                             Tag="Filter results..." />
+                             Tag="Filter results..."
+                             Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" />
 
                     <Button Grid.Column="1"
                             Width="80"
                             Height="26"
+                            Command="{Binding ClearResultsCommand}"
                             Content="Clear Results" />
                 </Grid>
 
@@ -88,6 +101,8 @@
                           Margin="0"
                           BorderThickness="0"
                           ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
+                          ItemsSource="{Binding ResultsView}"
+                          SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                           Style="{StaticResource ModernGridListViewStyle}">
                     <ListView.View>
                         <GridView>

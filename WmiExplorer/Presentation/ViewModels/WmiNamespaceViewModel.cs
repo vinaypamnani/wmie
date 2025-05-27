@@ -34,6 +34,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
     private WmiSearchViewModel _searchViewModel;
+    private WmiQueryViewModel _queryViewModel;
     private WmiClassViewModel? _selectedClass;
     private readonly ISettingsService _settingsService;
     private readonly WmiNamespace _wmiNamespace;
@@ -79,6 +80,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         ParentNamespaceViewModel = parentNamespaceViewModel;
 
         _searchViewModel = new WmiSearchViewModel(messagingService, wmiService);
+        _queryViewModel = new WmiQueryViewModel(messagingService, wmiService);
     }
 
     /// <summary>
@@ -229,6 +231,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     }
 
     public WmiSearchViewModel SearchViewModel => _searchViewModel;
+    public WmiQueryViewModel QueryViewModel => _queryViewModel;
 
     public WmiClassViewModel? SelectedClass
     {

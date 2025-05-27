@@ -96,7 +96,7 @@
                         </TabItem>
                         <TabItem Header="Query">
                             <!--  Query View  -->
-                            <tabs:WmiQueryTab />
+                            <tabs:WmiQueryTab DataContext="{Binding SelectedNamespace.QueryViewModel}" />
                         </TabItem>
                     </TabControl>
 
