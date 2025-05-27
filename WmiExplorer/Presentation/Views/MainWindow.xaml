@@ -81,8 +81,7 @@
                                   Width="{StaticResource SpacingMedium}"
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
-                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="Classes">
                             <!--  All the grid content has been moved to WmiClassesTab  -->
                             <tabs:WmiClassesTab />
@@ -94,6 +93,10 @@
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
                             <tabs:WmiWatcherTab DataContext="{Binding EventWatcherViewModel}" />
+                        </TabItem>
+                        <TabItem Header="Query">
+                            <!--  Query View  -->
+                            <tabs:WmiQueryTab />
                         </TabItem>
                     </TabControl>
 
