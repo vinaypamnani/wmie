@@ -6,6 +6,7 @@ using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
+using System.Threading;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
@@ -24,6 +25,7 @@ public class WmiQueryViewModel : MessagingViewModelBase
     private WmiInstance? _selectedResult;
     private bool _useAmendedQualifiers = true;
     private readonly IWmiService _wmiService;
+    private CancellationTokenSource? _cts;
 
     public WmiQueryViewModel(IMessagingService messagingService, IWmiService wmiService, ICacheService cacheService)
     {
@@ -37,6 +39,7 @@ public class WmiQueryViewModel : MessagingViewModelBase
         // Initialize commands
         ExecuteQueryCommand = new AsyncRelayCommand(ExecuteQueryAsync, CanExecuteQuery);
         ClearResultsCommand = new RelayCommand(_ => ClearResults());
+        CancelQueryCommand = new RelayCommand(_ => CancelQuery(), _ => IsQuerying);
 
         // Initialize filter helper for WmiInstance
         _filterHelper = new FilterHelper<WmiInstance>(
@@ -116,6 +119,8 @@ public class WmiQueryViewModel : MessagingViewModelBase
         set => SetProperty(ref _useAmendedQualifiers, value);
     }
 
+    public ICommand CancelQueryCommand { get; }
+
     private bool CanExecuteQuery()
     {
         return !string.IsNullOrWhiteSpace(QueryText) && !_isQuerying;
@@ -127,6 +132,15 @@ public class WmiQueryViewModel : MessagingViewModelBase
         RefreshResultsView();
     }
 
+    private void CancelQuery()
+    {
+        if (!IsQuerying || _cts == null)
+            return;
+
+        PublishBusyState("Cancelling query...");
+        _cts.Cancel();
+    }
+
     private async Task ExecuteQueryAsync()
     {
         IsQuerying = true;
@@ -134,6 +148,11 @@ public class WmiQueryViewModel : MessagingViewModelBase
         await Task.Yield();
 
         _results.Clear();
+
+        // Create a new cancellation token source for this operation
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
 
         try
         {
@@ -156,7 +175,7 @@ public class WmiQueryViewModel : MessagingViewModelBase
                 queryString,
                 _directRead,
                 _useAmendedQualifiers,
-                cancellationToken: default);
+                cancellationToken: token);
 
             foreach (var mo in managementObjects)
             {
@@ -175,10 +194,18 @@ public class WmiQueryViewModel : MessagingViewModelBase
             {
                 PublishWarningState("No results returned.");
             }
+            else if (token.IsCancellationRequested)
+            {
+                PublishWarningState($"Query cancelled. Found {_results.Count} results before cancellation.");
+            }
             else
             {
                 PublishSuccessState($"Query returned {_results.Count} result(s).");
             }
+        }
+        catch (OperationCanceledException)
+        {
+            PublishWarningState($"Query cancelled. Found {_results.Count} results before cancellation.");
         }
         catch (Exception ex)
         {

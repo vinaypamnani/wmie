@@ -13,60 +13,79 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <!--  Query GroupBox  -->
+        <GroupBox Grid.Row="0" HorizontalContentAlignment="Stretch" Header="Query">
+            <DockPanel LastChildFill="True">
+                <Grid Margin="0,8,0,0" DockPanel.Dock="Bottom">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-        <!--  Query Builder GroupBox  -->
-        <GroupBox Grid.Row="0" HorizontalContentAlignment="Stretch" Header="Query Builder">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                    <!--  Query Options  -->
+                    <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                        <CheckBox Margin="0,0,12,0"
+                                  Content="DirectRead"
+                                  IsChecked="{Binding DirectRead}"
+                                  ToolTip="Gets or sets a value indicating whether direct access to the WMI provider is requested for the specified class, without any regard to its super class or derived classes." />
+                        <CheckBox Margin="0,0,12,0"
+                                  Content="UseAmendedQualifiers"
+                                  IsChecked="{Binding UseAmendedQualifiers}"
+                                  ToolTip="Gets or sets a value indicating whether the objects returned from WMI should contain amended information. Typically, amended information is localizable information attached to the WMI object, such as object and property descriptions." />
+                    </WrapPanel>
 
-                <!--  Query TextBox  -->
-                <avalonedit:TextEditor Grid.Column="0"
-                                       MinHeight="100"
-                                       Margin="0,0,0,0"
-                                       VerticalAlignment="Center"
-                                       avalonbehaviors:AvalonEditCompletionBehavior.CacheService="{Binding CacheService}"
-                                       avalonbehaviors:AvalonEditCompletionBehavior.EnableCompletion="True"
-                                       avalonbehaviors:AvalonEditCompletionBehavior.Namespace="{Binding SelectedNamespace.NamespacePath}"
-                                       avalonbehaviors:AvalonEditTextBindingBehavior.BoundText="{Binding QueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                       avalonbehaviors:AvalonEditThemingBehavior.EnableTheming="True"
-                                       avalonbehaviors:AvalonEditWqlHighlightingBehavior.EnableWqlHighlighting="True"
-                                       Background="{DynamicResource PrimaryBackgroundBrush}"
-                                       DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                       FontSize="14"
-                                       Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                       LineNumbersForeground="{DynamicResource SecondaryForegroundBrush}"
-                                       ShowLineNumbers="True"
-                                       VerticalScrollBarVisibility="Auto" />
-
-                <StackPanel Grid.Column="1" VerticalAlignment="Top">
-
-                    <!--  Enumeration Options  -->
-                    <GroupBox MinWidth="100" Padding="4" Header="Options">
-                        <StackPanel>
-                            <CheckBox Margin="0,4,0,4"
-                                      Content="DirectRead"
-                                      IsChecked="{Binding DirectRead}"
-                                      ToolTip="Gets or sets a value indicating whether direct access to the WMI provider is requested for the specified class, without any regard to its super class or derived classes." />
-                            <CheckBox Margin="0,0,0,4"
-                                      Content="UseAmendedQualifiers"
-                                      IsChecked="{Binding UseAmendedQualifiers}"
-                                      ToolTip="Gets or sets a value indicating whether the objects returned from WMI should contain amended information. Typically, amended information is localizable information attached to the WMI object, such as object and property descriptions." />
-                        </StackPanel>
-                    </GroupBox>
-
-                    <Button Width="80"
-                            Height="26"
+                    <!--  Action Buttons  -->
+                    <Button Grid.Column="1"
+                            Width="90"
+                            Height="30"
                             Margin="8,0,8,0"
-                            HorizontalAlignment="Left"
                             Command="{Binding ExecuteQueryCommand}"
                             Content="Execute"
-                            IsEnabled="{Binding IsQuerying, Converter={StaticResource InverseBooleanConverter}}" />
-                </StackPanel>
-            </Grid>
+                            IsDefault="True"
+                            IsEnabled="{Binding IsQuerying, Converter={StaticResource InverseBooleanConverter}}">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+                                <Setter Property="Background" Value="{DynamicResource AccentColorBrush}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
+                    <Button Grid.Column="2"
+                            Width="90"
+                            Height="30"
+                            Margin="0,0,0,0"
+                            Command="{Binding CancelQueryCommand}"
+                            Content="Cancel"
+                            IsEnabled="{Binding IsQuerying}" />
+                </Grid>
+
+                <!--  Query Editor  -->
+                <Border BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="2"
+                        DockPanel.Dock="Top">
+                    <avalonedit:TextEditor MinHeight="80"
+                                           Margin="0"
+                                           Padding="4"
+                                           avalonbehaviors:AvalonEditCompletionBehavior.CacheService="{Binding CacheService}"
+                                           avalonbehaviors:AvalonEditCompletionBehavior.EnableCompletion="True"
+                                           avalonbehaviors:AvalonEditCompletionBehavior.Namespace="{Binding SelectedNamespace.NamespacePath}"
+                                           avalonbehaviors:AvalonEditTextBindingBehavior.BoundText="{Binding QueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           avalonbehaviors:AvalonEditThemingBehavior.EnableTheming="True"
+                                           avalonbehaviors:AvalonEditWqlHighlightingBehavior.EnableWqlHighlighting="True"
+                                           Background="{DynamicResource PrimaryBackgroundBrush}"
+                                           DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                           FontFamily="Consolas, Courier New, Monospace"
+                                           FontSize="14"
+                                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                           HorizontalScrollBarVisibility="Auto"
+                                           LineNumbersForeground="{DynamicResource SecondaryForegroundBrush}"
+                                           ShowLineNumbers="True"
+                                           VerticalScrollBarVisibility="Auto" />
+                </Border>
+            </DockPanel>
         </GroupBox>
 
         <!--  Results GroupBox  -->
@@ -113,8 +132,7 @@
                     <ListView.View>
                         <GridView>
                             <!--  Properties as columns will be determined by query results  -->
-                            <GridViewColumn Width="Auto" Header="Property" />
-                            <GridViewColumn Width="Auto" Header="Value" />
+                            <GridViewColumn Width="Auto" Header="Instance" />
                         </GridView>
                     </ListView.View>
                 </ListView>
