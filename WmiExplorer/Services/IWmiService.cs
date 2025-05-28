@@ -17,7 +17,6 @@ public interface IWmiService
     /// <param name="options">The connection options (optional)</param>
     /// <returns>A connected ManagementScope</returns>
     ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions? options = null);
-
     /// <summary>
     /// Executes a search for classes, methods, or properties in the given scope.
     /// </summary>
@@ -33,7 +32,16 @@ public interface IWmiService
         string searchText,
         bool recursive,
         CancellationToken cancellationToken = default);
-
+    /// <summary>
+    /// Executes a WMI query asynchronously, using the specified query string and enumeration options.
+    /// </summary>
+    /// <param name="scope">The ManagementScope to use for the query</param>
+    /// <param name="queryString">The WQL query string to execute</param>
+    /// <param name="enumerateDeep">Whether to enumerate deep</param>
+    /// <param name="useAmendedQualifiers">Whether to use amended qualifiers</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>A list of ManagementObject representing the query results</returns>
+    Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(ManagementScope scope, string queryString, bool directRead, bool useAmendedQualifiers, CancellationToken cancellationToken = default);
     /// <summary>
     /// Asynchronously gets child namespaces for a given WMI namespace
     /// </summary>
@@ -41,7 +49,6 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject</returns>
     Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Asynchronously gets classes for a given WMI namespace
     /// </summary>
@@ -50,7 +57,6 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject representing WMI classes</returns>
     Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassTypeFlags classTypeFilter = WmiClassTypeFlags.All, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Asynchronously gets instances for a given WMI class
     /// </summary>
@@ -59,12 +65,10 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject representing WMI instances</returns>
     Task<IEnumerable<ManagementObject>> GetInstancesAsync(ManagementScope scope, string className, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Gets the CLSID for a WMI provider by name (synchronous, returns null if not found or error)
     /// </summary>
     string? GetProviderClsid(ManagementScope scope, string providerName);
-
     /// <summary>
     /// Gets a root ManagementObject for a given namespace path
     /// </summary>

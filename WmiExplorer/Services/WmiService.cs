@@ -66,6 +66,33 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Executes a WMI query asynchronously, using the specified query string.
+    /// </summary>
+    public async Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(
+        ManagementScope scope,
+        string queryString,
+        bool directRead,
+        bool useAmendedQualifiers,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureScopeConnected(scope);
+        var userProvidedEnumOptions = new EnumerationOptions
+        {
+            DirectRead = directRead,
+            UseAmendedQualifiers = useAmendedQualifiers
+
+        };
+        if (OperationMode == WmiOperationMode.Synchronous)
+        {
+            return await ExecuteSyncWithTimeout(() => ExecuteWmiQuerySync(scope, queryString, userProvidedEnumOptions, cancellationToken), cancellationToken, 60000);
+        }
+        else
+        {
+            return await ExecuteWmiQueryInternal(scope, queryString, userProvidedEnumOptions, cancellationToken);
+        }
+    }
+
+    /// <summary>
     /// Asynchronously gets child namespaces for a given WMI namespace
     /// </summary>
     public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
@@ -333,6 +360,56 @@ public class WmiService : IWmiService, IDisposable
                 throw ex.InnerException ?? ex;
             }
         }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes a WMI query asynchronously and returns the results.
+    /// </summary>
+    private async Task<IEnumerable<ManagementObject>> ExecuteWmiQueryInternal(
+        ManagementScope scope,
+        string queryString,
+        EnumerationOptions enumOptions,
+        CancellationToken cancellationToken)
+    {
+        var query = new ObjectQuery(queryString);
+        var searcher = new ManagementObjectSearcher(scope, query, enumOptions);
+        _disposables.Add(searcher);
+        return await PerformWmiOperationAsync(obs => searcher.Get(obs), cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes a WMI query synchronously and returns the results.
+    /// </summary>
+    private IEnumerable<ManagementObject> ExecuteWmiQuerySync(
+        ManagementScope scope,
+        string queryString,
+        EnumerationOptions enumOptions,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = new List<ManagementObject>();
+        var query = new ObjectQuery(queryString);
+        var searcher = new ManagementObjectSearcher(scope, query, enumOptions);
+        _disposables.Add(searcher);
+
+        ManagementObjectCollection? collection = null;
+        try
+        {
+            collection = searcher.Get();
+            _disposables.Add(collection);
+
+            foreach (ManagementObject obj in collection)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                _disposables.Add(obj);
+                result.Add(obj);
+            }
+        }
+        finally
+        {
+            collection?.Dispose();
+        }
+        return result;
     }
 
     private async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsyncInternal(ManagementScope scope, CancellationToken cancellationToken)
