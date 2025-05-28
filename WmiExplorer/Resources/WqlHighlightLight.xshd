@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SyntaxDefinition name="WQL" extensions=".wql" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <!-- Colors optimized for light backgrounds -->
+  <Color name="Keyword" foreground="#FF0000FF" /> <!-- Blue for keywords -->
+  <Color name="Class" foreground="#FF800000" /> <!-- Dark red/maroon for classes -->
+  <Color name="String" foreground="#FF008000" /> <!-- Green for strings -->
+  <Color name="Comment" foreground="#FF707070" /> <!-- Gray for comments -->
+  <Color name="Number" foreground="#FF8B008B" /> <!-- Dark magenta for numbers -->
+  <Color name="Literal" foreground="#FFCC0000" /> <!-- Red for literals -->
+  <Color name="Paren" foreground="#FF000080" /> <!-- Navy for parentheses -->
+  <Color name="Logical" foreground="#FF8B0000" /> <!-- Dark red for logical operators -->
+  <RuleSet ignoreCase="true">
+    <Span color="Comment" begin="--" end="\n" />
+    <Span color="String" begin="'" end="'" />
+    <Span color="String" begin="&quot;" end="&quot;" />
+    <Rule color="Class">(?&lt;=\bFROM\s+)[A-Za-z_][A-Za-z0-9_]*</Rule>
+    <Rule color="Number">\b\d+(\.\d+)?\b</Rule>
+    <Rule color="Paren">[\(\)]</Rule>
+    <Keywords color="Keyword">
+      <Word>SELECT</Word>
+      <Word>FROM</Word>
+      <Word>WHERE</Word>
+      <Word>IS</Word>
+      <Word>LIKE</Word>
+      <Word>ISA</Word>
+      <Word>WITHIN</Word>
+      <Word>ASSOCIATORS OF</Word>
+      <Word>REFERENCES OF</Word>
+      <Word>KEYSONLY</Word>
+      <Word>HAVING</Word>
+      <Word>GROUP</Word>
+    </Keywords>
+    <Keywords color="Logical">
+      <Word>AND</Word>
+      <Word>OR</Word>
+      <Word>NOT</Word>
+    </Keywords>
+    <Keywords color="Literal">
+      <Word>__CLASS</Word>
+      <Word>NULL</Word>
+      <Word>NOT NULL</Word>
+      <Word>TRUE</Word>
+      <Word>FALSE</Word>
+    </Keywords>
+  </RuleSet>
+</SyntaxDefinition>

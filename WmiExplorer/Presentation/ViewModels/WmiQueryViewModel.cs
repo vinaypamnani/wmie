@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
@@ -12,23 +11,25 @@ namespace WmiExplorer.Presentation.ViewModels;
 
 public class WmiQueryViewModel : MessagingViewModelBase
 {
+    private readonly ICacheService _cacheService;
+    private bool _enumerateDeep = true;
     private readonly FilterHelper<WmiSearchResult> _filterHelper;
     private string _filterText = string.Empty;
     private bool _isQuerying;
     private readonly IMessagingService _messagingService;
-    private bool _enumerateDeep = true;
-    private bool _useAmendedQualifiers = true;
+    private string _queryText = string.Empty;
     private ObservableCollection<WmiSearchResult> _results = new();
     private ICollectionView? _resultsView;
-    private string _queryText = string.Empty;
     private WmiNamespaceViewModel? _selectedNamespace;
     private WmiSearchResult? _selectedResult;
+    private bool _useAmendedQualifiers = true;
     private readonly IWmiService _wmiService;
 
-    public WmiQueryViewModel(IMessagingService messagingService, IWmiService wmiService)
+    public WmiQueryViewModel(IMessagingService messagingService, IWmiService wmiService, ICacheService cacheService)
     {
         _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
         // Initialize messaging
         InitializeMessaging(messagingService);
@@ -48,8 +49,16 @@ public class WmiQueryViewModel : MessagingViewModelBase
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
     }
 
-    public ICommand ExecuteQueryCommand { get; }
+    public ICacheService CacheService => _cacheService;
     public ICommand ClearResultsCommand { get; }
+
+    public bool EnumerateDeep
+    {
+        get => _enumerateDeep;
+        set => SetProperty(ref _enumerateDeep, value);
+    }
+
+    public ICommand ExecuteQueryCommand { get; }
 
     public string FilterText
     {
@@ -67,21 +76,6 @@ public class WmiQueryViewModel : MessagingViewModelBase
         set => SetProperty(ref _isQuerying, value);
     }
 
-    public bool EnumerateDeep
-    {
-        get => _enumerateDeep;
-        set => SetProperty(ref _enumerateDeep, value);
-    }
-
-    public bool UseAmendedQualifiers
-    {
-        get => _useAmendedQualifiers;
-        set => SetProperty(ref _useAmendedQualifiers, value);
-    }
-
-    public ObservableCollection<WmiSearchResult> Results => _results;
-    public ICollectionView ResultsView => _resultsView!;
-
     public string QueryText
     {
         get => _queryText;
@@ -94,6 +88,9 @@ public class WmiQueryViewModel : MessagingViewModelBase
             }
         }
     }
+
+    public ObservableCollection<WmiSearchResult> Results => _results;
+    public ICollectionView ResultsView => _resultsView!;
 
     public WmiNamespaceViewModel? SelectedNamespace
     {
@@ -114,6 +111,17 @@ public class WmiQueryViewModel : MessagingViewModelBase
         }
     }
 
+    public bool UseAmendedQualifiers
+    {
+        get => _useAmendedQualifiers;
+        set => SetProperty(ref _useAmendedQualifiers, value);
+    }
+
+    private bool CanExecuteQuery()
+    {
+        return !string.IsNullOrWhiteSpace(QueryText) && !_isQuerying;
+    }
+
     private void ClearResults()
     {
         _results.Clear();
@@ -122,15 +130,12 @@ public class WmiQueryViewModel : MessagingViewModelBase
         OnPropertyChanged(nameof(QueryText));
     }
 
-    private bool CanExecuteQuery()
-    {
-        return !string.IsNullOrWhiteSpace(QueryText) && !_isQuerying;
-    }
-
     private async Task ExecuteQueryAsync()
     {
         IsQuerying = true;
         PublishBusyState("Executing query...");
+        await Task.Yield(); // Yield to allow UI updates // temoporary to avoid build warnings
+
         _results.Clear();
 
         try
@@ -162,11 +167,6 @@ public class WmiQueryViewModel : MessagingViewModelBase
         SelectedNamespace = message.NamespaceViewModel;
     }
 
-    private void RefreshResultsView()
-    {
-        _resultsView?.Refresh();
-    }
-
     private bool QueryResultsFilterPredicate(WmiSearchResult result, string filter)
     {
         if (string.IsNullOrWhiteSpace(filter))
@@ -194,4 +194,9 @@ public class WmiQueryViewModel : MessagingViewModelBase
             || SafeContains(() => result.Description)
             || SafeContains(() => result.TypeInfo);
     }
-} 
+
+    private void RefreshResultsView()
+    {
+        _resultsView?.Refresh();
+    }
+}

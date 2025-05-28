@@ -21,12 +21,15 @@
 
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.1.120" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
     <PackageReference Include="System.Management" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\AppIcon.ico" />
+    <EmbeddedResource Include="Resources\WqlHighlightDark.xshd" />
+    <EmbeddedResource Include="Resources\WqlHighlightLight.xshd" />
   </ItemGroup>
 
   <ItemGroup>

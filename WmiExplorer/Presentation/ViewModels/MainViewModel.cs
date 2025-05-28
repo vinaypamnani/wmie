@@ -427,6 +427,7 @@ public class MainViewModel : MessagingViewModelBase
                 MessageService!,
                 _applicationService,
                 _settingsService,
+                _cacheService,
                 _cts.Token);
 
             // Load initial children

@@ -17,6 +17,7 @@ namespace WmiExplorer.Presentation.ViewModels;
 public class WmiNamespaceViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
+    private readonly ICacheService _cacheService;
     private readonly ObservableCollection<WmiNamespaceViewModel> _children = new();
     private readonly ObservableCollection<WmiClassViewModel> _classes = new();
     private readonly FilterHelper<WmiClassViewModel> _classFilterHelper;
@@ -33,8 +34,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     private ManagementScope? _managementScope;
     private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
-    private WmiSearchViewModel _searchViewModel;
     private WmiQueryViewModel _queryViewModel;
+    private WmiSearchViewModel _searchViewModel;
     private WmiClassViewModel? _selectedClass;
     private readonly ISettingsService _settingsService;
     private readonly WmiNamespace _wmiNamespace;
@@ -46,6 +47,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         IMessagingService messagingService,
         IApplicationService applicationService,
         ISettingsService settingsService,
+        ICacheService cacheService,
         WmiNamespaceViewModel? parentNamespaceViewModel = null)
     {
         // All dependencies are required for correct operation and messaging.
@@ -53,6 +55,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
         InitializeMessaging(messagingService);
 
@@ -80,7 +83,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         ParentNamespaceViewModel = parentNamespaceViewModel;
 
         _searchViewModel = new WmiSearchViewModel(messagingService, wmiService);
-        _queryViewModel = new WmiQueryViewModel(messagingService, wmiService);
+        _queryViewModel = new WmiQueryViewModel(messagingService, wmiService, _cacheService);
     }
 
     /// <summary>
@@ -230,8 +233,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         set => SetProperty(ref _parentNamespaceViewModel, value);
     }
 
-    public WmiSearchViewModel SearchViewModel => _searchViewModel;
     public WmiQueryViewModel QueryViewModel => _queryViewModel;
+    public WmiSearchViewModel SearchViewModel => _searchViewModel;
 
     public WmiClassViewModel? SelectedClass
     {
@@ -254,6 +257,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         IMessagingService messagingService,
         IApplicationService applicationService,
         ISettingsService settingsService,
+        ICacheService cacheService,
         WmiNamespaceViewModel? parentNamespaceViewModel = null)
     {
         if (mboCollection == null)
@@ -276,8 +280,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
                 messagingService,
                 applicationService,
                 settingsService,
+                cacheService,
                 parentNamespaceViewModel);
-
             if (mo.Scope?.Path != null)
                 vm.ComputerName = mo.Scope.Path.Server;
 
@@ -293,6 +297,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         IMessagingService messagingService,
         IApplicationService applicationService,
         ISettingsService settingsService,
+        ICacheService cacheService,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(namespacePath))
@@ -308,7 +313,8 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
             wmiService,
             messagingService,
             applicationService,
-            settingsService);
+            settingsService,
+            cacheService);
 
         if (rootMbo?.Scope?.Path != null)
             rootViewModel.ComputerName = rootMbo.Scope.Path.Server;
@@ -346,6 +352,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
                 MessageService!,
                 _applicationService,
                 _settingsService,
+                _cacheService,
                 this);
 
             var sortedChildViewModels = new ObservableCollection<WmiNamespaceViewModel>(

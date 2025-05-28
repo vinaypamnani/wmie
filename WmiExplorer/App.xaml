@@ -11,7 +11,8 @@
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/MainStyles.xaml" />
                 <!--  Control styles  -->
-                <ResourceDictionary Source="/Presentation/ColorPicker/ColorPickerTheme.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/CompletionStyles.xaml" />
+                <ResourceDictionary Source="Presentation/ColorPicker/ColorPickerTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
