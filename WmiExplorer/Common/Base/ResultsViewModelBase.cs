@@ -55,6 +55,7 @@ namespace WmiExplorer.Common.Base
             _filterHelper.FilterText = _filterText;
             OnPropertyChanged(nameof(Results));
             OnPropertyChanged(nameof(ResultsView));
+            _resultsView?.Refresh(); // Ensure the view is refreshed after results update
         }
 
         /// <summary>

@@ -1,25 +1,18 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
-public class WmiSearchViewModel : MessagingViewModelBase
+public class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
 {
     private CancellationTokenSource? _cts;
-    private readonly FilterHelper<WmiSearchResult> _filterHelper;
-    private string _filterText = string.Empty;
     private bool _isSearching;
     private readonly IMessagingService _messagingService;
     private bool _recursive;
-    private ObservableCollection<WmiSearchResult> _results = new();
-    private ICollectionView? _resultsView;
     private string _searchQuery = string.Empty;
     private WmiSearchType _searchType = WmiSearchType.Class;
     private readonly Dictionary<WmiSearchType, SearchTypeState> _searchTypeStates = new();
@@ -28,35 +21,25 @@ public class WmiSearchViewModel : MessagingViewModelBase
     private readonly IWmiService _wmiService;
 
     public WmiSearchViewModel(IMessagingService messagingService, IWmiService wmiService)
+        : base()
     {
         _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
 
         // Initialize messaging
-        InitializeMessaging(messagingService);        // Initialize commands
+        InitializeMessaging(messagingService);
+
+        // Initialize commands
         SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, CanExecuteSearch);
         ClearResultsCommand = new RelayCommand(_ => ClearCurrentTypeResults());
         CancelSearchCommand = new RelayCommand(_ => CancelSearch(), _ => IsSearching);
-        _filterHelper = new FilterHelper<WmiSearchResult>(
-            _results,
-            SearchResultsFilterPredicate
-        );
-        _resultsView = _filterHelper.CollectionView;
+
+        // Subscribe to namespace selection changes
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
     }
 
     public ICommand CancelSearchCommand { get; private set; }
     public ICommand ClearResultsCommand { get; }
-
-    public string FilterText
-    {
-        get => _filterText;
-        set
-        {
-            if (SetProperty(ref _filterText, value))
-                _filterHelper.FilterText = value;
-        }
-    }
 
     public bool IsSearching
     {
@@ -72,8 +55,6 @@ public class WmiSearchViewModel : MessagingViewModelBase
         set => SetProperty(ref _recursive, value);
     }
 
-    public ObservableCollection<WmiSearchResult> Results => _results;
-    public ICollectionView ResultsView => _resultsView!;
     public ICommand SearchCommand { get; }
 
     public string SearchQuery
@@ -96,7 +77,8 @@ public class WmiSearchViewModel : MessagingViewModelBase
         {
             var oldValue = _searchType;
             if (SetProperty(ref _searchType, value))
-            {                // Store current state for the previous type
+            {
+                // Store current state for the previous type
                 if (!_searchTypeStates.ContainsKey(oldValue))
                     _searchTypeStates[oldValue] = new SearchTypeState();
 
@@ -109,7 +91,6 @@ public class WmiSearchViewModel : MessagingViewModelBase
                 {
                     _searchTypeStates[oldValue].SearchQuery = _searchQuery;
                 }
-
                 // Clear current results and query
                 _results.Clear();
                 _searchQuery = string.Empty;
@@ -121,8 +102,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
                         _results.Add(result);
                     _searchQuery = state.SearchQuery;
                 }
-
-                RefreshResultsView();
+                _resultsView?.Refresh();
                 OnPropertyChanged(nameof(SearchQuery));
             }
         }
@@ -157,7 +137,7 @@ public class WmiSearchViewModel : MessagingViewModelBase
             _searchTypeStates[_searchType].SearchQuery = string.Empty;
         }
         _searchQuery = string.Empty;
-        RefreshResultsView();
+        _resultsView?.Refresh();
         OnPropertyChanged(nameof(SearchQuery));
     }
 
@@ -168,6 +148,29 @@ public class WmiSearchViewModel : MessagingViewModelBase
             _cts?.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    protected override bool ResultsFilterPredicate(WmiSearchResult result, string filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter))
+            return true;
+        var lower = filter.ToLowerInvariant();
+        bool SafeContains(Func<string?> propertyAccessor)
+        {
+            try
+            {
+                var value = propertyAccessor();
+                return value != null && value.ToLowerInvariant().Contains(lower);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        return SafeContains(() => result.Name)
+            || SafeContains(() => result.Path)
+            || SafeContains(() => result.Description)
+            || SafeContains(() => result.TypeInfo);
     }
 
     // Cancel the search operation
@@ -216,16 +219,14 @@ public class WmiSearchViewModel : MessagingViewModelBase
         IsSearching = true;
         PublishBusyState("Executing search...");
         _results.Clear();
+
         // Only clear the stored state for the current search type
         if (!_searchTypeStates.ContainsKey(SearchType))
             _searchTypeStates[SearchType] = new SearchTypeState();
         _searchTypeStates[SearchType].Results.Clear();
         _searchTypeStates[SearchType].SearchQuery = string.Empty;
-
-        // Create a new cancellation token source for this operation
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
-
         using var timer = OperationTimer.Start($"Searching for {SearchType.ToString().ToLower()}s: {SearchQuery}", MessageService!);
         try
         {
@@ -236,17 +237,20 @@ public class WmiSearchViewModel : MessagingViewModelBase
             }
             var scope = SelectedNamespace.ManagementScope;
             var searchResults = await _wmiService.ExecuteSearchAsync(scope, SearchType, SearchQuery, Recursive, _cts.Token);
-
+            var tempResults = new List<WmiSearchResult>();
             foreach (var (match, parent) in searchResults)
             {
+                // Build the search result object for each match
                 var searchResult = new WmiSearchResult(SearchType, match, parent);
-                _results.Add(searchResult);
+                tempResults.Add(searchResult);
             }
+            // Use the base class method to update results and related helpers
+            SetResults(tempResults);
 
             // Store results and query for this type after search
             _searchTypeStates[SearchType].Results = new List<WmiSearchResult>(_results);
             _searchTypeStates[SearchType].SearchQuery = SearchQuery;
-
+            
             if (_cts.IsCancellationRequested)
             {
                 PublishWarningState($"Found {_results.Count} results before search was cancelled.");
@@ -278,40 +282,6 @@ public class WmiSearchViewModel : MessagingViewModelBase
         SelectedNamespace = message.NamespaceViewModel;
     }
 
-    private void RefreshResultsView()
-    {
-        _resultsView?.Refresh();
-    }
-
-    private bool SearchResultsFilterPredicate(WmiSearchResult result, string filter)
-    {
-        if (string.IsNullOrWhiteSpace(filter))
-            return true;
-        var lower = filter.ToLowerInvariant();
-
-        // Helper to safely access a property for filtering
-        bool SafeContains(Func<string?> propertyAccessor)
-        {
-            try
-            {
-                var value = propertyAccessor();
-                return value != null && value.ToLowerInvariant().Contains(lower);
-            }
-            catch
-            {
-                // Ignore exceptions from WMI property access
-                return false;
-            }
-        }
-
-        // Match on multiple properties, safely
-        return SafeContains(() => result.Name)
-            || SafeContains(() => result.Path)
-            || SafeContains(() => result.Description)
-            || SafeContains(() => result.TypeInfo);
-    }
-
-    // Helper class to store search state for each type
     private class SearchTypeState
     {
         public List<WmiSearchResult> Results { get; set; } = new();
