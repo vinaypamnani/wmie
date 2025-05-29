@@ -157,4 +157,16 @@ public class JumpToClassMessage : MessageBase
     public string ClassName { get; }
 }
 
+/// <summary>
+/// Message sent when selected WMI query result instance changes
+/// </summary>
+public class WmiQueryInstanceChangedMessage : MessageBase
+{
+    public WmiQueryInstanceChangedMessage(WmiInstance? instance)
+    {
+        Instance = instance;
+    }
+    public WmiInstance? Instance { get; }
+}
+
 #endregion

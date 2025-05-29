@@ -87,7 +87,8 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         {
             if (SetProperty(ref _selectedResult, value))
             {
-                // Optionally publish a message or handle selection change
+                // Publish a message so MainViewModel can update SelectedObject
+                _messagingService.Publish(new WmiQueryInstanceChangedMessage(value));
             }
         }
     }

@@ -61,6 +61,7 @@ public class MainViewModel : MessagingViewModelBase
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage); StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
+        StrongSubscribe<WmiQueryInstanceChangedMessage>(HandleWmiQueryInstanceChangedMessage);
 
         // Subscribe to theme change messages
         StrongSubscribe<ThemeChangedMessage>(_ =>
@@ -821,5 +822,14 @@ public class MainViewModel : MessagingViewModelBase
                 PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
                 break;
         }
+    }
+
+    /// <summary>
+    /// Handles when a WMI query result instance is selected to update the property grid
+    /// </summary>
+    private void HandleWmiQueryInstanceChangedMessage(WmiQueryInstanceChangedMessage message)
+    {
+        // Set SelectedObject to the selected WMI instance for the property grid
+        SelectedObject = message.Instance;
     }
 }
