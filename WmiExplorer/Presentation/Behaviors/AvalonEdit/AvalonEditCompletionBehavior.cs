@@ -202,7 +202,7 @@ public static class AvalonEditCompletionBehavior
                         continue;
 
                     if (string.IsNullOrEmpty(prefix) ||
-                        classCache.ClassName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                        classCache.ClassName.Contains(prefix, StringComparison.OrdinalIgnoreCase))
                     {
                         string description = classCache.IsSystemClass ? "System Class" : "WMI Class";
                         if (classCache.Properties?.Count > 0)
@@ -238,7 +238,7 @@ public static class AvalonEditCompletionBehavior
                     foreach (var prop in classCache.Properties)
                     {
                         if (string.IsNullOrEmpty(prefix) ||
-                            prop.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                            prop.Name.Contains(prefix, StringComparison.OrdinalIgnoreCase))
                         {
                             // Format the property type more nicely
                             string propertyType = FormatPropertyType(prop.Type);
