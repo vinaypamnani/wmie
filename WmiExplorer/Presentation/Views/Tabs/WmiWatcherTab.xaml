@@ -37,7 +37,7 @@
                             <GroupBox Margin="0" Header="Event Type">
                                 <ComboBox Width="200"
                                           Height="26"
-                                          IsEditable="False"
+                                          IsEditable="True"
                                           IsTextSearchEnabled="True"
                                           ItemsSource="{Binding EventClassList}"
                                           SelectedItem="{Binding EventQueryBuilder.EventClass, UpdateSourceTrigger=PropertyChanged}" />
@@ -55,7 +55,7 @@
                                 <ComboBox Width="200"
                                           Height="26"
                                           DisplayMemberPath="Display"
-                                          IsEditable="False"
+                                          IsEditable="True"
                                           IsEnabled="{Binding EventQueryBuilder.IsEventPropertyEnabled}"
                                           IsTextSearchEnabled="True"
                                           ItemsSource="{Binding EventPropertyList}"
@@ -105,6 +105,7 @@
                             <GroupBox Margin="0" DockPanel.Dock="Right" Header="Event Display Property [optional]">
                                 <ComboBox Width="180"
                                           Height="26"
+                                          IsEditable="True"
                                           HorizontalContentAlignment="Left"
                                           ItemsSource="{Binding EventDisplayPropertyList}"
                                           SelectedItem="{Binding EventDisplayProperty, UpdateSourceTrigger=PropertyChanged}" />
@@ -350,7 +351,7 @@
                             <ComboBox Height="26"
                                       MinWidth="150"
                                       Margin="4"
-                                      IsEditable="False"
+                                      IsEditable="True"
                                       ItemsSource="{Binding WatcherNames}"
                                       SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
