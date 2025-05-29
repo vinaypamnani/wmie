@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
@@ -7,6 +9,8 @@ using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
 using System.Threading;
+using System.Management;
+using System.Linq;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
@@ -50,6 +54,9 @@ public class WmiQueryViewModel : MessagingViewModelBase
 
         // Subscribe to namespace selection changes
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
+
+        // Update columns when results change
+        _results.CollectionChanged += (s, e) => UpdateResultColumns();
     }
 
     public ICacheService CacheService => _cacheService;
@@ -121,6 +128,8 @@ public class WmiQueryViewModel : MessagingViewModelBase
 
     public ICommand CancelQueryCommand { get; }
 
+    public ObservableCollection<DataGridColumn> ResultColumns { get; } = new();
+
     private bool CanExecuteQuery()
     {
         return !string.IsNullOrWhiteSpace(QueryText) && !_isQuerying;
@@ -130,6 +139,7 @@ public class WmiQueryViewModel : MessagingViewModelBase
     {
         _results.Clear();
         RefreshResultsView();
+        UpdateResultColumns();
     }
 
     private void CancelQuery()
@@ -256,5 +266,32 @@ public class WmiQueryViewModel : MessagingViewModelBase
     private void RefreshResultsView()
     {
         _resultsView?.Refresh();
+    }
+
+    private void UpdateResultColumns()
+    {
+        ResultColumns.Clear();
+
+        // Find all unique property names from all WmiInstance results
+        var propertyNames = _results
+            .SelectMany(inst =>
+            {
+                var pdc = inst.Properties as PropertyDataCollection;
+                return pdc != null ? pdc.Cast<PropertyData>().Select(p => p.Name) : Enumerable.Empty<string>();
+            })
+            .Distinct()
+            .OrderBy(n => n)
+            .ToList();
+
+        foreach (var propertyName in propertyNames)
+        {
+            var column = new DataGridTextColumn
+            {
+                Header = propertyName,
+                Binding = new Binding($"Properties[{propertyName}].Value"),
+                SortMemberPath = $"Properties[{propertyName}].Value"
+            };
+            ResultColumns.Add(column);
+        }
     }
 }
