@@ -56,9 +56,8 @@
                                  Text="{Binding SelectedNamespace.ClassFilterText, UpdateSourceTrigger=PropertyChanged}" />
                         <ListView Grid.Row="2"
                                   behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
-                                  behaviors:ListViewAutoScrollBehavior.DisableVirtualization="False"
                                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedNamespace.SelectedClass}"
-                                  behaviors:ListViewDefaultSortBehavior.DefaultSortProperty="ClassName"
+                                  behaviors:ListViewSortBehavior.DefaultSortProperty="ClassName"
                                   behaviors:ListViewSortBehavior.EnableSorting="True"
                                   BorderThickness="0"
                                   ItemsSource="{Binding SelectedNamespace.ClassesView}"

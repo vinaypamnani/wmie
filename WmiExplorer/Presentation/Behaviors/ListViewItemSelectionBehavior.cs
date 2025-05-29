@@ -29,6 +29,17 @@ public static class ListViewItemSelectionBehavior
         obj.SetValue(EnableForceSelectionProperty, value);
     }
 
+    // Helper to find parent ListView
+    private static DependencyObject? FindParentListView(DependencyObject child)
+    {
+        DependencyObject? parent = VisualTreeHelper.GetParent(child);
+        while (parent != null && parent is not ListView)
+        {
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        return parent;
+    }
+
     private static void OnEnableForceSelectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is ListViewItem item)
@@ -68,16 +79,5 @@ public static class ListViewItemSelectionBehavior
                 // Don't mark as handled - this allows double-click to still work
             }
         }
-    }
-
-    // Helper to find parent ListView
-    private static DependencyObject? FindParentListView(DependencyObject child)
-    {
-        DependencyObject? parent = VisualTreeHelper.GetParent(child);
-        while (parent != null && parent is not ListView)
-        {
-            parent = VisualTreeHelper.GetParent(parent);
-        }
-        return parent;
     }
 }

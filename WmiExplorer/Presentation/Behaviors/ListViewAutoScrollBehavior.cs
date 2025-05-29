@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using ListView = System.Windows.Controls.ListView;
 using ListViewItem = System.Windows.Controls.ListViewItem;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace WmiExplorer.Presentation.Behaviors;
@@ -17,13 +18,6 @@ public static class ListViewAutoScrollBehavior
             typeof(ListViewAutoScrollBehavior),
             new UIPropertyMetadata(false, OnAutoScrollChanged));
 
-    public static readonly DependencyProperty DisableVirtualizationProperty =
-        DependencyProperty.RegisterAttached(
-            "DisableVirtualization",
-            typeof(bool),
-            typeof(ListViewAutoScrollBehavior),
-            new UIPropertyMetadata(false, OnDisableVirtualizationChanged));
-
     public static readonly DependencyProperty SelectedItemMonitorProperty =
         DependencyProperty.RegisterAttached(
             "SelectedItemMonitor",
@@ -33,80 +27,108 @@ public static class ListViewAutoScrollBehavior
 
     public static bool GetAutoScroll(DependencyObject obj) => (bool)obj.GetValue(AutoScrollProperty);
 
-    public static bool GetDisableVirtualization(DependencyObject obj) => (bool)obj.GetValue(DisableVirtualizationProperty);
-
     public static object GetSelectedItemMonitor(DependencyObject obj) => obj.GetValue(SelectedItemMonitorProperty);
 
     /// <summary>
-    /// Scrolls the ListView to make the selected item visible
+    /// Scrolls the ListView to make the selected item visible using virtualization-friendly methods
     /// </summary>
     public static void ScrollToSelectedItem(ListView listView)
     {
-        if (listView == null || listView.SelectedItem == null)
+        if (listView?.SelectedItem == null)
             return;
 
-        // Try to scroll immediately if possible
-        var container = listView.ItemContainerGenerator.ContainerFromItem(listView.SelectedItem) as ListViewItem;
-        if (container != null)
-        {
-            // Container exists, bring it into view (without focus)
-            container.BringIntoView();
+        // Method 1: Try using ScrollIntoView (works with virtualization)
+        if (TryScrollIntoView(listView))
+            return;
 
-            // Use UpdateLayout to ensure UI is fully updated
-            listView.UpdateLayout();
-        }
-        else
-        {
-            // Container doesn't exist yet, try with multiple attempts
-            TryScrollToSelectedItem(listView, 5);
-        }
+        // Method 2: Try index-based scrolling
+        if (TryScrollByIndex(listView))
+            return;
+
+        // Method 3: Try container generation with limited attempts
+        TryScrollWithContainerGeneration(listView, 3);
     }
 
     public static void SetAutoScroll(DependencyObject obj, bool value) => obj.SetValue(AutoScrollProperty, value);
 
-    public static void SetDisableVirtualization(DependencyObject obj, bool value) => obj.SetValue(DisableVirtualizationProperty, value);
-
     public static void SetSelectedItemMonitor(DependencyObject obj, object value) => obj.SetValue(SelectedItemMonitorProperty, value);
+
+    private static double EstimateItemHeight(ListView listView)
+    {
+        try
+        {
+            // Try to get height from first visible container
+            if (listView.Items.Count > 0)
+            {
+                var firstContainer = listView.ItemContainerGenerator.ContainerFromIndex(0) as FrameworkElement;
+                if (firstContainer != null)
+                {
+                    return firstContainer.ActualHeight;
+                }
+            }
+
+            // Fallback: estimate based on font size
+            return listView.FontSize * 1.5 + 4; // Rough estimate
+        }
+        catch
+        {
+            return 20; // Default fallback
+        }
+    }
+
+    private static ScrollViewer? FindScrollViewer(DependencyObject visual)
+    {
+        if (visual is ScrollViewer scrollViewer)
+            return scrollViewer;
+
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(visual); i++)
+        {
+            var child = VisualTreeHelper.GetChild(visual, i);
+            var result = FindScrollViewer(child);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
 
     private static void OnAutoScrollChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is ListView listView && (bool)e.NewValue)
         {
-            // 1. Handle ListView.SelectionChanged (when user clicks an item)
-            listView.SelectionChanged += (s, args) => ScrollToSelectedItem(listView);
+            // Handle selection changes
+            listView.SelectionChanged += (s, args) =>
+            {
+                listView.Dispatcher.BeginInvoke(
+                    DispatcherPriority.Background,
+                    new Action(() => ScrollToSelectedItem(listView)));
+            };
 
-            // 2. Handle DataContextChanged
+            // Handle data context changes
             listView.DataContextChanged += (s, args) =>
+            {
                 listView.Dispatcher.BeginInvoke(
                     DispatcherPriority.ContextIdle,
                     new Action(() => ScrollToSelectedItem(listView)));
+            };
 
-            // 3. Handle ItemsSource changes
+            // Handle items source changes
             DependencyPropertyDescriptor
                 .FromProperty(ListView.ItemsSourceProperty, typeof(ListView))
                 .AddValueChanged(listView, (s, args) =>
+                {
                     listView.Dispatcher.BeginInvoke(
                         DispatcherPriority.ContextIdle,
-                        new Action(() => ScrollToSelectedItem(listView))));
+                        new Action(() => ScrollToSelectedItem(listView)));
+                });
 
-            // 4. Handle items collection changes
+            // Handle loaded event
             listView.Loaded += (s, args) =>
             {
+                // Handle collection changes if items source implements INotifyCollectionChanged
                 if (listView.ItemsSource is INotifyCollectionChanged notifyCollection)
                 {
-                    // When items are added/removed/reset
                     notifyCollection.CollectionChanged += (sender, collectionArgs) =>
-                    {
-                        // Wait for containers to be generated
-                        listView.Dispatcher.BeginInvoke(
-                            DispatcherPriority.Background,
-                            new Action(() => ScrollToSelectedItem(listView)));
-                    };
-                }
-                else if (listView.ItemsSource is ICollectionView collectionView)
-                {
-                    // Handle collection view changes
-                    collectionView.CollectionChanged += (sender, collectionArgs) =>
                     {
                         listView.Dispatcher.BeginInvoke(
                             DispatcherPriority.Background,
@@ -114,32 +136,11 @@ public static class ListViewAutoScrollBehavior
                     };
                 }
 
-                // Initial scroll if necessary
+                // Initial scroll
                 listView.Dispatcher.BeginInvoke(
                     DispatcherPriority.Loaded,
                     new Action(() => ScrollToSelectedItem(listView)));
             };
-
-            // 5. Track ItemContainerGenerator status changes for virtualized lists
-            listView.ItemContainerGenerator.StatusChanged += (s, args) =>
-            {
-                if (listView.ItemContainerGenerator.Status == System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
-                {
-                    listView.Dispatcher.BeginInvoke(
-                        DispatcherPriority.Loaded,
-                        new Action(() => ScrollToSelectedItem(listView)));
-                }
-            };
-        }
-    }
-
-    private static void OnDisableVirtualizationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is ListView listView && (bool)e.NewValue)
-        {
-            // Disable UI virtualization for this ListView
-            VirtualizingPanel.SetIsVirtualizing(listView, false);
-            ScrollViewer.SetCanContentScroll(listView, false);
         }
     }
 
@@ -147,67 +148,101 @@ public static class ListViewAutoScrollBehavior
     {
         if (d is ListView listView)
         {
-            // When null -> non-null: scroll to the new selected item
-            if (e.OldValue == null && e.NewValue != null)
+            // When selection changes, scroll to the new item
+            if (e.NewValue != null && !Equals(e.OldValue, e.NewValue))
             {
-                ScheduleMultipleScrollAttempts(listView);
-            }
-            // When changing from one selection to another
-            else if (e.OldValue != null && e.NewValue != null && !e.OldValue.Equals(e.NewValue))
-            {
-                ScheduleMultipleScrollAttempts(listView);
+                listView.Dispatcher.BeginInvoke(
+                    DispatcherPriority.Background,
+                    new Action(() => ScrollToSelectedItem(listView)));
             }
         }
     }
 
-    private static void ScheduleMultipleScrollAttempts(ListView listView)
+    private static bool TryScrollByIndex(ListView listView)
     {
-        // Make multiple scroll attempts with increasing delays
-        for (int i = 0; i < 5; i++)
+        try
         {
-            int delay = 100 * (i + 1); // 100ms, 200ms, 300ms, 400ms, 500ms
+            // Get the index of the selected item
+            var selectedIndex = listView.SelectedIndex;
+            if (selectedIndex < 0)
+                return false;
 
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(delay) };
-            timer.Tick += (s, e) =>
+            // Find the ScrollViewer
+            var scrollViewer = FindScrollViewer(listView);
+            if (scrollViewer == null)
+                return false;
+
+            // Calculate approximate scroll position based on item height
+            var itemHeight = EstimateItemHeight(listView);
+            if (itemHeight > 0)
             {
-                timer.Stop();
-                ScrollToSelectedItem(listView);
-            };
-            timer.Start();
+                var targetOffset = selectedIndex * itemHeight;
+
+                // Ensure we don't scroll beyond the content
+                var maxOffset = Math.Max(0, scrollViewer.ScrollableHeight);
+                targetOffset = Math.Min(targetOffset, maxOffset);
+
+                scrollViewer.ScrollToVerticalOffset(targetOffset);
+                return true;
+            }
+
+            // Fallback: scroll by item count
+            if (listView.Items.Count > 0)
+            {
+                var ratio = (double)selectedIndex / listView.Items.Count;
+                var targetOffset = ratio * scrollViewer.ScrollableHeight;
+                scrollViewer.ScrollToVerticalOffset(targetOffset);
+                return true;
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
         }
     }
 
-    private static void TryScrollToSelectedItem(ListView listView, int attemptsLeft)
+    private static bool TryScrollIntoView(ListView listView)
     {
-        if (attemptsLeft <= 0) return;
+        try
+        {
+            // This is the most virtualization-friendly approach
+            listView.ScrollIntoView(listView.SelectedItem);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
-        var item = listView.SelectedItem;
-        if (item == null) return;
-
-        // Force container generation by calling UpdateLayout
-        listView.UpdateLayout();
+    private static void TryScrollWithContainerGeneration(ListView listView, int attemptsLeft)
+    {
+        if (attemptsLeft <= 0)
+            return;
 
         // Try to get the container
-        var container = listView.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+        var container = listView.ItemContainerGenerator.ContainerFromItem(listView.SelectedItem) as ListViewItem;
         if (container != null)
         {
-            // Container exists, bring it into view (without focus)
             container.BringIntoView();
+            return;
         }
-        else
-        {
-            // Container doesn't exist yet, try again after a delay
-            // Use increasing delays for successive attempts
-            int delay = (5 - attemptsLeft + 1) * 50; // 50ms, 100ms, 150ms, 200ms, 250ms
 
-            // Schedule the next attempt with proper delay using DispatcherTimer
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(delay) };
-            timer.Tick += (s, e) =>
-            {
-                timer.Stop();
-                TryScrollToSelectedItem(listView, attemptsLeft - 1);
-            };
-            timer.Start();
+        // If container doesn't exist, force a single layout update and try again
+        listView.UpdateLayout();
+
+        container = listView.ItemContainerGenerator.ContainerFromItem(listView.SelectedItem) as ListViewItem;
+        if (container != null)
+        {
+            container.BringIntoView();
+            return;
         }
+
+        // Schedule next attempt with minimal delay
+        listView.Dispatcher.BeginInvoke(
+            DispatcherPriority.Background,
+            new Action(() => TryScrollWithContainerGeneration(listView, attemptsLeft - 1)));
     }
 }
