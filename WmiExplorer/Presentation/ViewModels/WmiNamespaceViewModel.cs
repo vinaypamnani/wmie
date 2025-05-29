@@ -238,13 +238,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     public WmiClassViewModel? SelectedClass
     {
         get => _selectedClass;
-        set
-        {
-            if (SetProperty(ref _selectedClass, value) && value != null)
-            {
-                PublishMessage(new SelectedClassChangedMessage(value));
-            }
-        }
+        set => SetProperty(ref _selectedClass, value);
     }
 
     public WmiNamespace? WmiNamespace => _wmiNamespace;
