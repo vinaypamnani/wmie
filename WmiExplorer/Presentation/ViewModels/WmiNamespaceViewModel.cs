@@ -70,7 +70,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
 
         // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
-        StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChanged, true);
 
         // Subscribe to ShowSystemClassesChanged to refresh filter
         _settingsService.ShowSystemClassesChanged += (s, show) =>
@@ -486,15 +485,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
 
         _applicationService.CopyToClipboard(NamespacePath);
         PublishSuccessState($"Copied path: {NamespacePath}");
-    }
-
-    private void HandleClassTypeFilterChanged(ClassTypeFilterChangedMessage message)
-    {
-        if (message == null) return;
-
-        // No more System flag logic here, just refresh and publish
-        _classFilterHelper.CollectionView.Refresh();
-        PublishMessage(new ClassesFilteredMessage(this));
     }
 
     private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)

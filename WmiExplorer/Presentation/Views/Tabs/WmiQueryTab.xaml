@@ -141,7 +141,7 @@
                           ItemsSource="{Binding ResultsView}"
                           RowHeaderWidth="0"
                           SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
-                          SelectionMode="Single"
+                          SelectionMode="Extended"
                           SelectionUnit="FullRow"
                           VerticalScrollBarVisibility="Auto">
                     <DataGrid.Resources>
