@@ -11,7 +11,7 @@
                         <Border x:Name="ThumbBorder"
                                 Background="{DynamicResource ScrollBarThumbBrush}"
                                 BorderThickness="0"
-                                CornerRadius="3" />
+                                CornerRadius="4" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
@@ -38,10 +38,48 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!--  RepeatButton Style for line (arrow) buttons  -->
+    <Style x:Key="ModernScrollBarLineButtonStyle" TargetType="{x:Type RepeatButton}">
+        <Setter Property="OverridesDefaultStyle" Value="true" />
+        <Setter Property="Background" Value="{DynamicResource ScrollBarTrackBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource ScrollBarThumbBrush}" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border x:Name="ButtonBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="0"
+                            CornerRadius="3">
+                        <Path x:Name="Arrow"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                              Fill="{TemplateBinding Foreground}"
+                              Stretch="Uniform" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+                            <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource ScrollBarThumbHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                            <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource ScrollBarThumbPressedBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
     <!--  Main ScrollBar Style  -->
     <Style x:Key="ModernScrollBarStyle" TargetType="{x:Type ScrollBar}">
-        <Setter Property="Width" Value="{StaticResource SpacingLarge}" />
-        <Setter Property="MinWidth" Value="{StaticResource SpacingLarge}" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="MinWidth" Value="12" />
         <Setter Property="Background" Value="{DynamicResource ScrollBarTrackBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource ScrollBarThumbBrush}" />
         <Setter Property="BorderBrush" Value="Transparent" />
@@ -56,17 +94,41 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="4">
-                        <Track x:Name="PART_Track" Margin="0" IsDirectionReversed="True">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
-                            </Track.IncreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb Style="{StaticResource ModernScrollBarThumbStyle}" />
-                            </Track.Thumb>
-                        </Track>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="16" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="16" />
+                            </Grid.RowDefinitions>
+
+                            <!--  Up arrow button  -->
+                            <RepeatButton Grid.Row="0"
+                                          Command="{x:Static ScrollBar.LineUpCommand}"
+                                          Content="M 0,4 L 8,4 L 4,0 Z"
+                                          Style="{StaticResource ModernScrollBarLineButtonStyle}" />
+
+                            <!--  Track with thumb  -->
+                            <Track x:Name="PART_Track"
+                                   Grid.Row="1"
+                                   Margin="0,2"
+                                   IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource ModernScrollBarThumbStyle}" />
+                                </Track.Thumb>
+                            </Track>
+
+                            <!--  Down arrow button  -->
+                            <RepeatButton Grid.Row="2"
+                                          Command="{x:Static ScrollBar.LineDownCommand}"
+                                          Content="M 0,0 L 8,0 L 4,4 Z"
+                                          Style="{StaticResource ModernScrollBarLineButtonStyle}" />
+                        </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
@@ -74,8 +136,8 @@
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Width" Value="Auto" />
-                <Setter Property="Height" Value="{StaticResource SpacingLarge}" />
-                <Setter Property="MinHeight" Value="{StaticResource SpacingLarge}" />
+                <Setter Property="Height" Value="12" />
+                <Setter Property="MinHeight" Value="12" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ScrollBar}">
@@ -84,17 +146,38 @@
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="4">
-                                <Track x:Name="PART_Track" Margin="0">
-                                    <Track.DecreaseRepeatButton>
-                                        <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
-                                    </Track.DecreaseRepeatButton>
-                                    <Track.IncreaseRepeatButton>
-                                        <RepeatButton Command="{x:Static ScrollBar.PageRightCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
-                                    </Track.IncreaseRepeatButton>
-                                    <Track.Thumb>
-                                        <Thumb Style="{StaticResource ModernScrollBarThumbStyle}" />
-                                    </Track.Thumb>
-                                </Track>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!--  Left arrow button  -->
+                                    <RepeatButton Grid.Column="0"
+                                                  Command="{x:Static ScrollBar.LineLeftCommand}"
+                                                  Content="M 4,0 L 4,8 L 0,4 Z"
+                                                  Style="{StaticResource ModernScrollBarLineButtonStyle}" />
+
+                                    <!--  Track with thumb  -->
+                                    <Track x:Name="PART_Track" Grid.Column="1" Margin="2,0">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="{x:Static ScrollBar.PageRightCommand}" Style="{StaticResource ModernScrollBarPageButtonStyle}" />
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource ModernScrollBarThumbStyle}" />
+                                        </Track.Thumb>
+                                    </Track>
+
+                                    <!--  Right arrow button  -->
+                                    <RepeatButton Grid.Column="2"
+                                                  Command="{x:Static ScrollBar.LineRightCommand}"
+                                                  Content="M 0,0 L 0,8 L 4,4 Z"
+                                                  Style="{StaticResource ModernScrollBarLineButtonStyle}" />
+                                </Grid>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
