@@ -14,7 +14,7 @@ public partial class WmiQueryTab : UserControl
         DataContextChanged += WmiQueryTab_DataContextChanged;
     }
 
-    private void WmiQueryTab_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    private void WmiQueryTab_DataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
     {
         SyncColumns();
         if (e.OldValue is WmiExplorer.Presentation.ViewModels.WmiQueryViewModel oldVm)
@@ -27,7 +27,7 @@ public partial class WmiQueryTab : UserControl
         }
     }
 
-    private void ResultColumns_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void ResultColumns_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         SyncColumns();
     }
