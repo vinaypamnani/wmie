@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Application = System.Windows.Application;
 using WmiExplorer.Common.Shared;
+using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Presentation.Views;
 
@@ -12,30 +13,63 @@ namespace WmiExplorer.Services;
 /// </summary>
 public class MessagingService : IMessagingService
 {
+    // Debounce interval for all message types (in milliseconds)
+    private const int DebounceIntervalMs = 150;
+
+    // DebounceDispatcher per message type
+    private readonly ConcurrentDictionary<Type, DebounceDispatcher> _debouncers = new();
+
     private int _isPublishing;
+    private readonly ConcurrentDictionary<Type, object> _latestMessages = new();
 
     // Using ConcurrentDictionary for thread safety
     private readonly ConcurrentDictionary<Type, List<SubscriberInfo>> _subscribers = new();
 
     /// <summary>
-    /// Publishes a message to all subscribers
+    /// Publishes a message to all subscribers with debouncing per message type
     /// </summary>
     public void Publish<TMessage>(TMessage message)
     {
         if (message == null)
             return;
 
+        var messageType = typeof(TMessage);
+
+        // Store the latest message for this type
+        _latestMessages[messageType] = message;
+
+        var debouncer = _debouncers.GetOrAdd(messageType, _ => new DebounceDispatcher(DebounceIntervalMs));
+
+        debouncer.Debounce(() =>
+        {
+            // Only publish if there's still a message of this type waiting
+            // This ensures we only publish the most recent message
+            if (_latestMessages.TryRemove(messageType, out var latestMessageObj) && latestMessageObj is TMessage latestMessage)
+            {
+                PublishImmediate(latestMessage);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Publishes a message to all subscribers immediately, bypassing debounce
+    /// </summary>
+    public void PublishImmediate<TMessage>(TMessage message)
+    {
+        if (message == null)
+            return;
+
+        var publishId = Guid.NewGuid();
+
         // Debug logging for all messages except ApplicationStateMessage
         if (message is not ApplicationStateMessage)
-            System.Diagnostics.Debug.WriteLine($"[MessagingService] Publishing: {typeof(TMessage).Name}");
+            System.Diagnostics.Debug.WriteLine($"[MessagingService] Publishing: {typeof(TMessage).Name}, PublishId: {publishId}");
 
         // Special handling for ApplicationStateMessage
         if (message is ApplicationStateMessage appStateMsg)
         {
-            // System.Diagnostics.Debug.WriteLine($"[MessagingService] ApplicationState: {appStateMsg.State.State}, Message={appStateMsg.State.Message}");                // Update the MainWindow status bar
             if (MainWindow.Current != null)
             {
-                // Also update the view model for binding
                 if (MainWindow.Current.DataContext is MainViewModel mainVm)
                 {
                     Application.Current?.Dispatcher.InvokeAsync(() =>
@@ -52,12 +86,10 @@ public class MessagingService : IMessagingService
             return;
         }
 
-        // Set flag that we're publishing to prevent concurrent modification issues
         Interlocked.Increment(ref _isPublishing);
 
         try
         {
-            // Create a snapshot to avoid issues if the collection changes during enumeration
             var currentSubscribers = subscribersList.ToList();
             var expiredSubscribers = new List<SubscriberInfo>();
 
@@ -67,7 +99,6 @@ public class MessagingService : IMessagingService
                 {
                     try
                     {
-                        // Invoke on UI thread if needed, otherwise invoke directly
                         if (subscriber.ShouldRunOnUIThread && Application.Current != null)
                         {
                             Application.Current.Dispatcher.InvokeAsync(() =>
@@ -94,7 +125,6 @@ public class MessagingService : IMessagingService
                 }
             }
 
-            // Clean up expired subscribers
             foreach (var expired in expiredSubscribers)
             {
                 RemoveSubscriber(messageType, expired);

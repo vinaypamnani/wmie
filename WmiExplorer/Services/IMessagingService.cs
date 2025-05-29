@@ -10,6 +10,13 @@ public interface IMessagingService
     void Publish<TMessage>(TMessage message);
 
     /// <summary>
+    /// Publishes a message to all subscribers immediately, bypassing debounce
+    /// </summary>
+    /// <typeparam name="TMessage">The type of message to publish</typeparam>
+    /// <param name="message">The message to publish</param>
+    void PublishImmediate<TMessage>(TMessage message);
+
+    /// <summary>
     /// Subscribes to a specific message type using weak references
     /// </summary>
     /// <typeparam name="TMessage">The type of message to subscribe to</typeparam>
