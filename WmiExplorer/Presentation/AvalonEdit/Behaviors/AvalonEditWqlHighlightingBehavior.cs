@@ -7,7 +7,7 @@ using System.Xml;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.Behaviors.AvalonEdit;
+namespace WmiExplorer.Presentation.AvalonEdit.Behaviors;
 
 /// <summary>
 /// Applies WQL syntax highlighting to AvalonEdit using an attached property and responds to theme changes.

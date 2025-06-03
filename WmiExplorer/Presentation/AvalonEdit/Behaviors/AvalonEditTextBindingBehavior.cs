@@ -1,7 +1,7 @@
 using ICSharpCode.AvalonEdit;
 using System.Windows;
 
-namespace WmiExplorer.Presentation.Behaviors.AvalonEdit;
+namespace WmiExplorer.Presentation.AvalonEdit.Behaviors;
 
 /// <summary>
 /// Enables two-way binding between AvalonEdit's Text property and a ViewModel string property using attached property.

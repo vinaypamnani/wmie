@@ -6,7 +6,7 @@ using System.Windows.Media;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.Behaviors.AvalonEdit;
+namespace WmiExplorer.Presentation.AvalonEdit.Behaviors;
 
 /// <summary>
 /// Applies theming to AvalonEdit using dynamic brushes from the current theme via attached property.

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmiExplorer", "WmiExplorer\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmiExplorer.PropertyGrid", "WmiExplorer.PropertyGrid\WmiExplorer.PropertyGrid.csproj", "{6557B8E2-4D1E-44EF-839A-3A59AF606983}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WmiExplorer.TestAvalonEdit", "WmiExplorer.TestAvalonEdit\WmiExplorer.TestAvalonEdit.csproj", "{5B672FBC-5159-4577-911C-6D49C53CAB3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{6557B8E2-4D1E-44EF-839A-3A59AF606983}.Release|x64.Build.0 = Release|Any CPU
 		{6557B8E2-4D1E-44EF-839A-3A59AF606983}.Release|x86.ActiveCfg = Release|Any CPU
 		{6557B8E2-4D1E-44EF-839A-3A59AF606983}.Release|x86.Build.0 = Release|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Debug|x64.Build.0 = Debug|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Debug|x86.Build.0 = Debug|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Release|x64.ActiveCfg = Release|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Release|x64.Build.0 = Release|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Release|x86.ActiveCfg = Release|Any CPU
+		{5B672FBC-5159-4577-911C-6D49C53CAB3D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

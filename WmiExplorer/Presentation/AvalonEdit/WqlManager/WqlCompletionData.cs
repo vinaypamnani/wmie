@@ -5,59 +5,39 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace WmiExplorer.Presentation.Behaviors.AvalonEdit;
+namespace WmiExplorer.Presentation.AvalonEdit.WqlManager;
 
 /// <summary>
 /// Represents a completion data item for IntelliSense-like functionality.
 /// </summary>
-public class SimpleCompletionData : ICompletionData
+public class WqlCompletionData : ICompletionData
 {
-    public enum CompletionType
-    {
-        Keyword,
-        Property,
-        Class,
-        Special,
-        Operator
-    }
-
     private readonly string _description;
     private readonly string _detailedType;
+    private static bool _iconsInitialized = false;
     private readonly CompletionType _type;
-    private static readonly ImageSource ClassIcon;
-    private static readonly ImageSource KeywordIcon;
-    private static readonly ImageSource OperatorIcon;
-    private static readonly ImageSource PropertyIcon;
-    private static readonly ImageSource SpecialIcon;
+    private static ImageSource? ClassIcon;
+    private static readonly object IconLock = new object();
+    private static ImageSource? KeywordIcon;
+    private static ImageSource? OperatorIcon;
+    private static ImageSource? PropertyIcon;
+    private static ImageSource? SpecialIcon;
 
-    public SimpleCompletionData(string text, CompletionType type = CompletionType.Keyword, string description = "", string detailedType = "")
+    public WqlCompletionData(string text, CompletionType type = CompletionType.Keyword, string description = "", string detailedType = "")
     {
         Text = text;
         _type = type;
         _description = description;
         _detailedType = detailedType;
+
+        // Ensure icons are initialized
+        EnsureIconsInitialized();
     }
 
-    static SimpleCompletionData()
+    static WqlCompletionData()
     {
-        // Create stylized icons for each type of completion item
-        var keywordBrush = new SolidColorBrush(Colors.RoyalBlue);
-        var propertyBrush = new SolidColorBrush(Colors.ForestGreen);
-        var classBrush = new SolidColorBrush(Colors.Orange);
-        var specialBrush = new SolidColorBrush(Colors.Purple);
-        var operatorBrush = new SolidColorBrush(Colors.DarkRed);
-
-        keywordBrush.Freeze();
-        propertyBrush.Freeze();
-        classBrush.Freeze();
-        specialBrush.Freeze();
-        operatorBrush.Freeze();
-
-        KeywordIcon = CreateIconDrawing("K", keywordBrush);
-        PropertyIcon = CreateIconDrawing("P", propertyBrush);
-        ClassIcon = CreateIconDrawing("C", classBrush);
-        SpecialIcon = CreateIconDrawing("*", specialBrush);
-        OperatorIcon = CreateIconDrawing("O", operatorBrush);
+        // Static constructor will be empty since we'll initialize icons lazily
+        // This prevents exceptions during static initialization
     }
 
     public object Content
@@ -113,23 +93,30 @@ public class SimpleCompletionData : ICompletionData
         }
     }
 
-    public ImageSource Image => _type switch
+    public ImageSource? Image
     {
-        CompletionType.Keyword => KeywordIcon,
-        CompletionType.Property => PropertyIcon,
-        CompletionType.Class => ClassIcon,
-        CompletionType.Special => SpecialIcon,
-        CompletionType.Operator => OperatorIcon,
-        _ => null!
-    };
+        get
+        {
+            EnsureIconsInitialized();
+            return _type switch
+            {
+                CompletionType.Keyword => KeywordIcon,
+                CompletionType.Property => PropertyIcon,
+                CompletionType.Class => ClassIcon,
+                CompletionType.Special => SpecialIcon,
+                CompletionType.Operator => OperatorIcon,
+                _ => null
+            };
+        }
+    }
 
     public double Priority => _type switch
     {
         CompletionType.Special => 100,  // Special items like * should appear first
-        CompletionType.Property => 80,   // Properties are next
-        CompletionType.Class => 60,      // Then classes
-        CompletionType.Keyword => 40,    // Then keywords
-        CompletionType.Operator => 20,   // Then operators
+        CompletionType.Keyword => 90,    // Then keywords
+        CompletionType.Operator => 80,   // Then operators
+        CompletionType.Class => 40,      // Then classes
+        CompletionType.Property => 20,   // Then Properties
         _ => 0
     };
 
@@ -175,25 +162,26 @@ public class SimpleCompletionData : ICompletionData
             document.Insert(caretOffset, textToInsert);
             textArea.Caret.Offset = caretOffset + textToInsert.Length;
         }
+    }
 
-        // Do not add a space after any completion (keywords, classes, properties, etc.)
-        // Special handling for certain completions:
-        // 1. After selecting FROM or WHERE, position caret for class name and trigger completion window
-        if (_type == CompletionType.Keyword &&
-            (Text.Equals("FROM", StringComparison.OrdinalIgnoreCase) ||
-             Text.Equals("WHERE", StringComparison.OrdinalIgnoreCase)))
-        {
-            // --- Trigger completion window for property/class suggestions ---
-            var editor = AvalonEditCompletionBehavior.FindParentTextEditor(textArea);
-            if (editor != null)
-            {
-                _ = editor.Dispatcher.InvokeAsync(async () =>
-                {
-                    AvalonEditCompletionBehavior.LastCompletionTime[editor] = DateTime.UtcNow;
-                    await AvalonEditCompletionBehavior.ShowCompletionWindow(textArea, editor, false);
-                });
-            }
-        }
+    private static void CreateFallbackIcons()
+    {
+        // Create simple fallback icons when drawing icons fails
+        var drawingGroup = new DrawingGroup();
+        drawingGroup.Children.Add(
+            new GeometryDrawing(
+                Brushes.Gray,
+                new Pen(Brushes.Black, 0.5),
+                new RectangleGeometry(new Rect(0, 0, 16, 16), 2, 2)));
+
+        var fallbackIcon = new DrawingImage(drawingGroup);
+        fallbackIcon.Freeze();
+
+        KeywordIcon = fallbackIcon;
+        PropertyIcon = fallbackIcon;
+        ClassIcon = fallbackIcon;
+        SpecialIcon = fallbackIcon;
+        OperatorIcon = fallbackIcon;
     }
 
     private static ImageSource CreateIconDrawing(string text, Brush brush)
@@ -228,4 +216,72 @@ public class SimpleCompletionData : ICompletionData
         drawingImage.Freeze(); // For better performance
         return drawingImage;
     }
+
+    private static void EnsureIconsInitialized()
+    {
+        if (_iconsInitialized)
+            return;
+
+        lock (IconLock)
+        {
+            if (_iconsInitialized)
+                return;
+
+            try
+            {
+                // Create icons on UI thread if possible
+                if (Application.Current != null && Application.Current.Dispatcher != null &&
+                    !Application.Current.Dispatcher.CheckAccess())
+                {
+                    Application.Current.Dispatcher.Invoke(InitializeIcons);
+                }
+                else
+                {
+                    InitializeIcons();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WqlCompletionData] Error initializing icons: {ex.Message}");
+                // Create fallback icons
+                CreateFallbackIcons();
+            }
+
+            _iconsInitialized = true;
+        }
+    }
+
+    private static void InitializeIcons()
+    {
+        // Create stylized icons for each type of completion item
+        var keywordBrush = new SolidColorBrush(Colors.RoyalBlue);
+        var propertyBrush = new SolidColorBrush(Colors.ForestGreen);
+        var classBrush = new SolidColorBrush(Colors.Orange);
+        var specialBrush = new SolidColorBrush(Colors.Purple);
+        var operatorBrush = new SolidColorBrush(Colors.DarkRed);
+
+        keywordBrush.Freeze();
+        propertyBrush.Freeze();
+        classBrush.Freeze();
+        specialBrush.Freeze();
+        operatorBrush.Freeze();
+
+        KeywordIcon = CreateIconDrawing("K", keywordBrush);
+        PropertyIcon = CreateIconDrawing("P", propertyBrush);
+        ClassIcon = CreateIconDrawing("C", classBrush);
+        SpecialIcon = CreateIconDrawing("*", specialBrush);
+        OperatorIcon = CreateIconDrawing("O", operatorBrush);
+    }
+}
+
+/// <summary>
+/// Defines the types of completion items.
+/// </summary>
+public enum CompletionType
+{
+    Keyword,
+    Property,
+    Class,
+    Special,
+    Operator
 }

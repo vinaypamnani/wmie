@@ -1,0 +1,293 @@
+using ICSharpCode.AvalonEdit.Document;
+using System.Diagnostics;
+using WmiExplorer.Presentation.AvalonEdit.WqlManager;
+
+namespace WmiExplorer.Presentation.AvalonEdit.Context;
+
+/// <summary>
+/// Simplified query context for WQL autocompletion.
+/// Provides essential context information with streamlined analysis.
+/// </summary>
+internal class QueryContext
+{
+    public enum ContextKind
+    {
+        None,                     // Default/unknown state
+        StartQuery,               // Beginning - offer SELECT
+        AfterSelect,              // After SELECT - offer * or properties
+        AfterStar,                // After * - offer FROM
+        AfterFrom,                // After FROM - offer class names
+        AfterClass,               // After class name - offer WHERE
+        AfterWhere,               // After WHERE - offer properties, NOT
+        AfterProperty,            // After property - offer operators
+        AfterOperator,            // After =, !=, etc. - offer values
+        AfterLogicalOperator,     // After AND, OR - offer properties, NOT
+        AfterNot,                 // After NOT - offer properties
+        AfterCompleteCondition,    // After complete condition - offer AND, OR
+        InValue,                  // Inside a value (e.g. string, number)
+    }
+
+    /// <summary>
+    /// The WMI class name being queried
+    /// </summary>
+    public string ClassName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The current context type that determines what completions to offer
+    /// </summary>
+    public ContextKind ContextType { get; set; } = ContextKind.None;
+
+    /// <summary>
+    /// The last significant token in the query that provides context
+    /// </summary>
+    public WqlToken? LastSignificantToken { get; set; }
+
+    /// <summary>
+    /// The text of the token at the current cursor position
+    /// </summary>
+    public string LastTokenText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Analyzes the query context at the specified position in the document.
+    /// Uses WqlTokenizer methods as the source of truth.
+    /// </summary>
+    /// <param name="document">The text document containing the query</param>
+    /// <param name="caretOffset">Current cursor position</param>
+    /// <returns>Analyzed context or null if analysis fails</returns>
+    public static QueryContext? Analyze(TextDocument document, int caretOffset)
+    {
+        try
+        {
+            // Get text up to cursor
+            string text = document.GetText(0, caretOffset);
+
+            // Tokenize up to current position
+            var tokens = WqlTokenizer.TokenizeToPosition(text, caretOffset);
+
+            // Create context
+            var context = new QueryContext();
+
+            // Determine context based on tokens using WqlTokenizer methods
+            context.ContextType = DetermineContext(tokens);
+            context.ClassName = ExtractClassName(tokens);
+            context.LastSignificantToken = FindLastSignificantToken(tokens);
+
+            // Get partial input at cursor position for autocomplete
+            int currentTokenIndex = WqlTokenizer.FindTokenAtPosition(tokens, caretOffset - 1);
+            context.LastTokenText = WqlTokenizer.GetPartialInput(tokens, currentTokenIndex);
+
+            Debug.WriteLine($"[QueryContext] Context: {context.ContextType}, Class: '{context.ClassName}', LastTokenText: '{context.LastTokenText}', LastSignificantToken: '{context.LastSignificantToken?.Text}'");
+
+            return context;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[QueryContext] Error: {ex.Message}");
+            return new QueryContext { ContextType = ContextKind.StartQuery };
+        }
+    }
+
+    /// <summary>
+    /// Determines the current context based on the token sequence.
+    /// Uses WqlTokenizer methods as the single source of truth.
+    /// </summary>
+    private static ContextKind DetermineContext(List<WqlToken> tokens)
+    {
+        if (tokens.Count == 0)
+            return ContextKind.StartQuery;
+
+        // Get significant tokens (non-whitespace)
+        var significantTokens = tokens.Where(t => t.Type != WqlTokenType.Whitespace).ToList();
+
+        if (significantTokens.Count == 0)
+            return ContextKind.StartQuery;
+
+        var lastToken = significantTokens.Last();
+        int cursorPosition = tokens.Count;
+
+        // Check if cursor is inside a string literal
+        if (IsInsideStringLiteral(tokens))
+        {
+            return ContextKind.InValue;
+        }
+
+        // Find keyword indices for major query parts
+        int selectIndex = WqlTokenizer.FindKeywordIndex(tokens, "SELECT");
+        int fromIndex = WqlTokenizer.FindKeywordIndex(tokens, "FROM");
+        int whereIndex = WqlTokenizer.FindKeywordIndex(tokens, "WHERE");
+
+        // Check for keywords first (most specific contexts)
+        if (lastToken.Type == WqlTokenType.Keyword)
+        {
+            string keyword = lastToken.Text.ToUpperInvariant();
+
+            switch (keyword)
+            {
+                case "SELECT": return ContextKind.AfterSelect;
+                case "*": return ContextKind.AfterStar;
+                case "FROM": return ContextKind.AfterFrom;
+                case "WHERE": return ContextKind.AfterWhere;
+                case "NOT": return ContextKind.AfterNot;
+                case "AND":
+                case "OR": return ContextKind.AfterLogicalOperator;
+                case "LIKE":
+                case "IS":
+                    // Special case for comparison operator keywords
+                    return ContextKind.AfterOperator;
+            }
+        }
+
+        // Check if last token is a comparison operator
+        if (lastToken.Type == WqlTokenType.Operator &&
+            WqlTokenizer.IsComparisonOperator(lastToken.Text))
+        {
+            return ContextKind.AfterOperator;
+        }
+
+        // Check for complete condition before the cursor
+        if (WqlTokenizer.HasCompleteConditionBeforeCursor(tokens, cursorPosition))
+        {
+            return ContextKind.AfterCompleteCondition;
+        }
+
+        // Check for context after property (in WHERE clause)
+        if (whereIndex >= 0 && lastToken.Type == WqlTokenType.Identifier)
+        {
+            return ContextKind.AfterProperty;
+        }
+
+        // Check for context after class name
+        if (fromIndex >= 0 && selectIndex >= 0)
+        {
+            // Find the FROM keyword in significant tokens
+            int fromSignificantIndex = significantTokens.FindIndex(
+                t => t.Type == WqlTokenType.Keyword &&
+                     t.Text.Equals("FROM", StringComparison.OrdinalIgnoreCase));
+
+            if (fromSignificantIndex >= 0 && fromSignificantIndex < significantTokens.Count - 1)
+            {
+                // If there's at least one token after FROM and it's an identifier, it's a class name
+                var classToken = significantTokens[fromSignificantIndex + 1];
+                if (classToken.Type == WqlTokenType.Identifier)
+                {
+                    // If WHERE is present, make sure the class token comes before WHERE
+                    if (whereIndex < 0 || tokens.IndexOf(classToken) < whereIndex)
+                    {
+                        return ContextKind.AfterClass;
+                    }
+                }
+            }
+        }
+
+        // If there are no significant tokens or just starting to type, offer SELECT
+        if (significantTokens.Count <= 1 &&
+            (significantTokens.Count == 0 ||
+             (significantTokens[0].Type == WqlTokenType.Identifier &&
+              significantTokens[0].Text.Length < 7))) // Could be starting to type "SELECT"
+        {
+            return ContextKind.StartQuery;
+        }
+
+        return ContextKind.None;
+    }
+
+    /// <summary>
+    /// Extracts the class name from the FROM clause using WqlTokenizer.
+    /// </summary>
+    private static string ExtractClassName(List<WqlToken> tokens)
+    {
+        int fromIndex = WqlTokenizer.FindKeywordIndex(tokens, "FROM");
+        if (fromIndex >= 0)
+        {
+            string? className = WqlTokenizer.ExtractClassName(tokens, fromIndex);
+            return className ?? string.Empty;
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Finds the last significant (non-whitespace) token using WqlTokenizer.
+    /// </summary>
+    private static WqlToken? FindLastSignificantToken(List<WqlToken> tokens)
+    {
+        if (tokens.Count == 0)
+            return null;
+
+        return WqlTokenizer.FindLastSignificantToken(tokens, tokens.Count);
+    }
+
+    /// <summary>
+    /// Determines if the cursor is currently inside a string literal that hasn't been closed yet.
+    /// </summary>
+    private static bool IsInsideStringLiteral(List<WqlToken> tokens)
+    {
+        if (tokens.Count == 0)
+            return false;
+
+        // Get the last token that might be a string or part of a string expression
+        var lastSignificantTokens = tokens
+            .Where(t => t.Type != WqlTokenType.Whitespace)
+            .TakeLast(3) // Consider the last few tokens to catch string contexts
+            .ToList();
+
+        if (lastSignificantTokens.Count == 0)
+            return false;
+
+        // Check for Error token type which might indicate an unclosed string
+        var lastToken = lastSignificantTokens.LastOrDefault();
+        if (lastToken != null)
+        {
+            // Error tokens with a single quote character likely represent unclosed strings
+            if (lastToken.Text.Contains('\'') || lastToken.Text.Contains('"'))
+            {
+                return true;
+            }
+        }
+
+        // Check for string expression patterns like: property <operator> 'string
+        if (lastSignificantTokens.Count >= 3)
+        {
+            var operatorToken = lastSignificantTokens[lastSignificantTokens.Count - 2];
+            var stringToken = lastSignificantTokens[lastSignificantTokens.Count - 1];
+
+            if (WqlTokenizer.IsComparisonOperator(operatorToken.Text) &&
+                (stringToken.Text.StartsWith("'") || stringToken.Text.StartsWith("\"")))
+            {
+                // Check if the string doesn't have a closing quote
+                char startQuote = stringToken.Text[0];
+                if (stringToken.Text.Length == 1 || !stringToken.Text.EndsWith(startQuote.ToString()))
+                {
+                    return true;
+                }
+
+                // Count quotes to check for proper pairing
+                int quoteCount = stringToken.Text.Count(c => c == startQuote);
+                if (quoteCount % 2 != 0)
+                {
+                    return true;
+                }
+            }
+        }
+
+        // Count total quotes to check for unbalanced quotes
+        int singleQuoteCount = 0;
+        int doubleQuoteCount = 0;
+
+        foreach (var token in tokens)
+        {
+            string text = token.Text;
+
+            // Count quotes in all tokens, not just string type tokens
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\'')
+                    singleQuoteCount++;
+                else if (text[i] == '"')
+                    doubleQuoteCount++;
+            }
+        }
+
+        // If we have an odd number of quotes, we're inside a string
+        return (singleQuoteCount % 2 != 0) || (doubleQuoteCount % 2 != 0);
+    }
+}
