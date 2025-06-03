@@ -20,4 +20,5 @@ internal class QueryContext
     public ContextKind ContextType { get; set; } = ContextKind.None;
     public WqlToken? LastSignificantToken { get; set; }
     public string LastTokenText { get; set; } = string.Empty;
+    public string CurrentWord { get; set; } = string.Empty;
 }

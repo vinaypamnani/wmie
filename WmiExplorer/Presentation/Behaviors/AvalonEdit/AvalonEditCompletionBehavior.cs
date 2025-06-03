@@ -92,6 +92,12 @@ public static class AvalonEditCompletionBehavior
         if (wordStart < 0) wordStart = 0;
         string currentWord = doc.GetText(wordStart, caretOffset - wordStart);
 
+        // If we just typed a space, the current word should be empty
+        if (tokens.Count > 0 && tokens.Last().Type == WqlTokenType.Whitespace)
+        {
+            currentWord = string.Empty;
+        }
+
         // Determine if we're after WHERE or operator (for context override)
         bool afterWhereOrOperator = IsAfterWhereOrOperator(tokens);
 
@@ -106,33 +112,10 @@ public static class AvalonEditCompletionBehavior
         // Update context with current word and force context if needed
         if (queryContext != null)
         {
-            // Only set LastTokenText from currentWord if we're not after a quoted value
-            if (!string.IsNullOrEmpty(currentWord) && !IsQuotedTokenValue(queryContext.LastSignificantToken))
-                queryContext.LastTokenText = currentWord;
-
-            // If the last token is whitespace and we're in AfterFrom context, set prefix to empty
-            if (queryContext.ContextType == QueryContext.ContextKind.AfterFrom && tokens.LastOrDefault()?.Type == WqlTokenType.Whitespace)
-            {
-                queryContext.LastTokenText = string.Empty;
-            }
-
-            // If in AfterWhere or InWhereClause, and last token is whitespace and previous is identifier, set prefix to empty
-            if ((queryContext.ContextType == QueryContext.ContextKind.AfterWhere ||
-                 queryContext.ContextType == QueryContext.ContextKind.InWhereClause) &&
-                tokens.Count >= 2 &&
-                tokens[^1].Type == WqlTokenType.Whitespace &&
-                (tokens[^2].Type == WqlTokenType.Identifier || tokens[^2].Type == WqlTokenType.QuotedIdentifier))
-            {
-                queryContext.LastTokenText = string.Empty;
-            }
-
-            // Always set prefix to empty after quoted values in WHERE clauses (to ensure logical operators appear)
-            if ((queryContext.ContextType == QueryContext.ContextKind.AfterWhere ||
-                 queryContext.ContextType == QueryContext.ContextKind.InWhereClause) &&
-                tokens.Count >= 1 && IsQuotedTokenValue(queryContext.LastSignificantToken))
-            {
-                queryContext.LastTokenText = string.Empty;
-            }
+            if (!string.IsNullOrEmpty(currentWord))
+                queryContext.CurrentWord = currentWord;
+            else
+                queryContext.CurrentWord = string.Empty;
 
             if (afterWhereOrOperator)
             {
@@ -142,11 +125,6 @@ public static class AvalonEditCompletionBehavior
                     tokens[tokens.Count - 2].Text.Equals(WqlKeywords.Where, StringComparison.OrdinalIgnoreCase))
                 {
                     queryContext.ContextType = QueryContext.ContextKind.AfterWhere;
-                }
-                if (queryContext.ContextType == QueryContext.ContextKind.AfterWhere ||
-                    queryContext.ContextType == QueryContext.ContextKind.InWhereClause)
-                {
-                    queryContext.LastTokenText = string.Empty; // Show all properties
                 }
             }
         }
@@ -161,7 +139,7 @@ public static class AvalonEditCompletionBehavior
 
         // If no suggestions (unless forced), or only one that matches input, close window
         bool noSuggestions = (completionData.Count == 0 && !forceShow) ||
-            (completionData.Count == 1 && completionData[0].Text == queryContext?.LastTokenText);
+            (completionData.Count == 1 && completionData[0].Text == queryContext?.CurrentWord);
         if (noSuggestions)
         {
             CloseCompletionWindow(editor);
@@ -353,8 +331,35 @@ public static class AvalonEditCompletionBehavior
 
     private static QueryContext AnalyzeQueryContext(List<WqlToken> tokens, int caretOffset, string textUpToCaret)
     {
-        var context = new QueryContext();        // Get the last token's text for filtering suggestions
-        context.LastTokenText = tokens.LastOrDefault()?.Text ?? string.Empty;
+        var context = new QueryContext();
+
+        // If the last token is whitespace, set CurrentWord to empty and LastTokenText to previous token
+        if (tokens.Count > 0 && tokens.Last().Type == WqlTokenType.Whitespace)
+        {
+            context.CurrentWord = string.Empty;
+            // Get the last non-whitespace token for LastTokenText
+            var lastNonWhitespaceToken = tokens.TakeWhile((_, index) => index < tokens.Count - 1)
+                .LastOrDefault(t => t.Type != WqlTokenType.Whitespace);
+            context.LastTokenText = lastNonWhitespaceToken?.Text ?? string.Empty;
+        }
+        else
+        {
+            // If not ending with whitespace, the current word is part of the last token
+            var lastToken = tokens.LastOrDefault();
+            if (lastToken != null && lastToken.Type != WqlTokenType.Whitespace)
+            {
+                context.CurrentWord = lastToken.Text;
+                // For LastTokenText, get the previous non-whitespace token
+                var previousNonWhitespaceToken = tokens.TakeWhile((_, index) => index < tokens.Count - 1)
+                    .LastOrDefault(t => t.Type != WqlTokenType.Whitespace);
+                context.LastTokenText = previousNonWhitespaceToken?.Text ?? string.Empty;
+            }
+            else
+            {
+                context.CurrentWord = string.Empty;
+                context.LastTokenText = lastToken?.Text ?? string.Empty;
+            }
+        }
 
         // Find the last significant token (not whitespace or punctuation) before the caret
         // If the last token is whitespace, look before it for the last non-whitespace, non-punctuation token
@@ -368,13 +373,6 @@ public static class AvalonEditCompletionBehavior
         {
             // The tokenizer already assigns QuotedIdentifier and QuotedValue, so just use the token as-is
             context.LastSignificantToken = tokens[lastIndex];
-        }
-
-        // If the last significant token is a QuotedValue, always set prefix to empty
-        // This ensures logical operators will be offered after quoted values, regardless of trailing whitespace
-        if (context.LastSignificantToken != null && IsQuotedTokenValue(context.LastSignificantToken))
-        {
-            context.LastTokenText = string.Empty;
         }
 
         // Get sequences of keywords and identifiers to determine context
@@ -641,13 +639,14 @@ public static class AvalonEditCompletionBehavior
     {        // Log the context for debugging
         System.Diagnostics.Debug.WriteLine(
                 $"[AvalonEditCompletion] Context: {context.ContextType}, " +
-                $"LastToken/Prefix: '{context.LastTokenText}', " +
+                $"LastToken: '{context.LastTokenText}', " +
+                $"Prefix: '{context.CurrentWord}', " +
                 $"LastSignificantToken: '{context.LastSignificantToken?.Text}', " +
                 $"LastSignificantTokenType: '{context.LastSignificantToken?.Type}', " +
                 $"Class: '{context.ClassName}'");
 
         var data = new List<ICompletionData>();
-        string prefix = context.LastTokenText;
+        string prefix = context.CurrentWord;
 
         // Don't provide completions inside quoted strings
         if (context.LastSignificantToken != null &&
@@ -655,7 +654,7 @@ public static class AvalonEditCompletionBehavior
             return data;
 
         // Don't provide completions for quote characters
-        if (!string.IsNullOrEmpty(prefix) && IsQuoteCharacter(prefix.Substring(0, 1)))
+        if (!string.IsNullOrEmpty(context.LastTokenText) && IsQuoteCharacter(context.LastTokenText.Substring(0, 1)))
             return data;
 
         switch (context.ContextType)
@@ -665,7 +664,7 @@ public static class AvalonEditCompletionBehavior
                 break;
             case QueryContext.ContextKind.AfterSelect:
                 // Only offer * immediately after SELECT keyword or after SELECT with space
-                if (string.IsNullOrWhiteSpace(prefix) || prefix.Equals(WqlKeywords.Select + " ", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(context.LastTokenText) || context.LastTokenText.Equals(WqlKeywords.Select, StringComparison.OrdinalIgnoreCase))
                 {
                     data.Add(new SimpleCompletionData("*", CompletionType.Special, "Select all properties"));
                 }
@@ -677,16 +676,16 @@ public static class AvalonEditCompletionBehavior
                 }
 
                 // Only offer FROM if prefix is empty, starts with "FROM", or we just typed "*"
-                bool shouldOfferFrom = string.IsNullOrEmpty(prefix) ||
-                    WqlKeywords.From.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
-                    (prefix.Trim() == "*" && context.LastSignificantToken?.Type != WqlTokenType.QuotedValue);
+                bool shouldOfferFrom = string.IsNullOrEmpty(context.LastTokenText) ||
+                    WqlKeywords.From.StartsWith(context.LastTokenText, StringComparison.OrdinalIgnoreCase) ||
+                    (context.LastTokenText.Trim() == "*" && context.LastSignificantToken?.Type != WqlTokenType.QuotedValue);
 
                 if (shouldOfferFrom)
                 {
-                    var keywordPrefix = (prefix.Trim() == "*") ? string.Empty : prefix;
-                    AddKeywords(data, WqlKeywords.GetKeywords(k => k.Text == WqlKeywords.From), keywordPrefix);
+                    AddKeywords(data, WqlKeywords.GetKeywords(k => k.Text == WqlKeywords.From), prefix);
                 }
                 break;
+                
             case QueryContext.ContextKind.AfterFrom:
                 var lastToken = context.LastSignificantToken;
                 bool justAfterClassName = lastToken != null &&
