@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using System.IO;
+using System.Management;
 using WmiExplorer.Core.Cache;
 
 namespace WmiExplorer.Services;
@@ -9,6 +10,8 @@ namespace WmiExplorer.Services;
 /// </summary>
 public class CacheService : ICacheService
 {
+    private const int CurrentSchemaVersion = 1;
+
     private readonly object _lock = new();
     private Dictionary<string, WmiNamespaceCache>? _memoryCache;
 
@@ -119,20 +122,18 @@ public class CacheService : ICacheService
                     // Load classes for this namespace
                     using (var classCmd = conn.CreateCommand())
                     {
-                        classCmd.CommandText = "SELECT ClassId, ClassName, RelativePath, IsSystemClass, IsEventClass FROM Classes WHERE NamespaceId = @nsId";
+                        classCmd.CommandText = "SELECT ClassId, ClassName, IsSystemClass, IsEventClass FROM Classes WHERE NamespaceId = @nsId";
                         classCmd.Parameters.AddWithValue("@nsId", nsId);
                         using var classReader = await classCmd.ExecuteReaderAsync().ConfigureAwait(false);
                         while (await classReader.ReadAsync().ConfigureAwait(false))
                         {
                             var classId = classReader.GetInt32(0);
                             var className = classReader.GetString(1);
-                            var relPath = classReader.GetString(2);
-                            var isSystem = classReader.GetInt32(3) != 0;
-                            var isEvent = classReader.GetInt32(4) != 0;
+                            var isSystem = classReader.GetInt32(2) != 0;
+                            var isEvent = classReader.GetInt32(3) != 0;
                             var classCache = new WmiClassCache
                             {
                                 ClassName = className,
-                                RelativePath = relPath,
                                 IsSystemClass = isSystem,
                                 IsEventClass = isEvent,
                                 Properties = new List<WmiPropertyCache>()
@@ -222,32 +223,41 @@ public class CacheService : ICacheService
         conn.Open();
         using var cmd = conn.CreateCommand();
 
-        // Drop and recreate ClassProperties table to ensure ON DELETE CASCADE is set
+        // Create all tables, including SchemaVersion
         cmd.CommandText = @"
-        CREATE TABLE IF NOT EXISTS Namespaces (
-            NamespaceId INTEGER PRIMARY KEY AUTOINCREMENT,
-            NamespacePath TEXT UNIQUE,
-            LastUpdatedUtc TEXT
-        );
-        CREATE TABLE IF NOT EXISTS Classes (
-            ClassId INTEGER PRIMARY KEY AUTOINCREMENT,
-            NamespaceId INTEGER,
-            ClassName TEXT,
-            RelativePath TEXT,
-            IsSystemClass INTEGER,
-            IsEventClass INTEGER,
-            FOREIGN KEY(NamespaceId) REFERENCES Namespaces(NamespaceId) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_Classes_NamespaceId ON Classes(NamespaceId);
-        CREATE TABLE IF NOT EXISTS ClassProperties (
-            PropertyId INTEGER PRIMARY KEY AUTOINCREMENT,
-            ClassId INTEGER,
-            PropertyName TEXT,
-            PropertyType TEXT,
-            FOREIGN KEY(ClassId) REFERENCES Classes(ClassId) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_ClassProperties_ClassId ON ClassProperties(ClassId);
-    ";
+    CREATE TABLE IF NOT EXISTS SchemaVersion (
+        Id INTEGER PRIMARY KEY CHECK (Id = 1),
+        Version INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS Namespaces (
+        NamespaceId INTEGER PRIMARY KEY AUTOINCREMENT,
+        NamespacePath TEXT UNIQUE,
+        LastUpdatedUtc TEXT
+    );
+    CREATE TABLE IF NOT EXISTS Classes (
+        ClassId INTEGER PRIMARY KEY AUTOINCREMENT,
+        NamespaceId INTEGER,
+        ClassName TEXT,
+        IsSystemClass INTEGER,
+        IsEventClass INTEGER,
+        FOREIGN KEY(NamespaceId) REFERENCES Namespaces(NamespaceId) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_Classes_NamespaceId ON Classes(NamespaceId);
+    CREATE TABLE IF NOT EXISTS ClassProperties (
+        PropertyId INTEGER PRIMARY KEY AUTOINCREMENT,
+        ClassId INTEGER,
+        PropertyName TEXT,
+        PropertyType TEXT,
+        FOREIGN KEY(ClassId) REFERENCES Classes(ClassId) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_ClassProperties_ClassId ON ClassProperties(ClassId);
+";
+        cmd.ExecuteNonQuery();
+
+        // Set schema version after creating tables - ensuring we only have one row
+        cmd.CommandText = "INSERT OR REPLACE INTO SchemaVersion (Id, Version) VALUES (1, @ver)";
+        cmd.Parameters.Clear();
+        cmd.Parameters.AddWithValue("@ver", CurrentSchemaVersion);
         cmd.ExecuteNonQuery();
     }
 
@@ -257,30 +267,104 @@ public class CacheService : ICacheService
         if (!Directory.Exists(dir))
             Directory.CreateDirectory(dir!);
 
-        bool retry = false;
+        bool recreate = false;
+        SqliteConnection? conn = null;
+
         try
         {
-            CreateDatabase();
+            // Only open the connection to check the schema version, not before
+            conn = new SqliteConnection($"Data Source={CacheFilePath}");
+            conn.Open();
+
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='SchemaVersion'";
+                var exists = cmd.ExecuteScalar() != null;
+
+                int dbVersion = 0;
+                if (exists)
+                {
+                    cmd.CommandText = "SELECT Version FROM SchemaVersion";
+                    var result = cmd.ExecuteScalar();
+                    dbVersion = result != null ? Convert.ToInt32(result) : 0;
+                }
+
+                if (!exists || dbVersion != CurrentSchemaVersion)
+                {
+                    recreate = true;
+                    System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version mismatch: expected {CurrentSchemaVersion}, found {dbVersion}. Recreating database.");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version is up-to-date: {dbVersion}.");
+                }
+            }
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"[CacheService] Error ensuring database: {ex}. Attempting to delete and recreate cache.db.");
-            retry = true;
+            recreate = true;
+        }
+        finally
+        {
+            // Ensure we close the connection if it was opened
+            conn?.Close();
+            if (conn != null)
+            {
+                SqliteConnection.ClearPool(conn); // Ensure all pooled connections are released
+            }
+
+            // Dispose the connection to release any resources
+            conn?.Dispose();
         }
 
-        if (retry)
+        // Only delete the file when no connection is open
+        if (recreate)
         {
-            try
+            if (File.Exists(CacheFilePath))
             {
-                if (File.Exists(CacheFilePath))
-                    File.Delete(CacheFilePath);
-                CreateDatabase();
+                // Force garbage collection to clean up any unmanaged connections
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                bool deleted = false;
+                // Wait for a short time in case another process is using the file
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        File.Delete(CacheFilePath);
+                        System.Diagnostics.Debug.WriteLine("[CacheService] Cache.db deleted successfully.");
+                        deleted = true;
+                        break;
+                    }
+                    catch (IOException ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[CacheService] Attempt {i + 1}/5 to delete Cache.db failed (file in use): {ex.Message}");
+                        System.Threading.Thread.Sleep(500); // Increased wait time
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[CacheService] Attempt {i + 1}/5 to delete Cache.db failed: {ex.Message}");
+                        System.Threading.Thread.Sleep(300); // Increased wait time
+                    }
+                }
+
+                if (!deleted)
+                {
+                    // If we couldn't delete after retries, log the warning but continue
+                    // We'll overwrite the file when creating the new database
+                    System.Diagnostics.Debug.WriteLine("[CacheService] Warning: Could not delete Cache.db after multiple attempts.");
+                }
+                else
+                {
+                    // If we successfully deleted, we can recreate the database
+                    CreateDatabase();
+                }
             }
-            catch (Exception ex2)
-            {
-                System.Diagnostics.Debug.WriteLine($"[CacheService] Failed to recreate cache.db: {ex2}");
-                throw;
-            }
+        }
+        else
+        {
+            CreateDatabase();
         }
     }
 
@@ -457,9 +541,8 @@ public class CacheService : ICacheService
         // Try update first
         using (var updateCmd = conn.CreateCommand())
         {
-            updateCmd.CommandText = @"UPDATE Classes SET RelativePath = @rp, IsSystemClass = @sys, IsEventClass = @evt
+            updateCmd.CommandText = @"UPDATE Classes SET IsSystemClass = @sys, IsEventClass = @evt
                                       WHERE NamespaceId = @nsId AND ClassName = @cn";
-            updateCmd.Parameters.AddWithValue("@rp", classCache.RelativePath);
             updateCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
             updateCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
             updateCmd.Parameters.AddWithValue("@nsId", nsId);
@@ -480,11 +563,10 @@ public class CacheService : ICacheService
         // Insert if not exists
         using (var insCmd = conn.CreateCommand())
         {
-            insCmd.CommandText = @"INSERT INTO Classes (NamespaceId, ClassName, RelativePath, IsSystemClass, IsEventClass)
-                                   VALUES (@nsId, @cn, @rp, @sys, @evt);";
+            insCmd.CommandText = @"INSERT INTO Classes (NamespaceId, ClassName, IsSystemClass, IsEventClass)
+                                   VALUES (@nsId, @cn, @sys, @evt);";
             insCmd.Parameters.AddWithValue("@nsId", nsId);
             insCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
-            insCmd.Parameters.AddWithValue("@rp", classCache.RelativePath);
             insCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
             insCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
             await insCmd.ExecuteNonQueryAsync().ConfigureAwait(false);

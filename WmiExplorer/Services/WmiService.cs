@@ -232,8 +232,7 @@ public class WmiService : IWmiService, IDisposable
         {
             try
             {
-                var className = mo["__Class"]?.ToString() ?? string.Empty;
-                var relativePath = mo.Path?.RelativePath ?? string.Empty;
+                var className = mo.Path?.ClassName ?? string.Empty;
                 var isSystem = className.StartsWith("__");
                 var derivation = mo["__Derivation"] as string[] ?? Array.Empty<string>();
                 var isEvent = derivation.Contains("__Event") || className == "__Event";
@@ -259,7 +258,6 @@ public class WmiService : IWmiService, IDisposable
                 classCaches.Add(new WmiClassCache
                 {
                     ClassName = className,
-                    RelativePath = relativePath,
                     IsSystemClass = isSystem,
                     IsEventClass = isEvent,
                     Properties = propertyList

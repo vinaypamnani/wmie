@@ -18,6 +18,4 @@ public class WmiClassCache
     /// List of property name/type pairs for the WMI class.
     /// </summary>
     public List<WmiPropertyCache> Properties { get; set; } = new List<WmiPropertyCache>();
-
-    public string RelativePath { get; set; } = string.Empty;
 }

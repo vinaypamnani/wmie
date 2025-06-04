@@ -110,8 +110,7 @@ public class MockCacheService : ICacheService
             {
                 ClassName = classData.Name,
                 IsSystemClass = false,
-                IsEventClass = false,
-                RelativePath = $"root\\CIMV2:{classData.Name}"
+                IsEventClass = false
             };
 
             foreach (var propertyData in classData.Properties)
