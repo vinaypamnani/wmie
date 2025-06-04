@@ -330,8 +330,8 @@ public static class AvalonEditCompletionBehavior
         if (string.IsNullOrEmpty(text))
             return false;
 
-        // Trigger on space (for keywords after completion)
-        if (text == " ")
+        // Trigger on space, newline, carriage return, or opening parenthesis
+        if (text == " " || text == "\n" || text == "\r" || text == "(")
             return true;
 
         // Trigger on letters after sufficient context
