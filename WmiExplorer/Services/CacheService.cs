@@ -395,4 +395,34 @@ public class CacheService : ICacheService
             }
         });
     }
+
+    /// <summary>
+    /// Gets all class metadata for a given namespace, or an empty list if not found or expired.
+    /// </summary>
+    public async Task<List<WmiClassCache>> GetClassesForNamespaceAsync(string namespacePath)
+    {
+        var nsCache = await GetNamespaceCacheAsync(namespacePath).ConfigureAwait(false);
+        if (nsCache != null && nsCache.Classes != null)
+            return nsCache.Classes;
+
+        return new List<WmiClassCache>();
+    }
+
+    /// <summary>
+    /// Gets all property metadata for a given class in a namespace, or an empty list if not found.
+    /// </summary>
+    public async Task<List<WmiPropertyCache>> GetPropertiesForClassAsync(string namespacePath, string className)
+    {
+        var nsCache = await GetNamespaceCacheAsync(namespacePath).ConfigureAwait(false);
+        if (nsCache != null && nsCache.Classes != null)
+        {
+            var classCache = nsCache.Classes
+                .FirstOrDefault(c => string.Equals(c.ClassName, className, StringComparison.OrdinalIgnoreCase));
+
+            if (classCache != null && classCache.Properties != null)
+                return classCache.Properties;
+        }
+
+        return new List<WmiPropertyCache>();
+    }
 }

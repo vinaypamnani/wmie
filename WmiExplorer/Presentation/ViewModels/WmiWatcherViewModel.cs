@@ -360,6 +360,20 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         _events.Clear();
     }
 
+    /// <summary>
+    /// Forces the selection logic for the currently selected event.
+    /// Used by ListViewItemSelectionBehavior to re-publish the SelectedEventChangedMessage
+    /// even if the same event is clicked again.
+    /// </summary>
+    public void ForceSelection()
+    {
+        if (_selectedEvent != null)
+        {
+            // Re-publish the message for the currently selected event
+            _messagingService.Publish(new SelectedEventChangedMessage(_selectedEvent));
+        }
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -493,19 +507,16 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             {
                 try
                 {
-                    var nsCache = await _cacheService.GetNamespaceCacheAsync(_selectedNamespace.NamespacePath);
-                    if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
+                    var cachedProperties = await _cacheService.GetPropertiesForClassAsync(_selectedNamespace.NamespacePath, className);
+                    if (cachedProperties.Count > 0)
                     {
-                        var cachedClass = nsCache.Classes.FirstOrDefault(c => c.ClassName == className);
-                        if (cachedClass != null && cachedClass.Properties != null && cachedClass.Properties.Count > 0)
+                        propertyInfos = cachedProperties.Select(p => new PropertyDisplayInfo
                         {
-                            propertyInfos = cachedClass.Properties.Select(p => new PropertyDisplayInfo
-                            {
-                                Name = p.Name,
-                                Type = p.Type ?? string.Empty
-                            });
-                        }
+                            Name = p.Name,
+                            Type = p.Type ?? string.Empty
+                        });
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -586,10 +597,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             {
                 try
                 {
-                    var nsCache = await _cacheService.GetNamespaceCacheAsync(_selectedNamespace.NamespacePath);
-                    if (nsCache != null && nsCache.Classes != null && nsCache.Classes.Count > 0)
+                    var cachedClasses = await _cacheService.GetClassesForNamespaceAsync(_selectedNamespace.NamespacePath);
+                    if (cachedClasses.Count > 0)
                     {
-                        classNames = nsCache.Classes
+                        classNames = cachedClasses
                             .Where(c => eventClassesOnly ? c.IsEventClass : !c.IsEventClass)
                             .Select(c => c.ClassName);
                     }
@@ -794,20 +805,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         {
             if (_selectedWatcherName != "All")
                 SelectedWatcherName = "All";
-        }
-    }
-
-    /// <summary>
-    /// Forces the selection logic for the currently selected event.
-    /// Used by ListViewItemSelectionBehavior to re-publish the SelectedEventChangedMessage
-    /// even if the same event is clicked again.
-    /// </summary>
-    public void ForceSelection()
-    {
-        if (_selectedEvent != null)
-        {
-            // Re-publish the message for the currently selected event
-            _messagingService.Publish(new SelectedEventChangedMessage(_selectedEvent));
         }
     }
 }

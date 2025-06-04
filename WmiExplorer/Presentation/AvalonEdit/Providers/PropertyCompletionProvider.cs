@@ -52,34 +52,26 @@ internal class PropertyCompletionProvider : ICompletionProvider
     {
         try
         {
-            var nsCache = await cacheService.GetNamespaceCacheAsync(namespacePath);
-            if (nsCache?.Classes != null)
+            var cachedProperties = await cacheService.GetPropertiesForClassAsync(namespacePath, className);
+
+            // Exclude already selected properties if context is SelectProps
+            var exclude = (context != null && context.ContextType == QueryContext.ContextKind.SelectProps)
+                ? new HashSet<string>(context.SelectedProperties, StringComparer.OrdinalIgnoreCase)
+                : null;
+
+            foreach (var property in cachedProperties)
             {
-                var classCache = nsCache.Classes.FirstOrDefault(c =>
-                    c.ClassName.Equals(className, StringComparison.OrdinalIgnoreCase));
-
-                if (classCache?.Properties != null)
+                if ((string.IsNullOrEmpty(prefix) ||
+                    property.Name.Contains(prefix, StringComparison.OrdinalIgnoreCase)) &&
+                    (exclude == null || !exclude.Contains(property.Name)))
                 {
-                    // Exclude already selected properties if context is SelectProps
-                    var exclude = (context != null && context.ContextType == QueryContext.ContextKind.SelectProps)
-                        ? new HashSet<string>(context.SelectedProperties, StringComparer.OrdinalIgnoreCase)
-                        : null;
+                    string formattedType = FormatPropertyType(property.Type);
+                    string description = BuildPropertyDescription(property, formattedType);
 
-                    foreach (var property in classCache.Properties)
-                    {
-                        if ((string.IsNullOrEmpty(prefix) ||
-                            property.Name.Contains(prefix, StringComparison.OrdinalIgnoreCase)) &&
-                            (exclude == null || !exclude.Contains(property.Name)))
-                        {
-                            string formattedType = FormatPropertyType(property.Type);
-                            string description = BuildPropertyDescription(property, formattedType);
-
-                            completions.Add(new WqlCompletionData(
-                                property.Name,
-                                CompletionType.Property,
-                                description));
-                        }
-                    }
+                    completions.Add(new WqlCompletionData(
+                        property.Name,
+                        CompletionType.Property,
+                        description));
                 }
             }
         }

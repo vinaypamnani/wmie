@@ -10,7 +10,6 @@ namespace WmiExplorer.Presentation.AvalonEdit.Providers;
 /// </summary>
 internal class ClassCompletionProvider : ICompletionProvider
 {
-
     public bool CanProvideCompletion(QueryContext context)
     {
         return context.ContextType == QueryContext.ContextKind.AfterFrom;
@@ -42,26 +41,24 @@ internal class ClassCompletionProvider : ICompletionProvider
     {
         try
         {
-            var nsCache = await cacheService.GetNamespaceCacheAsync(namespacePath);
-            if (nsCache?.Classes != null)
+            var cachedClasses = await cacheService.GetClassesForNamespaceAsync(namespacePath);
+            foreach (var classCache in cachedClasses)
             {
-                foreach (var classCache in nsCache.Classes)
-                {
-                    // Exclude event classes (typically not used in SELECT queries)
-                    if (classCache.IsEventClass)
-                        continue;
+                // Exclude event classes (typically not used in SELECT queries)
+                if (classCache.IsEventClass)
+                    continue;
 
-                    if (string.IsNullOrEmpty(prefix) ||
-                        classCache.ClassName.Contains(prefix, StringComparison.OrdinalIgnoreCase))
-                    {
-                        string description = BuildClassDescription(classCache);
-                        completions.Add(new WqlCompletionData(
-                            classCache.ClassName,
-                            CompletionType.Class,
-                            description));
-                    }
+                if (string.IsNullOrEmpty(prefix) ||
+                    classCache.ClassName.Contains(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    string description = BuildClassDescription(classCache);
+                    completions.Add(new WqlCompletionData(
+                        classCache.ClassName,
+                        CompletionType.Class,
+                        description));
                 }
             }
+
         }
         catch (Exception ex)
         {

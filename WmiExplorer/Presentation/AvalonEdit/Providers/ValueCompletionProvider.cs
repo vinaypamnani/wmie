@@ -49,18 +49,12 @@ internal class ValueCompletionProvider : ICompletionProvider
             {
                 try
                 {
-                    var nsCache = await cacheService.GetNamespaceCacheAsync(namespacePath);
-                    if (nsCache != null)
+                    var cachedProperties = await cacheService.GetPropertiesForClassAsync(namespacePath, context.ClassName);
+
+                    var property = cachedProperties.FirstOrDefault(p => p.Name.Equals(context.OperatorProperty, StringComparison.OrdinalIgnoreCase));
+                    if (property != null && property.Type.Equals("boolean", StringComparison.OrdinalIgnoreCase))
                     {
-                        var classCache = nsCache.Classes.FirstOrDefault(c => c.ClassName.Equals(context.ClassName, StringComparison.OrdinalIgnoreCase));
-                        if (classCache != null)
-                        {
-                            var property = classCache.Properties.FirstOrDefault(p => p.Name.Equals(context.OperatorProperty, StringComparison.OrdinalIgnoreCase));
-                            if (property != null && property.Type.Equals("boolean", StringComparison.OrdinalIgnoreCase))
-                            {
-                                AddBoolKeywords(completions, prefix);
-                            }
-                        }
+                        AddBoolKeywords(completions, prefix);
                     }
                 }
                 catch (Exception ex)

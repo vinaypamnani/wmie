@@ -21,4 +21,14 @@ public interface ICacheService
     /// Updates or adds the cache entry for a namespace.
     /// </summary>
     Task UpdateNamespaceCacheAsync(WmiNamespaceCache namespaceCache);
+
+    /// <summary>
+    /// Gets all class metadata for a given namespace, or an empty list if not found or expired.
+    /// </summary>
+    Task<List<WmiClassCache>> GetClassesForNamespaceAsync(string namespacePath);
+
+    /// <summary>
+    /// Gets all property metadata for a given class in a namespace, or an empty list if not found.
+    /// </summary>
+    Task<List<WmiPropertyCache>> GetPropertiesForClassAsync(string namespacePath, string className);
 }
