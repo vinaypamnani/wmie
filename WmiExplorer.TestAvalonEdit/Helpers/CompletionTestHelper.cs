@@ -33,6 +33,29 @@ public static class CompletionTestHelper
     }
 
     /// <summary>
+    /// Creates a TextEditor for testing with the specified query text and optional caret position
+    /// </summary>
+    public static TextEditor CreateTestEditor(string queryText, int? caretPosition = null)
+    {
+        var editor = new TextEditor
+        {
+            Document = new TextDocument(queryText)
+        };
+
+        // Set the caret at the specified position or at the end of the document
+        editor.CaretOffset = caretPosition ?? queryText.Length;
+
+        // Default namespace path
+        string namespacePath = "root\\CIMV2";
+
+        // Set the namespace and enable completion
+        AvalonEditCompletionBehavior.SetNamespace(editor, namespacePath);
+        AvalonEditCompletionBehavior.SetEnableCompletion(editor, true);
+
+        return editor;
+    }
+
+    /// <summary>
     /// Gets the list of completions for the current state of the editor
     /// </summary>
     public static async Task<List<ICompletionData>> GetCompletionsAsync(

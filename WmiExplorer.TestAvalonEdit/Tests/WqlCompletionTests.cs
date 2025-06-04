@@ -11,74 +11,100 @@ public class WqlCompletionTests
 {
     private MockCacheService _mockCache = null!;
 
-    public static IEnumerable<TestCaseData> CompletionTestCases()
+    public static IEnumerable<CompletionTestCase> CompletionTestCases()
     {
-        // Test case format: (query, expected completions, unexpected completions)
-        yield return new TestCaseData(
-            "",
-            new[] { WqlKeywordManager.Select },
-            new string[0]
-        ).SetName("EmptyQuery_ShouldOfferSELECT");
+        yield return new CompletionTestCase
+        {
+            Query = "",
+            ExpectedCompletions = new[] { WqlKeywordManager.Select },
+            UnexpectedCompletions = Array.Empty<string>()
+        };
 
-        yield return new TestCaseData(
-            "SELECT ",
-            new[] { WqlKeywordManager.Star },
-            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Star]).ToArray()
-        ).SetName("SelectQuery_ShouldOfferAsteriskOnly");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT ",
+            ExpectedCompletions = new[] { WqlKeywordManager.Star },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Star]).ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * ",
-            new[] { WqlKeywordManager.From },
-            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.From]).ToArray()
-        ).SetName("SelectAsterisk_ShouldOfferFROMOnly");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * ",
+            ExpectedCompletions = new[] { WqlKeywordManager.From },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.From]).ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM ",
-            new[] { "Win32_Process", "Win32_OperatingSystem", "Win32_Service" },
-            WqlKeywordManager.AllKeywords.ToArray()
-        ).SetName("SelectFrom_ShouldOfferClassListOnly");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM ",
+            ExpectedCompletions = new[] { "Win32_Process", "Win32_OperatingSystem", "Win32_Service" },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM Win32_Process ",
-            new[] { WqlKeywordManager.Where },
-            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Where]).ToArray()
-        ).SetName("SelectFromClass_ShouldOfferWHEREOnly");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process ",
+            ExpectedCompletions = new[] { WqlKeywordManager.Where },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Where]).ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM Win32_Process WHERE ",
-            new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
-            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
-        ).SetName("SelectWhere_ShouldOfferPropertiesAndNOTOperator");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT  FROM Win32_Process ",
+            CaretPosition = 7,
+            ExpectedCompletions = new[] { WqlKeywordManager.Star, "Name", "ProcessId", "ExecutablePath", "CommandLine" },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Star]).ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM Win32_Process WHERE Name ",
-            WqlKeywordManager.GetComparisonOperators().ToArray(),
-            WqlKeywordManager.AllKeywords.Except(WqlKeywordManager.GetComparisonOperators()).ToArray()
-        ).SetName("SelectWhereName_ShouldOfferComparisonOperators");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT Name,  FROM Win32_Process ",
+            CaretPosition = 13,
+            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine" },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM Win32_Process WHERE Name = ",
-            new string[0],
-            WqlKeywordManager.AllKeywords.ToArray()
-        ).SetName("SelectWhereNameEquals_ShouldOfferNoCompletions");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE ",
+            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' ",
-            new[] { WqlKeywordManager.And, WqlKeywordManager.Or },
-            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.And, WqlKeywordManager.Or]).ToArray()
-        ).SetName("SelectWhereNameEqualsValue_ShouldOfferLogicalOperators");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE Name ",
+            ExpectedCompletions = WqlKeywordManager.GetComparisonOperators().ToArray(),
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except(WqlKeywordManager.GetComparisonOperators()).ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ",
-            new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
-            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
-        ).SetName("SelectWhereNameEqualsValueAnd_ShouldOfferPropertiesAndNOT");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE Name = ",
+            ExpectedCompletions = Array.Empty<string>(),
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
+        };
 
-        yield return new TestCaseData(
-            "SELECT * FROM Win32_Process WHERE NOT ",
-            new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine" },
-            WqlKeywordManager.AllKeywords.ToArray()
-        ).SetName("SelectWhere_ShouldOfferPropertiesAfterNOT");
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' ",
+            ExpectedCompletions = new[] { WqlKeywordManager.And, WqlKeywordManager.Or },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.And, WqlKeywordManager.Or]).ToArray()
+        };
+
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ",
+            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
+        };
+
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE NOT ",
+            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine" },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
+        };
     }
 
     [SetUp]
@@ -88,34 +114,47 @@ public class WqlCompletionTests
     }
 
     [Test, TestCaseSource(nameof(CompletionTestCases))]
-    public async Task WqlCompletionTest(string query, string[] expectedCompletions, string[] unexpectedCompletions)
+    public async Task WqlCompletionTest(CompletionTestCase testCase)
     {
         // Arrange
-        var editor = CompletionTestHelper.CreateTestEditor(query);
+        var editor = CompletionTestHelper.CreateTestEditor(testCase.Query, testCase.CaretPosition);
 
         // Act
         var completions = await CompletionTestHelper.GetCompletionsAsync(editor, _mockCache);
         var completionTexts = completions.Select(c => c.Text).ToList();
 
         // Assert - Check expected completions
-        foreach (var expected in expectedCompletions)
+        foreach (var expected in testCase.ExpectedCompletions)
         {
             Assert.That(completionTexts, Contains.Item(expected),
-                $"Should offer '{expected}' for '{query}' but found: [{string.Join(", ", completionTexts)}]");
+                $"Should offer '{expected}' for '{testCase.Query}' but found: [{string.Join(", ", completionTexts)}]");
         }
 
         // Assert - Check unexpected completions
-        foreach (var unexpected in unexpectedCompletions)
+        foreach (var unexpected in testCase.UnexpectedCompletions)
         {
             Assert.That(completionTexts, Does.Not.Contain(unexpected),
-                $"Should NOT offer '{unexpected}' for '{query}' but it was found");
+                $"Should NOT offer '{unexpected}' for '{testCase.Query}' but it was found");
         }
 
         // Assert - Check total count matches (if we specified all expected values)
-        if (unexpectedCompletions.Length == 0)
+        if (testCase.UnexpectedCompletions.Length == 0)
         {
-            Assert.That(completions, Has.Count.EqualTo(expectedCompletions.Length),
-                $"Expected {expectedCompletions.Length} completions for '{query}' but found {completions.Count}: [{string.Join(", ", completionTexts)}]");
+            Assert.That(completions, Has.Count.EqualTo(testCase.ExpectedCompletions.Length),
+                $"Expected {testCase.ExpectedCompletions.Length} completions for '{testCase.Query}' but found {completions.Count}: [{string.Join(", ", completionTexts)}]");
+        }
+    }
+
+    public class CompletionTestCase
+    {
+        public int? CaretPosition { get; set; }
+        public string[] ExpectedCompletions { get; set; } = Array.Empty<string>();
+        public string Query { get; set; } = string.Empty;
+        public string[] UnexpectedCompletions { get; set; } = Array.Empty<string>();
+
+        public override string ToString()
+        {
+            return $"Query: [{Query}], Caret: {CaretPosition}";
         }
     }
 }
