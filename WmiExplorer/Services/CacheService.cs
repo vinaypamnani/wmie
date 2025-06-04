@@ -9,8 +9,8 @@ namespace WmiExplorer.Services;
 /// </summary>
 public class CacheService : ICacheService
 {
-    private List<WmiNamespaceCache>? _cache;
     private readonly object _lock = new();
+    private Dictionary<string, WmiNamespaceCache>? _memoryCache;
 
     private static readonly string CacheFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -24,26 +24,40 @@ public class CacheService : ICacheService
         EnsureDatabase();
     }
 
+    /// <summary>
+    /// Gets all class metadata for a given namespace, or an empty list if not found or expired.
+    /// </summary>
+    public async Task<List<WmiClassCache>> GetClassesForNamespaceAsync(string namespacePath)
+    {
+        var nsCache = await GetNamespaceCacheAsync(namespacePath).ConfigureAwait(false);
+        if (nsCache != null && nsCache.Classes != null)
+            return nsCache.Classes;
+
+        return new List<WmiClassCache>();
+    }
+
     public async Task<WmiNamespaceCache?> GetNamespaceCacheAsync(string namespacePath)
     {
         try
         {
-            List<WmiNamespaceCache>? cache;
+            if (_memoryCache == null)
+                await LoadCacheAsync().ConfigureAwait(false);
+
             lock (_lock)
-                cache = _cache;
+            {
+                if (_memoryCache == null)
+                    return null;
 
-            if (cache == null)
-                cache = await LoadCacheAsync().ConfigureAwait(false);
+                if (_memoryCache.TryGetValue(namespacePath, out var entry))
+                {
+                    if (entry.LastUpdatedUtc.Add(Expiration) < DateTime.UtcNow)
+                        return null;
 
-            var entry = cache.FirstOrDefault(x => string.Equals(x.NamespacePath, namespacePath, StringComparison.OrdinalIgnoreCase));
+                    return entry;
+                }
+            }
 
-            if (entry == null)
-                return null;
-
-            if (entry.LastUpdatedUtc.Add(Expiration) < DateTime.UtcNow)
-                return null;
-
-            return entry;
+            return null;
         }
         catch (Exception ex)
         {
@@ -52,18 +66,38 @@ public class CacheService : ICacheService
         }
     }
 
+    /// <summary>
+    /// Gets all property metadata for a given class in a namespace, or an empty list if not found.
+    /// </summary>
+    public async Task<List<WmiPropertyCache>> GetPropertiesForClassAsync(string namespacePath, string className)
+    {
+        var nsCache = await GetNamespaceCacheAsync(namespacePath).ConfigureAwait(false);
+        if (nsCache != null && nsCache.Classes != null)
+        {
+            var classCache = nsCache.Classes
+                .FirstOrDefault(c => string.Equals(c.ClassName, className, StringComparison.OrdinalIgnoreCase));
+
+            if (classCache != null && classCache.Properties != null)
+                return classCache.Properties;
+        }
+
+        return new List<WmiPropertyCache>();
+    }
+
     public async Task<List<WmiNamespaceCache>> LoadCacheAsync()
     {
         try
         {
             // Prune expired cache entries in the background to avoid blocking UI
             PruneExpiredCacheInBackground();
+
             lock (_lock)
             {
-                if (_cache != null)
-                    return _cache;
+                if (_memoryCache != null)
+                    return _memoryCache.Values.ToList();
             }
-            var result = new List<WmiNamespaceCache>();
+
+            var result = new Dictionary<string, WmiNamespaceCache>(StringComparer.OrdinalIgnoreCase);
             using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
             await conn.OpenAsync().ConfigureAwait(false);
             // Load namespaces
@@ -121,17 +155,17 @@ public class CacheService : ICacheService
                             nsCache.Classes.Add(classCache);
                         }
                     }
-                    result.Add(nsCache);
+                    result[nsCache.NamespacePath] = nsCache;
                 }
             }
-            lock (_lock) { _cache = result; }
-            return result;
+            lock (_lock) { _memoryCache = result; }
+            return result.Values.ToList();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[CacheService] Error loading cache: {ex}");
-            lock (_lock) { _cache = new List<WmiNamespaceCache>(); }
-            return _cache;
+            lock (_lock) { _memoryCache = new Dictionary<string, WmiNamespaceCache>(StringComparer.OrdinalIgnoreCase); }
+            return _memoryCache.Values.ToList();
         }
     }
 
@@ -142,113 +176,43 @@ public class CacheService : ICacheService
             using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
             await conn.OpenAsync().ConfigureAwait(false);
             using var tx = conn.BeginTransaction();
-            // Upsert namespace
-            long nsId;
-            using (var nsCmd = conn.CreateCommand())
+
+            // Upsert namespace and get its ID
+            long nsId = await UpsertNamespaceAsync(conn, namespaceCache);
+
+            // Remove classes not present in the incoming cache
+            await RemoveObsoleteClassesAsync(conn, nsId, namespaceCache.Classes.Select(c => c.ClassName));
+
+            // Upsert classes and their properties
+            foreach (var classCache in namespaceCache.Classes)
             {
-                nsCmd.CommandText = @"INSERT INTO Namespaces (NamespacePath, LastUpdatedUtc) VALUES (@ns, @dt)
-                        ON CONFLICT(NamespacePath) DO UPDATE SET LastUpdatedUtc = excluded.LastUpdatedUtc;";
-                nsCmd.Parameters.AddWithValue("@ns", namespaceCache.NamespacePath);
-                nsCmd.Parameters.AddWithValue("@dt", namespaceCache.LastUpdatedUtc.ToString("o"));
-                await nsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-                // Get NamespaceId
-                nsCmd.CommandText = "SELECT NamespaceId FROM Namespaces WHERE NamespacePath = @ns";
-                nsId = (long)(await nsCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
-            }
-            // Remove old classes for this namespace
-            using (var delClassCmd = conn.CreateCommand())
-            {
-                delClassCmd.CommandText = "DELETE FROM Classes WHERE NamespaceId = @nsId";
-                delClassCmd.Parameters.AddWithValue("@nsId", nsId);
-                await delClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-            }
-            // Insert new classes and properties
-            foreach (var c in namespaceCache.Classes)
-            {
-                long classId;
-                using (var insClassCmd = conn.CreateCommand())
+                long classId = await UpsertClassAsync(conn, nsId, classCache);
+
+                // Remove properties not present in the incoming cache
+                await RemoveObsoletePropertiesAsync(conn, classId, classCache.Properties.Select(p => p.Name));
+
+                // Upsert properties
+                foreach (var prop in classCache.Properties)
                 {
-                    insClassCmd.CommandText = @"INSERT INTO Classes (NamespaceId, ClassName, RelativePath, IsSystemClass, IsEventClass)
-                            VALUES (@nsId, @cn, @rp, @sys, @evt);";
-                    insClassCmd.Parameters.AddWithValue("@nsId", nsId);
-                    insClassCmd.Parameters.AddWithValue("@cn", c.ClassName);
-                    insClassCmd.Parameters.AddWithValue("@rp", c.RelativePath);
-                    insClassCmd.Parameters.AddWithValue("@sys", c.IsSystemClass ? 1 : 0);
-                    insClassCmd.Parameters.AddWithValue("@evt", c.IsEventClass ? 1 : 0);
-                    await insClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-                    // Get ClassId
-                    insClassCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
-                    classId = (long)(await insClassCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
-                }
-                // Remove old properties for this class
-                using (var delPropCmd = conn.CreateCommand())
-                {
-                    delPropCmd.CommandText = "DELETE FROM ClassProperties WHERE ClassId = @classId";
-                    delPropCmd.Parameters.AddWithValue("@classId", classId);
-                    await delPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
-                // Insert new properties
-                foreach (var p in c.Properties)
-                {
-                    using var insPropCmd = conn.CreateCommand();
-                    insPropCmd.CommandText = @"INSERT INTO ClassProperties (ClassId, PropertyName, PropertyType)
-                                               VALUES (@classId, @pn, @pt)";
-                    insPropCmd.Parameters.AddWithValue("@classId", classId);
-                    insPropCmd.Parameters.AddWithValue("@pn", p.Name);
-                    insPropCmd.Parameters.AddWithValue("@pt", p.Type);
-                    await insPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    await UpsertPropertyAsync(conn, classId, prop);
                 }
             }
+
             tx.Commit();
 
-            // Update in-memory cache efficiently: update or add the namespace in _cache
+            // Update in-memory cache efficiently
             lock (_lock)
             {
-                if (_cache != null)
+                if (_memoryCache != null)
                 {
-                    var existing = _cache.FirstOrDefault(x => string.Equals(x.NamespacePath, namespaceCache.NamespacePath, StringComparison.OrdinalIgnoreCase));
-                    if (existing != null)
-                        _cache.Remove(existing);
-                    _cache.Add(namespaceCache);
+                    // Simply update or add the entry in the dictionary
+                    _memoryCache[namespaceCache.NamespacePath] = namespaceCache;
                 }
             }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[CacheService] Error updating namespace cache for '{namespaceCache.NamespacePath}': {ex}");
-        }
-    }
-
-    private void EnsureDatabase()
-    {
-        var dir = Path.GetDirectoryName(CacheFilePath);
-        if (!Directory.Exists(dir))
-            Directory.CreateDirectory(dir!);
-
-        bool retry = false;
-        try
-        {
-            CreateDatabase();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[CacheService] Error ensuring database: {ex}. Attempting to delete and recreate cache.db.");
-            retry = true;
-        }
-
-        if (retry)
-        {
-            try
-            {
-                if (File.Exists(CacheFilePath))
-                    File.Delete(CacheFilePath);
-                CreateDatabase();
-            }
-            catch (Exception ex2)
-            {
-                System.Diagnostics.Debug.WriteLine($"[CacheService] Failed to recreate cache.db: {ex2}");
-                throw;
-            }
         }
     }
 
@@ -287,6 +251,39 @@ public class CacheService : ICacheService
         cmd.ExecuteNonQuery();
     }
 
+    private void EnsureDatabase()
+    {
+        var dir = Path.GetDirectoryName(CacheFilePath);
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir!);
+
+        bool retry = false;
+        try
+        {
+            CreateDatabase();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CacheService] Error ensuring database: {ex}. Attempting to delete and recreate cache.db.");
+            retry = true;
+        }
+
+        if (retry)
+        {
+            try
+            {
+                if (File.Exists(CacheFilePath))
+                    File.Delete(CacheFilePath);
+                CreateDatabase();
+            }
+            catch (Exception ex2)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CacheService] Failed to recreate cache.db: {ex2}");
+                throw;
+            }
+        }
+    }
+
     /// <summary>
     /// Asynchronously removes expired namespace cache entries and their related data from the database.
     /// </summary>
@@ -296,32 +293,39 @@ public class CacheService : ICacheService
         {
             using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
             await conn.OpenAsync().ConfigureAwait(false);
-            using var tx = conn.BeginTransaction();
 
-            // Select expired namespace IDs
-            var expiredNamespaceIds = new List<long>();
+            // Select expired namespace IDs and paths together
+            var expiredNamespaces = new Dictionary<long, string>();
             using (var selectCmd = conn.CreateCommand())
             {
                 selectCmd.CommandText = @"
-                    SELECT NamespaceId FROM Namespaces
-                    WHERE datetime(LastUpdatedUtc) < datetime('now', @expiration)";
+                SELECT NamespaceId, NamespacePath FROM Namespaces
+                WHERE datetime(LastUpdatedUtc) < datetime('now', @expiration)";
                 selectCmd.Parameters.AddWithValue("@expiration", $"-{Expiration.TotalDays} days");
 
                 using var reader = await selectCmd.ExecuteReaderAsync().ConfigureAwait(false);
                 while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    expiredNamespaceIds.Add(reader.GetInt64(0));
+                    var nsId = reader.GetInt64(0);
+                    var nsPath = reader.GetString(1);
+                    expiredNamespaces.Add(nsId, nsPath);
                 }
             }
 
-            foreach (var nsId in expiredNamespaceIds)
+            if (expiredNamespaces.Count == 0)
+                return; // Nothing to do
+
+            // Now delete the data with a transaction
+            using var tx = conn.BeginTransaction();
+
+            foreach (var nsId in expiredNamespaces.Keys)
             {
                 // Delete properties for all classes in this namespace
                 using (var delPropCmd = conn.CreateCommand())
                 {
                     delPropCmd.CommandText = @"
-                        DELETE FROM ClassProperties WHERE ClassId IN
-                        (SELECT ClassId FROM Classes WHERE NamespaceId = @nsId)";
+                    DELETE FROM ClassProperties WHERE ClassId IN
+                    (SELECT ClassId FROM Classes WHERE NamespaceId = @nsId)";
                     delPropCmd.Parameters.AddWithValue("@nsId", nsId);
                     await delPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
@@ -345,14 +349,17 @@ public class CacheService : ICacheService
 
             tx.Commit();
 
-            // Also prune from in-memory cache if loaded
+            // Now update the in-memory cache with the paths we saved earlier
             bool removed = false;
             lock (_lock)
             {
-                if (_cache != null && expiredNamespaceIds.Count > 0)
+                if (_memoryCache != null)
                 {
-                    _cache.RemoveAll(ns => expiredNamespaceIds.Any()); // Remove all if any expired, since NamespaceId is not tracked in WmiNamespaceCache
-                    removed = true;
+                    foreach (var nsPath in expiredNamespaces.Values)
+                    {
+                        if (_memoryCache.Remove(nsPath))
+                            removed = true;
+                    }
                 }
             }
 
@@ -397,32 +404,138 @@ public class CacheService : ICacheService
     }
 
     /// <summary>
-    /// Gets all class metadata for a given namespace, or an empty list if not found or expired.
+    /// Removes classes from the database that are not present in the provided class names.
     /// </summary>
-    public async Task<List<WmiClassCache>> GetClassesForNamespaceAsync(string namespacePath)
+    private static async Task RemoveObsoleteClassesAsync(SqliteConnection conn, long nsId, IEnumerable<string> classNames)
     {
-        var nsCache = await GetNamespaceCacheAsync(namespacePath).ConfigureAwait(false);
-        if (nsCache != null && nsCache.Classes != null)
-            return nsCache.Classes;
+        var classNameList = classNames.ToList();
+        if (classNameList.Count == 0)
+        {
+            using var delCmd = conn.CreateCommand();
+            delCmd.CommandText = "DELETE FROM Classes WHERE NamespaceId = @nsId";
+            delCmd.Parameters.AddWithValue("@nsId", nsId);
+            await delCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+            return;
+        }
 
-        return new List<WmiClassCache>();
+        using var delClassCmd = conn.CreateCommand();
+        delClassCmd.CommandText = $"DELETE FROM Classes WHERE NamespaceId = @nsId AND ClassName NOT IN ({string.Join(",", classNameList.Select((_, i) => $"@cn{i}"))})";
+        delClassCmd.Parameters.AddWithValue("@nsId", nsId);
+        for (int i = 0; i < classNameList.Count; i++)
+            delClassCmd.Parameters.AddWithValue($"@cn{i}", classNameList[i]);
+        await delClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Gets all property metadata for a given class in a namespace, or an empty list if not found.
+    /// Removes properties from the database that are not present in the provided property names.
     /// </summary>
-    public async Task<List<WmiPropertyCache>> GetPropertiesForClassAsync(string namespacePath, string className)
+    private static async Task RemoveObsoletePropertiesAsync(SqliteConnection conn, long classId, IEnumerable<string> propertyNames)
     {
-        var nsCache = await GetNamespaceCacheAsync(namespacePath).ConfigureAwait(false);
-        if (nsCache != null && nsCache.Classes != null)
+        var propNameList = propertyNames.ToList();
+        if (propNameList.Count == 0)
         {
-            var classCache = nsCache.Classes
-                .FirstOrDefault(c => string.Equals(c.ClassName, className, StringComparison.OrdinalIgnoreCase));
-
-            if (classCache != null && classCache.Properties != null)
-                return classCache.Properties;
+            using var delCmd = conn.CreateCommand();
+            delCmd.CommandText = "DELETE FROM ClassProperties WHERE ClassId = @classId";
+            delCmd.Parameters.AddWithValue("@classId", classId);
+            await delCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+            return;
         }
 
-        return new List<WmiPropertyCache>();
+        using var delPropCmd = conn.CreateCommand();
+        delPropCmd.CommandText = $"DELETE FROM ClassProperties WHERE ClassId = @classId AND PropertyName NOT IN ({string.Join(",", propNameList.Select((_, i) => $"@pn{i}"))})";
+        delPropCmd.Parameters.AddWithValue("@classId", classId);
+        for (int i = 0; i < propNameList.Count; i++)
+            delPropCmd.Parameters.AddWithValue($"@pn{i}", propNameList[i]);
+        await delPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Upserts a class and returns its ID.
+    /// </summary>
+    private static async Task<long> UpsertClassAsync(SqliteConnection conn, long nsId, WmiClassCache classCache)
+    {
+        // Try update first
+        using (var updateCmd = conn.CreateCommand())
+        {
+            updateCmd.CommandText = @"UPDATE Classes SET RelativePath = @rp, IsSystemClass = @sys, IsEventClass = @evt
+                                      WHERE NamespaceId = @nsId AND ClassName = @cn";
+            updateCmd.Parameters.AddWithValue("@rp", classCache.RelativePath);
+            updateCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
+            updateCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
+            updateCmd.Parameters.AddWithValue("@nsId", nsId);
+            updateCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
+            int rows = await updateCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+            if (rows > 0)
+            {
+                // Get ClassId
+                using var getCmd = conn.CreateCommand();
+                getCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
+                getCmd.Parameters.AddWithValue("@nsId", nsId);
+                getCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
+                return (long)(await getCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+            }
+        }
+
+        // Insert if not exists
+        using (var insCmd = conn.CreateCommand())
+        {
+            insCmd.CommandText = @"INSERT INTO Classes (NamespaceId, ClassName, RelativePath, IsSystemClass, IsEventClass)
+                                   VALUES (@nsId, @cn, @rp, @sys, @evt);";
+            insCmd.Parameters.AddWithValue("@nsId", nsId);
+            insCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
+            insCmd.Parameters.AddWithValue("@rp", classCache.RelativePath);
+            insCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
+            insCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
+            await insCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+            insCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
+            return (long)(await insCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+        }
+    }
+
+    /// <summary>
+    /// Upserts a namespace and returns its ID.
+    /// </summary>
+    private static async Task<long> UpsertNamespaceAsync(SqliteConnection conn, WmiNamespaceCache namespaceCache)
+    {
+        using var nsCmd = conn.CreateCommand();
+        nsCmd.CommandText = @"INSERT INTO Namespaces (NamespacePath, LastUpdatedUtc) VALUES (@ns, @dt)
+                              ON CONFLICT(NamespacePath) DO UPDATE SET LastUpdatedUtc = excluded.LastUpdatedUtc;";
+        nsCmd.Parameters.AddWithValue("@ns", namespaceCache.NamespacePath);
+        nsCmd.Parameters.AddWithValue("@dt", namespaceCache.LastUpdatedUtc.ToString("o"));
+        await nsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+        nsCmd.CommandText = "SELECT NamespaceId FROM Namespaces WHERE NamespacePath = @ns";
+        return (long)(await nsCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+    }
+
+    /// <summary>
+    /// Upserts a property for a class.
+    /// </summary>
+    private static async Task UpsertPropertyAsync(SqliteConnection conn, long classId, WmiPropertyCache prop)
+    {
+        // Try update first
+        using (var updateCmd = conn.CreateCommand())
+        {
+            updateCmd.CommandText = @"UPDATE ClassProperties SET PropertyType = @pt
+                                      WHERE ClassId = @classId AND PropertyName = @pn";
+            updateCmd.Parameters.AddWithValue("@pt", prop.Type);
+            updateCmd.Parameters.AddWithValue("@classId", classId);
+            updateCmd.Parameters.AddWithValue("@pn", prop.Name);
+            int rows = await updateCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+            if (rows > 0)
+                return;
+        }
+
+        // Insert if not exists
+        using var insCmd = conn.CreateCommand();
+        insCmd.CommandText = @"INSERT INTO ClassProperties (ClassId, PropertyName, PropertyType)
+                               VALUES (@classId, @pn, @pt)";
+        insCmd.Parameters.AddWithValue("@classId", classId);
+        insCmd.Parameters.AddWithValue("@pn", prop.Name);
+        insCmd.Parameters.AddWithValue("@pt", prop.Type);
+        await insCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 }
