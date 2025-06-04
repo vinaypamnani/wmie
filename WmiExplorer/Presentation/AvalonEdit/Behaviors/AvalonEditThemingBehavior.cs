@@ -20,6 +20,9 @@ public static class AvalonEditThemingBehavior
         typeof(AvalonEditThemingBehavior),
         new PropertyMetadata(false, OnEnableThemingChanged));
 
+    // Private static field for injected messaging service
+    private static IMessagingService? _messagingService;
+
     // Track active completion windows for theme change support
     private static readonly ConcurrentDictionary<TextEditor, CompletionWindow?> ActiveCompletionWindows = new();
 
@@ -71,6 +74,14 @@ public static class AvalonEditThemingBehavior
     public static void SetEnableTheming(DependencyObject obj, bool value) => obj.SetValue(EnableThemingProperty, value);
 
     /// <summary>
+    /// Sets the messaging service for this behavior (for DI).
+    /// </summary>
+    public static void SetMessagingService(IMessagingService messagingService)
+    {
+        _messagingService = messagingService;
+    }
+
+    /// <summary>
     /// Unregisters the editor and cleans up resources
     /// </summary>
     public static void UnregisterEditor(TextEditor editor)
@@ -94,11 +105,10 @@ public static class AvalonEditThemingBehavior
         {
             ApplyThemeToTextArea(editor);
 
-            // Subscribe to theme changed messages
-            var messagingService = ServiceLocator.Instance.Get<IMessagingService>();
-            if (messagingService != null)
+            // Subscribe to theme changed messages using DI
+            if (_messagingService != null)
             {
-                messagingService.StrongSubscribe<ThemeChangedMessage>(_ =>
+                _messagingService.StrongSubscribe<ThemeChangedMessage>(_ =>
                 {
                     // Reapply theme to this editor
                     ApplyThemeToTextArea(editor);

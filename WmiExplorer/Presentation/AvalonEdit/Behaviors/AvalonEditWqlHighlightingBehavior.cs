@@ -20,9 +20,30 @@ public static class AvalonEditWqlHighlightingBehavior
         typeof(AvalonEditWqlHighlightingBehavior),
         new PropertyMetadata(false, OnEnableWqlHighlightingChanged));
 
+    // Private static fields for injected services
+    private static IMessagingService? _messagingService;
+
+    private static ISettingsService? _settingsService;
+
     public static bool GetEnableWqlHighlighting(DependencyObject obj) => (bool)obj.GetValue(EnableWqlHighlightingProperty);
 
     public static void SetEnableWqlHighlighting(DependencyObject obj, bool value) => obj.SetValue(EnableWqlHighlightingProperty, value);
+
+    /// <summary>
+    /// Sets the messaging service for this behavior (for DI).
+    /// </summary>
+    public static void SetMessagingService(IMessagingService messagingService)
+    {
+        _messagingService = messagingService;
+    }
+
+    /// <summary>
+    /// Sets the settings service for this behavior (for DI).
+    /// </summary>
+    public static void SetSettingsService(ISettingsService settingsService)
+    {
+        _settingsService = settingsService;
+    }
 
     private static void ApplyWqlHighlighting(TextEditor editor, string? theme = null)
     {
@@ -62,16 +83,14 @@ public static class AvalonEditWqlHighlightingBehavior
     {
         if (d is TextEditor editor && (bool)e.NewValue)
         {
-            // Get current theme from settings service
-            var settingsService = ServiceLocator.Instance.Get<ISettingsService>();
-            string theme = settingsService?.CurrentTheme ?? "Dark";
+            // Get current theme from settings service via DI
+            string theme = _settingsService?.CurrentTheme ?? "Dark";
             ApplyWqlHighlighting(editor, theme);
 
-            // Subscribe to theme change messages
-            var messagingService = ServiceLocator.Instance.Get<IMessagingService>();
-            if (messagingService != null)
+            // Subscribe to theme change messages via DI
+            if (_messagingService != null)
             {
-                messagingService.StrongSubscribe<ThemeChangedMessage>(msg =>
+                _messagingService.StrongSubscribe<ThemeChangedMessage>(msg =>
                 {
                     ApplyWqlHighlighting(editor, msg.Theme);
                 });

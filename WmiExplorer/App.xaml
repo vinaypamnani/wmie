@@ -1,8 +1,7 @@
 <Application x:Class="WmiExplorer.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WmiExplorer"
-             StartupUri="Presentation/Views/MainWindow.xaml">
+             xmlns:local="clr-namespace:WmiExplorer">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

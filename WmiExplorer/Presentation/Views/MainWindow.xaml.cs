@@ -29,18 +29,23 @@ public partial class MainWindow : Window
     private readonly MainViewModel _viewModel;
     private readonly IWmiService _wmiService;
 
-    public MainWindow()
+    public MainWindow(
+        IMessagingService messagingService,
+        ISettingsService settingsService,
+        ThemeManager themeManager,
+        IWmiService wmiService,
+        IApplicationService applicationService,
+        ICacheService cacheService)
     {
         InitializeComponent();
         Current = this;
 
-        // Get services from ServiceLocator
-        _messagingService = ServiceLocator.Instance.Get<IMessagingService>();
-        _settingsService = ServiceLocator.Instance.Get<ISettingsService>();
-        _themeManager = ServiceLocator.Instance.Get<ThemeManager>();
-        _wmiService = ServiceLocator.Instance.Get<IWmiService>();
-        _applicationService = ServiceLocator.Instance.Get<IApplicationService>();
-        _cacheService = ServiceLocator.Instance.Get<ICacheService>();
+        _messagingService = messagingService;
+        _settingsService = settingsService;
+        _themeManager = themeManager;
+        _wmiService = wmiService;
+        _applicationService = applicationService;
+        _cacheService = cacheService;
 
         // Create the main view model with injected services
         _viewModel = new MainViewModel(

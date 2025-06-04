@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -17,6 +18,8 @@ public partial class App : Application
 {
     private const int ATTACH_PARENT_PROCESS = -1;
 
+    public static ServiceProvider? ServiceProvider { get; private set; }
+
     protected override void OnStartup(StartupEventArgs e)
     {
         // Enable debug logging to console if -v is present
@@ -31,13 +34,20 @@ public partial class App : Application
         base.OnStartup(e);
         ConfigureServices();
 
+        if (ServiceProvider == null)
+            throw new InvalidOperationException("ServiceProvider is not initialized.");
+
         // Initialize theme
-        var themeManager = ServiceLocator.Instance.Get<ThemeManager>();
+        var themeManager = ServiceProvider.GetRequiredService<ThemeManager>();
         themeManager.InitializeTheme();
 
         // Register Base WMI providers for PropertyGrid using the new generic method
-        var wmiService = ServiceLocator.Instance.Get<IWmiService>();
+        var wmiService = ServiceProvider.GetRequiredService<IWmiService>();
         ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());
+
+        // Create and show MainWindow using DI
+        var mainWindow = ServiceProvider.GetRequiredService<Presentation.Views.MainWindow>();
+        mainWindow.Show();
     }
 
     [DllImport("kernel32.dll")]
@@ -48,29 +58,44 @@ public partial class App : Application
     /// </summary>
     private void ConfigureServices()
     {
-        var serviceLocator = ServiceLocator.Instance;
+        var services = new ServiceCollection();
 
         // Register core services first
-        serviceLocator.Register<IMessagingService, MessagingService>(new MessagingService());
+        services.AddSingleton<IMessagingService, MessagingService>();
+        services.AddSingleton<ISettingsService, SettingsService>(provider =>
+            new SettingsService(provider.GetRequiredService<IMessagingService>()));
+        services.AddSingleton<ThemeManager>(provider =>
+            new ThemeManager(
+                provider.GetRequiredService<IMessagingService>(),
+                provider.GetRequiredService<ISettingsService>()));
+        services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<IWmiService, WmiService>(provider =>
+            new WmiService(provider.GetRequiredService<ICacheService>()));
+        services.AddSingleton<IApplicationService, ApplicationService>();
 
-        // Register the settings service before theme manager
-        var messagingService = serviceLocator.Get<IMessagingService>();
-        serviceLocator.Register<ISettingsService, SettingsService>(new SettingsService(messagingService));
+        // Register MainWindow for DI
+        services.AddSingleton<Presentation.Views.MainWindow>();
 
-        var settingsService = serviceLocator.Get<ISettingsService>();
+        // Register all ViewModel classes for DI
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.MainViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiClassViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiInstanceViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiMethodViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiNamespaceViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiPropertyViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiQueryViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiSearchViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiWatcherViewModel>();
 
-        // Register theme manager with messaging and settings service
-        serviceLocator.Register<ThemeManager, ThemeManager>(new ThemeManager(messagingService, settingsService));
+        // Build the service provider
+        ServiceProvider = services.BuildServiceProvider();
 
-        // Register cache service
-        serviceLocator.Register<ICacheService, CacheService>(new CacheService());
-        var cacheService = serviceLocator.Get<ICacheService>();
-
-        // Register WmiService with injected cache service
-        serviceLocator.Register<IWmiService, WmiService>(new WmiService(cacheService));
-
-        // Register ApplicationService
-        serviceLocator.Register<IApplicationService, ApplicationService>(new ApplicationService());
+        // Set up DI for AvalonEdit behaviors using static method
+        var messagingService = ServiceProvider.GetRequiredService<IMessagingService>();
+        var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
+        Presentation.AvalonEdit.Behaviors.AvalonEditThemingBehavior.SetMessagingService(messagingService);
+        Presentation.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetMessagingService(messagingService);
+        Presentation.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
 
         // Configure unhandled exception handling
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
