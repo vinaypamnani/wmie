@@ -21,7 +21,7 @@ public class WqlTokenizerTests
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ", ExpectedContextType = QueryContext.ContextKind.AfterLogicalOperator };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ProcessId ", ExpectedContextType = QueryContext.ContextKind.AfterProperty };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ProcessId > ", ExpectedContextType = QueryContext.ContextKind.AfterOperator };
-        yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ProcessId > 1234", ExpectedContextType = QueryContext.ContextKind.AfterCompleteCondition };
+        yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ProcessId > 1234 ", ExpectedContextType = QueryContext.ContextKind.AfterCompleteCondition };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE NOT ", ExpectedContextType = QueryContext.ContextKind.AfterNot };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE NOT Name ", ExpectedContextType = QueryContext.ContextKind.AfterProperty };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE NOT Name = ", ExpectedContextType = QueryContext.ContextKind.AfterOperator };
@@ -32,6 +32,8 @@ public class WqlTokenizerTests
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name IS NOT NULL ", ExpectedContextType = QueryContext.ContextKind.AfterCompleteCondition };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = 'xy", ExpectedContextType = QueryContext.ContextKind.InValue };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name <> 'xy", ExpectedContextType = QueryContext.ContextKind.InValue };
+        yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE ProcessId > 1234", ExpectedContextType = QueryContext.ContextKind.InValue };
+        yield return new TokenizerTestCase { Query = "SELECT Name, ProcessId FROM Win32_Process WHERE Name = 'notepad.exe' ", ExpectedContextType = QueryContext.ContextKind.AfterCompleteCondition };
     }
 
     [Test, TestCaseSource(nameof(TokenizerTestCases))]

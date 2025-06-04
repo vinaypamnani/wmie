@@ -105,8 +105,8 @@ internal class QueryContext
         var lastToken = significantTokens.Last();
         int cursorPosition = tokens.Count;
 
-        // Check if cursor is inside a string literal FIRST, before any other context
-        if (IsInsideStringLiteral(text))
+        // Check if cursor is inside a value input (string or number)
+        if (IsInValueInput(text, tokens))
         {
             return ContextKind.InValue;
         }
@@ -217,13 +217,25 @@ internal class QueryContext
     }
 
     /// <summary>
-    /// Determines if the cursor is currently inside a string literal that hasn't been closed yet.
+    /// Determines if the cursor is currently inside a value input (unclosed string or number being typed).
     /// </summary>
-    private static bool IsInsideStringLiteral(string text)
+    private static bool IsInValueInput(string text, List<WqlToken> tokens)
     {
-        // Count single and double quotes in the raw text
+        // Check for unclosed string literal
         int singleQuoteCount = text.Count(c => c == '\'');
         int doubleQuoteCount = text.Count(c => c == '"');
-        return (singleQuoteCount % 2 != 0) || (doubleQuoteCount % 2 != 0);
+        if ((singleQuoteCount % 2 != 0) || (doubleQuoteCount % 2 != 0))
+            return true;
+
+        // Check for number being typed
+        var lastSignificant = tokens.LastOrDefault(t => t.Type != WqlTokenType.Whitespace);
+        if (lastSignificant != null && lastSignificant.Type == WqlTokenType.Number)
+        {
+            // If the text ends with a digit, treat as in value
+            if (text.Length > 0 && char.IsDigit(text[^1]))
+                return true;
+        }
+
+        return false;
     }
 }
