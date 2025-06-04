@@ -68,7 +68,7 @@ internal class QueryContext
             var context = new QueryContext();
 
             // Determine context based on tokens using WqlTokenizer methods
-            context.ContextType = DetermineContext(tokens);
+            context.ContextType = DetermineContext(tokens, text);
             context.ClassName = ExtractClassName(tokens);
             context.LastSignificantToken = FindLastSignificantToken(tokens);
 
@@ -91,7 +91,7 @@ internal class QueryContext
     /// Determines the current context based on the token sequence.
     /// Uses WqlTokenizer methods as the single source of truth.
     /// </summary>
-    private static ContextKind DetermineContext(List<WqlToken> tokens)
+    private static ContextKind DetermineContext(List<WqlToken> tokens, string text)
     {
         if (tokens.Count == 0)
             return ContextKind.StartQuery;
@@ -105,8 +105,8 @@ internal class QueryContext
         var lastToken = significantTokens.Last();
         int cursorPosition = tokens.Count;
 
-        // Check if cursor is inside a string literal
-        if (IsInsideStringLiteral(tokens))
+        // Check if cursor is inside a string literal FIRST, before any other context
+        if (IsInsideStringLiteral(text))
         {
             return ContextKind.InValue;
         }
@@ -219,75 +219,11 @@ internal class QueryContext
     /// <summary>
     /// Determines if the cursor is currently inside a string literal that hasn't been closed yet.
     /// </summary>
-    private static bool IsInsideStringLiteral(List<WqlToken> tokens)
+    private static bool IsInsideStringLiteral(string text)
     {
-        if (tokens.Count == 0)
-            return false;
-
-        // Get the last token that might be a string or part of a string expression
-        var lastSignificantTokens = tokens
-            .Where(t => t.Type != WqlTokenType.Whitespace)
-            .TakeLast(3) // Consider the last few tokens to catch string contexts
-            .ToList();
-
-        if (lastSignificantTokens.Count == 0)
-            return false;
-
-        // Check for Error token type which might indicate an unclosed string
-        var lastToken = lastSignificantTokens.LastOrDefault();
-        if (lastToken != null)
-        {
-            // Error tokens with a single quote character likely represent unclosed strings
-            if (lastToken.Text.Contains('\'') || lastToken.Text.Contains('"'))
-            {
-                return true;
-            }
-        }
-
-        // Check for string expression patterns like: property <operator> 'string
-        if (lastSignificantTokens.Count >= 3)
-        {
-            var operatorToken = lastSignificantTokens[lastSignificantTokens.Count - 2];
-            var stringToken = lastSignificantTokens[lastSignificantTokens.Count - 1];
-
-            if (WqlTokenizer.IsComparisonOperator(operatorToken.Text) &&
-                (stringToken.Text.StartsWith("'") || stringToken.Text.StartsWith("\"")))
-            {
-                // Check if the string doesn't have a closing quote
-                char startQuote = stringToken.Text[0];
-                if (stringToken.Text.Length == 1 || !stringToken.Text.EndsWith(startQuote.ToString()))
-                {
-                    return true;
-                }
-
-                // Count quotes to check for proper pairing
-                int quoteCount = stringToken.Text.Count(c => c == startQuote);
-                if (quoteCount % 2 != 0)
-                {
-                    return true;
-                }
-            }
-        }
-
-        // Count total quotes to check for unbalanced quotes
-        int singleQuoteCount = 0;
-        int doubleQuoteCount = 0;
-
-        foreach (var token in tokens)
-        {
-            string text = token.Text;
-
-            // Count quotes in all tokens, not just string type tokens
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (text[i] == '\'')
-                    singleQuoteCount++;
-                else if (text[i] == '"')
-                    doubleQuoteCount++;
-            }
-        }
-
-        // If we have an odd number of quotes, we're inside a string
+        // Count single and double quotes in the raw text
+        int singleQuoteCount = text.Count(c => c == '\'');
+        int doubleQuoteCount = text.Count(c => c == '"');
         return (singleQuoteCount % 2 != 0) || (doubleQuoteCount % 2 != 0);
     }
 }
