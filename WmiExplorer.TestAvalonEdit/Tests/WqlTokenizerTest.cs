@@ -42,7 +42,7 @@ public class WqlTokenizerTests
         var context = QueryContext.Analyze(document, testCase.Query.Length);
 
         // Assert context type matches expected
-        Assert.That(context?.ContextType, Is.EqualTo(testCase.ExpectedContextType), $"ContextType mismatch for query: [{testCase.Query}]");
+        Assert.That(context?.ContextType, Is.EqualTo(testCase.ExpectedContextType), $"ContextType mismatch for query: [{testCase.Query}], Context.LastTokenText: {context?.LastTokenText}, Context.LastSignificantTokenText: {context?.LastSignificantToken?.Text}, Context.ClassName: {context?.ClassName}");
     }
 
     public class TokenizerTestCase
@@ -52,7 +52,7 @@ public class WqlTokenizerTests
 
         public override string ToString()
         {
-            return $"Query: '{Query}', ExpectedContextType: {ExpectedContextType}";
+            return $"Query: [{Query}], ExpectedContextType: {ExpectedContextType}";
         }
     }
 }

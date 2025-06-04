@@ -23,61 +23,61 @@ public class WqlCompletionTests
         yield return new TestCaseData(
             "SELECT ",
             new[] { WqlKeywordManager.Star },
-            new[] { WqlKeywordManager.From, WqlKeywordManager.Where, WqlKeywordManager.Select }
+            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Star]).ToArray()
         ).SetName("SelectQuery_ShouldOfferAsteriskOnly");
 
         yield return new TestCaseData(
             "SELECT * ",
             new[] { WqlKeywordManager.From },
-            new[] { WqlKeywordManager.Where, WqlKeywordManager.Select }
+            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.From]).ToArray()
         ).SetName("SelectAsterisk_ShouldOfferFROMOnly");
 
         yield return new TestCaseData(
             "SELECT * FROM ",
             new[] { "Win32_Process", "Win32_OperatingSystem", "Win32_Service" },
-            new[] { WqlKeywordManager.Where }
+            WqlKeywordManager.AllKeywords.ToArray()
         ).SetName("SelectFrom_ShouldOfferClassListOnly");
 
         yield return new TestCaseData(
             "SELECT * FROM Win32_Process ",
             new[] { WqlKeywordManager.Where },
-            new[] { WqlKeywordManager.Select, WqlKeywordManager.From }
+            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Where]).ToArray()
         ).SetName("SelectFromClass_ShouldOfferWHEREOnly");
 
         yield return new TestCaseData(
             "SELECT * FROM Win32_Process WHERE ",
             new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
-            new[] { WqlKeywordManager.Select, WqlKeywordManager.From, WqlKeywordManager.Where }
+            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
         ).SetName("SelectWhere_ShouldOfferPropertiesAndNOTOperator");
 
         yield return new TestCaseData(
             "SELECT * FROM Win32_Process WHERE Name ",
             WqlKeywordManager.GetComparisonOperators().ToArray(),
-            new[] { WqlKeywordManager.Not, WqlKeywordManager.And, WqlKeywordManager.Or }
+            WqlKeywordManager.AllKeywords.Except(WqlKeywordManager.GetComparisonOperators()).ToArray()
         ).SetName("SelectWhereName_ShouldOfferComparisonOperators");
 
         yield return new TestCaseData(
             "SELECT * FROM Win32_Process WHERE Name = ",
             new string[0],
-            new[] { WqlKeywordManager.Not, WqlKeywordManager.And, WqlKeywordManager.Or, WqlKeywordManager.True, WqlKeywordManager.Null }
+            WqlKeywordManager.AllKeywords.ToArray()
         ).SetName("SelectWhereNameEquals_ShouldOfferNoCompletions");
 
         yield return new TestCaseData(
             "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' ",
             new[] { WqlKeywordManager.And, WqlKeywordManager.Or },
-            new[] { WqlKeywordManager.Not, WqlKeywordManager.True, WqlKeywordManager.Null }
+            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.And, WqlKeywordManager.Or]).ToArray()
         ).SetName("SelectWhereNameEqualsValue_ShouldOfferLogicalOperators");
 
         yield return new TestCaseData(
             "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ",
             new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
-            new[] { WqlKeywordManager.True, WqlKeywordManager.Null }
+            WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
         ).SetName("SelectWhereNameEqualsValueAnd_ShouldOfferPropertiesAndNOT");
 
         yield return new TestCaseData(
             "SELECT * FROM Win32_Process WHERE NOT ",
             new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine" },
-            new[] { WqlKeywordManager.Not }
+            WqlKeywordManager.AllKeywords.ToArray()
         ).SetName("SelectWhere_ShouldOfferPropertiesAfterNOT");
     }
 
