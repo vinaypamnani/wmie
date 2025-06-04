@@ -24,6 +24,8 @@ internal class QueryContext
         AfterLogicalOperator,     // After AND, OR - offer properties, NOT
         AfterNot,                 // After NOT - offer properties
         AfterCompleteCondition,   // After complete condition - offer AND, OR
+        AfterOpenParenthesis,     // After ( - inside condition
+        AfterCloseParenthesis,    // After ) - end of condition
         InValue,                  // Inside a value (e.g. string, number)
         SelectProps,              // After SELECT and comma, before FROM - offer property names
     }
@@ -97,7 +99,7 @@ internal class QueryContext
                 context.OperatorProperty = ExtractOperatorProperty(tokens);
             }
 
-            Debug.WriteLine($"[QueryContext] Context: {context.ContextType}, Class: '{context.ClassName}', LastTokenText: '{context.LastTokenText}', LastSignificantToken: '{context.LastSignificantToken?.Text}', OperatorProperty: '{context.OperatorProperty}'");
+            Debug.WriteLine($"[QueryContext] Context: {context.ContextType}, Class: '{context.ClassName}', LastTokenText: '{context.LastTokenText}', LastSignificantToken: '{context.LastSignificantToken?.Text}', LastSignificantTokenType: {context.LastSignificantToken?.Type}, OperatorProperty: '{context.OperatorProperty}'");
 
             return context;
         }
@@ -130,6 +132,18 @@ internal class QueryContext
         if (IsInValueInput(text, tokens))
         {
             return ContextKind.InValue;
+        }
+
+        // AfterOpenParenthesis
+        if (lastToken.Type == WqlTokenType.OpenParenthesis)
+        {
+            return ContextKind.AfterOpenParenthesis;
+        }
+
+        // AfterCloseParenthesis
+        if (lastToken.Type == WqlTokenType.CloseParenthesis)
+        {
+            return ContextKind.AfterCloseParenthesis;
         }
 
         // Use helper for SELECT ... , ... before FROM

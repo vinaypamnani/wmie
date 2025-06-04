@@ -23,6 +23,8 @@ internal class KeywordCompletionProvider : ICompletionProvider
             QueryContext.ContextKind.AfterNot => false, // Properties are handled by PropertyCompletionProvider
             QueryContext.ContextKind.AfterCompleteCondition => true,
             QueryContext.ContextKind.AfterLogicalOperator => true,
+            QueryContext.ContextKind.AfterOpenParenthesis => true,
+            QueryContext.ContextKind.AfterCloseParenthesis => true,
             _ => false
         };
     }
@@ -62,14 +64,17 @@ internal class KeywordCompletionProvider : ICompletionProvider
                     AddKeywords(completions, new[] { WqlKeywordManager.Where }, prefix);
                     break;
 
-                case QueryContext.ContextKind.AfterWhere:
-                case QueryContext.ContextKind.AfterLogicalOperator:
-                    if (!lastSignificantTokenText.Equals(WqlKeywordManager.Not, StringComparison.OrdinalIgnoreCase))
-                    {
-                        AddKeywords(completions, new[] { WqlKeywordManager.Not }, prefix);
-                    }
+                case QueryContext.ContextKind.AfterNot:
+                    // Do not provide keywords after NOT or OpenParenthesis, handled by PropertyCompletionProvider
                     break;
 
+                case QueryContext.ContextKind.AfterOpenParenthesis:
+                case QueryContext.ContextKind.AfterWhere:
+                case QueryContext.ContextKind.AfterLogicalOperator:
+                    AddKeywords(completions, new[] { WqlKeywordManager.Not }, prefix);
+                    break;
+
+                case QueryContext.ContextKind.AfterCloseParenthesis:
                 case QueryContext.ContextKind.AfterCompleteCondition:
                     // Offer logical operators after complete conditions
                     AddKeywords(completions, new[] { WqlKeywordManager.And, WqlKeywordManager.Or }, prefix);
