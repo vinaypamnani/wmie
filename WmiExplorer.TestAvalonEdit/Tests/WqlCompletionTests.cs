@@ -60,8 +60,8 @@ public class WqlCompletionTests
         {
             Query = "SELECT Name,  FROM Win32_Process ",
             CaretPosition = 13,
-            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine" },
-            UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
+            ExpectedCompletions = new[] { "ProcessId", "ExecutablePath", "CommandLine" },
+            UnexpectedCompletions = (new[] { "Name" }).Concat(WqlKeywordManager.AllKeywords).ToArray()
         };
 
         yield return new CompletionTestCase

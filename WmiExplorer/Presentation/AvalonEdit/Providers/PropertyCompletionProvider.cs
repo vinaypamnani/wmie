@@ -35,7 +35,7 @@ internal class PropertyCompletionProvider : ICompletionProvider
             cacheService != null &&
             !string.IsNullOrEmpty(namespacePath))
         {
-            await AddClassProperties(completions, cacheService, namespacePath, context.ClassName, prefix);
+            await AddClassProperties(completions, cacheService, namespacePath, context.ClassName, prefix, context);
         }
 
         return completions;
@@ -46,7 +46,8 @@ internal class PropertyCompletionProvider : ICompletionProvider
         ICacheService cacheService,
         string namespacePath,
         string className,
-        string prefix)
+        string prefix,
+        QueryContext? context = null)
     {
         try
         {
@@ -58,10 +59,16 @@ internal class PropertyCompletionProvider : ICompletionProvider
 
                 if (classCache?.Properties != null)
                 {
+                    // Exclude already selected properties if context is SelectProps
+                    var exclude = (context != null && context.ContextType == QueryContext.ContextKind.SelectProps)
+                        ? new HashSet<string>(context.SelectedProperties, StringComparer.OrdinalIgnoreCase)
+                        : null;
+
                     foreach (var property in classCache.Properties)
                     {
-                        if (string.IsNullOrEmpty(prefix) ||
-                            property.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                        if ((string.IsNullOrEmpty(prefix) ||
+                            property.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) &&
+                            (exclude == null || !exclude.Contains(property.Name)))
                         {
                             string formattedType = FormatPropertyType(property.Type);
                             string description = BuildPropertyDescription(property, formattedType);

@@ -49,6 +49,11 @@ internal class QueryContext
     public string LastTokenText { get; set; } = string.Empty;
 
     /// <summary>
+    /// The list of property names already selected in the SELECT clause (for SelectProps context)
+    /// </summary>
+    public List<string> SelectedProperties { get; set; } = new List<string>();
+
+    /// <summary>
     /// Analyzes the query context at the specified position in the document.
     /// Uses WqlTokenizer methods as the source of truth.
     /// </summary>
@@ -72,10 +77,14 @@ internal class QueryContext
             context.ContextType = DetermineContextKind(tokens, text);
             context.ClassName = ExtractClassName(document.Text); // Use full query text for class extraction
             context.LastSignificantToken = FindLastSignificantToken(tokens);
-
-            // Get partial input at cursor position for autocomplete
             int currentTokenIndex = WqlTokenizer.FindTokenAtPosition(tokens, caretOffset - 1);
             context.LastTokenText = WqlTokenizer.GetPartialInput(tokens, currentTokenIndex);
+
+            // Track selected properties if in SelectProps context
+            if (context.ContextType == ContextKind.SelectProps)
+            {
+                context.SelectedProperties = ExtractSelectedProperties(tokens);
+            }
 
             Debug.WriteLine($"[QueryContext] Context: {context.ContextType}, Class: '{context.ClassName}', LastTokenText: '{context.LastTokenText}', LastSignificantToken: '{context.LastSignificantToken?.Text}'");
 
@@ -209,6 +218,29 @@ internal class QueryContext
             return className ?? string.Empty;
         }
         return string.Empty;
+    }
+
+    /// <summary>
+    /// Extracts property names from the SELECT clause up to FROM.
+    /// </summary>
+    private static List<string> ExtractSelectedProperties(List<WqlToken> tokens)
+    {
+        var properties = new List<string>();
+        int selectIndex = WqlTokenizer.FindKeywordIndex(tokens, "SELECT");
+        int fromIndex = WqlTokenizer.FindKeywordIndex(tokens, "FROM");
+        if (selectIndex >= 0)
+        {
+            int end = fromIndex > selectIndex ? fromIndex : tokens.Count;
+            for (int i = selectIndex + 1; i < end; i++)
+            {
+                var token = tokens[i];
+                if (token.Type == WqlTokenType.Identifier)
+                {
+                    properties.Add(token.Text);
+                }
+            }
+        }
+        return properties;
     }
 
     /// <summary>
