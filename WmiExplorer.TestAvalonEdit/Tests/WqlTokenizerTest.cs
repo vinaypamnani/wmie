@@ -37,6 +37,8 @@ public class WqlTokenizerTests
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name <> 'xy", ExpectedContextType = QueryContext.ContextKind.InValue };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE ProcessId > 1234", ExpectedContextType = QueryContext.ContextKind.InValue };
         yield return new TokenizerTestCase { Query = "SELECT Name, ProcessId FROM Win32_Process WHERE Name = 'notepad.exe' ", ExpectedContextType = QueryContext.ContextKind.AfterCompleteCondition };
+        yield return new TokenizerTestCase { Query = "SELECT Name, ProcessId FROM Win32_Process WHERE ( ", ExpectedContextType = QueryContext.ContextKind.AfterOpenParenthesis };
+        yield return new TokenizerTestCase { Query = "SELECT Name, ProcessId FROM Win32_Process WHERE (Name = 'notepad.exe') ", ExpectedContextType = QueryContext.ContextKind.AfterCloseParenthesis };
     }
 
     [Test, TestCaseSource(nameof(TokenizerTestCases))]

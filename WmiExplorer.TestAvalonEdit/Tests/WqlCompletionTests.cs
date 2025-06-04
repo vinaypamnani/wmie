@@ -136,6 +136,20 @@ public class WqlCompletionTests
             ExpectedCompletions = new[] { WqlKeywordManager.True, WqlKeywordManager.False },
             UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.True, WqlKeywordManager.False]).ToArray()
         };
+
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ( ",
+            ExpectedCompletions = win32ProcessProperties.Concat(new[] { WqlKeywordManager.Not }).ToArray(),
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
+        };
+
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE (Name = 'notepad.exe') ",
+            ExpectedCompletions = new[] { WqlKeywordManager.And, WqlKeywordManager.Or },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.And, WqlKeywordManager.Or]).ToArray()
+        };
     }
 
     [SetUp]
