@@ -14,6 +14,8 @@ public class WqlTokenizerTests
         yield return new TokenizerTestCase { Query = "SELECT * ", ExpectedContextType = QueryContext.ContextKind.AfterStar };
         yield return new TokenizerTestCase { Query = "SELECT * FROM ", ExpectedContextType = QueryContext.ContextKind.AfterFrom };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process ", ExpectedContextType = QueryContext.ContextKind.AfterClass };
+        yield return new TokenizerTestCase { Query = "SELECT  FROM Win32_Process ", CaretPosition = 7, ExpectedContextType = QueryContext.ContextKind.AfterSelect };
+        yield return new TokenizerTestCase { Query = "SELECT Name,  FROM Win32_Process ", CaretPosition = 13, ExpectedContextType = QueryContext.ContextKind.SelectProps };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE ", ExpectedContextType = QueryContext.ContextKind.AfterWhere };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name ", ExpectedContextType = QueryContext.ContextKind.AfterProperty };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = ", ExpectedContextType = QueryContext.ContextKind.AfterOperator };
@@ -41,10 +43,15 @@ public class WqlTokenizerTests
     {
         // Test context analysis
         var document = new TextDocument(testCase.Query);
-        var context = QueryContext.Analyze(document, testCase.Query.Length);
+
+        // Use specified caret position or default to end of query
+        int caretPosition = testCase.CaretPosition ?? testCase.Query.Length;
+
+        var context = QueryContext.Analyze(document, caretPosition);
 
         // Assert context type matches expected
-        Assert.That(context?.ContextType, Is.EqualTo(testCase.ExpectedContextType), $"ContextType mismatch for query: [{testCase.Query}], Context.LastTokenText: {context?.LastTokenText}, Context.LastSignificantTokenText: {context?.LastSignificantToken?.Text}, Context.ClassName: {context?.ClassName}");
+        Assert.That(context?.ContextType, Is.EqualTo(testCase.ExpectedContextType),
+            $"ContextType mismatch for query: [{testCase.Query}], Context.LastTokenText: {context?.LastTokenText}, Context.LastSignificantTokenText: {context?.LastSignificantToken?.Text}, Context.ClassName: {context?.ClassName}");
     }
 
     public class TokenizerTestCase
@@ -52,9 +59,14 @@ public class WqlTokenizerTests
         public string Query { get; set; } = string.Empty;
         internal QueryContext.ContextKind ExpectedContextType { get; set; }
 
+        /// <summary>
+        /// Optional caret position for context analysis. If not set, defaults to end of query.
+        /// </summary>
+        public int? CaretPosition { get; set; }
+
         public override string ToString()
         {
-            return $"Query: [{Query}], ExpectedContextType: {ExpectedContextType}";
+            return $"Query: [{Query}], ExpectedContextType: {ExpectedContextType}, CaretPosition: {CaretPosition}";
         }
     }
 }
