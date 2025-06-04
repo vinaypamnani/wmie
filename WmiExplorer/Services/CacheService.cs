@@ -1,6 +1,5 @@
 using Microsoft.Data.Sqlite;
 using System.IO;
-using System.Management;
 using WmiExplorer.Core.Cache;
 
 namespace WmiExplorer.Services;
@@ -101,64 +100,80 @@ public class CacheService : ICacheService
             }
 
             var result = new Dictionary<string, WmiNamespaceCache>(StringComparer.OrdinalIgnoreCase);
-            using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
+            await using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
             await conn.OpenAsync().ConfigureAwait(false);
+
             // Load namespaces
-            using (var nsCmd = conn.CreateCommand())
+            await using var nsCmd = conn.CreateCommand();
+            nsCmd.CommandText = "SELECT NamespaceId, NamespacePath, LastUpdatedUtc FROM Namespaces";
+            await using var reader = await nsCmd.ExecuteReaderAsync().ConfigureAwait(false);
+
+            var namespacesData = new List<(int nsId, string nsPath, DateTime lastUpdated)>();
+            while (await reader.ReadAsync().ConfigureAwait(false))
             {
-                nsCmd.CommandText = "SELECT NamespaceId, NamespacePath, LastUpdatedUtc FROM Namespaces";
-                using var reader = await nsCmd.ExecuteReaderAsync().ConfigureAwait(false);
-                while (await reader.ReadAsync().ConfigureAwait(false))
-                {
-                    var nsId = reader.GetInt32(0);
-                    var nsPath = reader.GetString(1);
-                    var lastUpdated = DateTime.Parse(reader.GetString(2));
-                    var nsCache = new WmiNamespaceCache
-                    {
-                        NamespacePath = nsPath,
-                        LastUpdatedUtc = lastUpdated,
-                        Classes = new List<WmiClassCache>()
-                    };
-                    // Load classes for this namespace
-                    using (var classCmd = conn.CreateCommand())
-                    {
-                        classCmd.CommandText = "SELECT ClassId, ClassName, IsSystemClass, IsEventClass FROM Classes WHERE NamespaceId = @nsId";
-                        classCmd.Parameters.AddWithValue("@nsId", nsId);
-                        using var classReader = await classCmd.ExecuteReaderAsync().ConfigureAwait(false);
-                        while (await classReader.ReadAsync().ConfigureAwait(false))
-                        {
-                            var classId = classReader.GetInt32(0);
-                            var className = classReader.GetString(1);
-                            var isSystem = classReader.GetInt32(2) != 0;
-                            var isEvent = classReader.GetInt32(3) != 0;
-                            var classCache = new WmiClassCache
-                            {
-                                ClassName = className,
-                                IsSystemClass = isSystem,
-                                IsEventClass = isEvent,
-                                Properties = new List<WmiPropertyCache>()
-                            };
-                            // Load properties for this class
-                            using (var propCmd = conn.CreateCommand())
-                            {
-                                propCmd.CommandText = "SELECT PropertyName, PropertyType FROM ClassProperties WHERE ClassId = @classId";
-                                propCmd.Parameters.AddWithValue("@classId", classId);
-                                using var propReader = await propCmd.ExecuteReaderAsync().ConfigureAwait(false);
-                                while (await propReader.ReadAsync().ConfigureAwait(false))
-                                {
-                                    classCache.Properties.Add(new WmiPropertyCache
-                                    {
-                                        Name = propReader.GetString(0),
-                                        Type = propReader.GetString(1)
-                                    });
-                                }
-                            }
-                            nsCache.Classes.Add(classCache);
-                        }
-                    }
-                    result[nsCache.NamespacePath] = nsCache;
-                }
+                var nsId = reader.GetInt32(0);
+                var nsPath = reader.GetString(1);
+                var lastUpdated = DateTime.Parse(reader.GetString(2));
+                namespacesData.Add((nsId, nsPath, lastUpdated));
             }
+            await reader.CloseAsync().ConfigureAwait(false);
+
+            // Process each namespace
+            foreach (var (nsId, nsPath, lastUpdated) in namespacesData)
+            {
+                var nsCache = new WmiNamespaceCache
+                {
+                    NamespacePath = nsPath,
+                    LastUpdatedUtc = lastUpdated,
+                    Classes = new List<WmiClassCache>()
+                };
+
+                // Load classes for this namespace
+                await using var classCmd = conn.CreateCommand();
+                classCmd.CommandText = "SELECT ClassId, ClassName, IsSystemClass, IsEventClass FROM Classes WHERE NamespaceId = @nsId";
+                classCmd.Parameters.AddWithValue("@nsId", nsId);
+                await using var classReader = await classCmd.ExecuteReaderAsync().ConfigureAwait(false);
+
+                var classesData = new List<(int classId, string className, bool isSystem, bool isEvent)>();
+                while (await classReader.ReadAsync().ConfigureAwait(false))
+                {
+                    var classId = classReader.GetInt32(0);
+                    var className = classReader.GetString(1);
+                    var isSystem = classReader.GetInt32(2) != 0;
+                    var isEvent = classReader.GetInt32(3) != 0;
+                    classesData.Add((classId, className, isSystem, isEvent));
+                }
+                await classReader.CloseAsync().ConfigureAwait(false);
+
+                // Process each class
+                foreach (var (classId, className, isSystem, isEvent) in classesData)
+                {
+                    var classCache = new WmiClassCache
+                    {
+                        ClassName = className,
+                        IsSystemClass = isSystem,
+                        IsEventClass = isEvent,
+                        Properties = new List<WmiPropertyCache>()
+                    };
+
+                    // Load properties for this class
+                    await using var propCmd = conn.CreateCommand();
+                    propCmd.CommandText = "SELECT PropertyName, PropertyType FROM ClassProperties WHERE ClassId = @classId";
+                    propCmd.Parameters.AddWithValue("@classId", classId);
+                    await using var propReader = await propCmd.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await propReader.ReadAsync().ConfigureAwait(false))
+                    {
+                        classCache.Properties.Add(new WmiPropertyCache
+                        {
+                            Name = propReader.GetString(0),
+                            Type = propReader.GetString(1)
+                        });
+                    }
+                    nsCache.Classes.Add(classCache);
+                }
+                result[nsCache.NamespacePath] = nsCache;
+            }
+
             lock (_lock) { _memoryCache = result; }
             return result.Values.ToList();
         }
@@ -174,9 +189,9 @@ public class CacheService : ICacheService
     {
         try
         {
-            using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
+            await using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
             await conn.OpenAsync().ConfigureAwait(false);
-            using var tx = conn.BeginTransaction();
+            await using var tx = await conn.BeginTransactionAsync().ConfigureAwait(false);
 
             // Upsert namespace and get its ID
             long nsId = await UpsertNamespaceAsync(conn, namespaceCache);
@@ -199,7 +214,7 @@ public class CacheService : ICacheService
                 }
             }
 
-            tx.Commit();
+            await tx.CommitAsync().ConfigureAwait(false);
 
             // Update in-memory cache efficiently
             lock (_lock)
@@ -272,32 +287,29 @@ public class CacheService : ICacheService
 
         try
         {
-            // Only open the connection to check the schema version, not before
             conn = new SqliteConnection($"Data Source={CacheFilePath}");
             conn.Open();
 
-            using (var cmd = conn.CreateCommand())
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='SchemaVersion'";
+            var exists = cmd.ExecuteScalar() != null;
+
+            int dbVersion = 0;
+            if (exists)
             {
-                cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='SchemaVersion'";
-                var exists = cmd.ExecuteScalar() != null;
+                cmd.CommandText = "SELECT Version FROM SchemaVersion";
+                var result = cmd.ExecuteScalar();
+                dbVersion = result != null ? Convert.ToInt32(result) : 0;
+            }
 
-                int dbVersion = 0;
-                if (exists)
-                {
-                    cmd.CommandText = "SELECT Version FROM SchemaVersion";
-                    var result = cmd.ExecuteScalar();
-                    dbVersion = result != null ? Convert.ToInt32(result) : 0;
-                }
-
-                if (!exists || dbVersion != CurrentSchemaVersion)
-                {
-                    recreate = true;
-                    System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version mismatch: expected {CurrentSchemaVersion}, found {dbVersion}. Recreating database.");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version is up-to-date: {dbVersion}.");
-                }
+            if (!exists || dbVersion != CurrentSchemaVersion)
+            {
+                recreate = true;
+                System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version mismatch: expected {CurrentSchemaVersion}, found {dbVersion}. Recreating database.");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version is up-to-date: {dbVersion}.");
             }
         }
         catch
@@ -306,14 +318,11 @@ public class CacheService : ICacheService
         }
         finally
         {
-            // Ensure we close the connection if it was opened
             conn?.Close();
             if (conn != null)
             {
-                SqliteConnection.ClearPool(conn); // Ensure all pooled connections are released
+                SqliteConnection.ClearPool(conn);
             }
-
-            // Dispose the connection to release any resources
             conn?.Dispose();
         }
 
@@ -375,19 +384,19 @@ public class CacheService : ICacheService
     {
         try
         {
-            using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
+            await using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
             await conn.OpenAsync().ConfigureAwait(false);
 
             // Select expired namespace IDs and paths together
             var expiredNamespaces = new Dictionary<long, string>();
-            using (var selectCmd = conn.CreateCommand())
+            await using (var selectCmd = conn.CreateCommand())
             {
                 selectCmd.CommandText = @"
                 SELECT NamespaceId, NamespacePath FROM Namespaces
                 WHERE datetime(LastUpdatedUtc) < datetime('now', @expiration)";
                 selectCmd.Parameters.AddWithValue("@expiration", $"-{Expiration.TotalDays} days");
 
-                using var reader = await selectCmd.ExecuteReaderAsync().ConfigureAwait(false);
+                await using var reader = await selectCmd.ExecuteReaderAsync().ConfigureAwait(false);
                 while (await reader.ReadAsync().ConfigureAwait(false))
                 {
                     var nsId = reader.GetInt64(0);
@@ -400,12 +409,12 @@ public class CacheService : ICacheService
                 return; // Nothing to do
 
             // Now delete the data with a transaction
-            using var tx = conn.BeginTransaction();
+            await using var tx = await conn.BeginTransactionAsync().ConfigureAwait(false);
 
             foreach (var nsId in expiredNamespaces.Keys)
             {
                 // Delete properties for all classes in this namespace
-                using (var delPropCmd = conn.CreateCommand())
+                await using (var delPropCmd = conn.CreateCommand())
                 {
                     delPropCmd.CommandText = @"
                     DELETE FROM ClassProperties WHERE ClassId IN
@@ -415,7 +424,7 @@ public class CacheService : ICacheService
                 }
 
                 // Delete classes for this namespace
-                using (var delClassCmd = conn.CreateCommand())
+                await using (var delClassCmd = conn.CreateCommand())
                 {
                     delClassCmd.CommandText = "DELETE FROM Classes WHERE NamespaceId = @nsId";
                     delClassCmd.Parameters.AddWithValue("@nsId", nsId);
@@ -423,7 +432,7 @@ public class CacheService : ICacheService
                 }
 
                 // Delete the namespace itself
-                using (var delNsCmd = conn.CreateCommand())
+                await using (var delNsCmd = conn.CreateCommand())
                 {
                     delNsCmd.CommandText = "DELETE FROM Namespaces WHERE NamespaceId = @nsId";
                     delNsCmd.Parameters.AddWithValue("@nsId", nsId);
@@ -431,7 +440,7 @@ public class CacheService : ICacheService
                 }
             }
 
-            tx.Commit();
+            await tx.CommitAsync().ConfigureAwait(false);
 
             // Now update the in-memory cache with the paths we saved earlier
             bool removed = false;
@@ -452,7 +461,7 @@ public class CacheService : ICacheService
             {
                 try
                 {
-                    using var vacuumCmd = conn.CreateCommand();
+                    await using var vacuumCmd = conn.CreateCommand();
                     vacuumCmd.CommandText = "VACUUM;";
                     await vacuumCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
@@ -495,14 +504,14 @@ public class CacheService : ICacheService
         var classNameList = classNames.ToList();
         if (classNameList.Count == 0)
         {
-            using var delCmd = conn.CreateCommand();
+            await using var delCmd = conn.CreateCommand();
             delCmd.CommandText = "DELETE FROM Classes WHERE NamespaceId = @nsId";
             delCmd.Parameters.AddWithValue("@nsId", nsId);
             await delCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             return;
         }
 
-        using var delClassCmd = conn.CreateCommand();
+        await using var delClassCmd = conn.CreateCommand();
         delClassCmd.CommandText = $"DELETE FROM Classes WHERE NamespaceId = @nsId AND ClassName NOT IN ({string.Join(",", classNameList.Select((_, i) => $"@cn{i}"))})";
         delClassCmd.Parameters.AddWithValue("@nsId", nsId);
         for (int i = 0; i < classNameList.Count; i++)
@@ -518,14 +527,14 @@ public class CacheService : ICacheService
         var propNameList = propertyNames.ToList();
         if (propNameList.Count == 0)
         {
-            using var delCmd = conn.CreateCommand();
+            await using var delCmd = conn.CreateCommand();
             delCmd.CommandText = "DELETE FROM ClassProperties WHERE ClassId = @classId";
             delCmd.Parameters.AddWithValue("@classId", classId);
             await delCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             return;
         }
 
-        using var delPropCmd = conn.CreateCommand();
+        await using var delPropCmd = conn.CreateCommand();
         delPropCmd.CommandText = $"DELETE FROM ClassProperties WHERE ClassId = @classId AND PropertyName NOT IN ({string.Join(",", propNameList.Select((_, i) => $"@pn{i}"))})";
         delPropCmd.Parameters.AddWithValue("@classId", classId);
         for (int i = 0; i < propNameList.Count; i++)
@@ -539,7 +548,7 @@ public class CacheService : ICacheService
     private static async Task<long> UpsertClassAsync(SqliteConnection conn, long nsId, WmiClassCache classCache)
     {
         // Try update first
-        using (var updateCmd = conn.CreateCommand())
+        await using (var updateCmd = conn.CreateCommand())
         {
             updateCmd.CommandText = @"UPDATE Classes SET IsSystemClass = @sys, IsEventClass = @evt
                                       WHERE NamespaceId = @nsId AND ClassName = @cn";
@@ -552,7 +561,7 @@ public class CacheService : ICacheService
             if (rows > 0)
             {
                 // Get ClassId
-                using var getCmd = conn.CreateCommand();
+                await using var getCmd = conn.CreateCommand();
                 getCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
                 getCmd.Parameters.AddWithValue("@nsId", nsId);
                 getCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
@@ -561,19 +570,17 @@ public class CacheService : ICacheService
         }
 
         // Insert if not exists
-        using (var insCmd = conn.CreateCommand())
-        {
-            insCmd.CommandText = @"INSERT INTO Classes (NamespaceId, ClassName, IsSystemClass, IsEventClass)
-                                   VALUES (@nsId, @cn, @sys, @evt);";
-            insCmd.Parameters.AddWithValue("@nsId", nsId);
-            insCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
-            insCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
-            insCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
-            await insCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+        await using var insCmd = conn.CreateCommand();
+        insCmd.CommandText = @"INSERT INTO Classes (NamespaceId, ClassName, IsSystemClass, IsEventClass)
+                               VALUES (@nsId, @cn, @sys, @evt);";
+        insCmd.Parameters.AddWithValue("@nsId", nsId);
+        insCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
+        insCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
+        insCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
+        await insCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
-            insCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
-            return (long)(await insCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
-        }
+        insCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
+        return (long)(await insCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -581,7 +588,7 @@ public class CacheService : ICacheService
     /// </summary>
     private static async Task<long> UpsertNamespaceAsync(SqliteConnection conn, WmiNamespaceCache namespaceCache)
     {
-        using var nsCmd = conn.CreateCommand();
+        await using var nsCmd = conn.CreateCommand();
         nsCmd.CommandText = @"INSERT INTO Namespaces (NamespacePath, LastUpdatedUtc) VALUES (@ns, @dt)
                               ON CONFLICT(NamespacePath) DO UPDATE SET LastUpdatedUtc = excluded.LastUpdatedUtc;";
         nsCmd.Parameters.AddWithValue("@ns", namespaceCache.NamespacePath);
@@ -598,7 +605,7 @@ public class CacheService : ICacheService
     private static async Task UpsertPropertyAsync(SqliteConnection conn, long classId, WmiPropertyCache prop)
     {
         // Try update first
-        using (var updateCmd = conn.CreateCommand())
+        await using (var updateCmd = conn.CreateCommand())
         {
             updateCmd.CommandText = @"UPDATE ClassProperties SET PropertyType = @pt
                                       WHERE ClassId = @classId AND PropertyName = @pn";
@@ -612,7 +619,7 @@ public class CacheService : ICacheService
         }
 
         // Insert if not exists
-        using var insCmd = conn.CreateCommand();
+        await using var insCmd = conn.CreateCommand();
         insCmd.CommandText = @"INSERT INTO ClassProperties (ClassId, PropertyName, PropertyType)
                                VALUES (@classId, @pn, @pt)";
         insCmd.Parameters.AddWithValue("@classId", classId);
