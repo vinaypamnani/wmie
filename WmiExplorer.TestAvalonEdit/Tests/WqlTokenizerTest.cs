@@ -49,5 +49,10 @@ public class WqlTokenizerTests
     {
         public string Query { get; set; } = string.Empty;
         internal QueryContext.ContextKind ExpectedContextType { get; set; }
+
+        public override string ToString()
+        {
+            return $"Query: '{Query}', ExpectedContextType: {ExpectedContextType}";
+        }
     }
 }
