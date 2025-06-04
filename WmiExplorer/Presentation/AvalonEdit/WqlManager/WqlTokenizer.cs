@@ -207,7 +207,7 @@ internal class WqlTokenizer
             var lastFour = significantTokens.TakeLast(4).ToList();
             if (lastFour.Count == 4 &&
                 IsPropertyToken(lastFour[0]) &&
-                lastFour[1].Type == WqlTokenType.Keyword && lastFour[1].Text.Equals("IS", StringComparison.OrdinalIgnoreCase) &&
+                lastFour[1].Type == WqlTokenType.Operator && lastFour[1].Text.Equals("IS", StringComparison.OrdinalIgnoreCase) &&
                 lastFour[2].Type == WqlTokenType.Keyword && lastFour[2].Text.Equals("NOT", StringComparison.OrdinalIgnoreCase) &&
                 lastFour[3].Type == WqlTokenType.Keyword && lastFour[3].Text.Equals("NULL", StringComparison.OrdinalIgnoreCase))
             {
@@ -225,7 +225,7 @@ internal class WqlTokenizer
         // Special handling for IS NULL pattern
         if (!isComplete &&
             IsPropertyToken(property) &&
-            op.Type == WqlTokenType.Keyword &&
+            op.Type == WqlTokenType.Operator &&
             op.Text.Equals("IS", StringComparison.OrdinalIgnoreCase) &&
             value.Type == WqlTokenType.Keyword &&
             value.Text.Equals("NULL", StringComparison.OrdinalIgnoreCase))
@@ -418,8 +418,41 @@ internal class WqlTokenizer
     private static bool IsMultiCharOperator(string op) =>
         op == "<=" || op == ">=" || op == "!=" || op == "<>";
 
-    private static bool IsOperatorStart(char c) =>
-        c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || c == '-';
+    private static bool IsOperatorStart(char c)
+    {
+        // Check if any comparison operator starts with the given character
+        return WqlKeywordManager.ComparisonOperators.Any(op => op.Length > 0 && op[0] == c);
+    }
+
+    private WqlToken ReadOperator(int startPosition)
+    {
+        _tokenBuffer.Clear();
+
+        // Try to match the longest possible operator from the current position
+        string? matchedOperator = null;
+        int maxLength = 0;
+        foreach (var op in WqlKeywordManager.ComparisonOperators.OrderByDescending(o => o.Length))
+        {
+            if (_position + op.Length <= _text.Length &&
+                string.Compare(_text, _position, op, 0, op.Length, StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                matchedOperator = op;
+                maxLength = op.Length;
+                break;
+            }
+        }
+
+        if (matchedOperator != null)
+        {
+            _position += maxLength;
+            return new WqlToken(WqlTokenType.Operator, matchedOperator, startPosition);
+        }
+
+        // Fallback: treat as single character unknown operator
+        char opChar = _text[_position];
+        _position++;
+        return new WqlToken(WqlTokenType.Unknown, opChar.ToString(), startPosition);
+    }
 
     private WqlToken ReadIdentifierOrKeyword(int startPosition)
     {
@@ -452,27 +485,6 @@ internal class WqlTokenizer
         }
 
         return new WqlToken(WqlTokenType.Number, _tokenBuffer.ToString(), startPosition);
-    }
-
-    private WqlToken ReadOperator(int startPosition)
-    {
-        _tokenBuffer.Clear();
-
-        // Handle multi-character operators
-        if (_position + 1 < _text.Length)
-        {
-            string twoChar = _text.Substring(_position, 2);
-            if (IsMultiCharOperator(twoChar))
-            {
-                _position += 2;
-                return new WqlToken(WqlTokenType.Operator, twoChar, startPosition);
-            }
-        }
-
-        // Single character operator
-        char opChar = _text[_position];
-        _position++;
-        return new WqlToken(WqlTokenType.Operator, opChar.ToString(), startPosition);
     }
 
     private WqlToken ReadQuotedString(char quoteChar, int startPosition)

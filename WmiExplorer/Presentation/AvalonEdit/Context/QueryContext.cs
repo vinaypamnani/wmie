@@ -164,10 +164,6 @@ internal class QueryContext
                 case "NOT": return ContextKind.AfterNot;
                 case "AND":
                 case "OR": return ContextKind.AfterLogicalOperator;
-                case "LIKE":
-                case "IS":
-                    // Special case for comparison operator keywords
-                    return ContextKind.AfterOperator;
             }
         }
 
