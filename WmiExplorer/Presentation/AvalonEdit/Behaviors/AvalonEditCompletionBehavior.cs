@@ -41,7 +41,6 @@ public static class AvalonEditCompletionBehavior
     private static readonly List<ICompletionProvider> CompletionProviders = new()
     {
         new KeywordCompletionProvider(),
-        new OperatorCompletionProvider(),
         new ClassCompletionProvider(),
         new PropertyCompletionProvider(),
         new ValueCompletionProvider()

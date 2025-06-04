@@ -13,6 +13,7 @@ internal class KeywordCompletionProvider : ICompletionProvider
 {
     public bool CanProvideCompletion(QueryContext context)
     {
+        // Add support for operator completions after property names
         return context.ContextType switch
         {
             QueryContext.ContextKind.StartQuery => true,
@@ -20,11 +21,11 @@ internal class KeywordCompletionProvider : ICompletionProvider
             QueryContext.ContextKind.AfterStar => true,
             QueryContext.ContextKind.AfterClass => true,
             QueryContext.ContextKind.AfterWhere => true,
-            QueryContext.ContextKind.AfterNot => false, // Properties are handled by PropertyCompletionProvider
             QueryContext.ContextKind.AfterCompleteCondition => true,
             QueryContext.ContextKind.AfterLogicalOperator => true,
             QueryContext.ContextKind.AfterOpenParenthesis => true,
             QueryContext.ContextKind.AfterCloseParenthesis => true,
+            QueryContext.ContextKind.AfterProperty => true, // merged: provide operators after property
             _ => false
         };
     }
@@ -64,10 +65,6 @@ internal class KeywordCompletionProvider : ICompletionProvider
                     AddKeywords(completions, new[] { WqlKeywordManager.Where }, prefix);
                     break;
 
-                case QueryContext.ContextKind.AfterNot:
-                    // Do not provide keywords after NOT or OpenParenthesis, handled by PropertyCompletionProvider
-                    break;
-
                 case QueryContext.ContextKind.AfterOpenParenthesis:
                 case QueryContext.ContextKind.AfterWhere:
                 case QueryContext.ContextKind.AfterLogicalOperator:
@@ -79,12 +76,20 @@ internal class KeywordCompletionProvider : ICompletionProvider
                     // Offer logical operators after complete conditions
                     AddKeywords(completions, new[] { WqlKeywordManager.And, WqlKeywordManager.Or }, prefix);
                     break;
+
+                case QueryContext.ContextKind.AfterProperty:
+                    // Provide operator completions after property names
+                    AddComparisonOperators(completions, prefix);
+                    break;
             }
 
             return completions;
         });
     }
 
+    /// <summary>
+    /// Adds keyword completions to the list, with type and description.
+    /// </summary>
     private void AddKeywords(List<ICompletionData> completions, IEnumerable<string> keywords, string prefix)
     {
         foreach (var keyword in keywords)
@@ -94,18 +99,79 @@ internal class KeywordCompletionProvider : ICompletionProvider
                 continue;
 
             var info = WqlKeywordManager.GetKeywordInfo(keyword);
-            bool isOperator = info?.IsOperator ?? false;
+            bool isComparisonOperator = info?.IsComparison ?? false;
+            bool isLogicalOperator = info?.IsLogical ?? false;
 
+            // Handle special case for '*'
             if (keyword.Equals(WqlKeywordManager.Star, StringComparison.OrdinalIgnoreCase))
             {
-                completions.Add(new WqlCompletionData(keyword, CompletionType.Special, $"Select all: {keyword}"));
+                completions.Add(new WqlCompletionData(keyword, CompletionType.Special, $"Select all properties: {keyword}"));
                 continue;
             }
 
+            if (isComparisonOperator)
+            {
+                completions.Add(new WqlCompletionData(
+                    keyword,
+                    CompletionType.ComparisonOperator,
+                    GetOperatorDescription(keyword)));
+                continue;
+            }
+
+            if (isLogicalOperator)
+            {
+                completions.Add(new WqlCompletionData(
+                    keyword,
+                    CompletionType.LogicalOperator,
+                    $"Logical Operator: {keyword}"));
+                continue;
+            }
+
+            // Default to keyword
             completions.Add(new WqlCompletionData(
                 keyword,
-                isOperator ? CompletionType.Operator : CompletionType.Keyword,
-                isOperator ? $"Operator: {keyword}" : $"Keyword: {keyword}"));
+                CompletionType.Keyword,
+                $"Keyword: {keyword}"));
         }
+    }
+
+    /// <summary>
+    /// Adds operator completions (=, <, >, LIKE, IS, etc.) to the list.
+    /// </summary>
+    private static void AddComparisonOperators(List<ICompletionData> completions, string prefix)
+    {
+        // Add comparison operators
+        foreach (var op in WqlKeywordManager.GetComparisonOperators())
+        {
+            if (string.IsNullOrEmpty(prefix) ||
+                op.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                string description = GetOperatorDescription(op);
+                completions.Add(new WqlCompletionData(
+                    op,
+                    CompletionType.ComparisonOperator,
+                    description));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns a user-friendly description for a WQL operator.
+    /// </summary>
+    private static string GetOperatorDescription(string op)
+    {
+        return op switch
+        {
+            "=" => "Equals operator",
+            "<" => "Less than operator",
+            ">" => "Greater than operator",
+            "<=" => "Less than or equal operator",
+            ">=" => "Greater than or equal operator",
+            "!=" => "Not equal operator",
+            "<>" => "Not equal operator",
+            "IS" => "IS operator (for NULL checks)",
+            "LIKE" => "LIKE operator (pattern matching)",
+            _ => $"Operator: {op}"
+        };
     }
 }

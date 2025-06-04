@@ -19,6 +19,7 @@ public class WqlCompletionData : ICompletionData
     private static ImageSource? ClassIcon;
     private static readonly object IconLock = new object();
     private static ImageSource? KeywordIcon;
+    private static ImageSource? LogicalOperatorIcon;
     private static ImageSource? OperatorIcon;
     private static ImageSource? PropertyIcon;
     private static ImageSource? SpecialIcon;
@@ -104,7 +105,8 @@ public class WqlCompletionData : ICompletionData
                 CompletionType.Property => PropertyIcon,
                 CompletionType.Class => ClassIcon,
                 CompletionType.Special => SpecialIcon,
-                CompletionType.Operator => OperatorIcon,
+                CompletionType.ComparisonOperator => OperatorIcon,
+                CompletionType.LogicalOperator => LogicalOperatorIcon,
                 _ => null
             };
         }
@@ -114,7 +116,8 @@ public class WqlCompletionData : ICompletionData
     {
         CompletionType.Special => 100,  // Special items like * should appear first
         CompletionType.Keyword => 90,    // Then keywords
-        CompletionType.Operator => 80,   // Then operators
+        CompletionType.LogicalOperator => 80, // Then logical operators
+        CompletionType.ComparisonOperator => 70,   // Then operators
         CompletionType.Class => 40,      // Then classes
         CompletionType.Property => 20,   // Then Properties
         _ => 0
@@ -182,9 +185,10 @@ public class WqlCompletionData : ICompletionData
         ClassIcon = fallbackIcon;
         SpecialIcon = fallbackIcon;
         OperatorIcon = fallbackIcon;
+        LogicalOperatorIcon = fallbackIcon;
     }
 
-    private static ImageSource CreateIconDrawing(string text, Brush brush)
+    private static ImageSource CreateIconDrawing(string text, Brush brush, SolidColorBrush foreground)
     {
         var drawing = new DrawingGroup();
         using (var context = drawing.Open())
@@ -201,7 +205,7 @@ public class WqlCompletionData : ICompletionData
                 FlowDirection.LeftToRight,
                 new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal),
                 11,
-                Brushes.White,
+                foreground,
                 VisualTreeHelper.GetDpi(new System.Windows.Controls.Image()).PixelsPerDip);
 
             // Center the text in the icon
@@ -258,19 +262,22 @@ public class WqlCompletionData : ICompletionData
         var propertyBrush = new SolidColorBrush(Colors.ForestGreen);
         var classBrush = new SolidColorBrush(Colors.Orange);
         var specialBrush = new SolidColorBrush(Colors.Purple);
-        var operatorBrush = new SolidColorBrush(Colors.DarkRed);
+        var operatorBrush = new SolidColorBrush(Colors.Gold);
+        var logicalOperatorBrush = new SolidColorBrush(Colors.DarkRed);
 
         keywordBrush.Freeze();
         propertyBrush.Freeze();
         classBrush.Freeze();
         specialBrush.Freeze();
         operatorBrush.Freeze();
+        logicalOperatorBrush.Freeze();
 
-        KeywordIcon = CreateIconDrawing("K", keywordBrush);
-        PropertyIcon = CreateIconDrawing("P", propertyBrush);
-        ClassIcon = CreateIconDrawing("C", classBrush);
-        SpecialIcon = CreateIconDrawing("*", specialBrush);
-        OperatorIcon = CreateIconDrawing("O", operatorBrush);
+        KeywordIcon = CreateIconDrawing("K", keywordBrush, Brushes.White);
+        PropertyIcon = CreateIconDrawing("P", propertyBrush, Brushes.White);
+        ClassIcon = CreateIconDrawing("C", classBrush, Brushes.Black);
+        SpecialIcon = CreateIconDrawing("*", specialBrush, Brushes.White);
+        OperatorIcon = CreateIconDrawing("O", operatorBrush, Brushes.Black);
+        LogicalOperatorIcon = CreateIconDrawing("L", logicalOperatorBrush, Brushes.White);
     }
 }
 
@@ -283,5 +290,6 @@ public enum CompletionType
     Property,
     Class,
     Special,
-    Operator
+    ComparisonOperator,
+    LogicalOperator
 }
