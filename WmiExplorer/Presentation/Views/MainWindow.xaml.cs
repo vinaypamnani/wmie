@@ -35,7 +35,8 @@ public partial class MainWindow : Window
         ThemeManager themeManager,
         IWmiService wmiService,
         IApplicationService applicationService,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        MainViewModel viewModel)
     {
         InitializeComponent();
         Current = this;
@@ -48,13 +49,7 @@ public partial class MainWindow : Window
         _cacheService = cacheService;
 
         // Create the main view model with injected services
-        _viewModel = new MainViewModel(
-            _messagingService,
-            _settingsService,
-            _themeManager,
-            _wmiService,
-            _applicationService,
-            _cacheService);
+        _viewModel = viewModel;
 
         // Set the DataContext for data binding
         DataContext = _viewModel;

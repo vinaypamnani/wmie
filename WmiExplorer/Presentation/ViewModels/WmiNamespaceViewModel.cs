@@ -8,6 +8,7 @@ using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
@@ -81,8 +82,11 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         // Set parent namespace if provided
         ParentNamespaceViewModel = parentNamespaceViewModel;
 
-        _searchViewModel = new WmiSearchViewModel(messagingService, wmiService);
-        _queryViewModel = new WmiQueryViewModel(messagingService, wmiService, _cacheService);
+        // Initialize query and search view models using DI - transient.
+        _searchViewModel = App.ServiceProvider?.GetRequiredService<WmiSearchViewModel>() ??
+            throw new InvalidOperationException("Failed to resolve WmiSearchViewModel from service provider");
+        _queryViewModel = App.ServiceProvider?.GetRequiredService<WmiQueryViewModel>() ??
+            throw new InvalidOperationException("Failed to resolve WmiQueryViewModel from service provider");
     }
 
     /// <summary>

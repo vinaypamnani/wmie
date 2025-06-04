@@ -78,14 +78,17 @@ public partial class App : Application
 
         // Register all ViewModel classes for DI
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.MainViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiClassViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiInstanceViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiMethodViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiNamespaceViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiPropertyViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiQueryViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiSearchViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiWatcherViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiMethodViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiPropertyViewModel>();
+
+        // Register additional ViewModels that have multiple instances
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiNamespaceViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiClassViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiInstanceViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiQueryViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiSearchViewModel>();
+
 
         // Build the service provider
         ServiceProvider = services.BuildServiceProvider();

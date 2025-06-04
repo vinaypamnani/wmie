@@ -4,6 +4,9 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
+using Microsoft.Extensions.DependencyInjection;
+using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
@@ -15,7 +18,7 @@ public class MainViewModel : MessagingViewModelBase
     private readonly CancellationTokenSource _cts = new();
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private string _elapsedTimeMessage = string.Empty;
-    private WmiWatcherViewModel? _eventWatcherViewModel;
+    private WmiWatcherViewModel? _watcherViewModel;
     private ICommand? _executeAutoQueryCommand;
     private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
     private WmiClassViewModel? _selectedClass;
@@ -35,7 +38,8 @@ public class MainViewModel : MessagingViewModelBase
         ThemeManager themeManager,
         IWmiService wmiService,
         IApplicationService applicationService,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        WmiWatcherViewModel watcherViewModel)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
@@ -73,8 +77,8 @@ public class MainViewModel : MessagingViewModelBase
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
 
-        // Initialize the Event Watcher ViewModel
-        _eventWatcherViewModel = new WmiWatcherViewModel(messagingService, _cacheService);
+        // Initialize the singleton Event Watcher ViewModel
+        _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
 
         // Log initial class filter
         System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
@@ -178,7 +182,7 @@ public class MainViewModel : MessagingViewModelBase
     /// <summary>
     /// Gets the view model for the WMI Event Watcher
     /// </summary>
-    public WmiWatcherViewModel EventWatcherViewModel => _eventWatcherViewModel!;
+    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel!;
 
     /// <summary>
     /// Command to execute the current query
