@@ -10,33 +10,87 @@ namespace WmiExplorer.Presentation.AvalonEdit.Providers;
 /// </summary>
 internal class ValueCompletionProvider : ICompletionProvider
 {
-
     public bool CanProvideCompletion(QueryContext context)
     {
-        var lastSignificantTokenText = context.LastSignificantToken?.Text ?? string.Empty;
-        return context.ContextType == QueryContext.ContextKind.AfterOperator && lastSignificantTokenText.Equals(WqlKeywordManager.Is, StringComparison.OrdinalIgnoreCase);
+        // Only check for AfterOperator context type
+        return context.ContextType == QueryContext.ContextKind.AfterOperator;
     }
 
+    /// <summary>
+    /// Gets completion data for value suggestions after an operator.
+    /// </summary>
+    /// <param name="context">The query context.</param>
+    /// <param name="prefix">The current input prefix.</param>
+    /// <param name="cacheService">The cache service for property lookup. Must not be null.</param>
+    /// <param name="namespacePath">The WMI namespace path.</param>
+    /// <returns>List of completion data.</returns>
     public async Task<List<ICompletionData>> GetCompletionDataAsync(
         QueryContext context,
         string prefix,
         ICacheService? cacheService,
         string? namespacePath)
     {
-        return await Task.Run(() =>
-        {
-            var completions = new List<ICompletionData>();
+        var completions = new List<ICompletionData>();
 
-            if (context.ContextType == QueryContext.ContextKind.AfterOperator)
+        // Only provide completions if context is AfterOperator
+        if (context.ContextType == QueryContext.ContextKind.AfterOperator)
+        {
+            // Only add NULL values if last significant token is 'IS'
+            if ((context.LastSignificantToken?.Text ?? string.Empty).Equals(WqlKeywordManager.Is, StringComparison.OrdinalIgnoreCase))
             {
-                AddValueKeywords(completions, prefix);
+                AddNullKeywords(completions, prefix);
             }
 
-            return completions;
-        });
+            // Add boolean values if property is bool
+            if (!string.IsNullOrEmpty(context.OperatorProperty)
+                && cacheService != null
+                && !string.IsNullOrEmpty(context.ClassName)
+                && !string.IsNullOrEmpty(namespacePath))
+            {
+                try
+                {
+                    var nsCache = await cacheService.GetNamespaceCacheAsync(namespacePath);
+                    if (nsCache != null)
+                    {
+                        var classCache = nsCache.Classes.FirstOrDefault(c => c.ClassName.Equals(context.ClassName, StringComparison.OrdinalIgnoreCase));
+                        if (classCache != null)
+                        {
+                            var property = classCache.Properties.FirstOrDefault(p => p.Name.Equals(context.OperatorProperty, StringComparison.OrdinalIgnoreCase));
+                            if (property != null && property.Type.Equals("boolean", StringComparison.OrdinalIgnoreCase))
+                            {
+                                AddBoolKeywords(completions, prefix);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle cache lookup errors gracefully
+                    System.Diagnostics.Debug.WriteLine($"[ValueCompletionProvider] Cache lookup error: {ex.Message}");
+                }
+            }
+        }
+
+        return completions;
     }
 
-    private static void AddValueKeywords(List<ICompletionData> completions, string prefix)
+    private static void AddBoolKeywords(List<ICompletionData> completions, string prefix)
+    {
+        // Add boolean values TRUE/FALSE
+        foreach (var boolValue in WqlKeywordManager.GetBoolValues())
+        {
+            if (string.IsNullOrEmpty(prefix) ||
+                boolValue.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                completions.Add(new WqlCompletionData(
+                    boolValue,
+                    CompletionType.Special,
+                    $"Boolean value: {boolValue}"));
+            }
+        }
+    }
+
+    private static void AddNullKeywords(List<ICompletionData> completions, string prefix)
     {
         // Add NULL values
         foreach (var nullValue in WqlKeywordManager.GetNullValues())
@@ -50,18 +104,5 @@ internal class ValueCompletionProvider : ICompletionProvider
                     $"Null value: {nullValue}"));
             }
         }
-
-        // Add boolean values
-        // foreach (var boolValue in WqlKeywordManager.GetBoolValues())
-        // {
-        //     if (string.IsNullOrEmpty(prefix) ||
-        //         boolValue.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        //     {
-        //         completions.Add(new WqlCompletionData(
-        //             boolValue,
-        //             CompletionType.Special,
-        //             $"Boolean value: {boolValue}"));
-        //     }
-        // }
     }
 }

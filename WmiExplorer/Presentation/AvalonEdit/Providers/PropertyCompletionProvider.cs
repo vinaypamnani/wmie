@@ -67,7 +67,7 @@ internal class PropertyCompletionProvider : ICompletionProvider
                     foreach (var property in classCache.Properties)
                     {
                         if ((string.IsNullOrEmpty(prefix) ||
-                            property.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) &&
+                            property.Name.Contains(prefix, StringComparison.OrdinalIgnoreCase)) &&
                             (exclude == null || !exclude.Contains(property.Name)))
                         {
                             string formattedType = FormatPropertyType(property.Type);

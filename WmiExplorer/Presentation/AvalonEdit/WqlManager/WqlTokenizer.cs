@@ -233,16 +233,17 @@ internal class WqlTokenizer
             isComplete = true;
         }
 
-        return isComplete;
-    }
+        // Special handling for boolean values TRUE/FALSE
+        if (!isComplete &&
+            IsPropertyToken(property) &&
+            IsOperatorToken(op) &&
+            value.Type == WqlTokenType.Keyword &&
+            (value.Text.Equals("TRUE", StringComparison.OrdinalIgnoreCase) || value.Text.Equals("FALSE", StringComparison.OrdinalIgnoreCase)))
+        {
+            isComplete = true;
+        }
 
-    /// <summary>
-    /// Determines if the given text is a comparison operator.
-    /// </summary>
-    public static bool IsComparisonOperator(string text)
-    {
-        return new[] { "=", "!=", "<>", "<", ">", "<=", ">=", "LIKE", "IS" }
-            .Contains(text.ToUpperInvariant());
+        return isComplete;
     }
 
     /// <summary>

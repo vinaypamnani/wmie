@@ -49,6 +49,11 @@ internal class QueryContext
     public string LastTokenText { get; set; } = string.Empty;
 
     /// <summary>
+    /// The property name being compared when context is AfterOperator.
+    /// </summary>
+    public string OperatorProperty { get; set; } = string.Empty;
+
+    /// <summary>
     /// The list of property names already selected in the SELECT clause (for SelectProps context)
     /// </summary>
     public List<string> SelectedProperties { get; set; } = new List<string>();
@@ -86,7 +91,13 @@ internal class QueryContext
                 context.SelectedProperties = ExtractSelectedProperties(tokens);
             }
 
-            Debug.WriteLine($"[QueryContext] Context: {context.ContextType}, Class: '{context.ClassName}', LastTokenText: '{context.LastTokenText}', LastSignificantToken: '{context.LastSignificantToken?.Text}'");
+            // Extract property before operator if context is AfterOperator
+            if (context.ContextType == ContextKind.AfterOperator)
+            {
+                context.OperatorProperty = ExtractOperatorProperty(tokens);
+            }
+
+            Debug.WriteLine($"[QueryContext] Context: {context.ContextType}, Class: '{context.ClassName}', LastTokenText: '{context.LastTokenText}', LastSignificantToken: '{context.LastSignificantToken?.Text}', OperatorProperty: '{context.OperatorProperty}'");
 
             return context;
         }
@@ -147,8 +158,7 @@ internal class QueryContext
         }
 
         // Check if last token is a comparison operator
-        if (lastToken.Type == WqlTokenType.Operator &&
-            WqlTokenizer.IsComparisonOperator(lastToken.Text))
+        if (lastToken.Type == WqlTokenType.Operator && WqlKeywordManager.IsComparisonOperator(lastToken.Text))
         {
             return ContextKind.AfterOperator;
         }
@@ -216,6 +226,32 @@ internal class QueryContext
         {
             string? className = WqlTokenizer.ExtractClassName(tokens, fromIndex);
             return className ?? string.Empty;
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Extracts the property name before the operator for AfterOperator context.
+    /// </summary>
+    private static string ExtractOperatorProperty(List<WqlToken> tokens)
+    {
+        // Find the last comparison operator
+        int opIndex = tokens.FindLastIndex(t =>
+            t.Type == WqlTokenType.Operator && WqlKeywordManager.IsComparisonOperator(t.Text));
+
+        if (opIndex > 0)
+        {
+            // Look backwards for the previous identifier (property name)
+            for (int i = opIndex - 1; i >= 0; i--)
+            {
+                if (tokens[i].Type == WqlTokenType.Identifier)
+                {
+                    return tokens[i].Text;
+                }
+                // Stop if we hit a keyword or another operator
+                if (tokens[i].Type == WqlTokenType.Keyword || tokens[i].Type == WqlTokenType.Operator)
+                    break;
+            }
         }
         return string.Empty;
     }
