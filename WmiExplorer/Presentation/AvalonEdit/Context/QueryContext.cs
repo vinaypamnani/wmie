@@ -23,8 +23,9 @@ internal class QueryContext
         AfterOperator,            // After =, !=, etc. - offer values
         AfterLogicalOperator,     // After AND, OR - offer properties, NOT
         AfterNot,                 // After NOT - offer properties
-        AfterCompleteCondition,    // After complete condition - offer AND, OR
+        AfterCompleteCondition,   // After complete condition - offer AND, OR
         InValue,                  // Inside a value (e.g. string, number)
+        SelectProps,              // After SELECT and comma, before FROM - offer property names
     }
 
     /// <summary>
@@ -68,8 +69,8 @@ internal class QueryContext
             var context = new QueryContext();
 
             // Determine context based on tokens using WqlTokenizer methods
-            context.ContextType = DetermineContext(tokens, text);
-            context.ClassName = ExtractClassName(tokens);
+            context.ContextType = DetermineContextKind(tokens, text);
+            context.ClassName = ExtractClassName(document.Text); // Use full query text for class extraction
             context.LastSignificantToken = FindLastSignificantToken(tokens);
 
             // Get partial input at cursor position for autocomplete
@@ -91,7 +92,7 @@ internal class QueryContext
     /// Determines the current context based on the token sequence.
     /// Uses WqlTokenizer methods as the single source of truth.
     /// </summary>
-    private static ContextKind DetermineContext(List<WqlToken> tokens, string text)
+    private static ContextKind DetermineContextKind(List<WqlToken> tokens, string text)
     {
         if (tokens.Count == 0)
             return ContextKind.StartQuery;
@@ -111,10 +112,9 @@ internal class QueryContext
             return ContextKind.InValue;
         }
 
-        // Find keyword indices for major query parts
-        int selectIndex = WqlTokenizer.FindKeywordIndex(tokens, "SELECT");
-        int fromIndex = WqlTokenizer.FindKeywordIndex(tokens, "FROM");
-        int whereIndex = WqlTokenizer.FindKeywordIndex(tokens, "WHERE");
+        // Use helper for SELECT ... , ... before FROM
+        if (IsSelectPropsContext(tokens, significantTokens, lastToken))
+            return ContextKind.SelectProps;
 
         // Check for keywords first (most specific contexts)
         if (lastToken.Type == WqlTokenType.Keyword)
@@ -151,13 +151,13 @@ internal class QueryContext
         }
 
         // Check for context after property (in WHERE clause)
-        if (whereIndex >= 0 && lastToken.Type == WqlTokenType.Identifier)
+        if (WqlTokenizer.FindKeywordIndex(tokens, "WHERE") >= 0 && lastToken.Type == WqlTokenType.Identifier)
         {
             return ContextKind.AfterProperty;
         }
 
         // Check for context after class name
-        if (fromIndex >= 0 && selectIndex >= 0)
+        if (WqlTokenizer.FindKeywordIndex(tokens, "FROM") >= 0 && WqlTokenizer.FindKeywordIndex(tokens, "SELECT") >= 0)
         {
             // Find the FROM keyword in significant tokens
             int fromSignificantIndex = significantTokens.FindIndex(
@@ -171,7 +171,7 @@ internal class QueryContext
                 if (classToken.Type == WqlTokenType.Identifier)
                 {
                     // If WHERE is present, make sure the class token comes before WHERE
-                    if (whereIndex < 0 || tokens.IndexOf(classToken) < whereIndex)
+                    if (WqlTokenizer.FindKeywordIndex(tokens, "WHERE") < 0 || tokens.IndexOf(classToken) < WqlTokenizer.FindKeywordIndex(tokens, "WHERE"))
                     {
                         return ContextKind.AfterClass;
                     }
@@ -193,9 +193,15 @@ internal class QueryContext
 
     /// <summary>
     /// Extracts the class name from the FROM clause using WqlTokenizer.
+    /// This method analyzes the full query text to ensure the class name is found
+    /// regardless of caret position.
     /// </summary>
-    private static string ExtractClassName(List<WqlToken> tokens)
+    private static string ExtractClassName(string queryText)
     {
+        // Tokenize the entire query text for reliable extraction
+        var tokenizer = new WqlTokenizer(queryText);
+        var tokens = tokenizer.TokenizeAll();
+
         int fromIndex = WqlTokenizer.FindKeywordIndex(tokens, "FROM");
         if (fromIndex >= 0)
         {
@@ -236,6 +242,31 @@ internal class QueryContext
                 return true;
         }
 
+        return false;
+    }
+
+    private static bool IsSelectPropsContext(List<WqlToken> tokens, List<WqlToken> significantTokens, WqlToken lastToken)
+    {
+        int selectIndex = WqlTokenizer.FindKeywordIndex(tokens, "SELECT");
+        int fromIndex = WqlTokenizer.FindKeywordIndex(tokens, "FROM");
+        if (selectIndex >= 0 && (fromIndex == -1 || selectIndex < fromIndex))
+        {
+            int afterSelectIndex = significantTokens.FindIndex(t => t.Type == WqlTokenType.Keyword && t.Text.Equals("SELECT", StringComparison.OrdinalIgnoreCase));
+            int fromTokenIndex = fromIndex == -1 ? significantTokens.Count : significantTokens.FindIndex(t => t.Type == WqlTokenType.Keyword && t.Text.Equals("FROM", StringComparison.OrdinalIgnoreCase));
+            if (afterSelectIndex >= 0)
+            {
+                for (int i = afterSelectIndex + 1; i < fromTokenIndex; i++)
+                {
+                    if (significantTokens[i].Text == ",")
+                    {
+                        if (lastToken.Text == ",")
+                            return true;
+                        if (lastToken.Type == WqlTokenType.Identifier && significantTokens.Count > 1 && significantTokens[significantTokens.Count - 2].Text == ",")
+                            return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 }

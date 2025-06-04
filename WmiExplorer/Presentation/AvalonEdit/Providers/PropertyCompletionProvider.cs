@@ -17,6 +17,8 @@ internal class PropertyCompletionProvider : ICompletionProvider
             QueryContext.ContextKind.AfterWhere => true,
             QueryContext.ContextKind.AfterLogicalOperator => true,
             QueryContext.ContextKind.AfterNot => true,
+            QueryContext.ContextKind.AfterSelect => true,
+            QueryContext.ContextKind.SelectProps => true,
             _ => false
         };
     }
