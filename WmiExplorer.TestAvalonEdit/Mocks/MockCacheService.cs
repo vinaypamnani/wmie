@@ -33,6 +33,7 @@ public class MockCacheService : ICacheService
         processClass.AddProperty("ProcessId", "uint32");
         processClass.AddProperty("ExecutablePath", "string");
         processClass.AddProperty("CommandLine", "string");
+        processClass.AddProperty("DummyBool", "boolean");
 
         cimv2.Classes.Add(processClass);
 

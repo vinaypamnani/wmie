@@ -11,6 +11,16 @@ public class WqlCompletionTests
 {
     private MockCacheService _mockCache = null!;
 
+    private static string[] win32ProcessProperties = new[]
+    {
+        "Name", "ProcessId", "ExecutablePath", "CommandLine", "DummyBool"
+    };
+
+    private static string[] cimv2Classes = new[]
+    {
+        "Win32_Process", "Win32_OperatingSystem", "Win32_Service"
+    };
+
     public static IEnumerable<CompletionTestCase> CompletionTestCases()
     {
         yield return new CompletionTestCase
@@ -37,7 +47,7 @@ public class WqlCompletionTests
         yield return new CompletionTestCase
         {
             Query = "SELECT * FROM ",
-            ExpectedCompletions = new[] { "Win32_Process", "Win32_OperatingSystem", "Win32_Service" },
+            ExpectedCompletions = cimv2Classes,
             UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
         };
 
@@ -52,7 +62,7 @@ public class WqlCompletionTests
         {
             Query = "SELECT  FROM Win32_Process ",
             CaretPosition = 7,
-            ExpectedCompletions = new[] { WqlKeywordManager.Star, "Name", "ProcessId", "ExecutablePath", "CommandLine" },
+            ExpectedCompletions = win32ProcessProperties.Concat(new[] { WqlKeywordManager.Star }).ToArray(),
             UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Star]).ToArray()
         };
 
@@ -60,14 +70,14 @@ public class WqlCompletionTests
         {
             Query = "SELECT Name,  FROM Win32_Process ",
             CaretPosition = 13,
-            ExpectedCompletions = new[] { "ProcessId", "ExecutablePath", "CommandLine" },
+            ExpectedCompletions = win32ProcessProperties.Except(new[] { "Name" }).ToArray(),
             UnexpectedCompletions = (new[] { "Name" }).Concat(WqlKeywordManager.AllKeywords).ToArray()
         };
 
         yield return new CompletionTestCase
         {
             Query = "SELECT * FROM Win32_Process WHERE ",
-            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
+            ExpectedCompletions = win32ProcessProperties.Concat(new[] { WqlKeywordManager.Not }).ToArray(),
             UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
         };
 
@@ -95,15 +105,36 @@ public class WqlCompletionTests
         yield return new CompletionTestCase
         {
             Query = "SELECT * FROM Win32_Process WHERE Name = 'notepad.exe' AND ",
-            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine", WqlKeywordManager.Not },
+            ExpectedCompletions = win32ProcessProperties.Concat(new[] { WqlKeywordManager.Not }).ToArray(),
             UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Not]).ToArray()
         };
 
         yield return new CompletionTestCase
         {
             Query = "SELECT * FROM Win32_Process WHERE NOT ",
-            ExpectedCompletions = new[] { "Name", "ProcessId", "ExecutablePath", "CommandLine" },
+            ExpectedCompletions = win32ProcessProperties,
             UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
+        };
+
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE Name LIKE ",
+            ExpectedCompletions = Array.Empty<string>(),
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.ToArray()
+        };
+
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE Name IS ",
+            ExpectedCompletions = new[] { WqlKeywordManager.Null, WqlKeywordManager.NotNull },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.Null, WqlKeywordManager.NotNull]).ToArray()
+        };
+
+        yield return new CompletionTestCase
+        {
+            Query = "SELECT * FROM Win32_Process WHERE DummyBool = ",
+            ExpectedCompletions = new[] { WqlKeywordManager.True, WqlKeywordManager.False },
+            UnexpectedCompletions = WqlKeywordManager.AllKeywords.Except([WqlKeywordManager.True, WqlKeywordManager.False]).ToArray()
         };
     }
 

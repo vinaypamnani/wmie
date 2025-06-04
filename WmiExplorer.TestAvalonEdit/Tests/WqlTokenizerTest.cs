@@ -32,6 +32,7 @@ public class WqlTokenizerTests
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name IS ", ExpectedContextType = QueryContext.ContextKind.AfterOperator };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name IS NULL ", ExpectedContextType = QueryContext.ContextKind.AfterCompleteCondition };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name IS NOT NULL ", ExpectedContextType = QueryContext.ContextKind.AfterCompleteCondition };
+        yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name LIKE ", ExpectedContextType = QueryContext.ContextKind.AfterOperator };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name = 'xy", ExpectedContextType = QueryContext.ContextKind.InValue };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE Name <> 'xy", ExpectedContextType = QueryContext.ContextKind.InValue };
         yield return new TokenizerTestCase { Query = "SELECT * FROM Win32_Process WHERE ProcessId > 1234", ExpectedContextType = QueryContext.ContextKind.InValue };
@@ -51,7 +52,7 @@ public class WqlTokenizerTests
 
         // Assert context type matches expected
         Assert.That(context?.ContextType, Is.EqualTo(testCase.ExpectedContextType),
-            $"ContextType mismatch for query: [{testCase.Query}], Context.LastTokenText: {context?.LastTokenText}, Context.LastSignificantTokenText: {context?.LastSignificantToken?.Text}, Context.ClassName: {context?.ClassName}");
+            $"ContextType mismatch for query: [{testCase.Query}], Context.LastTokenText: {context?.LastTokenText}, Context.LastSignificantTokenText: {context?.LastSignificantToken?.Text}, Context.LastSignificantTokenType: {context?.LastSignificantToken?.Type}, Context.ClassName: {context?.ClassName}");
     }
 
     public class TokenizerTestCase
