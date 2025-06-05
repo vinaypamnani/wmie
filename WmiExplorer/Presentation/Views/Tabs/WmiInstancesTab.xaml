@@ -55,6 +55,8 @@
                                         <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
                                             <Setter Property="Header" Value="{Binding Name}" />
                                             <Setter Property="ToolTip" Value="{Binding Description}" />
+                                            <Setter Property="Command" Value="{Binding DataContext.ExecuteMethodCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}" />
+                                            <Setter Property="CommandParameter" Value="{Binding}" />
                                         </Style>
                                     </MenuItem.ItemContainerStyle>
                                 </MenuItem>

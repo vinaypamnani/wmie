@@ -1,0 +1,212 @@
+using System.Collections.ObjectModel;
+using System.Management;
+using System.Text;
+using System.Windows.Input;
+using WmiExplorer.Common.Base;
+using WmiExplorer.Core.Models;
+
+namespace WmiExplorer.Presentation.ViewModels;
+
+/// <summary>
+/// ViewModel for executing WMI methods (both static and instance)
+/// </summary>
+public class MethodExecutionViewModel : ViewModelBase
+{
+    private readonly WmiClass _class;
+
+    // Results from method execution
+    private string _executionResults = string.Empty;
+
+    private readonly WmiInstance? _instance;
+    private readonly WmiMethod _method;
+
+    // Store the full model objects
+    private readonly WmiNamespace _namespace;
+
+    // Method parameters for the UI
+    private readonly ObservableCollection<WmiParameter> _parameters = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MethodExecutionViewModel"/> class.
+    /// </summary>
+    /// <param name="wmiNamespace">The WMI namespace containing the class.</param>
+    /// <param name="wmiClass">The WMI class containing the method.</param>
+    /// <param name="wmiMethod">The WMI method to execute.</param>
+    /// <param name="wmiInstance">The WMI instance for non-static methods (optional).</param>
+    public MethodExecutionViewModel(
+        WmiNamespace wmiNamespace,
+        WmiClass wmiClass,
+        WmiMethod wmiMethod,
+        WmiInstance? wmiInstance = null)
+    {
+        _namespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
+        _class = wmiClass ?? throw new ArgumentNullException(nameof(wmiClass));
+        _method = wmiMethod ?? throw new ArgumentNullException(nameof(wmiMethod));
+        _instance = wmiInstance;
+
+        // Verify method is appropriate for the context (static vs instance)
+        if (_instance == null && !_method.IsStatic)
+        {
+            throw new ArgumentException("Cannot execute non-static method without an instance");
+        }
+
+        // Load parameters
+        LoadMethodParameters();
+
+        // Initialize commands
+        ExecuteMethodCommand = new RelayCommand(ExecuteMethodWrapper);
+    }
+
+    /// <summary>
+    /// Gets the class name.
+    /// </summary>
+    public string ClassName => _class.ClassName;
+
+    /// <summary>
+    /// Gets the command to execute the method.
+    /// </summary>
+    public ICommand ExecuteMethodCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the execution results.
+    /// </summary>
+    public string ExecutionResults
+    {
+        get => _executionResults;
+        private set => SetProperty(ref _executionResults, value);
+    }
+
+    /// <summary>
+    /// Gets the instance name (if applicable).
+    /// </summary>
+    public string InstanceName => _instance?.InstanceName ?? string.Empty;
+
+    /// <summary>
+    /// Gets a value indicating whether the method is static.
+    /// </summary>
+    public bool IsStaticMethod => _method.IsStatic;
+
+    /// <summary>
+    /// Gets the description of the method being executed.
+    /// </summary>
+    public string MethodDescription => _method.Description;
+
+    /// <summary>
+    /// Gets the name of the method being executed.
+    /// </summary>
+    public string MethodName => _method.Name;
+
+    /// <summary>
+    /// Gets the collection of parameters for the method.
+    /// </summary>
+    public ObservableCollection<WmiParameter> Parameters => _parameters;
+
+    private void ExecuteMethod()
+    {
+        try
+        {
+            if (_instance != null)
+            {
+                // Execute instance method
+                // Create parameters for the method invocation
+                ManagementBaseObject? inParams = null;
+
+                if (_parameters.Count > 0)
+                {
+                    // Get the in-parameters for the method from the class
+                    inParams = _class.ActualClass.GetMethodParameters(_method.Name);
+
+                    // Set parameter values
+                    foreach (var param in _parameters)
+                    {
+                        if (param.Name != null && param.Value != null)
+                        {
+                            inParams[param.Name] = param.Value;
+                        }
+                    }
+                }
+
+                // Invoke the method on the instance
+                var outParams = _instance.ActualObject.InvokeMethod(
+                    _method.Name,
+                    inParams,
+                    null);
+
+                // Convert the out parameters to a WmiParameterCollection
+                var result = new WmiParameterCollection(outParams);
+                ExecutionResults = FormatResults(result);
+            }
+            else
+            {
+                // Execute static method
+                // Create parameters for the method invocation
+                ManagementBaseObject? inParams = null;
+
+                if (_parameters.Count > 0)
+                {
+                    // Get the in-parameters for the method from the class
+                    inParams = _class.ActualClass.GetMethodParameters(_method.Name);
+
+                    // Set parameter values
+                    foreach (var param in _parameters)
+                    {
+                        if (param.Name != null && param.Value != null)
+                        {
+                            inParams[param.Name] = param.Value;
+                        }
+                    }
+                }
+
+                // Invoke the static method on the class
+                var outParams = _class.ActualClass.InvokeMethod(
+                    _method.Name,
+                    inParams,
+                    null);
+
+                // Convert the out parameters to a WmiParameterCollection
+                var result = new WmiParameterCollection(outParams);
+                ExecutionResults = FormatResults(result);
+            }
+        }
+        catch (Exception ex)
+        {
+            ExecutionResults = $"Error executing method: {ex.Message}";
+        }
+    }
+
+    private void ExecuteMethodWrapper(object? parameter)
+    {
+        ExecuteMethod();
+    }
+
+    private string FormatResults(WmiParameterCollection? results)
+    {
+        if (results == null || results.Count == 0)
+        {
+            return "Method executed successfully with no output parameters.";
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Method executed successfully. Output parameters:");
+
+        foreach (var param in results)
+        {
+            sb.AppendLine($"  {param.Name}: {param.Value}");
+        }
+
+        return sb.ToString();
+    }
+
+    private void LoadMethodParameters()
+    {
+        _parameters.Clear();
+
+        if (_method != null && _method.InParameters.Count > 0)
+        {
+            foreach (var param in _method.InParameters)
+            {
+                _parameters.Add(param);
+            }
+        }
+    }
+}

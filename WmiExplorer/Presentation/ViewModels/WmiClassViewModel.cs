@@ -48,6 +48,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         LoadInstancesCommand = new AsyncRelayCommand(LoadInstancesAsync);
         CopyRelativePathCommand = new RelayCommand(CopyRelativePath);
         CancelInstanceLoadCommand = new RelayCommand(_ => CancelInstanceLoad(), _ => LoadState == InstanceLoadState.Loading);
+        ExecuteMethodCommand = new RelayCommand(ExecuteMethod);
 
         // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
@@ -59,6 +60,8 @@ public class WmiClassViewModel : MessagingViewModelBase
         );
 
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
+
+        // Load methods for this class
         LoadClassMethods();
     }
 
@@ -72,6 +75,11 @@ public class WmiClassViewModel : MessagingViewModelBase
     public string ClassName => _wmiClass.ClassName;
     public ICommand CopyRelativePathCommand { get; }
     public string Description => _wmiClass.Description;
+
+    /// <summary>
+    /// Command to execute a WMI method.
+    /// </summary>
+    public ICommand ExecuteMethodCommand { get; }
 
     public string InstanceFilterText
     {
@@ -284,6 +292,36 @@ public class WmiClassViewModel : MessagingViewModelBase
         var classPath = _wmiClass.ClassPath.RelativePath;
         _applicationService.CopyToClipboard(classPath);
         PublishSuccessState($"Copied path: {classPath}");
+    }
+
+    /// <summary>
+    /// Executes a WMI method from the context menu.
+    /// </summary>
+    /// <param name="parameter">The WmiMethod to execute.</param>
+    private void ExecuteMethod(object? parameter)
+    {
+        if (parameter is WmiMethod method)
+        {
+            try
+            {
+                var mainWindow = System.Windows.Application.Current.MainWindow;
+
+                // Use the dialog to execute the method
+                if (_parentNamespaceViewModel.WmiNamespace != null)
+                {
+                    Presentation.Views.Dialogs.MethodExecutionDialog.ShowDialog(
+                        mainWindow,
+                        _parentNamespaceViewModel.WmiNamespace,
+                        _wmiClass,
+                        method);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Report error
+                PublishErrorState($"Error showing executing method dialog: {ex.Message}", ex);
+            }
+        }
     }
 
     private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)

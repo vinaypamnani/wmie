@@ -54,8 +54,11 @@ public class WmiInstanceViewModel : MessagingViewModelBase
 
         InitializeMessaging(messagingService);
 
+        // Initialize commands
         CopyRelativePathCommand = new RelayCommand(CopyRelativePath);
+        ExecuteMethodCommand = new RelayCommand(ExecuteMethod);
 
+        // Load instance methods
         LoadInstanceMethods();
     }
 
@@ -63,6 +66,11 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     /// Command to copy the instance path to clipboard.
     /// </summary>
     public ICommand CopyRelativePathCommand { get; }
+
+    /// <summary>
+    /// Command to execute a WMI method.
+    /// </summary>
+    public ICommand ExecuteMethodCommand { get; }
 
     /// <summary>
     /// Collection of methods available for this instance.
@@ -160,6 +168,37 @@ public class WmiInstanceViewModel : MessagingViewModelBase
 
         _applicationService.CopyToClipboard(NamespacePath);
         PublishSuccessState($"Copied path: {NamespacePath}");
+    }
+
+    /// <summary>
+    /// Executes a WMI method from the context menu.
+    /// </summary>
+    /// <param name="parameter">The WmiMethod to execute.</param>
+    private void ExecuteMethod(object? parameter)
+    {
+        if (parameter is WmiMethod method)
+        {
+            try
+            {
+                var mainWindow = System.Windows.Application.Current.MainWindow;
+
+                // Use the dialog to execute the method for instance methods
+                if (ParentNamespace?.WmiNamespace != null)
+                {
+                    Presentation.Views.Dialogs.MethodExecutionDialog.ShowDialog(
+                        mainWindow,
+                        ParentNamespace.WmiNamespace,
+                        _parentClass.WmiClass,
+                        method,
+                        _wmiInstance);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Report error
+                PublishErrorState($"Error showing executing method dialog: {ex.Message}", ex);
+            }
+        }
     }
 
     /// <summary>
