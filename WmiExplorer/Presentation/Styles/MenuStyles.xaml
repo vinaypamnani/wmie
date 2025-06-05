@@ -11,12 +11,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Menu}">
-                    <Border
-                        Padding="{TemplateBinding Padding}"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        SnapsToDevicePixels="true">
+                    <Border Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="true">
                         <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Border>
                 </ControlTemplate>
@@ -24,77 +23,83 @@
         </Setter>
     </Style>
 
-    <!--  Custom template for MenuItems that removes the white border around submenus  -->
+    <!--  Custom template for MenuItems that removes the white border around submenus and has proper submenu arrow indicators  -->
     <ControlTemplate x:Key="MenuItemControlTemplate" TargetType="{x:Type MenuItem}">
-        <Border
-            x:Name="templateRoot"
-            Background="{TemplateBinding Background}"
-            BorderBrush="{TemplateBinding BorderBrush}"
-            BorderThickness="{TemplateBinding BorderThickness}"
-            SnapsToDevicePixels="True">
+        <Border x:Name="templateRoot"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
             <Grid VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="IconColumn" Width="0" />
+                    <ColumnDefinition x:Name="IconColumn" Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition x:Name="ArrowColumn" Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <!--  Icon content if present  -->
-                <ContentPresenter
-                    x:Name="Icon"
-                    Width="16"
-                    Height="16"
-                    Margin="0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    ContentSource="Icon"
-                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                <ContentPresenter x:Name="Icon"
+                                  Width="16"
+                                  Height="16"
+                                  Margin="0"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  ContentSource="Icon"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                 <!--  Header content  -->
-                <ContentPresenter
-                    Grid.Column="1"
-                    Margin="{TemplateBinding Padding}"
-                    ContentSource="Header"
-                    RecognizesAccessKey="True"
-                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                <ContentPresenter Grid.Column="1"
+                                  Margin="{TemplateBinding Padding}"
+                                  ContentSource="Header"
+                                  RecognizesAccessKey="True"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                <!--  Submenu arrow indicator  -->
+                <Path x:Name="SubMenuArrow"
+                      Grid.Column="3"
+                      Width="4"
+                      Height="8"
+                      Margin="6,0,6,0"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Data="M 0,0 L 4,4 L 0,8 Z"
+                      Fill="{DynamicResource PrimaryForegroundBrush}"
+                      Visibility="Collapsed" />
                 <!--  Popup for submenu  -->
-                <Popup
-                    x:Name="PART_Popup"
-                    Margin="0"
-                    AllowsTransparency="True"
-                    Focusable="False"
-                    HorizontalOffset="0"
-                    IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                    Placement="Bottom"
-                    PopupAnimation="None"
-                    StaysOpen="False">
-                    <Border
-                        x:Name="SubMenuBorder"
-                        MinWidth="175"
-                        Padding="{StaticResource PaddingSmall}"
-                        Background="{DynamicResource SecondaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="0"
-                        SnapsToDevicePixels="True"
-                        UseLayoutRounding="True">
-                        <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="7"
-                                Direction="315"
-                                Opacity="0.3"
-                                ShadowDepth="3"
-                                Color="Black" />
-                        </Border.Effect>
-                        <ScrollViewer
-                            x:Name="SubMenuScrollViewer"
-                            Padding="0"
+                <Popup x:Name="PART_Popup"
+                       Margin="0"
+                       AllowsTransparency="True"
+                       Focusable="False"
+                       HorizontalOffset="0"
+                       IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                       Placement="Right"
+                       PlacementTarget="{Binding ElementName=templateRoot}"
+                       PopupAnimation="Fade"
+                       StaysOpen="False"
+                       VerticalOffset="0">
+                    <Border x:Name="SubMenuBorder"
+                            MinWidth="175"
+                            Padding="{StaticResource PaddingSmall}"
+                            Background="{DynamicResource SecondaryBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="0"
-                            HorizontalScrollBarVisibility="Disabled"
-                            VerticalScrollBarVisibility="Auto">
-                            <ItemsPresenter
-                                x:Name="ItemsPresenter"
-                                Margin="0"
-                                Grid.IsSharedSizeScope="True"
-                                KeyboardNavigation.DirectionalNavigation="Cycle"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            SnapsToDevicePixels="True"
+                            UseLayoutRounding="True">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="7"
+                                              Direction="315"
+                                              Opacity="0.3"
+                                              ShadowDepth="3"
+                                              Color="Black" />
+                        </Border.Effect>
+                        <ScrollViewer x:Name="SubMenuScrollViewer"
+                                      Padding="0"
+                                      BorderThickness="0"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter x:Name="ItemsPresenter"
+                                            Margin="0"
+                                            Grid.IsSharedSizeScope="True"
+                                            KeyboardNavigation.DirectionalNavigation="Cycle"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </ScrollViewer>
                     </Border>
                 </Popup>
@@ -118,22 +123,32 @@
                 <Setter Property="Foreground" Value="{DynamicResource BorderBrush}" />
                 <Setter TargetName="templateRoot" Property="Opacity" Value="0.7" />
             </Trigger>
+            <!--  Show submenu arrow for items with children  -->
+            <Trigger Property="HasItems" Value="True">
+                <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Visible" />
+            </Trigger>
             <!--  Handle top-level menu items differently (those in the main menu bar)  -->
             <Trigger Property="Role" Value="TopLevelHeader">
                 <Setter Property="Padding" Value="{StaticResource PaddingMedium}" />
                 <Setter TargetName="IconColumn" Property="Width" Value="0" />
                 <Setter TargetName="templateRoot" Property="Margin" Value="{StaticResource MarginHorizontalTiny}" />
+                <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom" />
+                <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Collapsed" />
             </Trigger>
             <!--  Handle top-level menu items without children  -->
             <Trigger Property="Role" Value="TopLevelItem">
                 <Setter Property="Padding" Value="{StaticResource PaddingMedium}" />
                 <Setter TargetName="IconColumn" Property="Width" Value="0" />
                 <Setter TargetName="templateRoot" Property="Margin" Value="{StaticResource MarginHorizontalTiny}" />
+                <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Collapsed" />
             </Trigger>
             <!--  Handle submenu headers differently  -->
             <Trigger Property="Role" Value="SubmenuHeader">
                 <Setter Property="Padding" Value="{StaticResource PaddingMedium}" />
                 <Setter Property="MinWidth" Value="150" />
+                <Setter TargetName="PART_Popup" Property="Placement" Value="Right" />
+                <Setter TargetName="PART_Popup" Property="HorizontalOffset" Value="1" />
+                <Setter TargetName="PART_Popup" Property="VerticalOffset" Value="0" />
             </Trigger>
             <!--  Make sure top-level menu items look good when selected  -->
             <MultiTrigger>
@@ -147,6 +162,7 @@
             </MultiTrigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+
     <!--  Style for ContextMenu to remove border  -->
     <Style TargetType="ContextMenu">
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
@@ -156,19 +172,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContextMenu">
-                    <Border
-                        Padding="{StaticResource PaddingSmall}"
-                        Background="{DynamicResource SecondaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="0"
-                        UseLayoutRounding="True">
+                    <Border Padding="{StaticResource PaddingSmall}"
+                            Background="{DynamicResource SecondaryBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0"
+                            UseLayoutRounding="True">
                         <Border.Effect>
-                            <DropShadowEffect
-                                BlurRadius="7"
-                                Direction="315"
-                                Opacity="0.3"
-                                ShadowDepth="3"
-                                Color="Black" />
+                            <DropShadowEffect BlurRadius="7"
+                                              Direction="315"
+                                              Opacity="0.3"
+                                              ShadowDepth="3"
+                                              Color="Black" />
                         </Border.Effect>
                         <ItemsPresenter Margin="0" />
                     </Border>

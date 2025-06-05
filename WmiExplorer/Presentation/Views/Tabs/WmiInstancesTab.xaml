@@ -32,6 +32,32 @@
                         <Setter.Value>
                             <ContextMenu>
                                 <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path" />
+                                <MenuItem ItemsSource="{Binding InstanceMethods}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Execute Methods" />
+                                            <TextBlock Margin="4,0,0,0" Text="{Binding InstanceMethods.Count, StringFormat='[{0}]'}" />
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                    <MenuItem.Style>
+                                        <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding InstanceMethods.Count}" Value="0">
+                                                    <Setter Property="IsEnabled" Value="False" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </MenuItem.Style>
+                                    <MenuItem.Icon>
+                                        <Ellipse Width="10" Height="10" Fill="Green" />
+                                    </MenuItem.Icon>
+                                    <MenuItem.ItemContainerStyle>
+                                        <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
+                                            <Setter Property="Header" Value="{Binding Name}" />
+                                            <Setter Property="ToolTip" Value="{Binding Description}" />
+                                        </Style>
+                                    </MenuItem.ItemContainerStyle>
+                                </MenuItem>
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>

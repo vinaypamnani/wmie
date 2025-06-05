@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Management;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
@@ -17,6 +18,7 @@ namespace WmiExplorer.Presentation.ViewModels;
 public class WmiClassViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
+    private ObservableCollection<WmiMethod>? _classMethods;
     private readonly object _collectionLock = new();
     private CancellationTokenSource _cts = new();
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
@@ -57,9 +59,16 @@ public class WmiClassViewModel : MessagingViewModelBase
         );
 
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
+        LoadClassMethods();
     }
 
     public ICommand CancelInstanceLoadCommand { get; }
+
+    /// <summary>
+    /// Collection of methods available for this class.
+    /// </summary>
+    public ObservableCollection<WmiMethod> ClassMethods => _classMethods!;
+
     public string ClassName => _wmiClass.ClassName;
     public ICommand CopyRelativePathCommand { get; }
     public string Description => _wmiClass.Description;
@@ -292,6 +301,37 @@ public class WmiClassViewModel : MessagingViewModelBase
     {
         return string.IsNullOrWhiteSpace(filter) ||
                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    /// <summary>
+    /// Loads the methods available for this class.
+    /// </summary>
+    private void LoadClassMethods()
+    {
+        _classMethods = new ObservableCollection<WmiMethod>();
+
+        try
+        {
+            // Get methods from the WmiClass
+            var methods = _wmiClass.Methods;
+
+            if (methods != null && methods.Count > 0)
+            {
+                foreach (var method in methods)
+                {
+                    // Only add static methods to the class methods collection
+                    if (method.IsStatic)
+                    {
+                        // Add each method to the collection
+                        _classMethods.Add(method);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error loading methods for class {ClassName}: {ex.Message}");
+        }
     }
 }
 

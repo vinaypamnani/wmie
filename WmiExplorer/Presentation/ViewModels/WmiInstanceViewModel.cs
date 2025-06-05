@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
-using WmiExplorer.Common.Shared;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
@@ -12,7 +12,16 @@ namespace WmiExplorer.Presentation.ViewModels;
 /// </summary>
 public class WmiInstanceViewModel : MessagingViewModelBase
 {
+    public enum InstanceLoadState
+    {
+        Unknown,
+        Success,
+        Failed
+    }
+
     private readonly IApplicationService _applicationService;
+    private ObservableCollection<WmiMethod>? _instanceMethods;
+    private InstanceLoadState _loadState = InstanceLoadState.Unknown;
     private readonly WmiClassViewModel _parentClass;
     private readonly WmiInstance _wmiInstance;
     private readonly IWmiService _wmiService;
@@ -46,6 +55,8 @@ public class WmiInstanceViewModel : MessagingViewModelBase
         InitializeMessaging(messagingService);
 
         CopyRelativePathCommand = new RelayCommand(CopyRelativePath);
+
+        LoadInstanceMethods();
     }
 
     /// <summary>
@@ -54,9 +65,23 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     public ICommand CopyRelativePathCommand { get; }
 
     /// <summary>
+    /// Collection of methods available for this instance.
+    /// </summary>
+    public ObservableCollection<WmiMethod> InstanceMethods => _instanceMethods!;
+
+    /// <summary>
     /// The display name for this instance.
     /// </summary>
     public string InstanceName => _wmiInstance.InstanceName;
+
+    /// <summary>
+    /// Load state for the indicator. Success if ever selected, Unknown otherwise.
+    /// </summary>
+    public InstanceLoadState LoadState
+    {
+        get => _loadState;
+        set => SetProperty(ref _loadState, value);
+    }
 
     /// <summary>
     /// The WMI path for this instance.
@@ -77,23 +102,6 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     /// The underlying ManagementObject for this instance.
     /// </summary>
     public WmiInstance WmiInstance => _wmiInstance;
-
-    public enum InstanceLoadState
-    {
-        Unknown,
-        Success,
-        Failed
-    }
-
-    private InstanceLoadState _loadState = InstanceLoadState.Unknown;
-    /// <summary>
-    /// Load state for the indicator. Success if ever selected, Unknown otherwise.
-    /// </summary>
-    public InstanceLoadState LoadState
-    {
-        get => _loadState;
-        set => SetProperty(ref _loadState, value);
-    }
 
     /// <summary>
     /// Creates a collection of WmiInstanceViewModel from a collection of WmiInstance models.
@@ -152,5 +160,39 @@ public class WmiInstanceViewModel : MessagingViewModelBase
 
         _applicationService.CopyToClipboard(NamespacePath);
         PublishSuccessState($"Copied path: {NamespacePath}");
+    }
+
+    /// <summary>
+    /// Loads the methods available for this instance from the parent class.
+    /// </summary>
+    private void LoadInstanceMethods()
+    {
+        _instanceMethods = new ObservableCollection<WmiMethod>();
+
+        try
+        {
+            // Get the methods from the parent class's WmiClass
+            var methods = _parentClass.WmiClass.Methods;
+
+            if (methods != null && methods.Count > 0)
+            {
+                foreach (var method in methods)
+                {
+                    // Only add non-static methods to instance methods
+                    if (!method.IsStatic)
+                    {
+                        // Add each method to the collection
+                        _instanceMethods.Add(method);
+                    }
+                }
+            }
+
+            // Log the number of methods found
+            // System.Diagnostics.Debug.WriteLine($"Loaded {_instanceMethods.Count} methods for instance {InstanceName}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading methods for instance {InstanceName}: {ex.Message}");
+        }
     }
 }

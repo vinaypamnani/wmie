@@ -113,16 +113,35 @@
                                 <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                                     <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
                                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
-                                    <!-- ContextMenu for Copy Relative Path and Cancel loading -->
+                                    <!--  ContextMenu for Copy Relative Path and Cancel loading  -->
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu>
-                                                <MenuItem Header="Copy Relative Path"
-                                                          Command="{Binding CopyRelativePathCommand}"
-                                                          CommandParameter="{Binding}" />
-                                                <MenuItem Header="Cancel loading"
-                                                          Command="{Binding CancelInstanceLoadCommand}"
-                                                          CommandParameter="{Binding}" />
+                                                <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path" />
+                                                <MenuItem Command="{Binding CancelInstanceLoadCommand}" CommandParameter="{Binding}" Header="Cancel loading" />
+                                                <MenuItem ItemsSource="{Binding ClassMethods}">
+                                                    <MenuItem.Header>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="Execute Static Methods" />
+                                                            <TextBlock Margin="4,0,0,0" Text="{Binding ClassMethods.Count, StringFormat='[{0}]'}" />
+                                                        </StackPanel>
+                                                    </MenuItem.Header>
+                                                    <MenuItem.Style>
+                                                        <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ClassMethods.Count}" Value="0">
+                                                                    <Setter Property="IsEnabled" Value="False" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </MenuItem.Style>
+                                                    <MenuItem.ItemContainerStyle>
+                                                        <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
+                                                            <Setter Property="Header" Value="{Binding Name}" />
+                                                            <Setter Property="ToolTip" Value="{Binding Description}" />
+                                                        </Style>
+                                                    </MenuItem.ItemContainerStyle>
+                                                </MenuItem>
                                             </ContextMenu>
                                         </Setter.Value>
                                     </Setter>
