@@ -8,6 +8,7 @@ using WmiExplorer.Presentation.PropertyTypeProvider;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
+using System.Reflection;
 
 namespace WmiExplorer;
 
@@ -45,9 +46,35 @@ public partial class App : Application
         var wmiService = ServiceProvider.GetRequiredService<IWmiService>();
         ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());
 
+        // Set menu drop alignment to false
+        SetMenuDropAlignment();
+
         // Create and show MainWindow using DI
         var mainWindow = ServiceProvider.GetRequiredService<Presentation.Views.MainWindow>();
         mainWindow.Show();
+    }
+
+    public static void SetMenuDropAlignment()
+    {
+        try
+        {
+            var ifLeft = SystemParameters.MenuDropAlignment;
+
+            if (ifLeft)
+            {
+                // change to false
+                var t = typeof(SystemParameters);
+                var field = t.GetField("_menuDropAlignment", BindingFlags.NonPublic | BindingFlags.Static);
+                field?.SetValue(null, false);
+
+                ifLeft = SystemParameters.MenuDropAlignment;
+                Debug.WriteLine($"[SetMenuDropAlignment] MenuDropAlignment set to {ifLeft}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SetMenuDropAlignment] Error setting MenuDropAlignment: {ex.Message}");
+        }
     }
 
     [DllImport("kernel32.dll")]
