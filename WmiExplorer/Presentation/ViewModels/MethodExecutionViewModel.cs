@@ -35,8 +35,12 @@ public class MethodExecutionViewModel : ViewModelBase
     // Method parameters for the UI
     private readonly ObservableCollection<WmiParameterViewModel> _parameters = new();
 
+    private int _selectedTabIndex;
+
     // Properties for the UI
     private string _statusMessage = "Ready to execute method";
+
+    private bool _isMethodDescriptionExpanded;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionViewModel"/> class.
@@ -66,12 +70,19 @@ public class MethodExecutionViewModel : ViewModelBase
         // Initialize commands
         ExecuteMethodCommand = new RelayCommand(ExecuteMethodWrapper);
         CancelCommand = new RelayCommand(Cancel);
+        ExpandMethodDescriptionCommand = new RelayCommand(_ => IsMethodDescriptionExpanded = true);
+        CollapseMethodDescriptionCommand = new RelayCommand(_ => IsMethodDescriptionExpanded = false);
     }
 
     /// <summary>
     /// Gets the command to cancel and close the dialog.
     /// </summary>
     public ICommand CancelCommand { get; }
+
+    /// <summary>
+    /// Gets the command to collapse the method description.
+    /// </summary>
+    public ICommand CollapseMethodDescriptionCommand { get; }
 
     /// <summary>
     /// Gets the class name.
@@ -82,6 +93,11 @@ public class MethodExecutionViewModel : ViewModelBase
     /// Gets the command to execute the method.
     /// </summary>
     public ICommand ExecuteMethodCommand { get; }
+
+    /// <summary>
+    /// Gets the command to expand the method description.
+    /// </summary>
+    public ICommand ExpandMethodDescriptionCommand { get; }
 
     /// <summary>
     /// Gets or sets the execution results.
@@ -105,6 +121,15 @@ public class MethodExecutionViewModel : ViewModelBase
     /// Gets the instance name (if applicable).
     /// </summary>
     public string InstanceName => _instance?.InstanceName ?? string.Empty;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the method description is expanded.
+    /// </summary>
+    public bool IsMethodDescriptionExpanded
+    {
+        get => _isMethodDescriptionExpanded;
+        set => SetProperty(ref _isMethodDescriptionExpanded, value);
+    }
 
     /// <summary>
     /// Gets a value indicating whether the method is static.
@@ -134,6 +159,15 @@ public class MethodExecutionViewModel : ViewModelBase
     /// Gets the collection of parameters for the method.
     /// </summary>
     public ObservableCollection<WmiParameterViewModel> Parameters => _parameters;
+
+    /// <summary>
+    /// Gets or sets the selected tab index (0 = Input, 1 = Output).
+    /// </summary>
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set => SetProperty(ref _selectedTabIndex, value);
+    }
 
     /// <summary>
     /// Gets the status message to display in the status bar.
@@ -197,10 +231,11 @@ public class MethodExecutionViewModel : ViewModelBase
                 {
                     OutputParameters = new WmiBaseObject(outParams);
                     HasOutputParameters = true;
-                }
-
-                // Update status
+                }                // Update status
                 StatusMessage = "Method executed successfully";
+
+                // Switch to Output tab to show results
+                SelectedTabIndex = 1;
             }
             else
             {
@@ -242,6 +277,9 @@ public class MethodExecutionViewModel : ViewModelBase
 
                 // Update status
                 StatusMessage = "Method executed successfully";
+
+                // Switch to Output tab to show results
+                SelectedTabIndex = 1;
             }
         }
         catch (Exception ex)

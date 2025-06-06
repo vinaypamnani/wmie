@@ -7,7 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
         Width="600"
-        Height="800"
+        Height="600"
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="CanResizeWithGrip"
@@ -21,65 +21,150 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!--  Header Area - Draggable  -->
             <Border Grid.Row="0"
-                    Height="Auto"
-                    Padding="{DynamicResource PaddingVerticalMedium}"
+                    Padding="16,8,16,8"
                     behaviors:WindowDragBehavior.IsDragEnabled="True"
-                    Background="{DynamicResource PrimaryAccentBrush}">
-                <StackPanel Margin="15,0" Orientation="Vertical">
-                    <!--  First Row: Method Name  -->
-                    <TextBlock FontSize="16"
+                    Background="{DynamicResource PrimaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,0,0,0">
+                <!--  Header content with subtle accent strip  -->
+                <StackPanel Orientation="Vertical">
+
+                    <!--  Method Name with accent underline  -->
+                    <TextBlock FontSize="18"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource PrimaryForegroundBrush}"
-                               Text="{Binding MethodName}"
-                               ToolTip="{Binding MethodDescription}" />
-                    <!--  Second Row: Class Name  -->
-                    <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
-                        <TextBlock FontSize="14" Foreground="{DynamicResource PrimaryForegroundBrush}" Text="Class: " />
-                        <TextBlock FontSize="14"
-                                   FontWeight="Bold"
+                               Text="{Binding MethodName}" />
+
+                    <!--  Class and Instance Info  -->
+                    <Grid Margin="0,0,0,2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Class Info  -->
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                   Text="Class: " />
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="1"
+                                   FontSize="13"
+                                   FontWeight="Medium"
                                    Foreground="{DynamicResource PrimaryForegroundBrush}"
                                    Text="{Binding ClassName}" />
-                    </StackPanel>
-                    <!--  ThirdRow: Instance Name  -->
-                    <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
-                        <TextBlock FontSize="14"
-                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+
+                        <!--  Instance Info  -->
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
                                    Text="Instance: "
                                    Visibility="{Binding InstanceName, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
-                        <TextBlock FontSize="14"
-                                   FontWeight="Bold"
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="1"
+                                   FontSize="13"
+                                   FontWeight="Medium"
                                    Foreground="{DynamicResource PrimaryForegroundBrush}"
                                    Text="{Binding InstanceName}"
                                    Visibility="{Binding InstanceName, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
-                    </StackPanel>
+                    </Grid>
+
+                    <!--  Accent underline  -->
+                    <Rectangle Height="2"
+                               Margin="0,2,0,2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource PrimaryAccentBrush}" />
                 </StackPanel>
             </Border>
 
-            <!--  Main Content  -->
-            <Grid Grid.Row="1" Margin="15">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <!--  Method Description Area  -->
+            <Border Grid.Row="1"
+                    Padding="16,0,16,0"
+                    BorderThickness="0,0,0,0"
+                    Visibility="{Binding MethodDescription, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+                <Grid>
+                    <!--  Collapsed/Truncated Description  -->
+                    <Grid Visibility="{Binding IsMethodDescriptionExpanded, Converter={StaticResource InverseBooleanConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Top"
+                                   Cursor="Hand"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource PrimaryAccentBrush}"
+                                   Text="More">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Command="{Binding ExpandMethodDescriptionCommand}" MouseAction="LeftClick" />
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1"
+                                   MaxHeight="19"
+                                   FontSize="12"
+                                   FontWeight="Normal"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding MethodDescription}"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="NoWrap"
+                                   ToolTip="{Binding MethodDescription}" />
+                    </Grid>
 
-                <!--  Input Parameters GroupBox  -->
-                <GroupBox Grid.Row="0"
-                          Margin="0,10,0,0"
-                          HorizontalContentAlignment="Stretch"
-                          Header="Input Parameters">
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <!--  Expanded Description  -->
+                    <Grid Visibility="{Binding IsMethodDescriptionExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Margin="0,0,8,0"
+                                   VerticalAlignment="Top"
+                                   Cursor="Hand"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource PrimaryAccentBrush}"
+                                   Text="Less">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Command="{Binding CollapseMethodDescriptionCommand}" MouseAction="LeftClick" />
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1"
+                                   FontSize="12"
+                                   FontWeight="Normal"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding MethodDescription}"
+                                   TextWrapping="Wrap"
+                                   ToolTip="{Binding MethodDescription}" />
+                    </Grid>
+                </Grid>
+            </Border>
+            <!--  Main Content  -->
+            <TabControl Grid.Row="2"
+                        Margin="16,8,16,0"
+                        Padding="8,0,8,0"
+                        BorderThickness="1"
+                        SelectedIndex="{Binding SelectedTabIndex}">
+                <!--  Input Parameters Tab  -->
+                <TabItem Header="Input">
+                    <ScrollViewer Margin="0,10,0,0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Parameters}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Margin="0,5"
-                                            Padding="10"
+                                            Padding="8"
                                             Background="{DynamicResource SecondaryBackgroundBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
                                             BorderThickness="1"
@@ -95,8 +180,7 @@
                                                 <CheckBox Margin="0,4,8,0"
                                                           VerticalAlignment="Top"
                                                           DockPanel.Dock="Left"
-                                                          IsChecked="{Binding IsSelected}"
-                                                          ToolTip="{Binding Description}">
+                                                          IsChecked="{Binding IsSelected}">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
                                                         <TextBlock Foreground="{DynamicResource SecondaryForegroundBrush}" Text=" [" />
@@ -121,7 +205,8 @@
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto" />
                                                             <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>                                                        <TextBlock Grid.Column="0"
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0"
                                                                    Margin="0,0,8,0"
                                                                    VerticalAlignment="Top"
                                                                    Cursor="Hand"
@@ -138,7 +223,8 @@
                                                                    Foreground="{DynamicResource SecondaryForegroundBrush}"
                                                                    Text="{Binding Description}"
                                                                    TextTrimming="CharacterEllipsis"
-                                                                   TextWrapping="NoWrap" />
+                                                                   TextWrapping="NoWrap"
+                                                                   ToolTip="{Binding Description}" />
                                                     </Grid>
 
                                                     <!--  Expanded Description  -->
@@ -146,7 +232,8 @@
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto" />
                                                             <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>                                                        <TextBlock Grid.Column="0"
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0"
                                                                    Margin="0,0,8,0"
                                                                    VerticalAlignment="Top"
                                                                    Cursor="Hand"
@@ -161,7 +248,8 @@
                                                                    VerticalAlignment="Top"
                                                                    Foreground="{DynamicResource SecondaryForegroundBrush}"
                                                                    Text="{Binding Description}"
-                                                                   TextWrapping="Wrap" />
+                                                                   TextWrapping="Wrap"
+                                                                   ToolTip="{Binding Description}" />
                                                     </Grid>
                                                 </Grid>
 
@@ -209,15 +297,11 @@
                             </ItemsControl.Style>
                         </ItemsControl>
                     </ScrollViewer>
-                </GroupBox>
+                </TabItem>
 
-                <!--  Output Parameters GroupBox  -->
-                <GroupBox Grid.Row="1"
-                          Margin="0,10,0,0"
-                          HorizontalContentAlignment="Stretch"
-                          VerticalContentAlignment="Stretch"
-                          Header="Output Parameters">
-                    <Grid>
+                <!--  Output Parameters Tab  -->
+                <TabItem Header="Output">
+                    <Grid Margin="0,10,0,0">
                         <pg:PropertyGrid x:Name="OutputPropertyGrid"
                                          Margin="0"
                                          EnableVirtualization="True"
@@ -231,19 +315,26 @@
                                    Text="Output parameters will appear here after execution"
                                    Visibility="{Binding HasOutputParameters, Converter={StaticResource InverseBooleanConverter}}" />
                     </Grid>
-                </GroupBox>
-            </Grid>
-
+                </TabItem>
+            </TabControl>
             <!--  Button Panel and Status Bar  -->
-            <Grid Grid.Row="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <DockPanel Grid.Row="3">
+                <!--  Status Bar  -->
+                <Border BorderThickness="0,1,0,0" DockPanel.Dock="Bottom">
+                    <TextBlock Padding="10,3"
+                               Background="{DynamicResource SecondaryBackgroundBrush}"
+                               FontSize="12"
+                               Text="{Binding StatusMessage}" />
+                </Border>
+
                 <!--  Button Panel  -->
-                <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
+                <StackPanel Margin="15,10"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
                     <Button Width="80"
                             Height="24"
+                            Margin="0,0,5,0"
                             Command="{Binding ExecuteMethodCommand}"
                             Content="Execute" />
                     <Button Width="80"
@@ -251,14 +342,7 @@
                             Command="{Binding CancelCommand}"
                             Content="Close" />
                 </StackPanel>
-                <!--  Status Bar  -->
-                <Border Grid.Row="1" BorderThickness="0,1,0,0">
-                    <TextBlock Padding="10,3"
-                               Background="{DynamicResource SecondaryBackgroundBrush}"
-                               FontSize="12"
-                               Text="{Binding StatusMessage}" />
-                </Border>
-            </Grid>
+            </DockPanel>
         </Grid>
     </Border>
 </Window>
