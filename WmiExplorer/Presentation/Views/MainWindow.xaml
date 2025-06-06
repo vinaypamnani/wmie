@@ -81,7 +81,8 @@
                                   Width="{StaticResource SpacingMedium}"
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
-                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="Classes">
                             <!--  All the grid content has been moved to WmiClassesTab  -->
                             <tabs:WmiClassesTab />
@@ -92,7 +93,7 @@
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
-                            <tabs:WmiWatcherTab DataContext="{Binding EventWatcherViewModel}" />
+                            <tabs:WmiWatcherTab DataContext="{Binding WatcherViewModel}" />
                         </TabItem>
                         <TabItem Header="Query">
                             <!--  Query View  -->
@@ -165,10 +166,9 @@
         <StatusBar Grid.Row="2" Margin="{StaticResource MarginTopSmall}">
             <StatusBarItem>
                 <main:EnhancedStatusIndicator Margin="4,0" DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
-            </StatusBarItem>            <StatusBarItem HorizontalAlignment="Right">
-                <TextBlock Text="{Binding ElapsedTimeMessage}"
-                           Foreground="{DynamicResource PrimaryForegroundBrush}"
-                           Margin="4,0" />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Margin="4,0" Foreground="{DynamicResource PrimaryForegroundBrush}" Text="{Binding ElapsedTimeMessage}" />
             </StatusBarItem>
         </StatusBar>
     </Grid>
