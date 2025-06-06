@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Management;
-using System.Text;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
@@ -38,7 +37,7 @@ public class MethodExecutionViewModel : ViewModelBase
     private int _selectedTabIndex;
 
     // Properties for the UI
-    private string _statusMessage = "Ready to execute method";
+    private string _statusMessage = "Ready";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionViewModel"/> class.
@@ -86,15 +85,6 @@ public class MethodExecutionViewModel : ViewModelBase
     /// Gets the command to execute the method.
     /// </summary>
     public ICommand ExecuteMethodCommand { get; }
-
-    /// <summary>
-    /// Gets or sets the execution results.
-    /// </summary>
-    public string ExecutionResults
-    {
-        get => _executionResults;
-        private set => SetProperty(ref _executionResults, value);
-    }
 
     /// <summary>
     /// Gets a value indicating whether there are output parameters to display.
@@ -210,16 +200,14 @@ public class MethodExecutionViewModel : ViewModelBase
                     inParams,
                     null);
 
-                // Convert the out parameters to a WmiParameterCollection
-                var result = new WmiParameterCollection(outParams);
-                ExecutionResults = FormatResults(result);
-
                 // Update output parameters
                 if (outParams != null && outParams.Properties.Count > 0)
                 {
                     OutputParameters = new WmiBaseObject(outParams);
                     HasOutputParameters = true;
-                }                // Update status
+                }
+
+                // Update status
                 StatusMessage = "Method executed successfully";
 
                 // Switch to Output tab to show results
@@ -252,10 +240,6 @@ public class MethodExecutionViewModel : ViewModelBase
                     inParams,
                     null);
 
-                // Convert the out parameters to a WmiParameterCollection
-                var result = new WmiParameterCollection(outParams);
-                ExecutionResults = FormatResults(result);
-
                 // Update output parameters
                 if (outParams != null && outParams.Properties.Count > 0)
                 {
@@ -272,7 +256,6 @@ public class MethodExecutionViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ExecutionResults = $"Error executing method: {ex.Message}";
             StatusMessage = $"Error: {ex.Message}";
         }
     }
@@ -280,24 +263,6 @@ public class MethodExecutionViewModel : ViewModelBase
     private void ExecuteMethodWrapper(object? parameter)
     {
         ExecuteMethod();
-    }
-
-    private string FormatResults(WmiParameterCollection? results)
-    {
-        if (results == null || results.Count == 0)
-        {
-            return "Method executed successfully with no output parameters.";
-        }
-
-        var sb = new StringBuilder();
-        sb.AppendLine("Method executed successfully. Output parameters:");
-
-        foreach (var param in results)
-        {
-            sb.AppendLine($"  {param.Name}: {param.Value}");
-        }
-
-        return sb.ToString();
     }
 
     private void LoadMethodParameters()
