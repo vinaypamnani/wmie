@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Management;
 using System.Text;
 using System.Windows.Input;
@@ -12,19 +13,30 @@ namespace WmiExplorer.Presentation.ViewModels;
 /// </summary>
 public class MethodExecutionViewModel : ViewModelBase
 {
+    /// <summary>
+    /// Event raised when the user wants to close the dialog.
+    /// </summary>
+    public event EventHandler? CloseRequested;
+
     private readonly WmiClass _class;
 
     // Results from method execution
     private string _executionResults = string.Empty;
 
+    private bool _hasOutputParameters;
     private readonly WmiInstance? _instance;
     private readonly WmiMethod _method;
 
     // Store the full model objects
     private readonly WmiNamespace _namespace;
 
+    private WmiBaseObject? _outputParameters;
+
     // Method parameters for the UI
-    private readonly ObservableCollection<WmiParameter> _parameters = new();
+    private readonly ObservableCollection<WmiParameterViewModel> _parameters = new();
+
+    // Properties for the UI
+    private string _statusMessage = "Ready to execute method";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionViewModel"/> class.
@@ -48,14 +60,18 @@ public class MethodExecutionViewModel : ViewModelBase
         if (_instance == null && !_method.IsStatic)
         {
             throw new ArgumentException("Cannot execute non-static method without an instance");
-        }
-
-        // Load parameters
+        }        // Load parameters
         LoadMethodParameters();
 
         // Initialize commands
         ExecuteMethodCommand = new RelayCommand(ExecuteMethodWrapper);
+        CancelCommand = new RelayCommand(Cancel);
     }
+
+    /// <summary>
+    /// Gets the command to cancel and close the dialog.
+    /// </summary>
+    public ICommand CancelCommand { get; }
 
     /// <summary>
     /// Gets the class name.
@@ -74,6 +90,15 @@ public class MethodExecutionViewModel : ViewModelBase
     {
         get => _executionResults;
         private set => SetProperty(ref _executionResults, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether there are output parameters to display.
+    /// </summary>
+    public bool HasOutputParameters
+    {
+        get => _hasOutputParameters;
+        private set => SetProperty(ref _hasOutputParameters, value);
     }
 
     /// <summary>
@@ -97,14 +122,45 @@ public class MethodExecutionViewModel : ViewModelBase
     public string MethodName => _method.Name;
 
     /// <summary>
+    /// Gets the output parameters to display in the PropertyGrid.
+    /// </summary>
+    public WmiBaseObject? OutputParameters
+    {
+        get => _outputParameters;
+        private set => SetProperty(ref _outputParameters, value);
+    }
+
+    /// <summary>
     /// Gets the collection of parameters for the method.
     /// </summary>
-    public ObservableCollection<WmiParameter> Parameters => _parameters;
+    public ObservableCollection<WmiParameterViewModel> Parameters => _parameters;
+
+    /// <summary>
+    /// Gets the status message to display in the status bar.
+    /// </summary>
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        private set => SetProperty(ref _statusMessage, value);
+    }
+
+    private void Cancel(object? parameter)
+    {
+        // To be implemented in the dialog
+        CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
 
     private void ExecuteMethod()
     {
         try
         {
+            // Update status
+            StatusMessage = "Executing method...";
+
+            // Reset output parameters
+            HasOutputParameters = false;
+            OutputParameters = null;
+
             if (_instance != null)
             {
                 // Execute instance method
@@ -117,7 +173,7 @@ public class MethodExecutionViewModel : ViewModelBase
                     inParams = _class.ActualClass.GetMethodParameters(_method.Name);
 
                     // Set parameter values
-                    foreach (var param in _parameters)
+                    foreach (var param in _parameters.Where(p => p.IsSelected))
                     {
                         if (param.Name != null && param.Value != null)
                         {
@@ -135,6 +191,16 @@ public class MethodExecutionViewModel : ViewModelBase
                 // Convert the out parameters to a WmiParameterCollection
                 var result = new WmiParameterCollection(outParams);
                 ExecutionResults = FormatResults(result);
+
+                // Update output parameters
+                if (outParams != null && outParams.Properties.Count > 0)
+                {
+                    OutputParameters = new WmiBaseObject(outParams);
+                    HasOutputParameters = true;
+                }
+
+                // Update status
+                StatusMessage = "Method executed successfully";
             }
             else
             {
@@ -148,7 +214,7 @@ public class MethodExecutionViewModel : ViewModelBase
                     inParams = _class.ActualClass.GetMethodParameters(_method.Name);
 
                     // Set parameter values
-                    foreach (var param in _parameters)
+                    foreach (var param in _parameters.Where(p => p.IsSelected))
                     {
                         if (param.Name != null && param.Value != null)
                         {
@@ -166,11 +232,22 @@ public class MethodExecutionViewModel : ViewModelBase
                 // Convert the out parameters to a WmiParameterCollection
                 var result = new WmiParameterCollection(outParams);
                 ExecutionResults = FormatResults(result);
+
+                // Update output parameters
+                if (outParams != null && outParams.Properties.Count > 0)
+                {
+                    OutputParameters = new WmiBaseObject(outParams);
+                    HasOutputParameters = true;
+                }
+
+                // Update status
+                StatusMessage = "Method executed successfully";
             }
         }
         catch (Exception ex)
         {
             ExecutionResults = $"Error executing method: {ex.Message}";
+            StatusMessage = $"Error: {ex.Message}";
         }
     }
 
@@ -200,13 +277,99 @@ public class MethodExecutionViewModel : ViewModelBase
     private void LoadMethodParameters()
     {
         _parameters.Clear();
-
         if (_method != null && _method.InParameters.Count > 0)
         {
             foreach (var param in _method.InParameters)
             {
-                _parameters.Add(param);
+                _parameters.Add(new WmiParameterViewModel(param));
             }
         }
+    }
+}
+
+public class WmiParameterViewModel : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private bool _isDescriptionExpanded = false;
+    private bool _isSelected = false;
+    private object? _value;
+
+    public WmiParameterViewModel(WmiParameter model)
+    {
+        Model = model;
+        _value = model.Value;
+
+        // Initialize commands
+        ExpandDescriptionCommand = new RelayCommand(_ => IsDescriptionExpanded = true);
+        CollapseDescriptionCommand = new RelayCommand(_ => IsDescriptionExpanded = false);
+    }
+
+    public ICommand CollapseDescriptionCommand { get; }
+    public string? Description => Model.Description;
+    public ICommand ExpandDescriptionCommand { get; }
+    public int Id => Model.Id;
+    public bool IsArray => Model.IsArray;
+    public bool IsComplexType => IsComplex(Type);
+
+    public bool IsDescriptionExpanded
+    {
+        get => _isDescriptionExpanded;
+        set
+        {
+            if (_isDescriptionExpanded != value)
+            {
+                _isDescriptionExpanded = value;
+                OnPropertyChanged(nameof(IsDescriptionExpanded));
+            }
+        }
+    }
+
+    public bool IsEnabled => IsSelected && !IsComplexType;
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected != value)
+            {
+                _isSelected = value;
+                OnPropertyChanged(nameof(IsSelected));
+                OnPropertyChanged(nameof(IsEnabled));
+            }
+        }
+    }
+
+    public WmiParameter Model { get; }
+    public string? Name => Model.Name;
+    public string? Type => Model.Type;
+
+    public object? Value
+    {
+        get => _value;
+        set
+        {
+            if (_value != value)
+            {
+                _value = value;
+                Model.Value = value;
+                OnPropertyChanged(nameof(Value));
+            }
+        }
+    }
+
+    protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private bool IsComplex(string? typeName)
+    {
+        if (string.IsNullOrEmpty(typeName)) return true;
+
+        typeName = typeName.ToLowerInvariant();
+        return typeName switch
+        {
+            "object" or "reference" => true,
+            _ => false
+        };
     }
 }

@@ -9,12 +9,27 @@ namespace WmiExplorer.Presentation.Views.Dialogs;
 /// </summary>
 public partial class MethodExecutionDialog : Window
 {
+    private readonly MethodExecutionViewModel? _viewModel;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionDialog"/> class.
     /// </summary>
     public MethodExecutionDialog()
     {
         InitializeComponent();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MethodExecutionDialog"/> class with a ViewModel.
+    /// </summary>
+    /// <param name="viewModel">The ViewModel to use for this dialog.</param>
+    public MethodExecutionDialog(MethodExecutionViewModel viewModel) : this()
+    {
+        _viewModel = viewModel;
+        DataContext = _viewModel;
+
+        // Subscribe to close requested event
+        _viewModel.CloseRequested += (s, e) => DialogResult = false;
     }
 
     /// <summary>
@@ -33,14 +48,15 @@ public partial class MethodExecutionDialog : Window
         WmiMethod wmiMethod,
         WmiInstance? wmiInstance = null)
     {
-        var dialog = new MethodExecutionDialog
+        var viewModel = new MethodExecutionViewModel(
+            wmiNamespace,
+            wmiClass,
+            wmiMethod,
+            wmiInstance);
+
+        var dialog = new MethodExecutionDialog(viewModel)
         {
-            Owner = owner,
-            DataContext = new MethodExecutionViewModel(
-                wmiNamespace,
-                wmiClass,
-                wmiMethod,
-                wmiInstance)
+            Owner = owner
         };
 
         return dialog.ShowDialog() ?? false;
