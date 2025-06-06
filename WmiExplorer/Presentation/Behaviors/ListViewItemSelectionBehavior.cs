@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Presentation.ViewModels.Items;
 
 namespace WmiExplorer.Presentation.Behaviors;
 

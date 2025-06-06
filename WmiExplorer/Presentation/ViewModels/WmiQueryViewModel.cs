@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -7,7 +6,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModelHelpers;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
@@ -59,6 +58,12 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
 
     public ICommand ExecuteQueryCommand { get; }
 
+    public bool IsQuerying
+    {
+        get => _isQuerying;
+        set => SetProperty(ref _isQuerying, value);
+    }
+
     public string QueryText
     {
         get => _queryText;
@@ -99,10 +104,32 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         set => SetProperty(ref _useAmendedQualifiers, value);
     }
 
-    public bool IsQuerying
+    protected override bool ResultsFilterPredicate(WmiInstance instance, string filter)
     {
-        get => _isQuerying;
-        set => SetProperty(ref _isQuerying, value);
+        if (string.IsNullOrWhiteSpace(filter))
+            return true;
+        var lower = filter.ToLowerInvariant();
+
+        // Helper to safely access a property for filtering
+        bool SafeContains(Func<string?> propertyAccessor)
+        {
+            try
+            {
+                var value = propertyAccessor();
+                return value != null && value.ToLowerInvariant().Contains(lower);
+            }
+            catch
+            {
+                // Ignore exceptions from WMI property access
+                return false;
+            }
+        }
+
+        // Match on multiple properties, safely
+        return SafeContains(() => instance.InstanceName)
+            || SafeContains(() => instance.Path.Path)
+            || SafeContains(() => instance.ClassPath?.ClassName)
+            || SafeContains(() => instance.ToString());
     }
 
     private void CancelQuery()
@@ -214,34 +241,6 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         if (message?.NamespaceViewModel == null)
             return;
         SelectedNamespace = message.NamespaceViewModel;
-    }
-
-    protected override bool ResultsFilterPredicate(WmiInstance instance, string filter)
-    {
-        if (string.IsNullOrWhiteSpace(filter))
-            return true;
-        var lower = filter.ToLowerInvariant();
-
-        // Helper to safely access a property for filtering
-        bool SafeContains(Func<string?> propertyAccessor)
-        {
-            try
-            {
-                var value = propertyAccessor();
-                return value != null && value.ToLowerInvariant().Contains(lower);
-            }
-            catch
-            {
-                // Ignore exceptions from WMI property access
-                return false;
-            }
-        }
-
-        // Match on multiple properties, safely
-        return SafeContains(() => instance.InstanceName)
-            || SafeContains(() => instance.Path.Path)
-            || SafeContains(() => instance.ClassPath?.ClassName)
-            || SafeContains(() => instance.ToString());
     }
 
     private void RefreshResultsView()

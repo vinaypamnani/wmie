@@ -3,6 +3,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
@@ -250,7 +251,7 @@ public class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
             // Store results and query for this type after search
             _searchTypeStates[SearchType].Results = new List<WmiSearchResult>(_results);
             _searchTypeStates[SearchType].SearchQuery = SearchQuery;
-            
+
             if (_cts.IsCancellationRequested)
             {
                 PublishWarningState($"Found {_results.Count} results before search was cancelled.");

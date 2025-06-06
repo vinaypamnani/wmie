@@ -5,7 +5,7 @@ using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Items;
 
 /// <summary>
 /// ViewModel for a WMI instance. Exposes instance properties and supports selection messaging.

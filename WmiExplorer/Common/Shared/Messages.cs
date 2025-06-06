@@ -1,5 +1,5 @@
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Presentation.ViewModels.Items;
 
 namespace WmiExplorer.Common.Shared;
 
@@ -55,6 +55,21 @@ public class ClassTypeFilterChangedMessage : MessageBase
     }
 
     public WmiClassTypeFlags ClassTypeFilter { get; }
+}
+
+/// <summary>
+/// Message sent to request navigation to a class in a namespace (from search results)
+/// </summary>
+public class JumpToClassMessage : MessageBase
+{
+    public JumpToClassMessage(string namespacePath, string className)
+    {
+        NamespacePath = namespacePath;
+        ClassName = className;
+    }
+
+    public string ClassName { get; }
+    public string NamespacePath { get; }
 }
 
 /// <summary>
@@ -143,21 +158,6 @@ public class ThemeChangedMessage : MessageBase
 }
 
 /// <summary>
-/// Message sent to request navigation to a class in a namespace (from search results)
-/// </summary>
-public class JumpToClassMessage : MessageBase
-{
-    public JumpToClassMessage(string namespacePath, string className)
-    {
-        NamespacePath = namespacePath;
-        ClassName = className;
-    }
-
-    public string NamespacePath { get; }
-    public string ClassName { get; }
-}
-
-/// <summary>
 /// Message sent when selected WMI query result instance changes
 /// </summary>
 public class WmiQueryInstanceChangedMessage : MessageBase
@@ -166,6 +166,7 @@ public class WmiQueryInstanceChangedMessage : MessageBase
     {
         Instance = instance;
     }
+
     public WmiInstance? Instance { get; }
 }
 

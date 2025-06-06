@@ -2,11 +2,9 @@
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
-using Microsoft.Extensions.DependencyInjection;
-using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
@@ -18,7 +16,6 @@ public class MainViewModel : MessagingViewModelBase
     private readonly CancellationTokenSource _cts = new();
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private string _elapsedTimeMessage = string.Empty;
-    private WmiWatcherViewModel? _watcherViewModel;
     private ICommand? _executeAutoQueryCommand;
     private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
     private WmiClassViewModel? _selectedClass;
@@ -29,6 +26,7 @@ public class MainViewModel : MessagingViewModelBase
     private readonly ISettingsService _settingsService;
     private string _temporaryComputerName = Environment.MachineName;
     private readonly ThemeManager _themeManager;
+    private WmiWatcherViewModel? _watcherViewModel;
     private MainWindowPosition _windowPosition;
     private readonly IWmiService _wmiService;
 
@@ -178,11 +176,6 @@ public class MainViewModel : MessagingViewModelBase
         get => _elapsedTimeMessage;
         set => SetProperty(ref _elapsedTimeMessage, value);
     }
-
-    /// <summary>
-    /// Gets the view model for the WMI Event Watcher
-    /// </summary>
-    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel!;
 
     /// <summary>
     /// Command to execute the current query
@@ -341,6 +334,11 @@ public class MainViewModel : MessagingViewModelBase
     /// Command to toggle between light and dark theme
     /// </summary>
     public ICommand ToggleThemeCommand { get; }
+
+    /// <summary>
+    /// Gets the view model for the WMI Event Watcher
+    /// </summary>
+    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel!;
 
     /// <summary>
     /// Gets the window position settings
@@ -729,6 +727,15 @@ public class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Handles when a WMI query result instance is selected to update the property grid
+    /// </summary>
+    private void HandleWmiQueryInstanceChangedMessage(WmiQueryInstanceChangedMessage message)
+    {
+        // Set SelectedObject to the selected WMI instance for the property grid
+        SelectedObject = message.Instance;
+    }
+
+    /// <summary>
     /// Updates the auto-generated WQL query text based on the selected class or instance
     /// </summary>
     private void UpdateAutoQueryText(object selectedObject)
@@ -826,14 +833,5 @@ public class MainViewModel : MessagingViewModelBase
                 PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
                 break;
         }
-    }
-
-    /// <summary>
-    /// Handles when a WMI query result instance is selected to update the property grid
-    /// </summary>
-    private void HandleWmiQueryInstanceChangedMessage(WmiQueryInstanceChangedMessage message)
-    {
-        // Set SelectedObject to the selected WMI instance for the property grid
-        SelectedObject = message.Instance;
     }
 }

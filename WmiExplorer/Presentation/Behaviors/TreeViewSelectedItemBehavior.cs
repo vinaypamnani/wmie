@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using TreeView = System.Windows.Controls.TreeView;
 using System.Windows.Input;
 using System.Windows.Media;
-using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Presentation.ViewModels.Items;
 
 namespace WmiExplorer.Presentation.Behaviors;
 

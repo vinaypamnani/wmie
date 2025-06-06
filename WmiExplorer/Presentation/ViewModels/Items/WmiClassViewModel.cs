@@ -10,7 +10,7 @@ using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Items;
 
 /// <summary>
 /// ViewModel for a WMI class, supports async loading, filtering, and selection of instances.

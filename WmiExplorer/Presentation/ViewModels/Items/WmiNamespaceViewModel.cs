@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Management;
 using System.Windows.Input;
@@ -8,9 +9,8 @@ using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Services;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Items;
 
 /// <summary>
 /// ViewModel for a WMI namespace, supports async loading, filtering, and selection.

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using MessageBox = System.Windows.MessageBox;
@@ -8,7 +9,6 @@ using WmiExplorer.Presentation.PropertyTypeProvider;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
-using System.Reflection;
 
 namespace WmiExplorer;
 
@@ -20,6 +20,29 @@ public partial class App : Application
     private const int ATTACH_PARENT_PROCESS = -1;
 
     public static ServiceProvider? ServiceProvider { get; private set; }
+
+    public static void SetMenuDropAlignment()
+    {
+        try
+        {
+            var ifLeft = SystemParameters.MenuDropAlignment;
+
+            if (ifLeft)
+            {
+                // change to false
+                var t = typeof(SystemParameters);
+                var field = t.GetField("_menuDropAlignment", BindingFlags.NonPublic | BindingFlags.Static);
+                field?.SetValue(null, false);
+
+                ifLeft = SystemParameters.MenuDropAlignment;
+                Debug.WriteLine($"[SetMenuDropAlignment] MenuDropAlignment set to {ifLeft}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SetMenuDropAlignment] Error setting MenuDropAlignment: {ex.Message}");
+        }
+    }
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -52,29 +75,6 @@ public partial class App : Application
         // Create and show MainWindow using DI
         var mainWindow = ServiceProvider.GetRequiredService<Presentation.Views.MainWindow>();
         mainWindow.Show();
-    }
-
-    public static void SetMenuDropAlignment()
-    {
-        try
-        {
-            var ifLeft = SystemParameters.MenuDropAlignment;
-
-            if (ifLeft)
-            {
-                // change to false
-                var t = typeof(SystemParameters);
-                var field = t.GetField("_menuDropAlignment", BindingFlags.NonPublic | BindingFlags.Static);
-                field?.SetValue(null, false);
-
-                ifLeft = SystemParameters.MenuDropAlignment;
-                Debug.WriteLine($"[SetMenuDropAlignment] MenuDropAlignment set to {ifLeft}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[SetMenuDropAlignment] Error setting MenuDropAlignment: {ex.Message}");
-        }
     }
 
     [DllImport("kernel32.dll")]
@@ -110,9 +110,9 @@ public partial class App : Application
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiPropertyViewModel>();
 
         // Register additional ViewModels that have multiple instances
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiNamespaceViewModel>();
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiClassViewModel>();
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiInstanceViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.Items.WmiClassViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel>();
         services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiQueryViewModel>();
         services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiSearchViewModel>();
 
