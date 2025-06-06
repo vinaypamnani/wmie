@@ -7,19 +7,22 @@ public class MethodParameterViewModel : ViewModelBase
 {
     private bool _isSelected = false;
     private object? _value;
+    private WmiParameter _wmiParameter;
 
-    public MethodParameterViewModel(WmiParameter model)
+    public MethodParameterViewModel(WmiParameter wmiParameter)
     {
-        Model = model;
-        _value = model.Value;
+        _wmiParameter = wmiParameter;
+        _value = wmiParameter.Value;
     }
 
-    public string? CimType => Model.CimType;
-    public string? Description => Model.Description;
-    public int Id => Model.Id;
-    public bool IsArray => Model.IsArray;
-    public bool IsComplexType => IsComplex(Type);
+    public string? CimType => _wmiParameter.CimType;
+    public string? Description => _wmiParameter.Description;
+    public int Id => _wmiParameter.Id;
+    public bool IsArray => _wmiParameter.IsArray;
+    public bool IsComplexType => IsComplex();
     public bool IsEnabled => IsSelected && !IsComplexType;
+    public bool IsObject => string.Equals(Type, "object", StringComparison.OrdinalIgnoreCase);
+    public bool IsReference => string.Equals(Type, "reference", StringComparison.OrdinalIgnoreCase);
 
     public bool IsSelected
     {
@@ -33,9 +36,8 @@ public class MethodParameterViewModel : ViewModelBase
         }
     }
 
-    public WmiParameter Model { get; }
-    public string? Name => Model.Name;
-    public string? Type => Model.Type;
+    public string? Name => _wmiParameter.Name;
+    public string? Type => _wmiParameter.Type;
 
     public object? Value
     {
@@ -44,20 +46,16 @@ public class MethodParameterViewModel : ViewModelBase
         {
             if (SetProperty(ref _value, value))
             {
-                Model.Value = value;
+                _wmiParameter.Value = value;
             }
         }
     }
 
-    private bool IsComplex(string? typeName)
-    {
-        if (string.IsNullOrEmpty(typeName)) return true;
+    public WmiParameter WmiParameter => _wmiParameter;
 
-        typeName = typeName.ToLowerInvariant();
-        return typeName switch
-        {
-            "object" or "reference" => true,
-            _ => false
-        };
+    private bool IsComplex()
+    {
+        // A parameter is considered complex if it is an object or reference type
+        return IsObject || IsReference;
     }
 }

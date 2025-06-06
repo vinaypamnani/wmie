@@ -95,7 +95,7 @@
                     Padding="16,0,16,0"
                     BorderThickness="0,0,0,0"
                     Visibility="{Binding MethodDescription, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
-                <uc:CollapsibleTextBlock IsExpanded="{Binding IsMethodDescriptionExpanded}" Text="{Binding MethodDescription}" TextForeground="{DynamicResource PrimaryForegroundBrush}" />
+                <uc:CollapsibleTextBlock Text="{Binding MethodDescription}" TextForeground="{DynamicResource PrimaryForegroundBrush}" />
             </Border>
             <!--  Main Content  -->
             <TabControl Grid.Row="2"
@@ -130,7 +130,7 @@
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
                                                         <TextBlock Foreground="{DynamicResource SecondaryForegroundBrush}" Text=" [" />
-                                                        <TextBlock FontStyle="Italic" Foreground="{DynamicResource SecondaryForegroundBrush}" Text="{Binding Type}" />
+                                                        <TextBlock FontStyle="Italic" Foreground="{DynamicResource SecondaryForegroundBrush}" Text="{Binding CimType}" />
                                                         <TextBlock Foreground="{DynamicResource SecondaryForegroundBrush}" Text="]" />
                                                     </StackPanel>
                                                 </CheckBox>
@@ -144,29 +144,79 @@
                                             <!--  Parameter Content Below Checkbox  -->
                                             <StackPanel Grid.Row="1" Margin="20,5,0,0">
                                                 <!--  Parameter Description  -->
-                                                <uc:CollapsibleTextBlock IsExpanded="{Binding IsDescriptionExpanded}"
-                                                                         Text="{Binding Description}"
-                                                                         TextForeground="{DynamicResource SecondaryForegroundBrush}"
-                                                                         Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
+                                                <uc:CollapsibleTextBlock Text="{Binding Description}" TextForeground="{DynamicResource SecondaryForegroundBrush}" Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
 
-                                                <!--  Value Input  -->
-                                                <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}">
-                                                    <TextBox.Style>
-                                                        <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
-                                                            <Setter Property="Tag" Value="Enter value..." />
+                                                <!--  Value Input Template Selection  -->
+                                                <ContentControl>
+                                                    <ContentControl.Style>
+                                                        <Style TargetType="ContentControl">
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value>
+                                                                    <DataTemplate>
+                                                                        <!--  Default: TextBox for non-complex types  -->
+                                                                        <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}">
+                                                                            <TextBox.Style>
+                                                                                <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
+                                                                                    <Setter Property="Tag" Value="Enter value..." />
+                                                                                </Style>
+                                                                            </TextBox.Style>
+                                                                        </TextBox>
+                                                                    </DataTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <!--  Content Control Triggers  -->
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsComplexType}" Value="True">
-                                                                    <Setter Property="Background" Value="{StaticResource DisabledBackgroundBrush}" />
-                                                                    <Setter Property="ToolTip" Value="Complex type parameters are not currently supported" />
-                                                                    <Setter Property="Tag" Value="{Binding CimType}" />
-                                                                </DataTrigger>
+                                                                <!--  Disable content when parameter is not selected  -->
                                                                 <DataTrigger Binding="{Binding IsSelected}" Value="False">
                                                                     <Setter Property="IsEnabled" Value="False" />
                                                                 </DataTrigger>
+                                                                <!--  Reference: ComboBox + Load Button  -->
+                                                                <DataTrigger Binding="{Binding IsReference}" Value="True">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*" />
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <ComboBox Grid.Column="0"
+                                                                                              IsEditable="True"
+                                                                                              IsEnabled="{Binding IsSelected}"
+                                                                                              ItemsSource="{Binding ReferenceOptions}"
+                                                                                              SelectedItem="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    <Button Grid.Column="1"
+                                                                                            Width="60"
+                                                                                            Height="24"
+                                                                                            Margin="8,0,0,0"
+                                                                                            Command="{Binding LoadReferenceCommand}"
+                                                                                            Content="Load"
+                                                                                            IsEnabled="{Binding IsSelected}" />
+                                                                                </Grid>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                                <!--  Object: Read-only TextBox (respects IsSelected state)  -->
+                                                                <DataTrigger Binding="{Binding IsObject}" Value="True">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}">
+                                                                                    <TextBox.Style>
+                                                                                        <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
+                                                                                            <Setter Property="Tag" Value="{Binding DataContext.CimType, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                                                                                        </Style>
+                                                                                    </TextBox.Style>
+                                                                                </TextBox>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
-                                                    </TextBox.Style>
-                                                </TextBox>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
@@ -204,8 +254,8 @@
                                          EnableVirtualization="True"
                                          NameColumnWidth="150"
                                          SelectedObject="{Binding OutputParameters}"
-                                         ShowOptions="False"
                                          ShowHelpPane="False"
+                                         ShowOptions="False"
                                          ShowSearchBox="False" />
                         <TextBlock HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
