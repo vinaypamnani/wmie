@@ -11,32 +11,15 @@ namespace WmiExplorer.Presentation.ViewModels;
 /// </summary>
 public class MethodExecutionViewModel : ViewModelBase
 {
-    /// <summary>
-    /// Event raised when the user wants to close the dialog.
-    /// </summary>
     public event EventHandler? CloseRequested;
-
     private readonly WmiClass _class;
-
-    // Results from method execution
-    private string _executionResults = string.Empty;
-
     private bool _hasOutputParameters;
     private readonly WmiInstance? _instance;
-    private bool _isMethodDescriptionExpanded;
     private readonly WmiMethod _method;
-
-    // Store the full model objects
     private readonly WmiNamespace _namespace;
-
     private WmiBaseObject? _outputParameters;
-
-    // Method parameters for the UI
     private readonly ObservableCollection<MethodParameterViewModel> _parameters = new();
-
     private int _selectedTabIndex;
-
-    // Properties for the UI
     private string _statusMessage = "Ready";
 
     /// <summary>
@@ -99,15 +82,6 @@ public class MethodExecutionViewModel : ViewModelBase
     /// Gets the instance name (if applicable).
     /// </summary>
     public string InstanceName => _instance?.InstanceName ?? string.Empty;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the method description is expanded.
-    /// </summary>
-    public bool IsMethodDescriptionExpanded
-    {
-        get => _isMethodDescriptionExpanded;
-        set => SetProperty(ref _isMethodDescriptionExpanded, value);
-    }
 
     /// <summary>
     /// Gets a value indicating whether the method is static.

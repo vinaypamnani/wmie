@@ -5,7 +5,6 @@ namespace WmiExplorer.Presentation.ViewModels;
 
 public class MethodParameterViewModel : ViewModelBase
 {
-    private bool _isDescriptionExpanded = false;
     private bool _isSelected = false;
     private object? _value;
 
@@ -15,17 +14,11 @@ public class MethodParameterViewModel : ViewModelBase
         _value = model.Value;
     }
 
+    public string? CimType => Model.CimType;
     public string? Description => Model.Description;
     public int Id => Model.Id;
     public bool IsArray => Model.IsArray;
     public bool IsComplexType => IsComplex(Type);
-
-    public bool IsDescriptionExpanded
-    {
-        get => _isDescriptionExpanded;
-        set => SetProperty(ref _isDescriptionExpanded, value);
-    }
-
     public bool IsEnabled => IsSelected && !IsComplexType;
 
     public bool IsSelected

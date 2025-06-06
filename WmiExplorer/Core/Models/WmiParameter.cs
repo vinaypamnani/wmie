@@ -4,6 +4,8 @@ namespace WmiExplorer.Core.Models;
 
 public class WmiParameter
 {
+    public string? CimType => GetQualifierValue("CIMTYPE") as string;
+    public string? Description => GetQualifierValue("Description") as string;
     public int Id => GetQualifierValue("Id") is int id ? id : -1;
     public bool IsArray { get; set; }
     public bool IsLocal { get; set; }
@@ -12,7 +14,6 @@ public class WmiParameter
     public System.Management.QualifierDataCollection? Qualifiers { get; set; }
     public string? Type { get; set; }
     public object? Value { get; set; }
-    public string? Description => GetQualifierValue("Description") as string;
 
     public override string ToString() => Name ?? string.Empty;
 
@@ -64,6 +65,7 @@ public class WmiParameterCollection : IEnumerable<WmiParameter>
 
     #region interfaces
     public IEnumerator<WmiParameter> GetEnumerator() => _parameters.GetEnumerator();
+
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     #endregion
 }

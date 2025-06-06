@@ -158,7 +158,7 @@
                                                                 <DataTrigger Binding="{Binding IsComplexType}" Value="True">
                                                                     <Setter Property="Background" Value="{StaticResource DisabledBackgroundBrush}" />
                                                                     <Setter Property="ToolTip" Value="Complex type parameters are not currently supported" />
-                                                                    <Setter Property="Tag" Value="Complex type (not supported)" />
+                                                                    <Setter Property="Tag" Value="{Binding CimType}" />
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding IsSelected}" Value="False">
                                                                     <Setter Property="IsEnabled" Value="False" />
