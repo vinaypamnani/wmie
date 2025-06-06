@@ -305,7 +305,8 @@ public class MethodExecutionViewModel : ViewModelBase
         _parameters.Clear();
         if (_method != null && _method.InParameters.Count > 0)
         {
-            foreach (var param in _method.InParameters)
+            // Sort InParameters by Id before adding to _parameters
+            foreach (var param in _method.InParameters.OrderBy(p => p.Id))
             {
                 _parameters.Add(new MethodParameterViewModel(param));
             }
