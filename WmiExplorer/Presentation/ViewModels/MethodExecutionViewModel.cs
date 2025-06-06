@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Management;
 using System.Text;
 using System.Windows.Input;
@@ -34,7 +33,7 @@ public class MethodExecutionViewModel : ViewModelBase
     private WmiBaseObject? _outputParameters;
 
     // Method parameters for the UI
-    private readonly ObservableCollection<WmiParameterViewModel> _parameters = new();
+    private readonly ObservableCollection<MethodParameterViewModel> _parameters = new();
 
     private int _selectedTabIndex;
 
@@ -147,7 +146,7 @@ public class MethodExecutionViewModel : ViewModelBase
     /// <summary>
     /// Gets the collection of parameters for the method.
     /// </summary>
-    public ObservableCollection<WmiParameterViewModel> Parameters => _parameters;
+    public ObservableCollection<MethodParameterViewModel> Parameters => _parameters;
 
     /// <summary>
     /// Gets or sets the selected tab index (0 = Input, 1 = Output).
@@ -308,89 +307,8 @@ public class MethodExecutionViewModel : ViewModelBase
         {
             foreach (var param in _method.InParameters)
             {
-                _parameters.Add(new WmiParameterViewModel(param));
+                _parameters.Add(new MethodParameterViewModel(param));
             }
         }
-    }
-}
-
-public class WmiParameterViewModel : INotifyPropertyChanged
-{
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private bool _isDescriptionExpanded = false;
-    private bool _isSelected = false;
-    private object? _value;
-
-    public WmiParameterViewModel(WmiParameter model)
-    {
-        Model = model;
-        _value = model.Value;
-    }
-
-    public string? Description => Model.Description;
-    public int Id => Model.Id;
-    public bool IsArray => Model.IsArray;
-    public bool IsComplexType => IsComplex(Type);
-
-    public bool IsDescriptionExpanded
-    {
-        get => _isDescriptionExpanded;
-        set
-        {
-            if (_isDescriptionExpanded != value)
-            {
-                _isDescriptionExpanded = value;
-                OnPropertyChanged(nameof(IsDescriptionExpanded));
-            }
-        }
-    }
-
-    public bool IsEnabled => IsSelected && !IsComplexType;
-
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected != value)
-            {
-                _isSelected = value;
-                OnPropertyChanged(nameof(IsSelected));
-                OnPropertyChanged(nameof(IsEnabled));
-            }
-        }
-    }
-
-    public WmiParameter Model { get; }
-    public string? Name => Model.Name;
-    public string? Type => Model.Type;
-
-    public object? Value
-    {
-        get => _value;
-        set
-        {
-            if (_value != value)
-            {
-                _value = value;
-                Model.Value = value;
-                OnPropertyChanged(nameof(Value));
-            }
-        }
-    }
-
-    protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-    private bool IsComplex(string? typeName)
-    {
-        if (string.IsNullOrEmpty(typeName)) return true;
-
-        typeName = typeName.ToLowerInvariant();
-        return typeName switch
-        {
-            "object" or "reference" => true,
-            _ => false
-        };
     }
 }
