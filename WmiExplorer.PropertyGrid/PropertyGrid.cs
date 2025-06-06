@@ -15,13 +15,8 @@ namespace WmiExplorer.PropertyGrid;
 /// </summary>
 public class PropertyGrid : Control
 {
-    // TreeView for hierarchical display
-
     private const string _defaultCategory = "Misc";
 
-    /// <summary>
-    /// Command to copy text to clipboard
-    /// </summary>
     public static readonly RoutedUICommand CopyToClipboardCommand = new RoutedUICommand(
         "Copy To Clipboard", "CopyToClipboard", typeof(PropertyGrid));
 
@@ -135,7 +130,7 @@ public class PropertyGrid : Control
             nameof(ShowHelpPane),
             typeof(bool),
             typeof(PropertyGrid),
-            new PropertyMetadata(true));
+            new PropertyMetadata(true, OnShowHelpPaneChanged));
 
     /// <summary>
     /// Whether to show the options panel with checkboxes for configuration.
@@ -164,6 +159,7 @@ public class PropertyGrid : Control
         "Toggle Category", "ToggleCategory", typeof(PropertyGrid));
 
     private TextBlock? _helpTextBlock;
+    private double _lastHelpPaneHeight = 90.0;
     private string _pendingSearchText = string.Empty;
     private TreeView? _propertiesTreeView;
     private TextBox? _searchBox;
@@ -689,6 +685,30 @@ public class PropertyGrid : Control
         if (d is PropertyGrid grid)
         {
             grid.LoadProperties();
+        }
+    }
+
+    private static void OnShowHelpPaneChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyGrid grid)
+        {
+            bool show = (bool)e.NewValue;
+
+            if (!show)
+            {
+                // Store the current height if it's greater than zero
+                if (grid.HelpPaneHeight > 0)
+                {
+                    grid._lastHelpPaneHeight = grid.HelpPaneHeight;
+                }
+
+                grid.HelpPaneHeight = 0;
+            }
+            else
+            {
+                // Restore the previous height or use default if not set
+                grid.HelpPaneHeight = grid._lastHelpPaneHeight > 0 ? grid._lastHelpPaneHeight : 90.0;
+            }
         }
     }
 

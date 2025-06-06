@@ -200,10 +200,12 @@
                     <Grid Margin="0,10,0,0">
                         <pg:PropertyGrid x:Name="OutputPropertyGrid"
                                          Margin="0"
+                                         BorderThickness="0"
                                          EnableVirtualization="True"
                                          NameColumnWidth="150"
                                          SelectedObject="{Binding OutputParameters}"
                                          ShowOptions="False"
+                                         ShowHelpPane="False"
                                          ShowSearchBox="False" />
                         <TextBlock HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
