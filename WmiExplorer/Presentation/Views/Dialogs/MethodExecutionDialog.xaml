@@ -154,7 +154,7 @@
                                                                 <Setter.Value>
                                                                     <DataTemplate>
                                                                         <!--  Default: TextBox for non-complex types  -->
-                                                                        <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}">
+                                                                        <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}">
                                                                             <TextBox.Style>
                                                                                 <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
                                                                                     <Setter Property="Tag" Value="Enter value..." />
@@ -202,7 +202,7 @@
                                                                     <Setter Property="ContentTemplate">
                                                                         <Setter.Value>
                                                                             <DataTemplate>
-                                                                                <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}">
+                                                                                <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}">
                                                                                     <TextBox.Style>
                                                                                         <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
                                                                                             <Setter Property="Tag" Value="{Binding DataContext.CimType, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
