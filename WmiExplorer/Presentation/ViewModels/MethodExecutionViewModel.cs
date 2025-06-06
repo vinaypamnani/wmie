@@ -25,6 +25,7 @@ public class MethodExecutionViewModel : ViewModelBase
 
     private bool _hasOutputParameters;
     private readonly WmiInstance? _instance;
+    private bool _isMethodDescriptionExpanded;
     private readonly WmiMethod _method;
 
     // Store the full model objects
@@ -39,8 +40,6 @@ public class MethodExecutionViewModel : ViewModelBase
 
     // Properties for the UI
     private string _statusMessage = "Ready to execute method";
-
-    private bool _isMethodDescriptionExpanded;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionViewModel"/> class.
@@ -64,25 +63,20 @@ public class MethodExecutionViewModel : ViewModelBase
         if (_instance == null && !_method.IsStatic)
         {
             throw new ArgumentException("Cannot execute non-static method without an instance");
-        }        // Load parameters
+        }
+
+        // Load parameters
         LoadMethodParameters();
 
         // Initialize commands
         ExecuteMethodCommand = new RelayCommand(ExecuteMethodWrapper);
         CancelCommand = new RelayCommand(Cancel);
-        ExpandMethodDescriptionCommand = new RelayCommand(_ => IsMethodDescriptionExpanded = true);
-        CollapseMethodDescriptionCommand = new RelayCommand(_ => IsMethodDescriptionExpanded = false);
     }
 
     /// <summary>
     /// Gets the command to cancel and close the dialog.
     /// </summary>
     public ICommand CancelCommand { get; }
-
-    /// <summary>
-    /// Gets the command to collapse the method description.
-    /// </summary>
-    public ICommand CollapseMethodDescriptionCommand { get; }
 
     /// <summary>
     /// Gets the class name.
@@ -93,11 +87,6 @@ public class MethodExecutionViewModel : ViewModelBase
     /// Gets the command to execute the method.
     /// </summary>
     public ICommand ExecuteMethodCommand { get; }
-
-    /// <summary>
-    /// Gets the command to expand the method description.
-    /// </summary>
-    public ICommand ExpandMethodDescriptionCommand { get; }
 
     /// <summary>
     /// Gets or sets the execution results.
@@ -337,15 +326,9 @@ public class WmiParameterViewModel : INotifyPropertyChanged
     {
         Model = model;
         _value = model.Value;
-
-        // Initialize commands
-        ExpandDescriptionCommand = new RelayCommand(_ => IsDescriptionExpanded = true);
-        CollapseDescriptionCommand = new RelayCommand(_ => IsDescriptionExpanded = false);
     }
 
-    public ICommand CollapseDescriptionCommand { get; }
     public string? Description => Model.Description;
-    public ICommand ExpandDescriptionCommand { get; }
     public int Id => Model.Id;
     public bool IsArray => Model.IsArray;
     public bool IsComplexType => IsComplex(Type);

@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:WmiExplorer.Presentation.Views.Dialogs"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
+        xmlns:uc="clr-namespace:WmiExplorer.Presentation.Views.UserControls"
         Width="600"
         Height="600"
         AllowsTransparency="True"
@@ -89,67 +90,12 @@
                                Fill="{DynamicResource PrimaryAccentBrush}" />
                 </StackPanel>
             </Border>
-
             <!--  Method Description Area  -->
             <Border Grid.Row="1"
                     Padding="16,0,16,0"
                     BorderThickness="0,0,0,0"
                     Visibility="{Binding MethodDescription, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
-                <Grid>
-                    <!--  Collapsed/Truncated Description  -->
-                    <Grid Visibility="{Binding IsMethodDescriptionExpanded, Converter={StaticResource InverseBooleanConverter}}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0"
-                                   Margin="0,0,8,0"
-                                   VerticalAlignment="Top"
-                                   Cursor="Hand"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource PrimaryAccentBrush}"
-                                   Text="More">
-                            <TextBlock.InputBindings>
-                                <MouseBinding Command="{Binding ExpandMethodDescriptionCommand}" MouseAction="LeftClick" />
-                            </TextBlock.InputBindings>
-                        </TextBlock>
-                        <TextBlock Grid.Column="1"
-                                   MaxHeight="19"
-                                   FontSize="12"
-                                   FontWeight="Normal"
-                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                   Text="{Binding MethodDescription}"
-                                   TextTrimming="CharacterEllipsis"
-                                   TextWrapping="NoWrap"
-                                   ToolTip="{Binding MethodDescription}" />
-                    </Grid>
-
-                    <!--  Expanded Description  -->
-                    <Grid Visibility="{Binding IsMethodDescriptionExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0"
-                                   Margin="0,0,8,0"
-                                   VerticalAlignment="Top"
-                                   Cursor="Hand"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource PrimaryAccentBrush}"
-                                   Text="Less">
-                            <TextBlock.InputBindings>
-                                <MouseBinding Command="{Binding CollapseMethodDescriptionCommand}" MouseAction="LeftClick" />
-                            </TextBlock.InputBindings>
-                        </TextBlock>
-                        <TextBlock Grid.Column="1"
-                                   FontSize="12"
-                                   FontWeight="Normal"
-                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                   Text="{Binding MethodDescription}"
-                                   TextWrapping="Wrap"
-                                   ToolTip="{Binding MethodDescription}" />
-                    </Grid>
-                </Grid>
+                <uc:CollapsibleTextBlock IsExpanded="{Binding IsMethodDescriptionExpanded}" Text="{Binding MethodDescription}" TextForeground="{DynamicResource PrimaryForegroundBrush}" />
             </Border>
             <!--  Main Content  -->
             <TabControl Grid.Row="2"
@@ -197,61 +143,11 @@
 
                                             <!--  Parameter Content Below Checkbox  -->
                                             <StackPanel Grid.Row="1" Margin="20,5,0,0">
-
                                                 <!--  Parameter Description  -->
-                                                <Grid Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
-                                                    <!--  Collapsed/Truncated Description  -->
-                                                    <Grid Visibility="{Binding IsDescriptionExpanded, Converter={StaticResource InverseBooleanConverter}}">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0"
-                                                                   Margin="0,0,8,0"
-                                                                   VerticalAlignment="Top"
-                                                                   Cursor="Hand"
-                                                                   Foreground="{DynamicResource PrimaryAccentBrush}"
-                                                                   Text="More">
-                                                            <TextBlock.InputBindings>
-                                                                <MouseBinding Command="{Binding ExpandDescriptionCommand}" MouseAction="LeftClick" />
-                                                            </TextBlock.InputBindings>
-                                                        </TextBlock>
-                                                        <TextBlock Grid.Column="1"
-                                                                   MaxHeight="19"
-                                                                   HorizontalAlignment="Stretch"
-                                                                   VerticalAlignment="Top"
-                                                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
-                                                                   Text="{Binding Description}"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   TextWrapping="NoWrap"
-                                                                   ToolTip="{Binding Description}" />
-                                                    </Grid>
-
-                                                    <!--  Expanded Description  -->
-                                                    <Grid Visibility="{Binding IsDescriptionExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto" />
-                                                            <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0"
-                                                                   Margin="0,0,8,0"
-                                                                   VerticalAlignment="Top"
-                                                                   Cursor="Hand"
-                                                                   Foreground="{DynamicResource PrimaryAccentBrush}"
-                                                                   Text="Less">
-                                                            <TextBlock.InputBindings>
-                                                                <MouseBinding Command="{Binding CollapseDescriptionCommand}" MouseAction="LeftClick" />
-                                                            </TextBlock.InputBindings>
-                                                        </TextBlock>
-                                                        <TextBlock Grid.Column="1"
-                                                                   HorizontalAlignment="Stretch"
-                                                                   VerticalAlignment="Top"
-                                                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
-                                                                   Text="{Binding Description}"
-                                                                   TextWrapping="Wrap"
-                                                                   ToolTip="{Binding Description}" />
-                                                    </Grid>
-                                                </Grid>
+                                                <uc:CollapsibleTextBlock IsExpanded="{Binding IsDescriptionExpanded}"
+                                                                         Text="{Binding Description}"
+                                                                         TextForeground="{DynamicResource SecondaryForegroundBrush}"
+                                                                         Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
 
                                                 <!--  Value Input  -->
                                                 <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}">
