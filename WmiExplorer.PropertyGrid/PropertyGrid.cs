@@ -138,6 +138,16 @@ public class PropertyGrid : Control
             new PropertyMetadata(true));
 
     /// <summary>
+    /// Whether to show the options panel with checkboxes for configuration.
+    /// </summary>
+    public static readonly DependencyProperty ShowOptionsProperty =
+        DependencyProperty.Register(
+            nameof(ShowOptions),
+            typeof(bool),
+            typeof(PropertyGrid),
+            new PropertyMetadata(true));
+
+    /// <summary>
     /// Whether to show the search box.
     /// </summary>
     public static readonly DependencyProperty ShowSearchBoxProperty =
@@ -296,6 +306,15 @@ public class PropertyGrid : Control
     {
         get => (bool)GetValue(ShowHelpPaneProperty);
         set => SetValue(ShowHelpPaneProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether to show the options panel with checkboxes for configuration.
+    /// </summary>
+    public bool ShowOptions
+    {
+        get => (bool)GetValue(ShowOptionsProperty);
+        set => SetValue(ShowOptionsProperty, value);
     }
 
     /// <summary>

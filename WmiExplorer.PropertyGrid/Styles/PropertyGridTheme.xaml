@@ -181,7 +181,10 @@
                 </Grid.RowDefinitions>
 
                 <!--  ===== OPTIONS PANEL (for checkboxes) =====  -->
-                <DockPanel Grid.Row="0" Margin="8,8,8,8" LastChildFill="False">
+                <DockPanel Grid.Row="0"
+                           Margin="8,8,8,8"
+                           LastChildFill="False"
+                           Visibility="{Binding ShowOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                     <CheckBox Content="Show null values" IsChecked="{Binding IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                     <CheckBox Margin="8,0,0,0" Content="Show System Properties" IsChecked="{Binding IncludeSystemProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                     <!--  Add more options here as needed  -->
