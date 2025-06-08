@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -11,16 +10,12 @@ namespace WmiExplorer.Presentation.ViewModels;
 public class MainViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
-    private string _autoQueryText = string.Empty;
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private string _elapsedTimeMessage = string.Empty;
-    private ICommand? _executeAutoQueryCommand;
+    private readonly Coordinators.WmiNamespacePaneViewModel _namespacePaneViewModel;
     private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
-    private WmiClassViewModel? _selectedClass;
-    private WmiInstanceViewModel? _selectedInstance;
-    private WmiNamespaceViewModel? _selectedNamespace;
     private object? _selectedObject;
     private int _selectedTabIndex;
     private readonly ISettingsService _settingsService;
@@ -31,25 +26,31 @@ public class MainViewModel : MessagingViewModelBase
     private readonly IWmiService _wmiService;
 
     public MainViewModel(
-        IMessagingService messagingService,
-        ISettingsService settingsService,
-        ThemeManager themeManager,
-        IWmiService wmiService,
-        IApplicationService applicationService,
-        ICacheService cacheService,
-        WmiWatcherViewModel watcherViewModel)
+              IMessagingService messagingService,
+              ISettingsService settingsService,
+              ThemeManager themeManager,
+              IWmiService wmiService,
+              IApplicationService applicationService,
+              ICacheService cacheService,
+              WmiWatcherViewModel watcherViewModel,
+              Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _namespacePaneViewModel = namespacePaneViewModel ?? throw new ArgumentNullException(nameof(namespacePaneViewModel));
 
         // Initialize messaging
         InitializeMessaging(messagingService);
 
         // Initialize commands
-        ConnectCommand = new AsyncRelayCommand(ConnectAsync);
+        ConnectCommand = new AsyncRelayCommand(async () =>
+            await _namespacePaneViewModel.ConnectAsync(_temporaryComputerName.Trim()));
+
+        // Initialize commands
+        ReloadClassesCommand = _namespacePaneViewModel.ReloadClassesCommand;
         ExitCommand = new RelayCommand(_ => Environment.Exit(0));
         ToggleThemeCommand = new RelayCommand(_ => _themeManager.ToggleTheme());
 
@@ -60,7 +61,7 @@ public class MainViewModel : MessagingViewModelBase
         StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
         StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
         StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
-        StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage); StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
+        StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
         StrongSubscribe<WmiQueryInstanceChangedMessage>(HandleWmiQueryInstanceChangedMessage);
@@ -85,15 +86,6 @@ public class MainViewModel : MessagingViewModelBase
         {
             OnPropertyChanged(nameof(ShowSystemClasses));
         };
-    }
-
-    /// <summary>
-    /// Gets the auto-generated WQL query text for the selected class or instance
-    /// </summary>
-    public string AutoQueryText
-    {
-        get => _autoQueryText;
-        private set => SetProperty(ref _autoQueryText, value);
     }
 
     /// <summary>
@@ -178,29 +170,14 @@ public class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Command to execute the current query
-    /// </summary>
-    public ICommand ExecuteAutoQueryCommand
-    {
-        get
-        {
-            _executeAutoQueryCommand ??= new RelayCommand(
-                _ => ExecuteAutoQuery(),
-                _ => !string.IsNullOrWhiteSpace(AutoQueryText)
-            );
-            return _executeAutoQueryCommand;
-        }
-    }
-
-    /// <summary>
     /// Command to exit the application
     /// </summary>
     public ICommand ExitCommand { get; }
 
     /// <summary>
-    /// Collection of WMI namespaces in the tree
+    /// Gets the namespace pane view model
     /// </summary>
-    public ObservableCollection<WmiNamespaceViewModel> Namespaces { get; } = new();
+    public Coordinators.WmiNamespacePaneViewModel NamespacePaneViewModel => _namespacePaneViewModel;
 
     /// <summary>
     /// Gets or sets the operation mode for WMI operations
@@ -218,51 +195,9 @@ public class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Command to reload the classes of the selected namespace
+    /// Command to reload classes in the current namespace
     /// </summary>
-    public ICommand ReloadClassesCommand => new RelayCommand(
-        _ => SelectedNamespace?.LoadClassesCommand.Execute(null),
-        _ => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
-    );
-
-    /// <summary>
-    /// Currently selected class in the tree
-    /// </summary>
-    public WmiClassViewModel? SelectedClass
-    {
-        get => _selectedClass;
-        set => SetProperty(ref _selectedClass, value);
-    }
-
-    /// <summary>
-    /// Currently selected instance in the property grid
-    /// </summary>
-    public WmiInstanceViewModel? SelectedInstance
-    {
-        get => _selectedInstance;
-        set => SetProperty(ref _selectedInstance, value);
-    }
-
-    /// <summary>
-    /// Currently selected namespace in the tree
-    /// </summary>
-    public WmiNamespaceViewModel? SelectedNamespace
-    {
-        get => _selectedNamespace;
-        set
-        {
-            if (SetProperty(ref _selectedNamespace, value) && value != null)
-            {
-                // Make sure selected namespaces are expanded
-                if (!value.IsExpanded)
-                {
-                    value.IsExpanded = true;
-                }
-
-                // Selected namespace is now handled directly by the ViewModel's IsSelected property
-            }
-        }
-    }
+    public ICommand ReloadClassesCommand { get; }
 
     /// <summary>
     /// Object to display in the property grid - could be namespace, class, or instance
@@ -312,17 +247,13 @@ public class MainViewModel : MessagingViewModelBase
         set => SetProperty(ref _selectedTabIndex, value);
     }
 
+    /// <summary>
+    /// Flag indicating whether system classes should be shown
+    /// </summary>
     public bool ShowSystemClasses
     {
-        get => _settingsService.ShowSystemClasses;
-        set
-        {
-            if (_settingsService.ShowSystemClasses != value)
-            {
-                _settingsService.ShowSystemClasses = value;
-                OnPropertyChanged(nameof(ShowSystemClasses));
-            }
-        }
+        get => _namespacePaneViewModel.ClassesTabViewModel.ShowSystemClasses;
+        set => _namespacePaneViewModel.ClassesTabViewModel.ShowSystemClasses = value;
     }
 
     /// <summary>
@@ -370,158 +301,6 @@ public class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Connects to the specified computer or namespace path
-    /// </summary>
-    private async Task ConnectAsync()
-    {
-        string input = _temporaryComputerName.Trim();
-
-        // Parse the input to determine what type of connection we're making
-        string effectivePath;
-
-        try
-        {
-            // Normalize the input and determine the path type
-            if (string.IsNullOrEmpty(input) || input == "." || input.Equals("localhost", StringComparison.OrdinalIgnoreCase))
-            {
-                // Case 1: Local machine - display as \\COMPUTERNAME\ROOT
-                effectivePath = @"\\.\ROOT";
-            }
-            else if (input.StartsWith(@"\\", StringComparison.OrdinalIgnoreCase))
-            {
-                // Case 4: Full WMI path with computer - use as is
-                // Format: \\computer\namespace (e.g., \\computer\root\cimv2)
-                effectivePath = input;
-            }
-            else if (input.Contains("\\"))
-            {
-                // Case 3: Namespace path without computer - assume local computer
-                // Format: root\namespace (e.g., root\cimv2)
-                effectivePath = $@"\\.\{input}";
-            }
-            else
-            {
-                // Case 2: Computer name only - display as \\COMPUTERNAME\ROOT
-                effectivePath = $@"\\{input}\ROOT";
-            }
-
-            PublishBusyState($"Connecting to {effectivePath}...");
-
-            // Check if we're already connected to this path
-            var existingRoot = Namespaces.FirstOrDefault(n =>
-                n.NamespacePath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase));
-
-            if (existingRoot != null)
-            {
-                // Just select the existing root namespace
-                SelectedNamespace = existingRoot;
-                PublishSuccessState($"Connected to {effectivePath}");
-                return;
-            }
-
-            // Force garbage collection to release any existing WMI resources
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
-            // Create the root namespace view model using the async method
-            var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
-                effectivePath,
-                _wmiService,
-                MessageService!,
-                _applicationService,
-                _settingsService,
-                _cacheService,
-                _cts.Token);
-
-            // Load initial children
-            await rootViewModel.ExpandAsync();
-
-            // Add to the UI collection
-            await RunOnUIThreadAsync(() =>
-            {
-                Namespaces.Add(rootViewModel);
-                SelectedNamespace = rootViewModel; // Select the root namespace
-                return Task.CompletedTask;
-            });
-
-            PublishSuccessState($"Connected to {effectivePath}");
-        }
-        catch (Exception ex)
-        {
-            PublishErrorState($"Error connecting to {input}: {ex.Message}", ex);
-        }
-    }
-
-    /// <summary>
-    /// Executes the current WQL query
-    /// </summary>
-    private void ExecuteAutoQuery()
-    {
-        if (string.IsNullOrWhiteSpace(AutoQueryText))
-            return;
-
-        // Log the query execution
-        PublishWarningState($"[Not implemented] Executing query: {AutoQueryText}");
-    }
-
-    /// <summary>
-    /// Finds or expands namespaces to reach the target path, starting from the correct root namespace and following the path segments.
-    /// </summary>
-    private async Task<WmiNamespaceViewModel?> FindOrExpandNamespaceAsync(string targetNamespacePath)
-    {
-        // Normalize path for comparison
-        string Normalize(string path) => path.Trim().TrimEnd('\\').ToLowerInvariant();
-        var target = Normalize(targetNamespacePath);
-
-        // First, try to find a root namespace that matches the root of the target path
-        var rootMatch = Namespaces.FirstOrDefault(ns => target.StartsWith(Normalize(ns.NamespacePath)));
-        if (rootMatch == null)
-            return null;
-
-        // If the root itself is the target, return it
-        if (Normalize(rootMatch.NamespacePath) == target)
-            return rootMatch;
-
-        var current = rootMatch;
-        // Split the target path into segments
-        var targetSegments = target.Split('\\');
-        var currentSegments = Normalize(current.NamespacePath).Split('\\');
-
-        // Walk down the path segments from the root
-        for (int i = currentSegments.Length; i < targetSegments.Length; i++)
-        {
-            // Expand children if not loaded
-            if (!current.HasLoadedChildren)
-                await current.ExpandAsync();
-
-            var nextSegment = string.Join("\\", targetSegments.Take(i + 1));
-            var next = current.Children.FirstOrDefault(ns => Normalize(ns.NamespacePath) == nextSegment);
-            if (next == null)
-                return null;
-            current = next;
-        }
-        return current;
-    }
-
-    private async Task<WmiNamespaceViewModel?> FindOrExpandNamespaceRecursiveAsync(WmiNamespaceViewModel current, string target)
-    {
-        string Normalize(string path) => path.Trim().TrimEnd('\\').ToLowerInvariant();
-        if (Normalize(current.NamespacePath) == target)
-            return current;
-
-        if (!current.HasLoadedChildren)
-            await current.ExpandAsync();
-
-        foreach (var child in current.Children)
-        {
-            var found = await FindOrExpandNamespaceRecursiveAsync(child, target);
-            if (found != null)
-                return found;
-        }
-        return null;
-    }
-
-    /// <summary>
     /// Handles application state messages
     /// </summary>
     private void HandleApplicationStateMessage(ApplicationStateMessage message)
@@ -534,17 +313,6 @@ public class MainViewModel : MessagingViewModelBase
 
         // Log state change for debugging
         System.Diagnostics.Debug.WriteLine($"Application state changed: {message.State.State}, Message: {message.State.Message}");
-    }
-
-    /// <summary>
-    /// Handles when classes are filtered in the selected namespace to update the status bar
-    /// </summary>
-    private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
-    {
-        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectedNamespace)
-        {
-            UpdateLoadStateStatus();
-        }
     }
 
     /// <summary>
@@ -575,55 +343,13 @@ public class MainViewModel : MessagingViewModelBase
     /// <summary>
     /// Handles JumpToClassMessage to navigate to the correct namespace and class, handling lazy loading and tab switching.
     /// </summary>
-    private async void HandleJumpToClassMessage(JumpToClassMessage message)
+    private void HandleJumpToClassMessage(JumpToClassMessage message)
     {
         if (message == null)
             return;
 
-        try
-        {
-            // Debug logging for incoming message
-            System.Diagnostics.Debug.WriteLine($"[JumpToClass] Received JumpToClassMessage: NamespacePath='{message.NamespacePath}', ClassName='{message.ClassName}'");
-
-            // Switch to Classes tab (assume tab index 0 is Classes)
-            SelectedTabIndex = 0;
-
-            // Find or expand the namespace path recursively
-            var nsVm = await FindOrExpandNamespaceAsync(message.NamespacePath);
-            if (nsVm == null)
-            {
-                PublishErrorState($"Namespace '{message.NamespacePath}' not found.");
-                return;
-            }
-
-            // Select the namespace
-            SelectedNamespace = nsVm;
-            nsVm.IsSelected = true;
-            nsVm.IsExpanded = true;
-
-            // Ensure classes are loaded
-            if (nsVm.ClassLoadState != ClassLoadState.Success)
-                await nsVm.LoadClassesAsync();
-
-            // Find the class
-            var classVm = nsVm.Classes.FirstOrDefault(c => c.ClassName == message.ClassName);
-            if (classVm == null)
-            {
-                PublishErrorState($"Class '{message.ClassName}' not found in namespace '{message.NamespacePath}'. Check Class Enumeration options.");
-                return;
-            }
-
-            // Select the class
-            nsVm.SelectedClass = classVm;
-            classVm.ForceSelection();
-
-            // Publish success state for user feedback
-            PublishSuccessState($"Jumped to class '{message.ClassName}' in namespace '{message.NamespacePath}'.");
-        }
-        catch (Exception ex)
-        {
-            PublishErrorState($"Jump to class failed: {ex.Message}", ex);
-        }
+        // Switch to Classes tab (assume tab index 0 is Classes)
+        SelectedTabIndex = 0;
     }
 
     /// <summary>
@@ -634,17 +360,8 @@ public class MainViewModel : MessagingViewModelBase
         if (message?.ClassViewModel == null)
             return;
 
-        // Update our selected class property
-        SelectedClass = message.ClassViewModel;
-
         // Update the selected object for the property grid
         SelectedObject = message.ClassViewModel.WmiClass;
-
-        // Use the new method to update the status bar
-        UpdateLoadStateStatus();
-
-        // Update the auto-generated query
-        UpdateAutoQueryText(SelectedClass);
     }
 
     /// <summary>
@@ -667,14 +384,8 @@ public class MainViewModel : MessagingViewModelBase
         if (message?.InstanceViewModel == null)
             return;
 
-        // Update our selected instance property which is bound to the property grid
-        SelectedInstance = message.InstanceViewModel;
-
         // Update the selected object for the property grid
         SelectedObject = message.InstanceViewModel.WmiInstance;
-
-        // Update the auto-generated query
-        UpdateAutoQueryText(SelectedInstance);
     }
 
     /// <summary>
@@ -685,23 +396,8 @@ public class MainViewModel : MessagingViewModelBase
         if (message?.NamespaceViewModel == null)
             return;
 
-        // Make sure we always trigger expansion, even for already selected items
-        if (!message.NamespaceViewModel.IsExpanded)
-        {
-            message.NamespaceViewModel.IsExpanded = true;
-        }
-
-        // Make sure our local SelectedNamespace property is synchronized
-        if (_selectedNamespace != message.NamespaceViewModel)
-        {
-            SelectedNamespace = message.NamespaceViewModel;
-        }
-
         // Update the selected object for the property grid
         SelectedObject = message.NamespaceViewModel.WmiNamespace;
-
-        // Use the new method to update the status bar
-        UpdateLoadStateStatus();
     }
 
     /// <summary>
@@ -733,105 +429,5 @@ public class MainViewModel : MessagingViewModelBase
     {
         // Set SelectedObject to the selected WMI instance for the property grid
         SelectedObject = message.Instance;
-    }
-
-    /// <summary>
-    /// Updates the auto-generated WQL query text based on the selected class or instance
-    /// </summary>
-    private void UpdateAutoQueryText(object selectedObject)
-    {
-        var selectedClassName = SelectedClass?.ClassName ?? string.Empty;
-
-        if (selectedObject is WmiInstanceViewModel selectedInstance)
-        {
-            // Create query based on the instance
-            string className = selectedInstance.WmiInstance.ClassPath.ClassName
-                               ?? selectedClassName
-                               ?? string.Empty;
-            string relativePath = selectedInstance.InstanceName.Replace($"{className}.", string.Empty);
-            relativePath = relativePath.Replace(",", " AND ");
-            if (!string.IsNullOrEmpty(relativePath))
-            {
-                // For instances, use a direct reference query
-                AutoQueryText = $"SELECT * FROM {selectedClassName} WHERE {relativePath}";
-            }
-            else if (selectedClassName != null)
-            {
-                // Fallback to a class query
-                AutoQueryText = $"SELECT * FROM {selectedClassName}";
-            }
-            else
-            {
-                AutoQueryText = string.Empty;
-            }
-        }
-        else if (selectedObject is WmiClassViewModel selectedClass)
-
-        {
-            // Create query based on just the class
-            AutoQueryText = $"SELECT * FROM {selectedClassName}";
-        }
-        else
-        {
-            AutoQueryText = string.Empty;
-        }
-    }
-
-    /// <summary>
-    /// Updates the status bar message based on the selected namespace or class load states
-    /// </summary>
-    private void UpdateLoadStateStatus()
-    {
-        // If no namespace is selected, do nothing
-        if (SelectedNamespace == null || SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
-            return;
-
-        // If a class is selected, show status based on class load state
-        if (SelectedNamespace.SelectedClass != null)
-        {
-            var selectedClass = SelectedNamespace.SelectedClass;
-            switch (selectedClass.LoadState)
-            {
-                case InstanceLoadState.Unknown:
-                    PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click to load instances.");
-                    break;
-                case InstanceLoadState.Loading:
-                    PublishBusyState($"Loading instances for class {selectedClass.ClassName}...");
-                    break;
-                case InstanceLoadState.Warning:
-                    PublishWarningState($"Showing partial results for class {selectedClass.ClassName}.");
-                    break;
-                case InstanceLoadState.Failed:
-                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click class to try again.");
-                    break;
-                case InstanceLoadState.Success:
-                    var count = selectedClass.Instances.Count;
-                    PublishSuccessState($"Showing {count} instances for class {selectedClass.ClassName}.");
-                    break;
-            }
-            return;
-        }
-
-        // Otherwise, show status based on namespace class load state
-        var ns = SelectedNamespace;
-        switch (ns.ClassLoadState)
-        {
-            case ClassLoadState.Unknown:
-                PublishSuccessState($"Selected {ns.NamespacePath} Double-click to load classes.");
-                break;
-            case ClassLoadState.Loading:
-                PublishBusyState($"Loading classes for {ns.NamespacePath}...");
-                break;
-            case ClassLoadState.Warning:
-                PublishBusyState($"Showing partial results for {ns.NamespacePath}.");
-                break;
-            case ClassLoadState.Failed:
-                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click namespace to try again.");
-                break;
-            case ClassLoadState.Success when ns.NamespaceLoadState == NamespaceLoadState.Success:
-                var count = ns.ClassesView.Cast<object>().Count();
-                PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
-                break;
-        }
     }
 }

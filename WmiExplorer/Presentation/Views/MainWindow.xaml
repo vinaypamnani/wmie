@@ -75,7 +75,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!--  Namespace View  -->
-                    <main:WmiNamespacesPane Grid.Column="0" />
+                    <main:WmiNamespacesPane Grid.Column="0" DataContext="{Binding NamespacePaneViewModel}" />
 
                     <GridSplitter Grid.Column="1"
                                   Width="{StaticResource SpacingMedium}"
@@ -85,7 +85,7 @@
                     <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="Classes">
                             <!--  All the grid content has been moved to WmiClassesTab  -->
-                            <tabs:WmiClassesTab />
+                            <tabs:WmiClassesTab DataContext="{Binding NamespacePaneViewModel.ClassesTabViewModel}" />
                         </TabItem>
                         <TabItem Header="Search">
                             <!--  Search View  -->

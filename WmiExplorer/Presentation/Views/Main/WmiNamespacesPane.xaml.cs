@@ -1,16 +1,12 @@
-namespace WmiExplorer.Presentation.Views.Main
-{
-    /// <summary>
-    /// Interaction logic for WmiNamespacesPane.xaml
-    /// </summary>
-    public partial class WmiNamespacesPane : System.Windows.Controls.UserControl
-    {
-        public WmiNamespacesPane()
-        {
-            InitializeComponent();
+namespace WmiExplorer.Presentation.Views.Main;
 
-            // This View will use the DataContext inherited from MainWindow
-            // which contains the Namespaces collection and SelectedNamespace property
-        }
+/// <summary>
+/// Interaction logic for WmiNamespacesPane.xaml
+/// </summary>
+public partial class WmiNamespacesPane : System.Windows.Controls.UserControl
+{
+    public WmiNamespacesPane()
+    {
+        InitializeComponent();
     }
 }

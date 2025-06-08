@@ -105,14 +105,15 @@ public partial class App : Application
 
         // Register all ViewModel classes for DI
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.MainViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiNamespacePaneViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiInstancesTabViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiClassesTabViewModel>();
+
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiWatcherViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiMethodViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiPropertyViewModel>();
 
         // Register additional ViewModels that have multiple instances
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel>();
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.Items.WmiClassViewModel>();
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel>();
         services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiQueryViewModel>();
         services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiSearchViewModel>();
 

@@ -11,18 +11,19 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
+        </Grid.RowDefinitions>        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
             <TextBox VerticalAlignment="Center"
                      Style="{StaticResource TextBoxWithClearButton}"
                      Tag="Filter Instances..."
-                     Text="{Binding SelectedNamespace.SelectedClass.InstanceFilterText, UpdateSourceTrigger=PropertyChanged}" />
+                     Text="{Binding SelectedClass.InstanceFilterText, UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
 
         <ListView Grid.Row="1"
                   BorderThickness="0"
-                  ItemsSource="{Binding SelectedNamespace.SelectedClass.InstancesView}"
-                  SelectedItem="{Binding SelectedNamespace.SelectedClass.SelectedInstance}"
+                  behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
+                  behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedClass.SelectedInstance}"
+                  ItemsSource="{Binding SelectedClass.InstancesView}"
+                  SelectedItem="{Binding SelectedClass.SelectedInstance}"
                   SelectionMode="Single"
                   Style="{StaticResource ModernListViewStyle}">
             <ListView.ItemContainerStyle>
