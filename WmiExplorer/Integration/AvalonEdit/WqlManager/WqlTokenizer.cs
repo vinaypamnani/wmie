@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace WmiExplorer.Presentation.AvalonEdit.WqlManager;
+namespace WmiExplorer.Integration.AvalonEdit.WqlManager;
 
 /// <summary>
 /// Enhanced WQL tokenizer with parentheses tracking and performance optimizations.

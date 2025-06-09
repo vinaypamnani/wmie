@@ -1,8 +1,8 @@
 using ICSharpCode.AvalonEdit.CodeCompletion;
-using WmiExplorer.Presentation.AvalonEdit.Context;
+using WmiExplorer.Integration.AvalonEdit.Context;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.AvalonEdit.Providers;
+namespace WmiExplorer.Integration.AvalonEdit.Providers;
 
 /// <summary>
 /// Interface for modular completion providers.

@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using WmiExplorer.Presentation.AvalonEdit.WqlManager;
+using WmiExplorer.Integration.AvalonEdit.WqlManager;
 using WmiExplorer.TestAvalonEdit.Helpers;
 using WmiExplorer.TestAvalonEdit.Mocks;
 

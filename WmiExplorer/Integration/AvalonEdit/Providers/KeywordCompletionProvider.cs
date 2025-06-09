@@ -1,10 +1,10 @@
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using System.Diagnostics;
-using WmiExplorer.Presentation.AvalonEdit.Context;
-using WmiExplorer.Presentation.AvalonEdit.WqlManager;
+using WmiExplorer.Integration.AvalonEdit.Context;
+using WmiExplorer.Integration.AvalonEdit.WqlManager;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.AvalonEdit.Providers;
+namespace WmiExplorer.Integration.AvalonEdit.Providers;
 
 /// <summary>
 /// Provides keyword completions (SELECT, FROM, WHERE, AND, OR, etc.).

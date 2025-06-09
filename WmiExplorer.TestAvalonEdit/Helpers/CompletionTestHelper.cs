@@ -3,7 +3,7 @@ using ICSharpCode.AvalonEdit.CodeCompletion;
 using ICSharpCode.AvalonEdit.Document;
 using WmiExplorer.Services;
 using System.Reflection;
-using WmiExplorer.Presentation.AvalonEdit.Behaviors;
+using WmiExplorer.Integration.AvalonEdit.Behaviors;
 
 namespace WmiExplorer.TestAvalonEdit.Helpers;
 
@@ -67,7 +67,7 @@ public static class CompletionTestHelper
         AvalonEditCompletionBehavior.SetCacheService(editor, cacheService);
 
         // Create a context using reflection since QueryContext is internal
-        var queryContextType = Type.GetType("WmiExplorer.Presentation.AvalonEdit.Context.QueryContext, WmiExplorer");
+        var queryContextType = Type.GetType("WmiExplorer.Integration.AvalonEdit.Context.QueryContext, WmiExplorer");
 
         if (queryContextType == null)
             throw new InvalidOperationException("Could not find QueryContext type through reflection");

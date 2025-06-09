@@ -6,7 +6,7 @@ using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.PropertyTypeProvider;
+namespace WmiExplorer.Integration.PropertyTypeProvider;
 
 /// <summary>
 /// Property provider that handles WMI-specific types like ManagementBaseObject and related WMI classes.

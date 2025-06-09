@@ -7,12 +7,12 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using WmiExplorer.Presentation.AvalonEdit.Context;
-using WmiExplorer.Presentation.AvalonEdit.Providers;
-using WmiExplorer.Presentation.AvalonEdit.WqlManager;
+using WmiExplorer.Integration.AvalonEdit.Context;
+using WmiExplorer.Integration.AvalonEdit.Providers;
+using WmiExplorer.Integration.AvalonEdit.WqlManager;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.AvalonEdit.Behaviors;
+namespace WmiExplorer.Integration.AvalonEdit.Behaviors;
 
 /// <summary>
 /// Provides modular auto-completion for AvalonEdit using a provider-based architecture.

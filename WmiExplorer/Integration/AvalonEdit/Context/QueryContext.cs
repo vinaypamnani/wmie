@@ -1,8 +1,8 @@
 using ICSharpCode.AvalonEdit.Document;
 using System.Diagnostics;
-using WmiExplorer.Presentation.AvalonEdit.WqlManager;
+using WmiExplorer.Integration.AvalonEdit.WqlManager;
 
-namespace WmiExplorer.Presentation.AvalonEdit.Context;
+namespace WmiExplorer.Integration.AvalonEdit.Context;
 
 /// <summary>
 /// Simplified query context for WQL autocompletion.

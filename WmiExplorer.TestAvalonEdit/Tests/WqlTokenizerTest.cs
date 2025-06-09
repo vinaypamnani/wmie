@@ -1,6 +1,6 @@
 using ICSharpCode.AvalonEdit.Document;
 using NUnit.Framework;
-using WmiExplorer.Presentation.AvalonEdit.Context;
+using WmiExplorer.Integration.AvalonEdit.Context;
 
 namespace WmiExplorer.TestAvalonEdit.Tests;
 

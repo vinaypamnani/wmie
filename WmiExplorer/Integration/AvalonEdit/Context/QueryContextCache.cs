@@ -1,4 +1,4 @@
-namespace WmiExplorer.Presentation.AvalonEdit.Context;
+namespace WmiExplorer.Integration.AvalonEdit.Context;
 
 /// <summary>
 /// Enhanced query context cache with LRU eviction and performance optimization.

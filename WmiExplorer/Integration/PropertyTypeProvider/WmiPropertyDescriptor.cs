@@ -1,7 +1,7 @@
 using System.Management;
 using WmiExplorer.PropertyGrid.Abstractions;
 
-namespace WmiExplorer.Presentation.PropertyTypeProvider;
+namespace WmiExplorer.Integration.PropertyTypeProvider;
 
 /// <summary>
 /// Property descriptor implementation that handles WMI-specific properties from ManagementBaseObject.

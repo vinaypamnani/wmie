@@ -1,9 +1,9 @@
 using ICSharpCode.AvalonEdit.CodeCompletion;
-using WmiExplorer.Presentation.AvalonEdit.Context;
-using WmiExplorer.Presentation.AvalonEdit.WqlManager;
+using WmiExplorer.Integration.AvalonEdit.Context;
+using WmiExplorer.Integration.AvalonEdit.WqlManager;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.AvalonEdit.Providers;
+namespace WmiExplorer.Integration.AvalonEdit.Providers;
 
 /// <summary>
 /// Provides WMI property name completions after WHERE keyword or logical operators.

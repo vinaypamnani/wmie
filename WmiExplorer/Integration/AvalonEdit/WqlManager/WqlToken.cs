@@ -1,4 +1,4 @@
-namespace WmiExplorer.Presentation.AvalonEdit.WqlManager;
+namespace WmiExplorer.Integration.AvalonEdit.WqlManager;
 
 /// <summary>
 /// Enhanced token types for improved parsing and completion.

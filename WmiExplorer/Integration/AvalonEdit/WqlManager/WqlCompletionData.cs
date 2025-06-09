@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace WmiExplorer.Presentation.AvalonEdit.WqlManager;
+namespace WmiExplorer.Integration.AvalonEdit.WqlManager;
 
 /// <summary>
 /// Represents a completion data item for IntelliSense-like functionality.

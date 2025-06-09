@@ -1,7 +1,7 @@
 using WmiExplorer.Core.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
 
-namespace WmiExplorer.Presentation.PropertyTypeProvider;
+namespace WmiExplorer.Integration.PropertyTypeProvider;
 
 public class WmiMethodPropertyDescriptor : IPropertyDescriptor
 {

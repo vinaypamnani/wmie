@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using MessageBox = System.Windows.MessageBox;
-using WmiExplorer.Presentation.PropertyTypeProvider;
+using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
@@ -123,9 +123,9 @@ public partial class App : Application
         // Set up DI for AvalonEdit behaviors using static method
         var messagingService = ServiceProvider.GetRequiredService<IMessagingService>();
         var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
-        Presentation.AvalonEdit.Behaviors.AvalonEditThemingBehavior.SetMessagingService(messagingService);
-        Presentation.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetMessagingService(messagingService);
-        Presentation.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
+        Integration.AvalonEdit.Behaviors.AvalonEditThemingBehavior.SetMessagingService(messagingService);
+        Integration.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetMessagingService(messagingService);
+        Integration.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
 
         // Configure unhandled exception handling
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>

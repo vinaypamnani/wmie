@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace WmiExplorer.Presentation.AvalonEdit.WqlManager;
+namespace WmiExplorer.Integration.AvalonEdit.WqlManager;
 
 /// <summary>
 /// Unified WQL keywords management with all categories consolidated.
