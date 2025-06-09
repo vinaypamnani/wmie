@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Services;
@@ -23,14 +24,14 @@ public partial class MainWindow : Window
 
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
-    private readonly IMessagingService _messagingService;
+    private readonly IMessengerService _messengerService;
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
     private readonly MainViewModel _viewModel;
     private readonly IWmiService _wmiService;
 
     public MainWindow(
-        IMessagingService messagingService,
+        IMessengerService messengerService,
         ISettingsService settingsService,
         ThemeManager themeManager,
         IWmiService wmiService,
@@ -41,7 +42,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         Current = this;
 
-        _messagingService = messagingService;
+        _messengerService = messengerService;
         _settingsService = settingsService;
         _themeManager = themeManager;
         _wmiService = wmiService;
@@ -58,7 +59,7 @@ public partial class MainWindow : Window
         InitializeTitleBarTheming();
 
         // Set an initial application state
-        _messagingService.Publish(new ApplicationStateMessage(
+        _messengerService.Send(new ApplicationStateMessage(
             ApplicationState.Ready("Application started. Click Connect to begin.")));
     }
 
@@ -157,7 +158,7 @@ public partial class MainWindow : Window
 
             // Subscribe to theme change messages to update title bar color with strong reference
             // This ensures the window handle is available when theme changes occur
-            _messagingService.StrongSubscribe<ThemeChangedMessage>(message =>
+            _messengerService.StrongSubscribe<ThemeChangedMessage>(handle, message =>
             {
                 // Update title bar color when theme changes
                 ApplyTitleBarTheme(handle);

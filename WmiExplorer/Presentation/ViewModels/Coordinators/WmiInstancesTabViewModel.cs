@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
@@ -29,11 +28,11 @@ public partial class WmiInstancesTabViewModel : MessagingViewModel
     private readonly IWmiService _wmiService;
 
     public WmiInstancesTabViewModel(
-        IMessenger messenger,
+        IMessengerService messengerService,
         ISettingsService settingsService,
         IWmiService wmiService,
         IApplicationService applicationService,
-        ICacheService cacheService) : base(messenger)
+        ICacheService cacheService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));

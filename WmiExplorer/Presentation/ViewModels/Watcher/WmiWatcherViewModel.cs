@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -73,12 +72,12 @@ public partial class WmiWatcherViewModel : MessagingViewModel
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
     /// </summary>
-    /// <param name="messenger">The messenger to use</param>
+    /// <param name="messengerService">The messenger service to use</param>
     /// <param name="cacheService">The cache service to use</param>
     public WmiWatcherViewModel(
-        IMessenger messenger,
+        IMessengerService messengerService,
         ICacheService cacheService
-    ) : base(messenger)
+    ) : base(messengerService)
     {
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 

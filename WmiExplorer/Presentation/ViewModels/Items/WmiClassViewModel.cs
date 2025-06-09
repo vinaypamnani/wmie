@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CtkInput = CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -42,10 +41,9 @@ public partial class WmiClassViewModel : MessagingViewModel
            WmiClass wmiClass,
            WmiNamespaceViewModel parentNamespaceViewModel,
            IWmiService wmiService,
-           IMessenger messenger,
-           IApplicationService applicationService) : base(messenger)
+           IMessengerService messengerService,
+           IApplicationService applicationService) : base(messengerService)
     {
-        // All dependencies are required for correct operation and messaging.
         _wmiClass = wmiClass;
         _wmiService = wmiService;
         _applicationService = applicationService; _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
@@ -112,7 +110,7 @@ public partial class WmiClassViewModel : MessagingViewModel
         IEnumerable<WmiClass> wmiClasses,
         WmiNamespaceViewModel parentNamespaceViewModel,
         IWmiService wmiService,
-        IMessenger messenger,
+        IMessengerService messengerService,
         IApplicationService applicationService)
     {
         var viewModels = new ObservableCollection<WmiClassViewModel>();
@@ -123,7 +121,7 @@ public partial class WmiClassViewModel : MessagingViewModel
                 wmiClass,
                 parentNamespaceViewModel,
                 wmiService,
-                messenger,
+                messengerService,
                 applicationService));
         }
 
@@ -144,7 +142,7 @@ public partial class WmiClassViewModel : MessagingViewModel
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
-        using var timer = OperationTimer.Start($"Loading instances for {ClassName}", Messenger);
+        using var timer = OperationTimer.Start($"Loading instances for {ClassName}", _messengerService);
         try
         {
             LoadState = InstanceLoadState.Loading;
@@ -160,7 +158,7 @@ public partial class WmiClassViewModel : MessagingViewModel
             var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo)); var instanceViewModels = WmiInstanceViewModel.CreateFromCollection(
                 instanceModels,
                 _wmiService,
-                Messenger,
+                _messengerService,
                 _applicationService,
                 this);
 

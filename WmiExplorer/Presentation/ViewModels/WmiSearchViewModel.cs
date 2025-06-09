@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
@@ -40,8 +39,8 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private readonly IWmiService _wmiService;
 
-    public WmiSearchViewModel(IMessenger messenger, IWmiService wmiService)
-              : base(messenger)
+    public WmiSearchViewModel(IMessengerService messengerService, IWmiService wmiService)
+                 : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
 
@@ -153,7 +152,7 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
         _searchTypeStates[SearchType].SearchQuery = string.Empty;
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
-        using var timer = OperationTimer.Start($"Searching for {SearchType.ToString().ToLower()}s: {SearchQuery}", Messenger);
+        using var timer = OperationTimer.Start($"Searching for {SearchType.ToString().ToLower()}s: {SearchQuery}", _messengerService);
         try
         {
             if (SelectedNamespace == null)

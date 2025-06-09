@@ -21,7 +21,7 @@ public static class AvalonEditWqlHighlightingBehavior
         new PropertyMetadata(false, OnEnableWqlHighlightingChanged));
 
     // Private static fields for injected services
-    private static IMessagingService? _messagingService;
+    private static IMessengerService? _messengerService;
 
     private static ISettingsService? _settingsService;
 
@@ -32,9 +32,9 @@ public static class AvalonEditWqlHighlightingBehavior
     /// <summary>
     /// Sets the messaging service for this behavior (for DI).
     /// </summary>
-    public static void SetMessagingService(IMessagingService messagingService)
+    public static void SetMessengerService(IMessengerService messengerService)
     {
-        _messagingService = messagingService;
+        _messengerService = messengerService;
     }
 
     /// <summary>
@@ -88,9 +88,9 @@ public static class AvalonEditWqlHighlightingBehavior
             ApplyWqlHighlighting(editor, theme);
 
             // Subscribe to theme change messages via DI
-            if (_messagingService != null)
+            if (_messengerService != null)
             {
-                _messagingService.StrongSubscribe<ThemeChangedMessage>(msg =>
+                _messengerService.StrongSubscribe<ThemeChangedMessage>(editor, msg =>
                 {
                     ApplyWqlHighlighting(editor, msg.Theme);
                 });

@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -23,8 +22,8 @@ public partial class PropertyGridViewModel : MessagingViewModel
     private MainWindowPosition _windowPosition;
 
     public PropertyGridViewModel(
-        IMessenger messenger,
-        ISettingsService settingsService) : base(messenger)
+           IMessengerService messengerService,
+           ISettingsService settingsService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
 

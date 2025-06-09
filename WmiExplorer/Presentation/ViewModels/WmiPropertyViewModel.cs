@@ -1,4 +1,3 @@
-using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Services;
 
@@ -23,7 +22,7 @@ public partial class WmiPropertyViewModel : MessagingViewModel
 {
     private readonly IWmiService _wmiService;
 
-    public WmiPropertyViewModel(IMessenger messenger, IWmiService wmiService) : base(messenger)
+    public WmiPropertyViewModel(IMessengerService messengerService, IWmiService wmiService) : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
     }

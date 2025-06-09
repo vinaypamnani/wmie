@@ -92,12 +92,12 @@ public partial class App : Application
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
         // Register core services first
-        services.AddSingleton<IMessagingService, MessagingService>();
+        services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<ISettingsService, SettingsService>(provider =>
-            new SettingsService(provider.GetRequiredService<IMessagingService>()));
+            new SettingsService(provider.GetRequiredService<IMessengerService>()));
         services.AddSingleton<ThemeManager>(provider =>
             new ThemeManager(
-                provider.GetRequiredService<IMessagingService>(),
+                provider.GetRequiredService<IMessengerService>(),
                 provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<ICacheService, CacheService>();
         services.AddSingleton<IWmiService, WmiService>(provider =>
@@ -128,10 +128,10 @@ public partial class App : Application
         ServiceProvider = services.BuildServiceProvider();
 
         // Set up DI for AvalonEdit behaviors using static method
-        var messagingService = ServiceProvider.GetRequiredService<IMessagingService>();
+        var messengerService = ServiceProvider.GetRequiredService<IMessengerService>();
         var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
-        Integration.AvalonEdit.Behaviors.AvalonEditThemingBehavior.SetMessagingService(messagingService);
-        Integration.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetMessagingService(messagingService);
+        Integration.AvalonEdit.Behaviors.AvalonEditThemingBehavior.SetMessengerService(messengerService);
+        Integration.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetMessengerService(messengerService);
         Integration.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
 
         // Configure unhandled exception handling

@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
@@ -43,13 +42,13 @@ public partial class WmiInstanceViewModel : MessagingViewModel
         WmiInstance wmiInstance,
         WmiClassViewModel parentClass,
         IWmiService wmiService,
-        IMessenger messenger,
-        IApplicationService applicationService) : base(messenger)
+        IMessengerService messengerService,
+        IApplicationService applicationService) : base(messengerService)
     {
         if (wmiInstance == null) throw new ArgumentNullException(nameof(wmiInstance));
         if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
         if (wmiService == null) throw new ArgumentNullException(nameof(wmiService));
-        if (messenger == null) throw new ArgumentNullException(nameof(messenger));
+        if (messengerService == null) throw new ArgumentNullException(nameof(messengerService));
         if (applicationService == null) throw new ArgumentNullException(nameof(applicationService));
 
         _wmiInstance = wmiInstance;
@@ -103,7 +102,7 @@ public partial class WmiInstanceViewModel : MessagingViewModel
     public static ObservableCollection<WmiInstanceViewModel> CreateFromCollection(
         IEnumerable<WmiInstance> wmiInstances,
         IWmiService wmiService,
-        IMessenger messenger,
+        IMessengerService messengerService,
         IApplicationService applicationService,
         WmiClassViewModel parentClass)
     {
@@ -118,7 +117,7 @@ public partial class WmiInstanceViewModel : MessagingViewModel
                 wmiInstance,
                 parentClass,
                 wmiService,
-                messenger,
+                messengerService,
                 applicationService));
         }
 

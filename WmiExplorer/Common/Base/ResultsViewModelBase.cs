@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
+using WmiExplorer.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using WmiExplorer.Presentation.ViewModels.Helpers;
@@ -33,7 +33,7 @@ public abstract partial class ResultsViewModelBase<T> : MessagingViewModel
     /// </summary>
     protected abstract bool ResultsFilterPredicate(T instance, string filter);
 
-    protected ResultsViewModelBase(IMessenger messenger) : base(messenger)
+    protected ResultsViewModelBase(IMessengerService messengerService) : base(messengerService)
     {
         _filterHelper = new FilterHelper<T>(_results, ResultsFilterPredicate);
         _resultsView = _filterHelper.CollectionView;

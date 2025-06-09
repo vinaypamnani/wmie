@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Shared;
 
 namespace WmiExplorer.Services;
@@ -19,12 +20,12 @@ public class SettingsService : ISettingsService
     private string _currentTheme = "Dark";
     private readonly string _filePath;
     private MainWindowPosition _mainWindowPosition = new MainWindowPosition();
-    private readonly IMessagingService _messagingService;
+    private readonly IMessengerService _messengerService;
     private bool _showSystemClasses = false;
 
-    public SettingsService(IMessagingService messagingService)
+    public SettingsService(IMessengerService messengerService)
     {
-        _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
+        _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
 
         // Set up file path for settings
         _filePath = Path.Combine(

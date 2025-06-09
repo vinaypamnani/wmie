@@ -1,4 +1,3 @@
-using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
@@ -26,13 +25,13 @@ public class WmiNamespacePaneViewModel : MessagingViewModel
     private readonly IWmiService _wmiService;
 
     public WmiNamespacePaneViewModel(
-           IMessenger messenger,
+           IMessengerService messengerService,
            ISettingsService settingsService,
            IWmiService wmiService,
            IApplicationService applicationService,
            ICacheService cacheService,
            WmiClassesTabViewModel classesTabViewModel,
-           WmiWatcherViewModel watcherViewModel) : base(messenger)
+           WmiWatcherViewModel watcherViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
@@ -154,7 +153,7 @@ public class WmiNamespacePaneViewModel : MessagingViewModel
             var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
                 effectivePath,
                 _wmiService,
-                Messenger,
+                _messengerService,
                 _applicationService,
                 _settingsService,
                 _cacheService,

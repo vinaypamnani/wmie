@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CtkInput = CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -66,13 +65,13 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
     private readonly IWmiService _wmiService;
 
     public WmiNamespaceViewModel(
-        WmiNamespace wmiNamespace,
-        IWmiService wmiService,
-        IMessenger messenger,
-        IApplicationService applicationService,
-        ISettingsService settingsService,
-        ICacheService cacheService,
-        WmiNamespaceViewModel? parentNamespaceViewModel = null) : base(messenger)
+           WmiNamespace wmiNamespace,
+           IWmiService wmiService,
+           IMessengerService messengerService,
+           IApplicationService applicationService,
+           ISettingsService settingsService,
+           ICacheService cacheService,
+           WmiNamespaceViewModel? parentNamespaceViewModel = null) : base(messengerService)
     {
         // All dependencies are required for correct operation and messaging.
         _wmiNamespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
@@ -182,14 +181,14 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
-        IEnumerable<ManagementObject> mboCollection,
-        WmiNamespace parentNamespaceModel,
-        IWmiService wmiService,
-        IMessenger messenger,
-        IApplicationService applicationService,
-        ISettingsService settingsService,
-        ICacheService cacheService,
-        WmiNamespaceViewModel? parentNamespaceViewModel = null)
+           IEnumerable<ManagementObject> mboCollection,
+           WmiNamespace parentNamespaceModel,
+           IWmiService wmiService,
+           IMessengerService messengerService,
+           IApplicationService applicationService,
+           ISettingsService settingsService,
+           ICacheService cacheService,
+           WmiNamespaceViewModel? parentNamespaceViewModel = null)
     {
         if (mboCollection == null)
             throw new ArgumentNullException(nameof(mboCollection));
@@ -203,12 +202,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
                 throw new InvalidOperationException("Unable to determine child namespace path from ManagementObject.");
 
             string nsPath = $"{mo.Scope.Path.Path}\\{name}";
-            var wmiNamespace = new WmiNamespace(mo, nsPath, parentNamespaceModel);
-
-            var vm = new WmiNamespaceViewModel(
+            var wmiNamespace = new WmiNamespace(mo, nsPath, parentNamespaceModel); var vm = new WmiNamespaceViewModel(
                 wmiNamespace,
                 wmiService,
-                messenger,
+                messengerService,
                 applicationService,
                 settingsService,
                 cacheService,
@@ -223,9 +220,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
     }
 
     public static async Task<WmiNamespaceViewModel> CreateRootAsync(
-        string namespacePath,
-        IWmiService wmiService,
-        IMessenger messenger,
+        string namespacePath, IWmiService wmiService,
+        IMessengerService messengerService,
         IApplicationService applicationService,
         ISettingsService settingsService,
         ICacheService cacheService,
@@ -238,11 +234,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
         if (rootMbo == null)
             throw new InvalidOperationException("Failed to retrieve the root WMI namespace object.");
 
-        var rootNamespace = new WmiNamespace(rootMbo, namespacePath, new ConnectionOptions());
-        var rootViewModel = new WmiNamespaceViewModel(
+        var rootNamespace = new WmiNamespace(rootMbo, namespacePath, new ConnectionOptions()); var rootViewModel = new WmiNamespaceViewModel(
             rootNamespace,
             wmiService,
-            messenger,
+            messengerService,
             applicationService,
             settingsService,
             cacheService);
@@ -260,7 +255,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
             return;
         }
 
-        using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", Messenger);
+        using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", _messengerService);
         try
         {
             PublishBusyState($"Loading {NamespacePath}...");
@@ -279,7 +274,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
                 childNamespaces,
                 _wmiNamespace,
                 _wmiService,
-                Messenger,
+                _messengerService,
                 _applicationService,
                 _settingsService,
                 _cacheService,
@@ -326,7 +321,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
 
     public async Task LoadClassesAsync()
     {
-        using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", Messenger);
+        using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", _messengerService);
         try
         {
             ClassLoadState = ClassLoadState.Loading;
@@ -349,7 +344,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
                 classModels,
                 this,
                 _wmiService,
-                Messenger,
+                _messengerService,
                 _applicationService);
 
             await RunOnUIThreadAsync(() =>

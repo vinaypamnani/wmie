@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
@@ -32,11 +31,11 @@ public partial class OptionsViewModel : MessagingViewModel
     private readonly IWmiService _wmiService;
 
     public OptionsViewModel(
-        IMessenger messenger,
-        ISettingsService settingsService,
-        ThemeManager themeManager,
-        IWmiService wmiService,
-        WmiNamespacePaneViewModel namespacePaneViewModel) : base(messenger)
+           IMessengerService messengerService,
+           ISettingsService settingsService,
+           ThemeManager themeManager,
+           IWmiService wmiService,
+           WmiNamespacePaneViewModel namespacePaneViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));

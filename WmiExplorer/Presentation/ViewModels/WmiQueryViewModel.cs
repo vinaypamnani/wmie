@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -47,8 +46,8 @@ public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
 
     private readonly IWmiService _wmiService;
 
-    public WmiQueryViewModel(IMessenger messenger, IWmiService wmiService, ICacheService cacheService)
-              : base(messenger)
+    public WmiQueryViewModel(IMessengerService messengerService, IWmiService wmiService, ICacheService cacheService)
+                 : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
@@ -145,7 +144,7 @@ public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         _cts = new CancellationTokenSource();
         var token = _cts.Token;
 
-        using var timer = OperationTimer.Start($"Executing query: {QueryText}", Messenger);
+        using var timer = OperationTimer.Start($"Executing query: {QueryText}", _messengerService);
 
         try
         {

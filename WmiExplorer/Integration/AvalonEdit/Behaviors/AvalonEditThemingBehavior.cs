@@ -20,8 +20,8 @@ public static class AvalonEditThemingBehavior
         typeof(AvalonEditThemingBehavior),
         new PropertyMetadata(false, OnEnableThemingChanged));
 
-    // Private static field for injected messaging service
-    private static IMessagingService? _messagingService;
+    // Private static field for injected messenger service
+    private static IMessengerService? _messengerService;
 
     // Track active completion windows for theme change support
     private static readonly ConcurrentDictionary<TextEditor, CompletionWindow?> ActiveCompletionWindows = new();
@@ -74,11 +74,11 @@ public static class AvalonEditThemingBehavior
     public static void SetEnableTheming(DependencyObject obj, bool value) => obj.SetValue(EnableThemingProperty, value);
 
     /// <summary>
-    /// Sets the messaging service for this behavior (for DI).
+    /// Sets the messenger service for this behavior (for DI).
     /// </summary>
-    public static void SetMessagingService(IMessagingService messagingService)
+    public static void SetMessengerService(IMessengerService messengerService)
     {
-        _messagingService = messagingService;
+        _messengerService = messengerService;
     }
 
     /// <summary>
@@ -89,6 +89,9 @@ public static class AvalonEditThemingBehavior
         if (editor != null)
         {
             ActiveCompletionWindows.TryRemove(editor, out _);
+
+            // Clean up message subscriptions
+            _messengerService?.UnsubscribeAll(editor);
         }
     }
 
@@ -105,21 +108,18 @@ public static class AvalonEditThemingBehavior
         {
             ApplyThemeToTextArea(editor);
 
-            // Subscribe to theme changed messages using DI
-            if (_messagingService != null)
+            // Subscribe to theme changed messages using the editor as subscriber key
+            _messengerService?.StrongSubscribe<ThemeChangedMessage>(editor, _ =>
             {
-                _messagingService.StrongSubscribe<ThemeChangedMessage>(_ =>
-                {
-                    // Reapply theme to this editor
-                    ApplyThemeToTextArea(editor);
+                // Reapply theme to this editor
+                ApplyThemeToTextArea(editor);
 
-                    // Reapply theme to any associated completion window
-                    if (ActiveCompletionWindows.TryGetValue(editor, out var window) && window != null)
-                    {
-                        ApplyThemeToCompletionWindow(window, editor);
-                    }
-                });
-            }
+                // Reapply theme to any associated completion window
+                if (ActiveCompletionWindows.TryGetValue(editor, out var window) && window != null)
+                {
+                    ApplyThemeToCompletionWindow(window, editor);
+                }
+            });
         }
     }
 }

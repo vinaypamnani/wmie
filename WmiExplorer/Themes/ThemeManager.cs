@@ -13,7 +13,7 @@ namespace WmiExplorer.Themes;
 public class ThemeManager
 {
     private string _currentThemeName;
-    private readonly IMessagingService _messagingService;
+    private readonly IMessengerService _messengerService;
     private readonly ISettingsService _settingsService;
 
     private static readonly ThemeCollection Themes = new ThemeCollection
@@ -80,10 +80,10 @@ public class ThemeManager
         }
     };
 
-    public ThemeManager(IMessagingService messagingService, ISettingsService settingsService)
+    public ThemeManager(IMessengerService messengerService, ISettingsService settingsService)
     {
-        _messagingService = messagingService;
-        _settingsService = settingsService;
+        _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
 
         // Load themes from file (creates file with defaults if missing)
         LoadThemesFromFile();
@@ -146,7 +146,7 @@ public class ThemeManager
             CurrentThemeObject.PropertyChanged += OnThemeColorChanged;
 
         // Notify via messaging
-        _messagingService.Publish(new ThemeChangedMessage(themeName));
+        _messengerService.Send(new ThemeChangedMessage(themeName));
     }
 
     /// <summary>

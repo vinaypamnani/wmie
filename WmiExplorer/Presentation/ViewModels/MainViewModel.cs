@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
@@ -46,12 +45,12 @@ public partial class MainViewModel : MessagingViewModel
     private MainWindowPosition _windowPosition;
 
     public MainViewModel(
-              IMessenger messenger,
-              ISettingsService settingsService,
-              ThemeManager themeManager,
-              Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
-              Coordinators.OptionsViewModel optionsViewModel,
-              Coordinators.PropertyGridViewModel propertyGridViewModel) : base(messenger)
+                 IMessengerService messengerService,
+                 ISettingsService settingsService,
+                 ThemeManager themeManager,
+                 Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
+                 Coordinators.OptionsViewModel optionsViewModel,
+                 Coordinators.PropertyGridViewModel propertyGridViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
