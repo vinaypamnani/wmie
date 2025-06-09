@@ -1,8 +1,7 @@
-<!--  filepath: c:\repos\wmie\WmiExplorer\Presentation\Views\Main\EnhancedStatusIndicator.xaml  -->
-<UserControl x:Class="WmiExplorer.Presentation.Views.Main.EnhancedStatusIndicator"
+<UserControl x:Class="WmiExplorer.Presentation.Views.UserControls.EnhancedStatusIndicator"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WmiExplorer.Presentation.Views.Main"
+             xmlns:local="clr-namespace:WmiExplorer.Presentation.Views.UserControls"
              xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
              Height="22"
              MinWidth="180">

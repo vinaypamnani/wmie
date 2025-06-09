@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace WmiExplorer.Presentation.Views.Main
+namespace WmiExplorer.Presentation.Views.UserControls
 {
     /// <summary>
     /// Enhanced status indicator that combines the visual state indicator and status message

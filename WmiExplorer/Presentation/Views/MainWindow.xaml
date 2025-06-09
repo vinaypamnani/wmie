@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:WmiExplorer"
         xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
+        xmlns:controls="clr-namespace:WmiExplorer.Presentation.Views.UserControls"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
         xmlns:tabs="clr-namespace:WmiExplorer.Presentation.Views.Tabs"
@@ -164,7 +165,7 @@
         </Grid>
         <StatusBar Grid.Row="2" Margin="{StaticResource MarginTopSmall}">
             <StatusBarItem>
-                <main:EnhancedStatusIndicator Margin="4,0" DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
+                <controls:EnhancedStatusIndicator Margin="4,0" DataContext="{Binding}" ToolTip="{Binding CurrentApplicationState.Message}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Margin="4,0" Foreground="{DynamicResource PrimaryForegroundBrush}" Text="{Binding ElapsedTimeMessage}" />
