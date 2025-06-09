@@ -89,7 +89,7 @@
                         </TabItem>
                         <TabItem Header="Search">
                             <!--  Search View  -->
-                            <tabs:WmiSearchTab DataContext="{Binding SelectedNamespace.SearchViewModel}" />
+                            <tabs:WmiSearchTab DataContext="{Binding NamespacePaneViewModel.SelectedNamespace.SearchViewModel}" />
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
@@ -97,7 +97,7 @@
                         </TabItem>
                         <TabItem Header="Query">
                             <!--  Query View  -->
-                            <tabs:WmiQueryTab DataContext="{Binding SelectedNamespace.QueryViewModel}" />
+                            <tabs:WmiQueryTab DataContext="{Binding NamespacePaneViewModel.SelectedNamespace.QueryViewModel}" />
                         </TabItem>
                     </TabControl>
 
