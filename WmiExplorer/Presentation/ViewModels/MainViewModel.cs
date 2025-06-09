@@ -15,42 +15,41 @@ public class MainViewModel : MessagingViewModelBase
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private string _elapsedTimeMessage = string.Empty;
     private readonly Coordinators.WmiNamespacePaneViewModel _namespacePaneViewModel;
-    private WmiOperationMode _operationMode = WmiOperationMode.Asynchronous;
+    private readonly Coordinators.OptionsViewModel _optionsViewModel;
     private object? _selectedObject;
     private int _selectedTabIndex;
     private readonly ISettingsService _settingsService;
-    private string _temporaryComputerName = Environment.MachineName;
     private readonly ThemeManager _themeManager;
     private WmiWatcherViewModel? _watcherViewModel;
     private MainWindowPosition _windowPosition;
     private readonly IWmiService _wmiService;
 
     public MainViewModel(
-              IMessagingService messagingService,
-              ISettingsService settingsService,
-              ThemeManager themeManager,
-              IWmiService wmiService,
-              IApplicationService applicationService,
-              ICacheService cacheService,
-              WmiWatcherViewModel watcherViewModel,
-              Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel)
+           IMessagingService messagingService,
+           ISettingsService settingsService,
+           IWmiService wmiService,
+           IApplicationService applicationService,
+           ICacheService cacheService,
+           ThemeManager themeManager,
+           WmiWatcherViewModel watcherViewModel,
+           Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
+           Coordinators.OptionsViewModel optionsViewModel)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacePaneViewModel = namespacePaneViewModel ?? throw new ArgumentNullException(nameof(namespacePaneViewModel));
+        _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
+        _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
 
         // Initialize messaging
         InitializeMessaging(messagingService);
 
-        // Initialize commands
-        ConnectCommand = new AsyncRelayCommand(async () =>
-            await _namespacePaneViewModel.ConnectAsync(_temporaryComputerName.Trim()));
+        // Initialize window position from settings
+        _windowPosition = _settingsService.MainWindowPosition;
 
-        // Initialize commands
-        ReloadClassesCommand = _namespacePaneViewModel.ReloadClassesCommand;
         ExitCommand = new RelayCommand(_ => Environment.Exit(0));
         ToggleThemeCommand = new RelayCommand(_ => _themeManager.ToggleTheme());
 
@@ -69,82 +68,9 @@ public class MainViewModel : MessagingViewModelBase
         // Subscribe to theme change messages
         StrongSubscribe<ThemeChangedMessage>(_ =>
         {
-            OnPropertyChanged(nameof(CurrentTheme)); // To update color-picker color on theme change.
             OnPropertyChanged(nameof(ThemeToggleText)); // To update theme toggle text on theme change.
         });
-
-        // Initialize window position from settings
-        _windowPosition = _settingsService.MainWindowPosition;
-
-        // Initialize the singleton Event Watcher ViewModel
-        _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
-
-        // Log initial class filter
-        System.Diagnostics.Debug.WriteLine($"Initialized ClassTypeFilter from settings: {_settingsService.ClassTypeFilter}");
-
-        _settingsService.ShowSystemClassesChanged += (s, v) =>
-        {
-            OnPropertyChanged(nameof(ShowSystemClasses));
-        };
     }
-
-    /// <summary>
-    /// Filter for WMI class types - now wraps the settings service
-    /// </summary>
-    public WmiClassTypeFlags ClassTypeFilter
-    {
-        get => _settingsService.ClassTypeFilter;
-        set
-        {
-            // Get current value for comparison
-            var currentValue = _settingsService.ClassTypeFilter;
-            var newValue = value;
-
-            // Check if the incoming value is actually a negative flag value from our converter
-            // Negative values indicate a flag needs to be cleared
-            if ((int)value < 0)
-            {
-                // This is a signal from our converter that we need to clear a flag
-                // Convert the negative value back to a positive flag by taking its complement again
-                var flagToClear = (WmiClassTypeFlags)(~(int)value);
-
-                // Clear the specific flag while preserving all other flags
-                newValue = currentValue & ~flagToClear;
-            }
-            else if ((int)value > 0 && (int)value <= (int)WmiClassTypeFlags.All)
-            {
-                // This is a positive flag value coming from the converter when a checkbox is checked
-                // Set this flag while preserving all other flags
-                newValue = currentValue | value;
-            }
-
-            // Only update if the value actually changed
-            if (currentValue != newValue)
-            {
-                // Update the setting - this will handle save and notifications
-                _settingsService.ClassTypeFilter = newValue;
-
-                // Notify UI of property change
-                OnPropertyChanged(nameof(ClassTypeFilter));
-
-                System.Diagnostics.Debug.WriteLine($"ClassTypeFilter updated to: {newValue}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Target computer name for WMI connection - used for the text box input only
-    /// </summary>
-    public string ComputerName
-    {
-        get => _temporaryComputerName;
-        set => SetProperty(ref _temporaryComputerName, value);
-    }
-
-    /// <summary>
-    /// Command to connect to a WMI namespace
-    /// </summary>
-    public ICommand ConnectCommand { get; }
 
     /// <summary>
     /// The current application state
@@ -180,24 +106,9 @@ public class MainViewModel : MessagingViewModelBase
     public Coordinators.WmiNamespacePaneViewModel NamespacePaneViewModel => _namespacePaneViewModel;
 
     /// <summary>
-    /// Gets or sets the operation mode for WMI operations
+    /// Gets the options view model
     /// </summary>
-    public WmiOperationMode OperationMode
-    {
-        get => _operationMode;
-        set
-        {
-            if (SetProperty(ref _operationMode, value))
-            {
-                _wmiService.OperationMode = value; // Propagate to service
-            }
-        }
-    }
-
-    /// <summary>
-    /// Command to reload classes in the current namespace
-    /// </summary>
-    public ICommand ReloadClassesCommand { get; }
+    public Coordinators.OptionsViewModel OptionsViewModel => _optionsViewModel;
 
     /// <summary>
     /// Object to display in the property grid - could be namespace, class, or instance
@@ -322,10 +233,8 @@ public class MainViewModel : MessagingViewModelBase
     {
         if (message == null) return;
 
-        // Update UI if needed
-        OnPropertyChanged(nameof(ClassTypeFilter));
-
-        System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged: {_settingsService.ClassTypeFilter}");
+        // This message is now handled by OptionsViewModel, no local action needed
+        System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged message");
     }
 
     /// <summary>
