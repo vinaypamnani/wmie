@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -9,20 +11,22 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the PropertyGrid functionality.
 /// Manages property grid operations and selected object display.
 /// </summary>
-public class PropertyGridViewModel : MessagingViewModelBase
+public partial class PropertyGridViewModel : MessagingViewModel
 {
-    private readonly ISettingsService _settingsService;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedObjectDisplayName))]
     private object? _selectedObject;
+
+    private readonly ISettingsService _settingsService;
+
+    [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
     public PropertyGridViewModel(
-        IMessagingService messagingService,
-        ISettingsService settingsService)
+        IMessenger messenger,
+        ISettingsService settingsService) : base(messenger)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-
-        // Initialize messaging
-        InitializeMessaging(messagingService);
 
         // Initialize window position from settings (following the pattern)
         _windowPosition = _settingsService.MainWindowPosition;
@@ -37,51 +41,26 @@ public class PropertyGridViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Object to display in the property grid - could be namespace, class, or instance
-    /// </summary>
-    public object? SelectedObject
-    {
-        get => _selectedObject;
-        set
-        {
-            if (SetProperty(ref _selectedObject, value))
-            {
-                // Notify that the display name has changed when the selected object changes
-                OnPropertyChanged(nameof(SelectedObjectDisplayName));
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets the display name of the currently selected object for the property grid header
     /// </summary>
     public string SelectedObjectDisplayName
     {
         get
         {
-            if (_selectedObject == null)
+            if (SelectedObject == null)
                 return "No Selection";
 
-            if (_selectedObject is WmiNamespaceViewModel namespaceVm)
+            if (SelectedObject is WmiNamespaceViewModel namespaceVm)
                 return $"Namespace: {namespaceVm.Name}";
 
-            if (_selectedObject is WmiClassViewModel classVm)
+            if (SelectedObject is WmiClassViewModel classVm)
                 return $"Class: {classVm.ClassName}";
 
-            if (_selectedObject is WmiInstanceViewModel instanceVm)
+            if (SelectedObject is WmiInstanceViewModel instanceVm)
                 return $"Instance: {instanceVm.InstanceName}";
 
-            return _selectedObject.GetType().Name;
+            return SelectedObject.GetType().Name;
         }
-    }
-
-    /// <summary>
-    /// Gets the window position settings for PropertyGrid-related properties
-    /// </summary>
-    public MainWindowPosition WindowPosition
-    {
-        get => _windowPosition;
-        set => SetProperty(ref _windowPosition, value);
     }
 
     /// <summary>
@@ -162,7 +141,7 @@ public class PropertyGridViewModel : MessagingViewModelBase
     {
         if (message?.Instance == null)
             return;
-            
+
         // Set SelectedObject to the selected WMI instance for the property grid
         SelectedObject = message.Instance;
     }

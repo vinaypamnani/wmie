@@ -1,7 +1,9 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
-using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 
@@ -11,106 +13,48 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for application options and settings.
 /// Manages all options-related functionality and UI operations.
 /// </summary>
-public class OptionsViewModel : MessagingViewModelBase
+public partial class OptionsViewModel : MessagingViewModel
 {
+    [ObservableProperty]
+    private WmiClassTypeFlags _classTypeFilter;
+
+    [ObservableProperty]
+    private string _computerName = Environment.MachineName;
+
     private readonly WmiNamespacePaneViewModel _namespacePaneViewModel;
+
+    [ObservableProperty]
+    private WmiOperationMode _operationMode;
+
+    private ICommand? _reloadClassesCommand;
     private readonly ISettingsService _settingsService;
-    private string _temporaryComputerName = Environment.MachineName;
     private readonly ThemeManager _themeManager;
     private readonly IWmiService _wmiService;
 
     public OptionsViewModel(
-        IMessagingService messagingService,
+        IMessenger messenger,
         ISettingsService settingsService,
         ThemeManager themeManager,
         IWmiService wmiService,
-        WmiNamespacePaneViewModel namespacePaneViewModel)
+        WmiNamespacePaneViewModel namespacePaneViewModel) : base(messenger)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _namespacePaneViewModel = namespacePaneViewModel ?? throw new ArgumentNullException(nameof(namespacePaneViewModel));
 
-        // Initialize messaging
-        InitializeMessaging(messagingService);
+        // Initialize the operation mode from the service
+        _operationMode = _wmiService.OperationMode;
 
-        // Delegate commands to coordinators
-        ConnectCommand = new AsyncRelayCommand(async () => await _namespacePaneViewModel.ConnectAsync(ComputerName.Trim()));
-        ReloadClassesCommand = _namespacePaneViewModel.ReloadClassesCommand;
-
-        // ToggleThemeCommand
-        ToggleThemeCommand = new RelayCommand(_ => _themeManager.ToggleTheme());
+        // Initialize the class type filter from the settings
+        _classTypeFilter = _settingsService.ClassTypeFilter;
 
         // Subscribe to messages
-        StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
         StrongSubscribe<ThemeChangedMessage>(HandleThemeChangedMessage);
-        StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
 
-
-        // Subscribe to settings changes
-        _settingsService.ShowSystemClassesChanged += (s, v) =>
-        {
-            OnPropertyChanged(nameof(ShowSystemClasses));
-        };
+        // Subscribe to command state changes
+        SubscribeToCommandStateChanges();
     }
-
-    /// <summary>
-    /// Filter for WMI class types - wraps the settings service
-    /// </summary>
-    public WmiClassTypeFlags ClassTypeFilter
-    {
-        get => _settingsService.ClassTypeFilter;
-        set
-        {
-            // Get current value for comparison
-            var currentValue = _settingsService.ClassTypeFilter;
-            var newValue = value;
-
-            // Check if the incoming value is actually a negative flag value from our converter
-            // Negative values indicate a flag needs to be cleared
-            if ((int)value < 0)
-            {
-                // This is a signal from our converter that we need to clear a flag
-                // Convert the negative value back to a positive flag by taking its complement again
-                var flagToClear = (WmiClassTypeFlags)(~(int)value);
-
-                // Clear the specific flag while preserving all other flags
-                newValue = currentValue & ~flagToClear;
-            }
-            else if ((int)value > 0 && (int)value <= (int)WmiClassTypeFlags.All)
-            {
-                // This is a positive flag value coming from the converter when a checkbox is checked
-                // Set this flag while preserving all other flags
-                newValue = currentValue | value;
-            }
-
-            // Only update if the value actually changed
-            if (currentValue != newValue)
-            {
-                // Update the setting - this will handle save and notifications
-                _settingsService.ClassTypeFilter = newValue;
-
-                // Notify UI of property change
-                OnPropertyChanged(nameof(ClassTypeFilter));
-
-                System.Diagnostics.Debug.WriteLine($"ClassTypeFilter updated to: {newValue}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Target computer name for WMI connection - used for the text box input only
-    /// </summary>
-    public string ComputerName
-    {
-        get => _temporaryComputerName;
-        set => SetProperty(ref _temporaryComputerName, value);
-    }
-
-    /// <summary>
-    /// Command to connect to a WMI namespace
-    /// </summary>
-    public ICommand ConnectCommand { get; private set; }
 
     /// <summary>
     /// Gets the current theme object
@@ -118,65 +62,36 @@ public class OptionsViewModel : MessagingViewModelBase
     public Theme CurrentTheme => _themeManager.CurrentThemeObject!;
 
     /// <summary>
-    /// Gets or sets the operation mode for WMI operations
-    /// </summary>
-    public WmiOperationMode OperationMode
-    {
-        get => _wmiService.OperationMode;
-        set
-        {
-            if (_wmiService.OperationMode != value)
-            {
-                _wmiService.OperationMode = value; // Update the WMI service operation mode
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    /// <summary>
     /// Command to reload classes in the current namespace
     /// </summary>
-    public ICommand ReloadClassesCommand { get; private set; }
+    public ICommand ReloadClassesCommand => _reloadClassesCommand ??= new RelayCommand(
+        ExecuteReloadClasses,
+        CanExecuteReloadClasses
+    );
 
     /// <summary>
-    /// Gets the currently selected namespace for enabling/disabling reload command
+    /// Determines if the reload classes command can be executed
     /// </summary>
-    public WmiNamespaceViewModel? SelectedNamespace => _namespacePaneViewModel.SelectedNamespace;
-
-    /// <summary>
-    /// Flag indicating whether system classes should be shown
-    /// </summary>
-    public bool ShowSystemClasses
+    private bool CanExecuteReloadClasses()
     {
-        get => _namespacePaneViewModel.ClassesTabViewModel.ShowSystemClasses;
-        set => _namespacePaneViewModel.ClassesTabViewModel.ShowSystemClasses = value;
+        return _namespacePaneViewModel.ReloadClassesCommand.CanExecute(null);
     }
 
     /// <summary>
-    /// Command to toggle between light and dark theme
+    /// Command to connect to a WMI namespace
     /// </summary>
-    public ICommand ToggleThemeCommand { get; private set; }
-
-    /// <summary>
-    /// Handles class type filter changes
-    /// </summary>
-    private void HandleClassTypeFilterChangedMessage(ClassTypeFilterChangedMessage message)
+    [RelayCommand()]
+    private async Task ConnectAsync()
     {
-        if (message == null) return;
-
-        // Update UI if needed
-        OnPropertyChanged(nameof(ClassTypeFilter));
-
-        System.Diagnostics.Debug.WriteLine($"OptionsViewModel received ClassTypeFilterChanged: {_settingsService.ClassTypeFilter}");
+        await _namespacePaneViewModel.ConnectAsync(ComputerName.Trim());
     }
 
     /// <summary>
-    /// Handles when the selected namespace changes
+    /// Executes the reload classes command
     /// </summary>
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
+    private void ExecuteReloadClasses()
     {
-        // Notify the UI that SelectedNamespace property has changed
-        OnPropertyChanged(nameof(SelectedNamespace));
+        _namespacePaneViewModel.ReloadClassesCommand.Execute(null);
     }
 
     /// <summary>
@@ -184,6 +99,104 @@ public class OptionsViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleThemeChangedMessage(ThemeChangedMessage message)
     {
+        // Notify the UI that the CurrentTheme property has changed
         OnPropertyChanged(nameof(CurrentTheme));
+    }
+
+    // Partial method that will be called when ClassTypeFilter changes
+    partial void OnClassTypeFilterChanged(WmiClassTypeFlags value)
+    {
+        // Process the value for flag operations
+        var currentValue = _settingsService.ClassTypeFilter;
+        var newValue = value;
+
+        // Check if the incoming value is actually a negative flag value from our converter
+        // Negative values indicate a flag needs to be cleared
+        if ((int)value < 0)
+        {
+            // This is a signal from our converter that we need to clear a flag
+            // Convert the negative value back to a positive flag by taking its complement again
+            var flagToClear = (WmiClassTypeFlags)(~(int)value);
+
+            // Clear the specific flag while preserving all other flags
+            newValue = currentValue & ~flagToClear;
+
+            // Update the property with the processed value (avoiding infinite recursion)
+            _classTypeFilter = newValue;
+
+            // Also update the service immediately
+            _settingsService.ClassTypeFilter = newValue;
+
+            // Publish the message to notify other components
+            PublishMessage(new ClassTypeFilterChangedMessage(newValue));
+
+            System.Diagnostics.Debug.WriteLine($"ClassTypeFilter flag cleared, new value: {newValue}");
+            return;
+        }
+        else if ((int)value > 0 && (int)value <= (int)WmiClassTypeFlags.All)
+        {
+            // This is a positive flag value coming from the converter when a checkbox is checked
+            // Set this flag while preserving all other flags
+            newValue = currentValue | value;
+
+            // If we're setting a compound value, update the property (avoiding infinite recursion)
+            if (newValue != value)
+            {
+                _classTypeFilter = newValue;
+
+                // Also update the service immediately
+                _settingsService.ClassTypeFilter = newValue;
+
+                // Publish the message to notify other components
+                PublishMessage(new ClassTypeFilterChangedMessage(newValue));
+
+                System.Diagnostics.Debug.WriteLine($"ClassTypeFilter flag set, new value: {newValue}");
+                return;
+            }
+        }        // Only update the service if the value is different
+        if (_settingsService.ClassTypeFilter != newValue)
+        {
+            // Update the setting without triggering notifications from the service
+            _settingsService.ClassTypeFilter = newValue;
+
+            // Publish the message ourselves to notify other components
+            PublishMessage(new ClassTypeFilterChangedMessage(newValue));
+
+            System.Diagnostics.Debug.WriteLine($"ClassTypeFilter updated to: {newValue}");
+        }
+    }
+
+    // Partial method that will be called when OperationMode changes
+    partial void OnOperationModeChanged(WmiOperationMode value)
+    {
+        // Sync the value with the WMI service
+        if (_wmiService.OperationMode != value)
+        {
+            _wmiService.OperationMode = value;
+        }
+    }
+
+    /// <summary>
+    /// Subscribe to changes that affect the command's CanExecute state
+    /// </summary>
+    private void SubscribeToCommandStateChanges()
+    {
+        _namespacePaneViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(_namespacePaneViewModel.SelectedNamespace))
+            {
+                // Notify that the command's CanExecute state may have changed
+                ((RelayCommand)ReloadClassesCommand).NotifyCanExecuteChanged();
+            }
+        };
+    }
+
+    /// <summary>
+    /// Command to toggle between light and dark theme
+    /// </summary>
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        _themeManager.ToggleTheme();
     }
 }

@@ -1,7 +1,9 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
@@ -11,33 +13,45 @@ using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
-public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
+/// <summary>
+/// ViewModel for WMI query execution and result management.
+/// Handles query operations, filtering, and result display.
+/// </summary>
+public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
 {
-    private readonly ICacheService _cacheService;
+    [ObservableProperty]
+    private ICacheService _cacheService;
+
     private CancellationTokenSource? _cts;
+
+    [ObservableProperty]
     private bool _directRead = false;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CancelQueryCommand))]
     private bool _isQuerying;
-    private readonly IMessagingService _messagingService;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteQueryCommand))]
     private string _queryText = string.Empty;
+
+    [ObservableProperty]
     private WmiNamespaceViewModel? _selectedNamespace;
+
+    [ObservableProperty]
     private WmiInstance? _selectedResult;
+
+    [ObservableProperty]
     private bool _useAmendedQualifiers = true;
+
     private readonly IWmiService _wmiService;
 
-    public WmiQueryViewModel(IMessagingService messagingService, IWmiService wmiService, ICacheService cacheService)
-        : base()
+    public WmiQueryViewModel(IMessenger messenger, IWmiService wmiService, ICacheService cacheService)
+              : base(messenger)
     {
-        _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-
-        // Initialize messaging
-        InitializeMessaging(messagingService);
-
-        // Initialize commands
-        ExecuteQueryCommand = new AsyncRelayCommand(ExecuteQueryAsync, CanExecuteQuery);
-        ClearResultsCommand = new RelayCommand(_ => ClearResults());
-        CancelQueryCommand = new RelayCommand(_ => CancelQuery(), _ => IsQuerying);
 
         // Subscribe to namespace selection changes
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
@@ -46,63 +60,7 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         _results.CollectionChanged += (s, e) => UpdateResultColumns();
     }
 
-    public ICacheService CacheService => _cacheService;
-    public ICommand CancelQueryCommand { get; }
-    public ICommand ClearResultsCommand { get; }
-
-    public bool DirectRead
-    {
-        get => _directRead;
-        set => SetProperty(ref _directRead, value);
-    }
-
-    public ICommand ExecuteQueryCommand { get; }
-
-    public bool IsQuerying
-    {
-        get => _isQuerying;
-        set => SetProperty(ref _isQuerying, value);
-    }
-
-    public string QueryText
-    {
-        get => _queryText;
-        set
-        {
-            if (SetProperty(ref _queryText, value))
-            {
-                // Refresh the command's CanExecute state
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-    }
-
     public ObservableCollection<DataGridColumn> ResultColumns { get; } = new();
-
-    public WmiNamespaceViewModel? SelectedNamespace
-    {
-        get => _selectedNamespace;
-        set => SetProperty(ref _selectedNamespace, value);
-    }
-
-    public WmiInstance? SelectedResult
-    {
-        get => _selectedResult;
-        set
-        {
-            if (SetProperty(ref _selectedResult, value))
-            {
-                // Publish a message so MainViewModel can update SelectedObject
-                _messagingService.Publish(new WmiQueryInstanceChangedMessage(value));
-            }
-        }
-    }
-
-    public bool UseAmendedQualifiers
-    {
-        get => _useAmendedQualifiers;
-        set => SetProperty(ref _useAmendedQualifiers, value);
-    }
 
     protected override bool ResultsFilterPredicate(WmiInstance instance, string filter)
     {
@@ -132,6 +90,18 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
             || SafeContains(() => instance.ToString());
     }
 
+    /// <summary>
+    /// Determines if the query can be cancelled
+    /// </summary>
+    private bool CanCancelQuery()
+    {
+        return IsQuerying;
+    }
+
+    /// <summary>
+    /// Command to cancel the current query operation
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanCancelQuery))]
     private void CancelQuery()
     {
         if (!IsQuerying || _cts == null)
@@ -141,11 +111,18 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         _cts.Cancel();
     }
 
+    /// <summary>
+    /// Determines if the query can be executed
+    /// </summary>
     private bool CanExecuteQuery()
     {
-        return !string.IsNullOrWhiteSpace(QueryText) && !_isQuerying;
+        return !string.IsNullOrWhiteSpace(QueryText) && !IsQuerying;
     }
 
+    /// <summary>
+    /// Command to clear query results
+    /// </summary>
+    [RelayCommand]
     private void ClearResults()
     {
         _results.Clear();
@@ -153,6 +130,10 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         UpdateResultColumns();
     }
 
+    /// <summary>
+    /// Command to execute a WMI query
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanExecuteQuery))]
     private async Task ExecuteQueryAsync()
     {
         IsQuerying = true;
@@ -164,7 +145,7 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         _cts = new CancellationTokenSource();
         var token = _cts.Token;
 
-        using var timer = OperationTimer.Start($"Executing query: {_queryText}", MessageService!);
+        using var timer = OperationTimer.Start($"Executing query: {QueryText}", Messenger);
 
         try
         {
@@ -185,8 +166,8 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
             var managementObjects = await _wmiService.ExecuteWmiQueryAsync(
                 scope,
                 queryString,
-                _directRead,
-                _useAmendedQualifiers,
+                DirectRead,
+                UseAmendedQualifiers,
                 cancellationToken: token);
 
             foreach (var mo in managementObjects)
@@ -232,7 +213,6 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         finally
         {
             IsQuerying = false;
-            CommandManager.InvalidateRequerySuggested();
         }
     }
 
@@ -241,6 +221,15 @@ public class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         if (message?.NamespaceViewModel == null)
             return;
         SelectedNamespace = message.NamespaceViewModel;
+    }
+
+    /// <summary>
+    /// Handles property change for SelectedResult to publish messaging updates
+    /// </summary>
+    partial void OnSelectedResultChanged(WmiInstance? value)
+    {
+        // Publish a message so MainViewModel can update SelectedObject
+        PublishMessage(new WmiQueryInstanceChangedMessage(value));
     }
 
     private void RefreshResultsView()

@@ -1,8 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Data;
+using WmiExplorer.Common.Helpers;
 
-namespace WmiExplorer.Presentation.ViewModelHelpers;
+namespace WmiExplorer.Presentation.ViewModels.Helpers;
 
 /// <summary>
 /// Helper for filtering a collection view with debounce and predicate logic.

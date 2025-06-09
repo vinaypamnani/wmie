@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CtkInput = CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Management;
@@ -7,7 +10,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModelHelpers;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
@@ -15,29 +18,49 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// <summary>
 /// ViewModel for a WMI namespace, supports async loading, filtering, and selection.
 /// </summary>
-public class WmiNamespaceViewModel : MessagingViewModelBase
+public partial class WmiNamespaceViewModel : MessagingViewModel
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
     private readonly ObservableCollection<WmiNamespaceViewModel> _children = new();
     private readonly ObservableCollection<WmiClassViewModel> _classes = new();
     private readonly FilterHelper<WmiClassViewModel> _classFilterHelper;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LoadState))]
     private ClassLoadState _classLoadState = ClassLoadState.Unknown;
+
     private readonly object _collectionLock = new();
+
+    [ObservableProperty]
     private string _computerName = string.Empty;
-    private ICommand? _copyRelativePathCommand;
+
     private readonly CancellationTokenSource _cts = new();
-    private ICommand? _expandCommand;
+
+    [ObservableProperty]
     private bool _hasLoadedChildren;
+
+    [ObservableProperty]
     private bool _isExpanded;
+
+    [ObservableProperty]
     private bool _isSelected;
-    private ICommand? _loadClassesCommand;
+
     private ManagementScope? _managementScope;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LoadState))]
     private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
+
+    [ObservableProperty]
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
+
     private WmiQueryViewModel _queryViewModel;
     private WmiSearchViewModel _searchViewModel;
+
+    [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
+
     private readonly ISettingsService _settingsService;
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
@@ -45,11 +68,11 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     public WmiNamespaceViewModel(
         WmiNamespace wmiNamespace,
         IWmiService wmiService,
-        IMessagingService messagingService,
+        IMessenger messenger,
         IApplicationService applicationService,
         ISettingsService settingsService,
         ICacheService cacheService,
-        WmiNamespaceViewModel? parentNamespaceViewModel = null)
+        WmiNamespaceViewModel? parentNamespaceViewModel = null) : base(messenger)
     {
         // All dependencies are required for correct operation and messaging.
         _wmiNamespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
@@ -57,8 +80,6 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-
-        InitializeMessaging(messagingService);
 
         // The collection view is used for filtering and sorting classes in the UI.
         _classFilterHelper = new FilterHelper<WmiClassViewModel>(
@@ -115,83 +136,23 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         }
     }
 
-    public ClassLoadState ClassLoadState
-    {
-        get => _classLoadState;
-        set
-        {
-            if (SetProperty(ref _classLoadState, value))
-            {
-                OnPropertyChanged(nameof(LoadState));
-            }
-        }
-    }
+    // Commands - manually created due to naming conflicts with custom command classes
+    public ICommand CopyRelativePathCommand => new CtkInput.RelayCommand(CopyRelativePath);
 
-    public string ComputerName
-    {
-        get => _computerName;
-        set => SetProperty(ref _computerName, value);
-    }
-
-    public ICommand CopyRelativePathCommand
-    {
-        get => _copyRelativePathCommand ?? (_copyRelativePathCommand = new RelayCommand(_ => CopyRelativePath()));
-        set => _copyRelativePathCommand = value;
-    }
-
-    public ICommand ExpandCommand
-    {
-        get => _expandCommand ?? (_expandCommand = new AsyncRelayCommand(ExpandAsync));
-        set => _expandCommand = value;
-    }
-
-    public bool HasLoadedChildren
-    {
-        get => _hasLoadedChildren;
-        set => SetProperty(ref _hasLoadedChildren, value);
-    }
-
-    public bool IsExpanded
-    {
-        get => _isExpanded;
-        set
-        {
-            if (SetProperty(ref _isExpanded, value) && value)
-            {
-                ExpandCommand?.Execute(null);
-            }
-        }
-    }
-
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (SetProperty(ref _isSelected, value) && value)
-            {
-                NotifyNamespaceSelected();
-            }
-        }
-    }
-
-    public ICommand LoadClassesCommand
-    {
-        get => _loadClassesCommand ?? (_loadClassesCommand = new AsyncRelayCommand(LoadClassesAsync));
-        set => _loadClassesCommand = value;
-    }
+    public ICommand ExpandCommand => new CtkInput.AsyncRelayCommand(ExpandAsync);
+    public ICommand LoadClassesCommand => new CtkInput.AsyncRelayCommand(LoadClassesAsync);
 
     public LoadState LoadState
     {
         get
         {
-            if (_namespaceLoadState == NamespaceLoadState.Loading || _classLoadState == ClassLoadState.Loading)
+            if (NamespaceLoadState == NamespaceLoadState.Loading || ClassLoadState == ClassLoadState.Loading)
                 return LoadState.Loading;
-            if (_namespaceLoadState == NamespaceLoadState.Failed || _classLoadState == ClassLoadState.Failed)
+            if (NamespaceLoadState == NamespaceLoadState.Failed || ClassLoadState == ClassLoadState.Failed)
                 return LoadState.Failed;
-            if (_classLoadState == ClassLoadState.Warning)
+            if (ClassLoadState == ClassLoadState.Warning)
                 return LoadState.Warning;
-            if (_namespaceLoadState == NamespaceLoadState.Success && _classLoadState == ClassLoadState.Success)
+            if (NamespaceLoadState == NamespaceLoadState.Success && ClassLoadState == ClassLoadState.Success)
                 return LoadState.Success;
             return LoadState.Unknown;
         }
@@ -215,43 +176,16 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     }
 
     public string Name => _wmiNamespace.IsRoot ? _wmiNamespace.NamespacePath : _wmiNamespace.NamespaceName;
-
-    public NamespaceLoadState NamespaceLoadState
-    {
-        get => _namespaceLoadState;
-        set
-        {
-            if (SetProperty(ref _namespaceLoadState, value))
-            {
-                OnPropertyChanged(nameof(LoadState));
-            }
-        }
-    }
-
     public string NamespacePath => _wmiNamespace.NamespacePath;
-
-    public WmiNamespaceViewModel? ParentNamespaceViewModel
-    {
-        get => _parentNamespaceViewModel;
-        set => SetProperty(ref _parentNamespaceViewModel, value);
-    }
-
     public WmiQueryViewModel QueryViewModel => _queryViewModel;
     public WmiSearchViewModel SearchViewModel => _searchViewModel;
-
-    public WmiClassViewModel? SelectedClass
-    {
-        get => _selectedClass;
-        set => SetProperty(ref _selectedClass, value);
-    }
-
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
         IEnumerable<ManagementObject> mboCollection,
         WmiNamespace parentNamespaceModel,
         IWmiService wmiService,
-        IMessagingService messagingService,
+        IMessenger messenger,
         IApplicationService applicationService,
         ISettingsService settingsService,
         ICacheService cacheService,
@@ -274,7 +208,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
             var vm = new WmiNamespaceViewModel(
                 wmiNamespace,
                 wmiService,
-                messagingService,
+                messenger,
                 applicationService,
                 settingsService,
                 cacheService,
@@ -291,7 +225,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     public static async Task<WmiNamespaceViewModel> CreateRootAsync(
         string namespacePath,
         IWmiService wmiService,
-        IMessagingService messagingService,
+        IMessenger messenger,
         IApplicationService applicationService,
         ISettingsService settingsService,
         ICacheService cacheService,
@@ -308,14 +242,13 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
         var rootViewModel = new WmiNamespaceViewModel(
             rootNamespace,
             wmiService,
-            messagingService,
+            messenger,
             applicationService,
             settingsService,
             cacheService);
 
         if (rootMbo?.Scope?.Path != null)
             rootViewModel.ComputerName = rootMbo.Scope.Path.Server;
-
         return rootViewModel;
     }
 
@@ -327,7 +260,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
             return;
         }
 
-        using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", MessageService!);
+        using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", Messenger);
         try
         {
             PublishBusyState($"Loading {NamespacePath}...");
@@ -346,7 +279,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
                 childNamespaces,
                 _wmiNamespace,
                 _wmiService,
-                MessageService!,
+                Messenger,
                 _applicationService,
                 _settingsService,
                 _cacheService,
@@ -393,7 +326,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
 
     public async Task LoadClassesAsync()
     {
-        using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", MessageService!);
+        using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", Messenger);
         try
         {
             ClassLoadState = ClassLoadState.Loading;
@@ -416,7 +349,7 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
                 classModels,
                 this,
                 _wmiService,
-                MessageService!,
+                Messenger,
                 _applicationService);
 
             await RunOnUIThreadAsync(() =>
@@ -500,6 +433,27 @@ public class WmiNamespaceViewModel : MessagingViewModelBase
     {
         PublishMessage(new SelectedNamespaceChangedMessage(this));
     }
+
+    partial void OnIsExpandedChanged(bool value)
+    {
+        if (value)
+        {
+            ExpandAsync().ConfigureAwait(false);
+        }
+    }
+
+    // Property change notification methods
+    partial void OnIsSelectedChanged(bool value)
+    {
+        if (value)
+        {
+            // Expand the namespace if it is not already expanded
+            if (!IsExpanded)
+                IsExpanded = true;
+
+            NotifyNamespaceSelected();
+        }
+    }
 }
 
 public enum ClassLoadState
@@ -524,6 +478,5 @@ public enum NamespaceLoadState
 {
     Unknown,
     Loading,
-    Success,
-    Failed
+    Success, Failed
 }

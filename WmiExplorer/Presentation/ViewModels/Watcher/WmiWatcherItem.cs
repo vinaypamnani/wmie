@@ -1,14 +1,14 @@
+using CommunityToolkit.Mvvm.Input;
 using System.Management;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Watcher;
 
 /// <summary>
 /// ViewModel for a single WMI event watcher item
 /// </summary>
-public class WmiWatcherItem : ViewModelBase, IDisposable
+public partial class WmiWatcherItem : DisposableObservableObject
 {
     private readonly string _eventDisplayPropertyName;
     private readonly string _eventType;
@@ -32,10 +32,6 @@ public class WmiWatcherItem : ViewModelBase, IDisposable
         _onEventReceived = onEventReceived ?? throw new ArgumentNullException(nameof(onEventReceived));
         _eventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
         _eventDisplayPropertyName = eventDisplayPropertyName ?? string.Empty;
-
-        StartCommand = new RelayCommand(_ => Start(), _ => !IsRunning);
-        StopCommand = new RelayCommand(_ => Stop(), _ => IsRunning);
-        RemoveCommand = new RelayCommand(_ => Remove());
 
         _watcher.EventArrived += OnEventArrived;
     }
@@ -68,20 +64,31 @@ public class WmiWatcherItem : ViewModelBase, IDisposable
     public string Query => _watcher.Query;
 
     /// <summary>
-    /// Gets the command to remove the watcher
+    /// Disposes the watcher and cleans up resources
     /// </summary>
-    public ICommand RemoveCommand { get; }
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _watcher.EventArrived -= OnEventArrived;
+            _watcher.Dispose();
+        }
+        base.Dispose(disposing);
+    }
 
     /// <summary>
-    /// Gets the command to start the watcher
+    /// Determines if the watcher can be started
     /// </summary>
-    public ICommand StartCommand { get; }
+    private bool CanStart() => !IsRunning;
 
     /// <summary>
-    /// Gets the command to stop the watcher
+    /// Determines if the watcher can be stopped
     /// </summary>
-    public ICommand StopCommand { get; }
+    private bool CanStop() => IsRunning;
 
+    /// <summary>
+    /// Handles the WMI event arrival
+    /// </summary>
     private void OnEventArrived(object? sender, ManagementBaseObject e)
     {
         var actualEventType = e.ClassPath?.ClassName;
@@ -94,17 +101,29 @@ public class WmiWatcherItem : ViewModelBase, IDisposable
         _onEventReceived(wmiEvent);
     }
 
+    /// <summary>
+    /// Command to remove the watcher
+    /// </summary>
+    [RelayCommand]
     private void Remove()
     {
         _onRemove(this);
     }
 
+    /// <summary>
+    /// Command to start the watcher
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanStart))]
     private void Start()
     {
         try
         {
             _watcher.Start();
+
+            // Notify that IsRunning has changed and update command states
             OnPropertyChanged(nameof(IsRunning));
+            StartCommand.NotifyCanExecuteChanged();
+            StopCommand.NotifyCanExecuteChanged();
         }
         catch (Exception)
         {
@@ -112,31 +131,24 @@ public class WmiWatcherItem : ViewModelBase, IDisposable
         }
     }
 
+    /// <summary>
+    /// Command to stop the watcher
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanStop))]
     private void Stop()
     {
         try
         {
             _watcher.Stop();
+
+            // Notify that IsRunning has changed and update command states
             OnPropertyChanged(nameof(IsRunning));
+            StartCommand.NotifyCanExecuteChanged();
+            StopCommand.NotifyCanExecuteChanged();
         }
         catch (Exception)
         {
             // Optionally log or handle error
         }
     }
-
-    #region IDisposable
-    private bool _disposed;
-
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _watcher.EventArrived -= OnEventArrived;
-            _watcher.Dispose();
-            _disposed = true;
-        }
-    }
-
-    #endregion
 }

@@ -77,7 +77,7 @@
                              Tag="Search..."
                              Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}">
                         <TextBox.InputBindings>
-                            <KeyBinding Key="Enter" Command="{Binding SearchCommand}" />
+                            <KeyBinding Key="Enter" Command="{Binding ExecuteSearchCommand}" />
                         </TextBox.InputBindings>
                     </TextBox>
                     <CheckBox Grid.Column="4"
@@ -88,16 +88,14 @@
                     <Button Grid.Column="5"
                             Width="64"
                             Height="26"
-                            Command="{Binding SearchCommand}"
-                            Content="Search"
-                            IsEnabled="{Binding IsSearching, Converter={StaticResource InverseBooleanConverter}}" />
+                            Command="{Binding ExecuteSearchCommand}"
+                            Content="Search" />
                     <Button Grid.Column="6"
                             Width="64"
                             Height="26"
                             Margin="4,0,8,0"
                             Command="{Binding CancelSearchCommand}"
-                            Content="Cancel"
-                            IsEnabled="{Binding IsSearching}" />
+                            Content="Cancel" />
                 </Grid>
 
                 <!--  Note Text  -->

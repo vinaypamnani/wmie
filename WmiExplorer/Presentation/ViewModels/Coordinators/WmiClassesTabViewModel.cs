@@ -1,3 +1,6 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
@@ -10,37 +13,46 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Classes tab. Manages the collection of classes
 /// and related UI operations for the classes list view.
 /// </summary>
-public class WmiClassesTabViewModel : MessagingViewModelBase
+public partial class WmiClassesTabViewModel : MessagingViewModel
 {
     private readonly IApplicationService _applicationService;
+
+    [ObservableProperty]
     private string _autoQueryText = string.Empty;
+
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
-    private ICommand? _executeAutoQueryCommand;
     private readonly WmiInstancesTabViewModel _instancesTabViewModel;
+
+    [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
+
+    [ObservableProperty]
     private WmiNamespaceViewModel? _selectedNamespace;
+
     private readonly ISettingsService _settingsService;
+
+    [ObservableProperty]
     private bool _showSystemClasses;
+
+    [ObservableProperty]
     private MainWindowPosition _windowPosition;
+
     private readonly IWmiService _wmiService;
 
     public WmiClassesTabViewModel(
-        IMessagingService messagingService,
+        IMessenger messenger,
         ISettingsService settingsService,
         IWmiService wmiService,
         IApplicationService applicationService,
         ICacheService cacheService,
-        WmiInstancesTabViewModel instancesTabViewModel)
+        WmiInstancesTabViewModel instancesTabViewModel) : base(messenger)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
-
-        // Initialize messaging
-        InitializeMessaging(messagingService);
 
         // Subscribe to messages
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
@@ -59,37 +71,11 @@ public class WmiClassesTabViewModel : MessagingViewModelBase
         _settingsService.ShowSystemClassesChanged += (s, v) =>
         {
             ShowSystemClasses = v;
-        };
-
-        // Initialize command
-        ReloadClassesCommand = new RelayCommand(
-            _ => SelectedNamespace?.LoadClassesCommand.Execute(null),
-            _ => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
+        };        // Initialize command
+        ReloadClassesCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(
+            () => SelectedNamespace?.LoadClassesCommand.Execute(null),
+            () => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
         );
-    }
-
-    /// <summary>
-    /// Gets or sets the auto-generated WQL query text for the selected class or instance
-    /// </summary>
-    public string AutoQueryText
-    {
-        get => _autoQueryText;
-        private set => SetProperty(ref _autoQueryText, value);
-    }
-
-    /// <summary>
-    /// Command to execute the current query
-    /// </summary>
-    public ICommand ExecuteAutoQueryCommand
-    {
-        get
-        {
-            _executeAutoQueryCommand ??= new RelayCommand(
-                _ => ExecuteAutoQuery(),
-                _ => !string.IsNullOrWhiteSpace(AutoQueryText)
-            );
-            return _executeAutoQueryCommand;
-        }
     }
 
     /// <summary>
@@ -103,65 +89,14 @@ public class WmiClassesTabViewModel : MessagingViewModelBase
     public ICommand ReloadClassesCommand { get; }
 
     /// <summary>
-    /// Currently selected class
+    /// Determines if the auto query command can execute
     /// </summary>
-    public WmiClassViewModel? SelectedClass
-    {
-        get => _selectedClass;
-        set
-        {
-            if (SetProperty(ref _selectedClass, value) && value != null)
-            {
-                // Publish message about the selected class change
-                PublishMessage(new SelectedClassChangedMessage(value));
-
-                // Update the auto-generated query
-                UpdateAutoQueryText(value);
-            }
-            else if (value == null)
-            {
-                // Clear the query text when no class is selected
-                AutoQueryText = string.Empty;
-            }
-        }
-    }
+    private bool CanExecuteAutoQuery() => !string.IsNullOrWhiteSpace(AutoQueryText);
 
     /// <summary>
-    /// Currently selected namespace
+    /// Command to execute the auto-generated query
     /// </summary>
-    public WmiNamespaceViewModel? SelectedNamespace
-    {
-        get => _selectedNamespace;
-        private set => SetProperty(ref _selectedNamespace, value);
-    }
-
-    /// <summary>
-    /// Flag indicating whether system classes should be shown
-    /// </summary>
-    public bool ShowSystemClasses
-    {
-        get => _showSystemClasses;
-        set
-        {
-            if (SetProperty(ref _showSystemClasses, value))
-            {
-                _settingsService.ShowSystemClasses = value;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets the window position settings
-    /// </summary>
-    public MainWindowPosition WindowPosition
-    {
-        get => _windowPosition;
-        set => SetProperty(ref _windowPosition, value);
-    }
-
-    /// <summary>
-    /// Executes the current WQL query
-    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanExecuteAutoQuery))]
     private void ExecuteAutoQuery()
     {
         if (string.IsNullOrWhiteSpace(AutoQueryText))
@@ -198,15 +133,14 @@ public class WmiClassesTabViewModel : MessagingViewModelBase
     private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)
     {
         // Only update if it's not already the selected class to avoid circular updates
-        if (_selectedClass != message.ClassViewModel)
+        if (SelectedClass != message.ClassViewModel)
         {
-            _selectedClass = message.ClassViewModel;
-            OnPropertyChanged(nameof(SelectedClass));
+            SelectedClass = message.ClassViewModel;
 
             // Update the auto-generated query when class changes
-            if (_selectedClass != null)
+            if (SelectedClass != null)
             {
-                UpdateAutoQueryText(_selectedClass);
+                UpdateAutoQueryText(SelectedClass);
             }
         }
     }
@@ -232,6 +166,35 @@ public class WmiClassesTabViewModel : MessagingViewModelBase
 
         // Reset selected class when namespace changes
         SelectedClass = null;
+    }
+
+    partial void OnAutoQueryTextChanged(string value)
+    {
+        // Notify that the CanExecute state of ExecuteAutoQueryCommand may have changed
+        ExecuteAutoQueryCommand.NotifyCanExecuteChanged();
+    }
+
+    // Property change notification methods
+    partial void OnSelectedClassChanged(WmiClassViewModel? value)
+    {
+        if (value != null)
+        {
+            // Publish message about the selected class change
+            PublishMessage(new SelectedClassChangedMessage(value));
+
+            // Update the auto-generated query
+            UpdateAutoQueryText(value);
+        }
+        else
+        {
+            // Clear the query text when no class is selected
+            AutoQueryText = string.Empty;
+        }
+    }
+
+    partial void OnShowSystemClassesChanged(bool value)
+    {
+        _settingsService.ShowSystemClasses = value;
     }
 
     /// <summary>

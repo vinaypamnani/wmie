@@ -3,8 +3,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Watcher;
 
 namespace WmiExplorer.Presentation.Behaviors;
 

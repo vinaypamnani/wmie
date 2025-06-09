@@ -1,12 +1,16 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Media;
 using WmiExplorer.Common.Base;
 
 namespace WmiExplorer.Themes;
 
-public class Theme : ViewModelBase
+public partial class Theme : DisposableObservableObject
 {
-    public string ThemeName = string.Empty;
+    [ObservableProperty]
     private Dictionary<string, Color> _themeColors = new Dictionary<string, Color>();
+
+    [ObservableProperty]
+    private string _themeName = string.Empty;
 
     public Theme(string name)
     {
@@ -15,16 +19,6 @@ public class Theme : ViewModelBase
     }
 
     public Dictionary<string, SolidColorBrush> ThemeBrushes { get; private set; }
-
-    public Dictionary<string, Color> ThemeColors
-    {
-        get => _themeColors;
-        set
-        {
-            _themeColors = value;
-            RegenerateBrushes();
-        }
-    }
 
     public Color this[string key]
     {
@@ -39,7 +33,7 @@ public class Theme : ViewModelBase
                 {
                     ThemeColors["SecondaryAccentColor"] = GenerateSecondaryAccentColor(value, ThemeColors);
                 }
-                RegenerateBrushes();
+                OnThemeColorsChanged(ThemeColors);
                 OnPropertyChanged($"Item[{key}]");
             }
         }
@@ -147,9 +141,17 @@ public class Theme : ViewModelBase
         );
     }
 
+    /// <summary>    /// <summary>
+    /// Called when ThemeColors property changes
+    /// </summary>
+    partial void OnThemeColorsChanged(Dictionary<string, Color> value)
+    {
+        RegenerateBrushes();
+    }
+
     private void RegenerateBrushes()
     {
-        ThemeBrushes = CreateThemeBrushes(_themeColors);
+        ThemeBrushes = CreateThemeBrushes(ThemeColors);
     }
 }
 

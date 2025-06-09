@@ -105,8 +105,8 @@
                             <GroupBox Margin="0" DockPanel.Dock="Right" Header="Event Display Property [optional]">
                                 <ComboBox Width="180"
                                           Height="26"
-                                          IsEditable="True"
                                           HorizontalContentAlignment="Left"
+                                          IsEditable="True"
                                           ItemsSource="{Binding EventDisplayPropertyList}"
                                           SelectedItem="{Binding EventDisplayProperty, UpdateSourceTrigger=PropertyChanged}" />
                             </GroupBox>
@@ -182,15 +182,15 @@
                         <StackPanel HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal">
                             <Button Width="80"
                                     Height="28"
-                                    Command="{Binding StartAllCommand}"
+                                    Command="{Binding StartAllWatchersCommand}"
                                     Content="Start All" />
                             <Button Width="80"
                                     Height="28"
-                                    Command="{Binding StopAllCommand}"
+                                    Command="{Binding StopAllWatchersCommand}"
                                     Content="Stop All" />
                             <Button Width="80"
                                     Height="28"
-                                    Command="{Binding RemoveAllCommand}"
+                                    Command="{Binding RemoveAllWatchersCommand}"
                                     Content="Remove All"
                                     DockPanel.Dock="Right" />
 

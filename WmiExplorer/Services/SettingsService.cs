@@ -8,9 +8,8 @@ namespace WmiExplorer.Services;
 public class SettingsService : ISettingsService
 {
     // Events
-
-    public event EventHandler<WmiClassTypeFlags>? ClassTypeFilterChanged;
     public event EventHandler<bool>? ShowSystemClassesChanged;
+
     public event EventHandler<string>? ThemeChanged;
 
     // Settings properties
@@ -47,10 +46,6 @@ public class SettingsService : ISettingsService
             if (_classTypeFilter != value)
             {
                 _classTypeFilter = value;
-                ClassTypeFilterChanged?.Invoke(this, value);
-
-                // Also publish a message for any subscribers
-                _messagingService.Publish(new ClassTypeFilterChangedMessage(value));
             }
         }
     }
@@ -101,18 +96,10 @@ public class SettingsService : ISettingsService
     public void ReloadSettings()
     {
         // Store old values to detect changes
-        var oldClassTypeFilter = _classTypeFilter;
         var oldTheme = _currentTheme;
 
         // Load settings from file
         LoadSettings();
-
-        // Notify about any changes
-        if (oldClassTypeFilter != _classTypeFilter)
-        {
-            ClassTypeFilterChanged?.Invoke(this, _classTypeFilter);
-            _messagingService.Publish(new ClassTypeFilterChangedMessage(_classTypeFilter));
-        }
 
         if (oldTheme != _currentTheme)
         {

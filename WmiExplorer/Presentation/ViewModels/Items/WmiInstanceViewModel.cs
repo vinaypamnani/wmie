@@ -1,5 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
@@ -10,7 +12,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// <summary>
 /// ViewModel for a WMI instance. Exposes instance properties and supports selection messaging.
 /// </summary>
-public class WmiInstanceViewModel : MessagingViewModelBase
+public partial class WmiInstanceViewModel : MessagingViewModel
 {
     public enum InstanceLoadState
     {
@@ -21,7 +23,10 @@ public class WmiInstanceViewModel : MessagingViewModelBase
 
     private readonly IApplicationService _applicationService;
     private ObservableCollection<WmiMethod>? _instanceMethods;
+
+    [ObservableProperty]
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
+
     private readonly WmiClassViewModel _parentClass;
     private readonly WmiInstance _wmiInstance;
     private readonly IWmiService _wmiService;
@@ -32,19 +37,19 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     /// <param name="wmiInstance">The WMI instance model.</param>
     /// <param name="parentClass">The parent class ViewModel.</param>
     /// <param name="wmiService">The WMI service.</param>
-    /// <param name="messagingService">The messaging service.</param>
+    /// <param name="messenger">The messenger.</param>
     /// <param name="applicationService">The application service.</param>
     public WmiInstanceViewModel(
         WmiInstance wmiInstance,
         WmiClassViewModel parentClass,
         IWmiService wmiService,
-        IMessagingService messagingService,
-        IApplicationService applicationService)
+        IMessenger messenger,
+        IApplicationService applicationService) : base(messenger)
     {
         if (wmiInstance == null) throw new ArgumentNullException(nameof(wmiInstance));
         if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
         if (wmiService == null) throw new ArgumentNullException(nameof(wmiService));
-        if (messagingService == null) throw new ArgumentNullException(nameof(messagingService));
+        if (messenger == null) throw new ArgumentNullException(nameof(messenger));
         if (applicationService == null) throw new ArgumentNullException(nameof(applicationService));
 
         _wmiInstance = wmiInstance;
@@ -52,25 +57,9 @@ public class WmiInstanceViewModel : MessagingViewModelBase
         _applicationService = applicationService;
         _parentClass = parentClass;
 
-        InitializeMessaging(messagingService);
-
-        // Initialize commands
-        CopyRelativePathCommand = new RelayCommand(CopyRelativePath);
-        ExecuteMethodCommand = new RelayCommand(ExecuteMethod);
-
         // Load instance methods
         LoadInstanceMethods();
     }
-
-    /// <summary>
-    /// Command to copy the instance path to clipboard.
-    /// </summary>
-    public ICommand CopyRelativePathCommand { get; }
-
-    /// <summary>
-    /// Command to execute a WMI method.
-    /// </summary>
-    public ICommand ExecuteMethodCommand { get; }
 
     /// <summary>
     /// Collection of methods available for this instance.
@@ -81,15 +70,6 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     /// The display name for this instance.
     /// </summary>
     public string InstanceName => _wmiInstance.InstanceName;
-
-    /// <summary>
-    /// Load state for the indicator. Success if ever selected, Unknown otherwise.
-    /// </summary>
-    public InstanceLoadState LoadState
-    {
-        get => _loadState;
-        set => SetProperty(ref _loadState, value);
-    }
 
     /// <summary>
     /// The WMI path for this instance.
@@ -116,14 +96,14 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     /// </summary>
     /// <param name="wmiInstances">The collection of WMI instance models.</param>
     /// <param name="wmiService">The WMI service.</param>
-    /// <param name="messagingService">The messaging service.</param>
+    /// <param name="messenger">The messenger.</param>
     /// <param name="applicationService">The application service.</param>
     /// <param name="parentClass">The parent class ViewModel.</param>
     /// <returns>A collection of WmiInstanceViewModel.</returns>
     public static ObservableCollection<WmiInstanceViewModel> CreateFromCollection(
         IEnumerable<WmiInstance> wmiInstances,
         IWmiService wmiService,
-        IMessagingService messagingService,
+        IMessenger messenger,
         IApplicationService applicationService,
         WmiClassViewModel parentClass)
     {
@@ -138,7 +118,7 @@ public class WmiInstanceViewModel : MessagingViewModelBase
                 wmiInstance,
                 parentClass,
                 wmiService,
-                messagingService,
+                messenger,
                 applicationService));
         }
 
@@ -160,7 +140,11 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     /// <returns>A string representation of the instance.</returns>
     public override string ToString() => _wmiInstance.ToString();
 
-    private void CopyRelativePath(object? parameter)
+    /// <summary>
+    /// Command to copy the instance path to clipboard.
+    /// </summary>
+    [RelayCommand]
+    private void CopyRelativePath()
     {
         // Copies the instance path to clipboard and notifies the user.
         if (string.IsNullOrEmpty(NamespacePath))
@@ -171,9 +155,9 @@ public class WmiInstanceViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Executes a WMI method from the context menu.
+    /// Command to execute a WMI method.
     /// </summary>
-    /// <param name="parameter">The WmiMethod to execute.</param>
+    [RelayCommand]
     private void ExecuteMethod(object? parameter)
     {
         if (parameter is WmiMethod method)

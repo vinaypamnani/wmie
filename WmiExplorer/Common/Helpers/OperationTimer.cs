@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Messaging;
 using System.Diagnostics;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
@@ -9,11 +10,11 @@ namespace WmiExplorer.Common.Helpers;
 /// </summary>
 public class OperationTimer : IDisposable
 {
-    private readonly IMessagingService _messagingService;
+    private readonly int? _clearAfterSeconds;
+    private readonly IMessenger _messenger;
     private readonly string _operationName;
     private readonly Stopwatch _stopwatch;
     private readonly System.Timers.Timer _updateTimer;
-    private readonly int? _clearAfterSeconds;
 
     /// <summary>
     /// Creates and starts a new operation timer
@@ -22,10 +23,10 @@ public class OperationTimer : IDisposable
     /// <param name="messagingService">Messaging service to publish elapsed time updates</param>
     /// <param name="updateIntervalMs">How often to publish elapsed time updates (default 1000ms)</param>
     /// <param name="clearAfterSeconds">Optional: seconds after which to clear the elapsed time message</param>
-    public OperationTimer(string operationName, IMessagingService messagingService, int updateIntervalMs = 1000, int? clearAfterSeconds = null)
+    public OperationTimer(string operationName, IMessenger messenger, int updateIntervalMs = 1000, int? clearAfterSeconds = null)
     {
         _operationName = operationName;
-        _messagingService = messagingService;
+        _messenger = messenger;
         _stopwatch = Stopwatch.StartNew();
         _clearAfterSeconds = clearAfterSeconds;
 
@@ -44,16 +45,17 @@ public class OperationTimer : IDisposable
     public TimeSpan Elapsed => _stopwatch.Elapsed;
 
     /// <summary>
-    /// Creates and starts a new operation timer
+    /// Creates and starts a new operation timer with IMessenger
     /// </summary>
     /// <param name="operationName">Name of the operation being timed</param>
-    /// <param name="messagingService">Messaging service to publish elapsed time updates</param>
+    /// <param name="messenger">Messenger to publish elapsed time updates</param>
     /// <param name="updateIntervalMs">How often to publish elapsed time updates (default 1000ms)</param>
     /// <param name="clearAfterSeconds">Optional: seconds after which to clear the elapsed time message</param>
     /// <returns>A new OperationTimer instance</returns>
-    public static OperationTimer Start(string operationName, IMessagingService messagingService, int updateIntervalMs = 1000, int? clearAfterSeconds = null)
+    public static OperationTimer Start(string operationName, IMessenger messenger, int updateIntervalMs = 1000, int? clearAfterSeconds = null)
     {
-        return new OperationTimer(operationName, messagingService, updateIntervalMs, clearAfterSeconds);
+        // Create a wrapper that uses IMessenger but delegates to IMessagingService pattern
+        return new OperationTimer(operationName, messenger, updateIntervalMs, clearAfterSeconds);
     }
 
     /// <summary>
@@ -78,7 +80,7 @@ public class OperationTimer : IDisposable
             {
                 if (!_disposed)
                 {
-                    _messagingService.Publish(ElapsedTimeMessage.Clear());
+                    _messenger.Send(ElapsedTimeMessage.Clear());
                 }
             });
         }
@@ -92,7 +94,7 @@ public class OperationTimer : IDisposable
         if (_disposed) return;
 
         var message = ElapsedTimeMessage.Create(_operationName, _stopwatch.Elapsed);
-        _messagingService.Publish(message);
+        _messenger.Send(message);
     }
 
     #region IDisposable
@@ -110,10 +112,10 @@ public class OperationTimer : IDisposable
         _updateTimer.Stop();
         _updateTimer.Dispose();
 
+        GC.SuppressFinalize(this);
+
         // Clear the elapsed time message
         // _messagingService.Publish(ElapsedTimeMessage.Clear());
-
-        GC.SuppressFinalize(this);
     }
 
     #endregion

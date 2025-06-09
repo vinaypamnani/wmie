@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using Application = System.Windows.Application;
+using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
-using WmiExplorer.Presentation.ViewModelHelpers;
 using WmiExplorer.Presentation.ViewModels;
 using WmiExplorer.Presentation.Views;
 

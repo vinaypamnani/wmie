@@ -1,4 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CtkInput = CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Management;
@@ -7,7 +10,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModelHelpers;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
@@ -15,7 +18,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// <summary>
 /// ViewModel for a WMI class, supports async loading, filtering, and selection of instances.
 /// </summary>
-public class WmiClassViewModel : MessagingViewModelBase
+public partial class WmiClassViewModel : MessagingViewModel
 {
     private readonly IApplicationService _applicationService;
     private ObservableCollection<WmiMethod>? _classMethods;
@@ -23,32 +26,29 @@ public class WmiClassViewModel : MessagingViewModelBase
     private CancellationTokenSource _cts = new();
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
     private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
+
+    [ObservableProperty]
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
+
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
+
+    [ObservableProperty]
     private WmiInstanceViewModel? _selectedInstance;
+
     private readonly WmiClass _wmiClass;
     private readonly IWmiService _wmiService;
 
     public WmiClassViewModel(
-        WmiClass wmiClass,
-        WmiNamespaceViewModel parentNamespaceViewModel,
-        IWmiService wmiService,
-        IMessagingService messagingService,
-        IApplicationService applicationService)
+           WmiClass wmiClass,
+           WmiNamespaceViewModel parentNamespaceViewModel,
+           IWmiService wmiService,
+           IMessenger messenger,
+           IApplicationService applicationService) : base(messenger)
     {
         // All dependencies are required for correct operation and messaging.
         _wmiClass = wmiClass;
         _wmiService = wmiService;
-        _applicationService = applicationService;
-        _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
-
-        InitializeMessaging(messagingService);
-
-        // Initialize commands
-        LoadInstancesCommand = new AsyncRelayCommand(LoadInstancesAsync);
-        CopyRelativePathCommand = new RelayCommand(CopyRelativePath);
-        CancelInstanceLoadCommand = new RelayCommand(_ => CancelInstanceLoad(), _ => LoadState == InstanceLoadState.Loading);
-        ExecuteMethodCommand = new RelayCommand(ExecuteMethod);
+        _applicationService = applicationService; _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
 
         // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
@@ -65,7 +65,9 @@ public class WmiClassViewModel : MessagingViewModelBase
         LoadClassMethods();
     }
 
-    public ICommand CancelInstanceLoadCommand { get; }
+    public ICommand CancelInstanceLoadCommand => new CommunityToolkit.Mvvm.Input.RelayCommand(
+        () => CancelInstanceLoad(),
+        () => LoadState == InstanceLoadState.Loading);
 
     /// <summary>
     /// Collection of methods available for this class.
@@ -73,13 +75,13 @@ public class WmiClassViewModel : MessagingViewModelBase
     public ObservableCollection<WmiMethod> ClassMethods => _classMethods!;
 
     public string ClassName => _wmiClass.ClassName;
-    public ICommand CopyRelativePathCommand { get; }
+    public ICommand CopyRelativePathCommand => new CommunityToolkit.Mvvm.Input.RelayCommand(CopyRelativePath);
     public string Description => _wmiClass.Description;
 
     /// <summary>
     /// Command to execute a WMI method.
     /// </summary>
-    public ICommand ExecuteMethodCommand { get; }
+    public ICommand ExecuteMethodCommand => new CommunityToolkit.Mvvm.Input.RelayCommand<object?>(ExecuteMethod);
 
     public string InstanceFilterText
     {
@@ -101,53 +103,16 @@ public class WmiClassViewModel : MessagingViewModelBase
 
     public ICollectionView InstancesView => _instanceFilterHelper.CollectionView;
     public bool IsEventClass => WmiClass.Derivation.Contains("__Event") || WmiClass.ClassName == "__Event";
-    public ICommand LoadInstancesCommand { get; }
-
-    public InstanceLoadState LoadState
-    {
-        get => _loadState;
-        set
-        {
-            if (SetProperty(ref _loadState, value))
-            {
-                // Notify that CanExecute state may have changed for the cancel command
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-    }
-
+    public ICommand LoadInstancesCommand => new CtkInput.AsyncRelayCommand(LoadInstancesAsync);
     public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
-
-    public WmiInstanceViewModel? SelectedInstance
-    {
-        get => _selectedInstance;
-        set
-        {
-            if (SetProperty(ref _selectedInstance, value) && value != null)
-            {
-                try
-                {
-                    // Attempt to load the instance data if not already loaded (useful for lazy props)
-                    value.WmiInstance.ActualObject?.Get();
-                    value.LoadState = WmiInstanceViewModel.InstanceLoadState.Success;
-                }
-                catch
-                {
-                    value.LoadState = WmiInstanceViewModel.InstanceLoadState.Failed;
-                }
-                PublishMessage(new SelectedInstanceChangedMessage(value));
-            }
-        }
-    }
-
     public WmiClass WmiClass => _wmiClass;
 
     public static ObservableCollection<WmiClassViewModel> CreateFromCollection(
         IEnumerable<WmiClass> wmiClasses,
         WmiNamespaceViewModel parentNamespaceViewModel,
         IWmiService wmiService,
-        IMessagingService messagingService,
+        IMessenger messenger,
         IApplicationService applicationService)
     {
         var viewModels = new ObservableCollection<WmiClassViewModel>();
@@ -158,7 +123,7 @@ public class WmiClassViewModel : MessagingViewModelBase
                 wmiClass,
                 parentNamespaceViewModel,
                 wmiService,
-                messagingService,
+                messenger,
                 applicationService));
         }
 
@@ -179,7 +144,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
-        using var timer = OperationTimer.Start($"Loading instances for {ClassName}", MessageService!);
+        using var timer = OperationTimer.Start($"Loading instances for {ClassName}", Messenger);
         try
         {
             LoadState = InstanceLoadState.Loading;
@@ -192,11 +157,10 @@ public class WmiClassViewModel : MessagingViewModelBase
                 _cts.Token);
 
             // Map ManagementObject to WmiInstance and create view models for all instances at once.
-            var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo));
-            var instanceViewModels = WmiInstanceViewModel.CreateFromCollection(
+            var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo)); var instanceViewModels = WmiInstanceViewModel.CreateFromCollection(
                 instanceModels,
                 _wmiService,
-                MessageService!,
+                Messenger,
                 _applicationService,
                 this);
 
@@ -287,7 +251,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         }
     }
 
-    private void CopyRelativePath(object? parameter)
+    private void CopyRelativePath()
     {
         var classPath = _wmiClass.ClassPath.RelativePath;
         _applicationService.CopyToClipboard(classPath);
@@ -329,7 +293,7 @@ public class WmiClassViewModel : MessagingViewModelBase
         if (message?.InstanceViewModel == null)
             return;
 
-        if (_instances.Contains(message.InstanceViewModel) && _selectedInstance != message.InstanceViewModel)
+        if (_instances.Contains(message.InstanceViewModel) && SelectedInstance != message.InstanceViewModel)
         {
             SelectedInstance = message.InstanceViewModel;
         }
@@ -369,6 +333,34 @@ public class WmiClassViewModel : MessagingViewModelBase
         catch (Exception ex)
         {
             Debug.WriteLine($"Error loading methods for class {ClassName}: {ex.Message}");
+        }
+    }
+
+    partial void OnLoadStateChanged(InstanceLoadState value)
+    {
+        // Notify that CanExecute state may have changed for the cancel command
+        System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+    }
+
+    // Generated properties from [ObservableProperty]:
+    // - LoadState (from _loadState field)
+    // - SelectedInstance (from _selectedInstance field)
+
+    partial void OnSelectedInstanceChanged(WmiInstanceViewModel? value)
+    {
+        if (value != null)
+        {
+            try
+            {
+                // Attempt to load the instance data if not already loaded (useful for lazy props)
+                value.WmiInstance.ActualObject?.Get();
+                value.LoadState = WmiInstanceViewModel.InstanceLoadState.Success;
+            }
+            catch
+            {
+                value.LoadState = WmiInstanceViewModel.InstanceLoadState.Failed;
+            }
+            PublishMessage(new SelectedInstanceChangedMessage(value));
         }
     }
 }

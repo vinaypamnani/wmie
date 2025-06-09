@@ -1,12 +1,18 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
-public class MethodParameterViewModel : ViewModelBase
+public partial class MethodParameterViewModel : DisposableObservableObject
 {
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEnabled))]
     private bool _isSelected = false;
+
+    [ObservableProperty]
     private object? _value;
+
     private WmiParameter _wmiParameter;
 
     public MethodParameterViewModel(WmiParameter wmiParameter)
@@ -23,39 +29,21 @@ public class MethodParameterViewModel : ViewModelBase
     public bool IsEnabled => IsSelected && !IsComplexType;
     public bool IsObject => string.Equals(Type, "object", StringComparison.OrdinalIgnoreCase);
     public bool IsReference => string.Equals(Type, "reference", StringComparison.OrdinalIgnoreCase);
-
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (SetProperty(ref _isSelected, value))
-            {
-                OnPropertyChanged(nameof(IsEnabled));
-            }
-        }
-    }
-
     public string? Name => _wmiParameter.Name;
     public string? Type => _wmiParameter.Type;
-
-    public object? Value
-    {
-        get => _value;
-        set
-        {
-            if (SetProperty(ref _value, value))
-            {
-                _wmiParameter.Value = value;
-            }
-        }
-    }
-
     public WmiParameter WmiParameter => _wmiParameter;
 
     private bool IsComplex()
     {
         // A parameter is considered complex if it is an object or reference type
         return IsObject || IsReference;
+    }
+
+    /// <summary>
+    /// Handles property change for Value to update the underlying WmiParameter
+    /// </summary>
+    partial void OnValueChanged(object? value)
+    {
+        _wmiParameter.Value = value;
     }
 }

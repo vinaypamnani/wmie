@@ -1,11 +1,12 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using WmiExplorer.Common.Base;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Watcher;
 
 /// <summary>
 /// Encapsulates all state, validation, and query construction for a WMI event query.
 /// </summary>
-public class WmiWatcherQueryBuilder : ViewModelBase
+public partial class WmiWatcherQueryBuilder : DisposableObservableObject
 {
     /// <summary>
     /// Represents the type of WMI event for query building and UI logic.
@@ -20,108 +21,35 @@ public class WmiWatcherQueryBuilder : ViewModelBase
         Method
     }
 
+    [ObservableProperty]
     private string? _eventClass = string.Empty;
+
+    [ObservableProperty]
     private PropertyDisplayInfo? _eventProperty = null;
+
+    [ObservableProperty]
     private string? _eventPropertyValue = string.Empty;
+
+    [ObservableProperty]
     private string? _eventQuery = string.Empty;
+
+    [ObservableProperty]
     private string? _eventTargetClass = string.Empty;
+
+    [ObservableProperty]
     private PropertyDisplayInfo? _eventTargetClassProperty = null;
+
+    [ObservableProperty]
     private string? _eventTargetClassPropertyValue = string.Empty;
+
+    [ObservableProperty]
     private int _eventWithin = 5;
+
+    [ObservableProperty]
     private bool _isIntrinsicEvent = true;
+
+    [ObservableProperty]
     private string? _validationError = null;
-
-    public string? EventClass
-    {
-        get => _eventClass;
-        set
-        {
-            if (SetProperty(ref _eventClass, value))
-            {
-                BuildQuery();
-                NotifyEventUiStateProperties();
-                // Clear EventPropertyValue if property value entry is now disabled
-                if (!IsEventPropertyValueEnabled && !string.IsNullOrEmpty(EventPropertyValue))
-                {
-                    EventPropertyValue = string.Empty;
-                }
-            }
-        }
-    }
-
-    public PropertyDisplayInfo? EventProperty
-    {
-        get => _eventProperty;
-        set
-        {
-            if (SetProperty(ref _eventProperty, value))
-            {
-                NotifyEventUiStateProperties();
-                BuildQuery();
-            }
-        }
-    }
-
-    public string EventPropertyValue
-    {
-        get => _eventPropertyValue ?? string.Empty;
-        set
-        {
-            if (SetProperty(ref _eventPropertyValue, value))
-            {
-                BuildQuery();
-            }
-        }
-    }
-
-    public string EventQuery
-    {
-        get => _eventQuery ?? string.Empty;
-        set => SetProperty(ref _eventQuery, value);
-    }
-
-    public string? EventTargetClass
-    {
-        get => _eventTargetClass;
-        set
-        {
-            if (SetProperty(ref _eventTargetClass, value))
-            {
-                BuildQuery();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the selected property of the EventTargetClass.
-    /// </summary>
-    public PropertyDisplayInfo? EventTargetClassProperty
-    {
-        get => _eventTargetClassProperty;
-        set
-        {
-            if (SetProperty(ref _eventTargetClassProperty, value))
-            {
-                OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
-                BuildQuery();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the value for the selected property of the EventTargetClass.
-    /// </summary>
-    public string EventTargetClassPropertyValue
-    {
-        get => _eventTargetClassPropertyValue ?? string.Empty;
-        set
-        {
-            if (SetProperty(ref _eventTargetClassPropertyValue, value))
-            {
-                BuildQuery();
-            }
-        }
-    }
 
     /// <summary>
     /// Gets the event type based on the EventClass property.
@@ -143,18 +71,6 @@ public class WmiWatcherQueryBuilder : ViewModelBase
             if (EventClass.StartsWith("__Method", StringComparison.OrdinalIgnoreCase))
                 return WmiEventType.Method;
             return WmiEventType.Unknown;
-        }
-    }
-
-    public int EventWithin
-    {
-        get => _eventWithin;
-        set
-        {
-            if (SetProperty(ref _eventWithin, value > 0 ? value : 1))
-            {
-                BuildQuery();
-            }
         }
     }
 
@@ -184,22 +100,6 @@ public class WmiWatcherQueryBuilder : ViewModelBase
         {
             // True if IsTargetClassPropertyEnabled, else false
             return IsTargetClassPropertyEnabled;
-        }
-    }
-
-    public bool IsIntrinsicEvent
-    {
-        get => _isIntrinsicEvent;
-        set
-        {
-            if (SetProperty(ref _isIntrinsicEvent, value))
-            {
-                OnPropertyChanged(nameof(IsWithinEnabled));
-                OnPropertyChanged(nameof(IsTargetClassEnabled));
-                OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
-                OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
-                OnPropertyChanged(nameof(IsEventPropertyEnabled));
-            }
         }
     }
 
@@ -239,12 +139,6 @@ public class WmiWatcherQueryBuilder : ViewModelBase
     // Optional: comma-separated fields
 
     public string? NamespaceContext { get; set; }
-
-    public string? ValidationError
-    {
-        get => _validationError;
-        set => SetProperty(ref _validationError, value);
-    }
 
     /// <summary>
     /// Build the WMI event query string from the current builder state.
@@ -345,5 +239,95 @@ public class WmiWatcherQueryBuilder : ViewModelBase
         OnPropertyChanged(nameof(IsTargetClassEnabled));
         OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
         OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
+    }
+
+    /// <summary>
+    /// Called when EventClass property changes
+    /// </summary>
+    partial void OnEventClassChanged(string? value)
+    {
+        BuildQuery();
+        NotifyEventUiStateProperties();
+
+        // Clear EventPropertyValue if property value entry is now disabled
+        if (!IsEventPropertyValueEnabled && !string.IsNullOrEmpty(EventPropertyValue))
+        {
+            EventPropertyValue = string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Called when EventProperty property changes
+    /// </summary>
+    partial void OnEventPropertyChanged(PropertyDisplayInfo? value)
+    {
+        NotifyEventUiStateProperties();
+        BuildQuery();
+    }
+
+    /// <summary>
+    /// Called when EventPropertyValue property changes
+    /// </summary>
+    partial void OnEventPropertyValueChanged(string? value)
+    {
+        BuildQuery();
+    }
+
+    /// <summary>
+    /// Called when EventTargetClass property changes
+    /// </summary>
+    partial void OnEventTargetClassChanged(string? value)
+    {
+        BuildQuery();
+    }
+
+    /// <summary>
+    /// Called when EventTargetClassProperty property changes
+    /// </summary>
+    partial void OnEventTargetClassPropertyChanged(PropertyDisplayInfo? value)
+    {
+        OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
+        BuildQuery();
+    }
+
+    /// <summary>
+    /// Called when EventTargetClassPropertyValue property changes
+    /// </summary>
+    partial void OnEventTargetClassPropertyValueChanged(string? value)
+    {
+        BuildQuery();
+    }
+
+    /// <summary>
+    /// Called when EventWithin property changes
+    /// </summary>
+    partial void OnEventWithinChanged(int value)
+    {
+        BuildQuery();
+    }
+
+    /// <summary>
+    /// Called when EventWithin property changes
+    /// </summary>
+    partial void OnEventWithinChanging(int value)
+    {
+        // Ensure value is positive
+        if (value <= 0)
+        {
+            EventWithin = 1;
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Called when IsIntrinsicEvent property changes
+    /// </summary>
+    partial void OnIsIntrinsicEventChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsWithinEnabled));
+        OnPropertyChanged(nameof(IsTargetClassEnabled));
+        OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
+        OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
+        OnPropertyChanged(nameof(IsEventPropertyEnabled));
     }
 }

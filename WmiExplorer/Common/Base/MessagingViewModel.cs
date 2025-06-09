@@ -1,30 +1,28 @@
+using CommunityToolkit.Mvvm.Messaging;
 using System.Windows;
 using WmiExplorer.Common.Shared;
-using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Base;
 
 /// <summary>
 /// Base class for ViewModels that need messaging capabilities
-/// Extends ViewModelBase with messaging functionality
+/// Uses CommunityToolkit.Mvvm.Messaging for messaging functionality
 /// </summary>
-public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
+public abstract partial class MessagingViewModel : DisposableObservableObject
 {
-    private readonly List<IDisposable> _messageSubscriptions = new();
-
     /// <summary>
-    /// Gets the messaging service for publishing and subscribing to messages
+    /// Initializes a new instance of the MessagingViewModel class
     /// </summary>
-    protected IMessagingService? MessageService { get; private set; }
-
-    /// <summary>
-    /// Initializes messaging support for this view model
-    /// </summary>
-    /// <param name="messagingService">The messaging service to use</param>
-    protected void InitializeMessaging(IMessagingService messagingService)
+    /// <param name="messenger">The messenger to use (defaults to WeakReferenceMessenger.Default)</param>
+    protected MessagingViewModel(IMessenger? messenger = null)
     {
-        MessageService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
+        Messenger = messenger ?? WeakReferenceMessenger.Default;
     }
+
+    /// <summary>
+    /// Gets the messenger instance used for messaging
+    /// </summary>
+    protected IMessenger Messenger { get; }
 
     /// <summary>
     /// Helper method for publishing busy application state
@@ -52,7 +50,7 @@ public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
     /// <param name="message">The message to publish</param>
     protected void PublishMessage<T>(T message) where T : class
     {
-        MessageService?.Publish(message);
+        Messenger.Send(message);
     }
 
     /// <summary>
@@ -116,73 +114,108 @@ public abstract class MessagingViewModelBase : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Subscribe to a message of type T and keep a strong reference to the handler
+    /// Subscribe to a message of type T with a strong reference to the handler
     /// </summary>
     /// <typeparam name="T">The message type</typeparam>
     /// <param name="handler">The handler to call when a message is received</param>
     /// <param name="runOnUIThread">Whether the handler should be run on the UI thread</param>
-    /// <returns>A subscription token that can be used to unsubscribe</returns>
-    protected IDisposable StrongSubscribe<T>(Action<T> handler, bool runOnUIThread = false) where T : class
+    protected void StrongSubscribe<T>(Action<T> handler, bool runOnUIThread = false) where T : class
     {
-        if (MessageService == null)
-            throw new InvalidOperationException("Call InitializeMessaging before subscribing to messages");
+        // Create a recipient object that will hold a strong reference to the handler
+        var recipient = new StrongReferenceRecipient<T>(handler, runOnUIThread);
 
-        // Use the service's StrongSubscribe method which maintains strong references internally
-        var subscription = MessageService.StrongSubscribe(handler, runOnUIThread);
-        _messageSubscriptions.Add(subscription);
-        return subscription;
+        // Store the recipient so it doesn't get garbage collected
+        TrackDisposable(new DisposableAction(() => Messenger.Unregister<T>(recipient)));
+
+        // Register the recipient
+        Messenger.Register<T>(recipient, (r, m) => ((StrongReferenceRecipient<T>)r).HandleMessage(m));
     }
 
     /// <summary>
-    /// Subscribe to a message of type T
+    /// Subscribe to a message of type T with a weak reference
     /// </summary>
     /// <typeparam name="T">The message type</typeparam>
     /// <param name="handler">The handler to call when a message is received</param>
     /// <param name="runOnUIThread">Whether the handler should be run on the UI thread</param>
-    /// <returns>A subscription token that can be used to unsubscribe</returns>
-    protected IDisposable Subscribe<T>(Action<T> handler, bool runOnUIThread = false) where T : class
+    protected void Subscribe<T>(Action<T> handler, bool runOnUIThread = false) where T : class
     {
-        if (MessageService == null)
-            throw new InvalidOperationException("Call InitializeMessaging before subscribing to messages");
+        // Create a wrapper that handles UI thread dispatch if needed
+        Action<T> wrappedHandler = message =>
+        {
+            if (runOnUIThread)
+            {
+                RunOnUIThread(() => handler(message));
+            }
+            else
+            {
+                handler(message);
+            }
+        };
 
-        var subscription = MessageService.Subscribe(handler, runOnUIThread);
-        _messageSubscriptions.Add(subscription);
-        return subscription;
+        // Register with the messenger
+        Messenger.Register<T>(this, (r, m) => wrappedHandler(m));
+    }
+
+    /// <summary>
+    /// Unsubscribe from a message type
+    /// </summary>
+    /// <typeparam name="T">The message type</typeparam>
+    protected void Unsubscribe<T>() where T : class
+    {
+        Messenger.Unregister<T>(this);
+    }
+}
+
+/// <summary>
+/// A simple implementation of IDisposable that executes an action when disposed
+/// </summary>
+internal class DisposableAction : IDisposable
+{
+    private readonly Action _action;
+
+    public DisposableAction(Action action)
+    {
+        _action = action ?? throw new ArgumentNullException(nameof(action));
     }
 
     #region IDisposable
     private bool _isDisposed;
 
-    /// <summary>
-    /// Releases resources
-    /// </summary>
-    /// <param name="disposing">Whether to dispose managed resources</param>
-    protected virtual void Dispose(bool disposing)
+    public void Dispose()
     {
         if (!_isDisposed)
         {
-            if (disposing)
-            {
-                // Clean up all message subscriptions
-                foreach (var subscription in _messageSubscriptions)
-                {
-                    subscription?.Dispose();
-                }
-                _messageSubscriptions.Clear();
-            }
-
+            _action();
             _isDisposed = true;
         }
     }
 
-    /// <summary>
-    /// Performs application-defined tasks associated with freeing resources
-    /// </summary>
-    public void Dispose()
+    #endregion
+}
+
+/// <summary>
+/// Helper class that maintains strong references to message handlers
+/// </summary>
+internal class StrongReferenceRecipient<T> where T : class
+{
+    private readonly Action<T> _handler;
+    private readonly bool _runOnUIThread;
+
+    public void HandleMessage(T message)
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        if (_runOnUIThread && Application.Current != null)
+        {
+            Application.Current.Dispatcher.InvokeAsync(() => _handler(message));
+        }
+        else
+        {
+            _handler(message);
+        }
     }
 
-    #endregion
+    public StrongReferenceRecipient(Action<T> handler, bool runOnUIThread)
+    {
+        _handler = handler;
+        _runOnUIThread = runOnUIThread;
+    }
 }

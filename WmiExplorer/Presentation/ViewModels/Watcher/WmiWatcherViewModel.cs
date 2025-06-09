@@ -1,16 +1,19 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows.Data;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModelHelpers;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Watcher;
 
 public class PropertyDisplayInfo
 {
@@ -24,17 +27,25 @@ public class PropertyDisplayInfo
 /// <summary>
 /// View model for WMI Event Watcher tab
 /// </summary>
-public class WmiWatcherViewModel : MessagingViewModelBase
+public partial class WmiWatcherViewModel : MessagingViewModel
 {
-    private ICommand? _addWatcherCommand;
     private readonly ICacheService _cacheService;
+
+    [ObservableProperty]
     private bool _canAddWatcher = false;
+
     private readonly string _defaultEventclass = "__InstanceCreationEvent";
     private readonly ObservableCollection<string> _eventClassList = new ObservableCollection<string>();
+
+    [ObservableProperty]
     private PropertyDisplayInfo _eventDisplayProperty = new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
+
     private readonly ObservableCollection<PropertyDisplayInfo> _eventDisplayPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private readonly DebounceDispatcher _eventFilterDebouncer = new();
+
+    [ObservableProperty]
     private string _eventFilterText = string.Empty;
+
     private readonly ObservableCollection<PropertyDisplayInfo> _eventPropertyList = new ObservableCollection<PropertyDisplayInfo>();
     private readonly WmiWatcherQueryBuilder _eventQueryBuilder;
     private readonly ObservableCollection<WmiEvent> _events = new();
@@ -42,25 +53,33 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     private readonly FilterHelper<string> _eventTargetClassFilterHelper;
     private readonly ObservableCollection<string> _eventTargetClassList = new ObservableCollection<string>();
     private readonly ObservableCollection<PropertyDisplayInfo> _eventTargetClassPropertyList = new ObservableCollection<PropertyDisplayInfo>();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsQueryReadOnly))]
     private bool _isCustomQuery = false;
-    private readonly IMessagingService _messagingService;
+
+    [ObservableProperty]
     private WmiEvent? _selectedEvent;
+
+    [ObservableProperty]
     private WmiNamespaceViewModel? _selectedNamespace;
+
+    [ObservableProperty]
     private string? _selectedWatcherName;
+
     private int _watcherId = 1;
     private readonly ObservableCollection<WmiWatcherItem> _watchers = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
     /// </summary>
-    /// <param name="messagingService">The messaging service to use</param>
+    /// <param name="messenger">The messenger to use</param>
     /// <param name="cacheService">The cache service to use</param>
     public WmiWatcherViewModel(
-        IMessagingService messagingService,
+        IMessenger messenger,
         ICacheService cacheService
-    )
+    ) : base(messenger)
     {
-        _messagingService = messagingService ?? throw new ArgumentNullException(nameof(messagingService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
         _eventQueryBuilder = new WmiWatcherQueryBuilder();
@@ -69,8 +88,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             (className, filter) => string.IsNullOrEmpty(filter) ||
                 className.Contains(filter, StringComparison.OrdinalIgnoreCase)
         );
-
-        InitializeMessaging(_messagingService);
 
         // Collection view for target classes
         EventTargetClassList = new ReadOnlyObservableCollection<string>(_eventTargetClassList);
@@ -82,7 +99,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         // Watchers and events
         Watchers = new ReadOnlyObservableCollection<WmiWatcherItem>(_watchers);
         Events = new ReadOnlyObservableCollection<WmiEvent>(_events);
-        ClearEventsCommand = new RelayCommand(_ => ClearEvents());
 
         // Subscribe to namespace selection changes and class loading
         StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
@@ -101,10 +117,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
 
         UpdateWatcherNames();
 
-        StartAllCommand = new RelayCommand(_ => StartAllWatchers(), _ => _watchers.Count > 0);
-        StopAllCommand = new RelayCommand(_ => StopAllWatchers(), _ => _watchers.Count > 0);
-        RemoveAllCommand = new RelayCommand(_ => RemoveAllWatchers(), _ => _watchers.Count > 0);
-
         // Collection for event properties
         EventPropertyList = new ReadOnlyObservableCollection<PropertyDisplayInfo>(_eventPropertyList);
         // New: ReadOnly collection for EventTargetClassPropertyList
@@ -116,73 +128,11 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         _eventQueryBuilder.PropertyChanged += EventQueryBuilder_PropertyChanged;
     }
 
-    /// <summary>
-    /// Gets the command to add a new watcher
-    /// </summary>
-    public ICommand AddWatcherCommand
-    {
-        get
-        {
-            return _addWatcherCommand ??= new RelayCommand(
-                _ => AddWatcher(),
-                _ => CanAddWatcher
-            );
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets whether a watcher can be added
-    /// </summary>
-    public bool CanAddWatcher
-    {
-        get => _canAddWatcher;
-        set => SetProperty(ref _canAddWatcher, value);
-    }
-
-    /// <summary>
-    /// Gets the command to clear events
-    /// </summary>
-    public ICommand ClearEventsCommand { get; }
-
     // Change private set to get-only for read-only properties
     public ReadOnlyObservableCollection<string> EventClassList { get; }
 
     public ICollectionView EventClassListView { get; }
-
-    /// <summary>
-    /// Gets or sets the property name to use for event display
-    /// </summary>
-    public PropertyDisplayInfo EventDisplayProperty
-    {
-        get => _eventDisplayProperty;
-        set
-        {
-            if (SetProperty(ref _eventDisplayProperty, value))
-            {
-                // Optionally, update watchers or events if needed
-            }
-        }
-    }
-
     public ReadOnlyObservableCollection<PropertyDisplayInfo> EventDisplayPropertyList { get; }
-
-    /// <summary>
-    /// Gets or sets the filter text for events.
-    /// </summary>
-    public string EventFilterText
-    {
-        get => _eventFilterText;
-        set
-        {
-            if (SetProperty(ref _eventFilterText, value))
-            {
-                _eventFilterDebouncer.Debounce(() =>
-                {
-                    RunOnUIThread(() => EventsView.Refresh());
-                });
-            }
-        }
-    }
 
     /// <summary>
     /// Gets a collection of intrinsic WMI event properties for the selected event class
@@ -194,7 +144,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     /// </summary>
     public string EventQuery
     {
-        get => EventQueryBuilder.EventQuery;
+        get => EventQueryBuilder.EventQuery ?? string.Empty;
         set
         {
             EventQueryBuilder.EventQuery = value;
@@ -245,93 +195,9 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     public ReadOnlyObservableCollection<PropertyDisplayInfo> EventTargetClassPropertyList { get; }
 
     /// <summary>
-    /// Gets or sets whether the query is a custom query
-    /// </summary>
-    public bool IsCustomQuery
-    {
-        get => _isCustomQuery;
-        set
-        {
-            if (SetProperty(ref _isCustomQuery, value))
-            {
-                OnPropertyChanged(nameof(IsQueryReadOnly));
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets whether the query text box is read-only
     /// </summary>
-    public bool IsQueryReadOnly => !_isCustomQuery;
-
-    /// <summary>
-    /// Gets the command to remove all watchers
-    /// </summary>
-    public ICommand RemoveAllCommand { get; }
-
-    /// <summary>
-    /// Gets or sets the selected event
-    /// </summary>
-    public WmiEvent? SelectedEvent
-    {
-        get => _selectedEvent;
-        set
-        {
-            if (SetProperty(ref _selectedEvent, value))
-            {
-                _messagingService.Publish(new SelectedEventChangedMessage(value));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the selected namespace for event watching
-    /// </summary>
-    public WmiNamespaceViewModel? SelectedNamespace
-    {
-        get => _selectedNamespace;
-        set
-        {
-            if (SetProperty(ref _selectedNamespace, value))
-            {
-                EventQueryBuilder.EventTargetClass = string.Empty;
-                if (value != null)
-                {
-                    _ = UpdateEventTargetClassListAsync();
-                }
-                CanAddWatcher = _selectedNamespace != null && !string.IsNullOrWhiteSpace(EventQueryBuilder.EventQuery);
-                UpdateEventClassList();
-                UpdateEventPropertyList();
-                UpdateEventTargetClassPropertyList(); // Also update target class properties when namespace changes
-                UpdateEventDisplayPropertyList(); // Ensure display property list is updated when namespace changes
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the selected watcher name
-    /// </summary>
-    public string? SelectedWatcherName
-    {
-        get => _selectedWatcherName;
-        set
-        {
-            if (SetProperty(ref _selectedWatcherName, value))
-            {
-                EventsView.Refresh();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets the command to start all watchers
-    /// </summary>
-    public ICommand StartAllCommand { get; }
-
-    /// <summary>
-    /// Gets the command to stop all watchers
-    /// </summary>
-    public ICommand StopAllCommand { get; }
+    public bool IsQueryReadOnly => !IsCustomQuery;
 
     /// <summary>
     /// Gets a collection of watcher names from the existing watchers
@@ -343,24 +209,6 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     /// </summary>
     public ReadOnlyObservableCollection<WmiWatcherItem> Watchers { get; }
 
-    public void ClearEvents()
-    {
-        // Dispose each event to release unmanaged resources
-        foreach (var evt in _events)
-        {
-            try
-            {
-                evt.Dispose();
-            }
-            catch (Exception ex)
-            {
-                // Log or handle disposal errors gracefully
-                System.Diagnostics.Debug.WriteLine($"Error disposing WmiEvent: {ex.Message}");
-            }
-        }
-        _events.Clear();
-    }
-
     /// <summary>
     /// Forces the selection logic for the currently selected event.
     /// Used by ListViewItemSelectionBehavior to re-publish the SelectedEventChangedMessage
@@ -368,10 +216,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     /// </summary>
     public void ForceSelection()
     {
-        if (_selectedEvent != null)
+        if (SelectedEvent != null)
         {
             // Re-publish the message for the currently selected event
-            _messagingService.Publish(new SelectedEventChangedMessage(_selectedEvent));
+            PublishMessage(new SelectedEventChangedMessage(SelectedEvent));
         }
     }
 
@@ -387,8 +235,9 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Adds a new watcher based on the current event query
+    /// Command to add a new watcher
     /// </summary>
+    [RelayCommand]
     private void AddWatcher()
     {
         if (SelectedNamespace == null)
@@ -407,7 +256,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
 
             var watcher = new WmiEventWatcher(
                 watcherName,
-                EventQueryBuilder.EventQuery,
+                EventQueryBuilder.EventQuery ?? string.Empty,
                 SelectedNamespace.ManagementScope);
 
             // Start the watcher before adding to the collection
@@ -428,6 +277,28 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         {
             PublishErrorState($"Failed to add watcher: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>
+    /// Command to clear events
+    /// </summary>
+    [RelayCommand]
+    private void ClearEvents()
+    {
+        // Dispose each event to release unmanaged resources
+        foreach (var evt in _events)
+        {
+            try
+            {
+                evt.Dispose();
+            }
+            catch (Exception ex)
+            {
+                // Log or handle disposal errors gracefully
+                System.Diagnostics.Debug.WriteLine($"Error disposing WmiEvent: {ex.Message}");
+            }
+        }
+        _events.Clear();
     }
 
     private bool CombinedEventFilter(object obj)
@@ -490,10 +361,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         targetCollection.Clear();
         IEnumerable<PropertyDisplayInfo> propertyInfos = Enumerable.Empty<PropertyDisplayInfo>();
 
-        if (_selectedNamespace != null && !string.IsNullOrEmpty(className))
+        if (SelectedNamespace != null && !string.IsNullOrEmpty(className))
         {
             // Prefer in-memory class properties if available
-            var inMemoryClass = _selectedNamespace.Classes?.FirstOrDefault(c => c.ClassName == className);
+            var inMemoryClass = SelectedNamespace.Classes?.FirstOrDefault(c => c.ClassName == className);
             if (inMemoryClass != null && inMemoryClass.WmiClass != null && inMemoryClass.WmiClass.Properties != null && inMemoryClass.WmiClass.Properties.Count > 0)
             {
                 propertyInfos = inMemoryClass.WmiClass.Properties
@@ -508,7 +379,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             {
                 try
                 {
-                    var cachedProperties = await _cacheService.GetPropertiesForClassAsync(_selectedNamespace.NamespacePath, className);
+                    var cachedProperties = await _cacheService.GetPropertiesForClassAsync(SelectedNamespace.NamespacePath, className);
                     if (cachedProperties.Count > 0)
                     {
                         propertyInfos = cachedProperties.Select(p => new PropertyDisplayInfo
@@ -544,7 +415,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             return;
 
         // Only update if this is our selected namespace
-        if (_selectedNamespace == message.NamespaceViewModel)
+        if (SelectedNamespace == message.NamespaceViewModel)
         {
             _ = UpdateEventTargetClassListAsync();
             UpdateEventClassList();
@@ -564,6 +435,25 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         SelectedNamespace = message.NamespaceViewModel;
     }
 
+    /// <summary>
+    /// Property change handler for EventDisplayProperty
+    /// </summary>
+    partial void OnEventDisplayPropertyChanged(PropertyDisplayInfo value)
+    {
+        // Optionally, update watchers or events if needed
+    }
+
+    /// <summary>
+    /// Property change handler for EventFilterText
+    /// </summary>
+    partial void OnEventFilterTextChanged(string value)
+    {
+        _eventFilterDebouncer.Debounce(() =>
+        {
+            RunOnUIThread(() => EventsView.Refresh());
+        });
+    }
+
     private void OnEventReceived(WmiEvent wmiEvent)
     {
         RunOnUIThread(() =>
@@ -576,6 +466,39 @@ public class WmiWatcherViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Property change handler for SelectedEvent
+    /// </summary>
+    partial void OnSelectedEventChanged(WmiEvent? value)
+    {
+        PublishMessage(new SelectedEventChangedMessage(value));
+    }
+
+    /// <summary>
+    /// Property change handler for SelectedNamespace
+    /// </summary>
+    partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? value)
+    {
+        EventQueryBuilder.EventTargetClass = string.Empty;
+        if (value != null)
+        {
+            _ = UpdateEventTargetClassListAsync();
+        }
+        CanAddWatcher = SelectedNamespace != null && !string.IsNullOrWhiteSpace(EventQueryBuilder.EventQuery);
+        UpdateEventClassList();
+        UpdateEventPropertyList();
+        UpdateEventTargetClassPropertyList(); // Also update target class properties when namespace changes
+        UpdateEventDisplayPropertyList(); // Ensure display property list is updated when namespace changes
+    }
+
+    /// <summary>
+    /// Property change handler for SelectedWatcherName
+    /// </summary>
+    partial void OnSelectedWatcherNameChanged(string? value)
+    {
+        EventsView.Refresh();
+    }
+
+    /// <summary>
     /// Helper to populate class lists for event or target classes
     /// </summary>
     private async Task PopulateClassListAsync(bool eventClassesOnly, ObservableCollection<string> targetCollection, ICollectionView viewToRefresh)
@@ -583,10 +506,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         targetCollection.Clear();
         IEnumerable<string> classNames = Enumerable.Empty<string>();
 
-        if (_selectedNamespace != null)
+        if (SelectedNamespace != null)
         {
             // Prefer in-memory classes if available
-            var inMemory = _selectedNamespace.Classes?
+            var inMemory = SelectedNamespace.Classes?
                 .Where(c => eventClassesOnly ? c.IsEventClass : !c.IsEventClass)
                 .Select(c => c.ClassName)
                 .ToList();
@@ -598,7 +521,7 @@ public class WmiWatcherViewModel : MessagingViewModelBase
             {
                 try
                 {
-                    var cachedClasses = await _cacheService.GetClassesForNamespaceAsync(_selectedNamespace.NamespacePath);
+                    var cachedClasses = await _cacheService.GetClassesForNamespaceAsync(SelectedNamespace.NamespacePath);
                     if (cachedClasses.Count > 0)
                     {
                         classNames = cachedClasses
@@ -637,6 +560,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         viewToRefresh.Refresh();
     }
 
+    /// <summary>
+    /// Command to remove all watchers
+    /// </summary>
+    [RelayCommand]
     private void RemoveAllWatchers()
     {
         // Copy to list to avoid modifying collection during enumeration
@@ -657,6 +584,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         }
     }
 
+    /// <summary>
+    /// Command to start all watchers
+    /// </summary>
+    [RelayCommand]
     private void StartAllWatchers()
     {
         foreach (var watcher in _watchers)
@@ -668,6 +599,10 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         PublishSuccessState("Started all watchers.");
     }
 
+    /// <summary>
+    /// Command to stop all watchers
+    /// </summary>
+    [RelayCommand]
     private void StopAllWatchers()
     {
         foreach (var watcher in _watchers)
@@ -802,9 +737,9 @@ public class WmiWatcherViewModel : MessagingViewModelBase
         foreach (var name in names)
             WatcherNames.Add(name);
         // If the selected watcher name is not in the list, reset to "All"
-        if (string.IsNullOrEmpty(_selectedWatcherName) || !WatcherNames.Contains(_selectedWatcherName))
+        if (string.IsNullOrEmpty(SelectedWatcherName) || !WatcherNames.Contains(SelectedWatcherName))
         {
-            if (_selectedWatcherName != "All")
+            if (SelectedWatcherName != "All")
                 SelectedWatcherName = "All";
         }
     }

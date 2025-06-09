@@ -1,4 +1,6 @@
-﻿using System.Windows.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
@@ -6,26 +8,50 @@ using WmiExplorer.Themes;
 
 namespace WmiExplorer.Presentation.ViewModels;
 
-public class MainViewModel : MessagingViewModelBase
+/// <summary>
+/// Main ViewModel for the application
+/// </summary>
+public partial class MainViewModel : MessagingViewModel
 {
     private readonly CancellationTokenSource _cts = new();
+
+    [ObservableProperty]
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
+
+    [ObservableProperty]
+    private Theme _currentTheme = null!;
+
+    [ObservableProperty]
     private string _elapsedTimeMessage = string.Empty;
-    private readonly Coordinators.WmiNamespacePaneViewModel _namespacePaneViewModel;
-    private readonly Coordinators.OptionsViewModel _optionsViewModel;
-    private readonly Coordinators.PropertyGridViewModel _propertyGridViewModel;
+
+    [ObservableProperty]
+    private Coordinators.WmiNamespacePaneViewModel _namespacePaneViewModel = null!;
+
+    [ObservableProperty]
+    private Coordinators.OptionsViewModel _optionsViewModel = null!;
+
+    [ObservableProperty]
+    private Coordinators.PropertyGridViewModel _propertyGridViewModel = null!;
+
+    [ObservableProperty]
     private int _selectedTabIndex;
+
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
+
+    [ObservableProperty]
+    private string _themeToggleText = string.Empty;
+
+    [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
     public MainViewModel(
-              IMessagingService messagingService,
+              IMessenger messenger,
               ISettingsService settingsService,
               ThemeManager themeManager,
               Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
               Coordinators.OptionsViewModel optionsViewModel,
-              Coordinators.PropertyGridViewModel propertyGridViewModel)
+              Coordinators.PropertyGridViewModel propertyGridViewModel) : base(messenger)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
@@ -33,110 +59,17 @@ public class MainViewModel : MessagingViewModelBase
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _propertyGridViewModel = propertyGridViewModel ?? throw new ArgumentNullException(nameof(propertyGridViewModel));
 
-        // Initialize messaging
-        InitializeMessaging(messagingService);
-
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
 
-        ExitCommand = new RelayCommand(_ => Environment.Exit(0));
-        ToggleThemeCommand = new RelayCommand(_ => _themeManager.ToggleTheme());
+        // Initialize the theme properties
+        UpdateThemeProperties();
 
-        // Subscribe to messages
+        // Subscribe to messages with strong references to prevent garbage collection
         StrongSubscribe<ApplicationStateMessage>(HandleApplicationStateMessage);
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
-
-        // Subscribe to theme change messages
-        StrongSubscribe<ThemeChangedMessage>(_ =>
-        {
-            OnPropertyChanged(nameof(ThemeToggleText)); // To update theme toggle text on theme change.
-        });
-    }
-
-    /// <summary>
-    /// The current application state
-    /// </summary>
-    public ApplicationState CurrentApplicationState
-    {
-        get => _currentApplicationState;
-        set => SetProperty(ref _currentApplicationState, value);
-    }
-
-    /// <summary>
-    /// Gets the current theme object
-    /// </summary>
-    public Theme CurrentTheme => _themeManager.CurrentThemeObject!;
-
-    /// <summary>
-    /// Elapsed time message for long-running operations
-    /// </summary>
-    public string ElapsedTimeMessage
-    {
-        get => _elapsedTimeMessage;
-        set => SetProperty(ref _elapsedTimeMessage, value);
-    }
-
-    /// <summary>
-    /// Command to exit the application
-    /// </summary>
-    public ICommand ExitCommand { get; }
-
-    /// <summary>
-    /// Gets the namespace pane view model
-    /// </summary>
-    public Coordinators.WmiNamespacePaneViewModel NamespacePaneViewModel => _namespacePaneViewModel;
-
-    /// <summary>
-    /// Gets the options view model
-    /// </summary>
-    public Coordinators.OptionsViewModel OptionsViewModel => _optionsViewModel;
-
-    /// <summary>
-    /// Gets the property grid view model
-    /// </summary>
-    public Coordinators.PropertyGridViewModel PropertyGridViewModel => _propertyGridViewModel;
-
-    /// <summary>
-    /// Gets or sets the selected tab index for the main window
-    /// </summary>
-    public int SelectedTabIndex
-    {
-        get => _selectedTabIndex;
-        set => SetProperty(ref _selectedTabIndex, value);
-    }
-
-    /// <summary>
-    /// Flag indicating whether system classes should be shown
-    /// </summary>
-    public bool ShowSystemClasses
-    {
-        get => _namespacePaneViewModel.ClassesTabViewModel.ShowSystemClasses;
-        set => _namespacePaneViewModel.ClassesTabViewModel.ShowSystemClasses = value;
-    }
-
-    /// <summary>
-    /// Gets the text for the theme toggle button
-    /// </summary>
-    public string ThemeToggleText => _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
-
-    /// <summary>
-    /// Command to toggle between light and dark theme
-    /// </summary>
-    public ICommand ToggleThemeCommand { get; }
-
-    /// <summary>
-    /// Gets the view model for the WMI Event Watcher
-    /// </summary>
-    public WmiWatcherViewModel WatcherViewModel => _namespacePaneViewModel.WatcherViewModel;
-
-    /// <summary>
-    /// Gets the window position settings
-    /// </summary>
-    public MainWindowPosition WindowPosition
-    {
-        get => _windowPosition;
-        set => SetProperty(ref _windowPosition, value);
+        StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
     }
 
     /// <summary>
@@ -158,6 +91,12 @@ public class MainViewModel : MessagingViewModelBase
 
         base.Dispose(disposing);
     }
+
+    /// <summary>
+    /// Command to exit the application
+    /// </summary>
+    [RelayCommand]
+    private void Exit() => Environment.Exit(0);
 
     /// <summary>
     /// Handles application state messages
@@ -196,5 +135,24 @@ public class MainViewModel : MessagingViewModelBase
 
         // Switch to Classes tab (assume tab index 0 is Classes)
         SelectedTabIndex = 0;
+    }
+
+    /// <summary>
+    /// Command to toggle between light and dark theme
+    /// </summary>
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        _themeManager.ToggleTheme();
+        // Theme change message will trigger UpdateThemeProperties via subscription
+    }
+
+    /// <summary>
+    /// Updates the theme-related properties based on current theme
+    /// </summary>
+    private void UpdateThemeProperties()
+    {
+        CurrentTheme = _themeManager.CurrentThemeObject!;
+        ThemeToggleText = _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
     }
 }

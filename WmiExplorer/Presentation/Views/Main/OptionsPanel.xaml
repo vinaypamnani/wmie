@@ -61,8 +61,7 @@
                         MinWidth="100"
                         Margin="{StaticResource MarginSmall}"
                         Command="{Binding ReloadClassesCommand}"
-                        Content="Reload Classes"
-                        IsEnabled="{Binding SelectedNamespace, Converter={StaticResource NullToBoolConverter}}" />
+                        Content="Reload Classes"/>
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="3" Header="Accent Colors">

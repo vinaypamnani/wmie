@@ -9,6 +9,7 @@ using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace WmiExplorer;
 
@@ -87,6 +88,9 @@ public partial class App : Application
     {
         var services = new ServiceCollection();
 
+        // Register the CommunityToolkit messenger as a singleton
+        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+
         // Register core services first
         services.AddSingleton<IMessagingService, MessagingService>();
         services.AddSingleton<ISettingsService, SettingsService>(provider =>
@@ -111,7 +115,7 @@ public partial class App : Application
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.PropertyGridViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.MainViewModel>();
 
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiWatcherViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Watcher.WmiWatcherViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiMethodViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiPropertyViewModel>();
 

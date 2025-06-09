@@ -1,8 +1,10 @@
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Watcher;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -11,7 +13,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Namespaces pane. Manages the collection of namespaces
 /// and related UI operations for the namespace tree view.
 /// </summary>
-public class WmiNamespacePaneViewModel : MessagingViewModelBase
+public class WmiNamespacePaneViewModel : MessagingViewModel
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
@@ -19,18 +21,18 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
     private readonly CancellationTokenSource _cts = new();
     private WmiNamespaceViewModel? _selectedNamespace;
     private readonly ISettingsService _settingsService;
+    private readonly WmiWatcherViewModel _watcherViewModel;
     private MainWindowPosition _windowPosition;
     private readonly IWmiService _wmiService;
-    private readonly WmiWatcherViewModel _watcherViewModel;
 
     public WmiNamespacePaneViewModel(
-        IMessagingService messagingService,
-        ISettingsService settingsService,
-        IWmiService wmiService,
-        IApplicationService applicationService,
-        ICacheService cacheService,
-        WmiClassesTabViewModel classesTabViewModel,
-        WmiWatcherViewModel watcherViewModel)
+           IMessenger messenger,
+           ISettingsService settingsService,
+           IWmiService wmiService,
+           IApplicationService applicationService,
+           ICacheService cacheService,
+           WmiClassesTabViewModel classesTabViewModel,
+           WmiWatcherViewModel watcherViewModel) : base(messenger)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
@@ -38,9 +40,6 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
         _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
-
-        // Initialize messaging
-        InitializeMessaging(messagingService);
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
@@ -57,11 +56,6 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
     public WmiClassesTabViewModel ClassesTabViewModel => _classesTabViewModel;
 
     /// <summary>
-    /// Gets the view model for the WMI Event Watcher
-    /// </summary>
-    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel;
-
-    /// <summary>
     /// Collection of WMI namespaces in the tree
     /// </summary>
     public ObservableCollection<WmiNamespaceViewModel> Namespaces { get; } = new();
@@ -69,9 +63,9 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
     /// <summary>
     /// Command to reload the classes of the selected namespace
     /// </summary>
-    public ICommand ReloadClassesCommand => new RelayCommand(
-        _ => SelectedNamespace?.LoadClassesCommand.Execute(null),
-        _ => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
+    public ICommand ReloadClassesCommand => new CommunityToolkit.Mvvm.Input.RelayCommand(
+        () => SelectedNamespace?.LoadClassesCommand.Execute(null),
+        () => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
     );
 
     /// <summary>
@@ -84,17 +78,16 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
         {
             if (SetProperty(ref _selectedNamespace, value) && value != null)
             {
-                // Make sure selected namespaces are expanded
-                if (!value.IsExpanded)
-                {
-                    value.IsExpanded = true;
-                }
-
                 // Publish message about the selected namespace change
                 PublishMessage(new SelectedNamespaceChangedMessage(value));
             }
         }
     }
+
+    /// <summary>
+    /// Gets the view model for the WMI Event Watcher
+    /// </summary>
+    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel;
 
     /// <summary>
     /// Gets the window position settings
@@ -161,7 +154,7 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
             var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
                 effectivePath,
                 _wmiService,
-                MessageService!,
+                Messenger,
                 _applicationService,
                 _settingsService,
                 _cacheService,

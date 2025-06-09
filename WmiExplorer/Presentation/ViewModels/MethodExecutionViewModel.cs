@@ -1,6 +1,7 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Management;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
 
@@ -9,17 +10,28 @@ namespace WmiExplorer.Presentation.ViewModels;
 /// <summary>
 /// ViewModel for executing WMI methods (both static and instance)
 /// </summary>
-public class MethodExecutionViewModel : ViewModelBase
+public partial class MethodExecutionViewModel : DisposableObservableObject
 {
     public event EventHandler? CloseRequested;
+
     private readonly WmiClass _class;
+
+    [ObservableProperty]
     private bool _hasOutputParameters;
+
     private readonly WmiInstance? _instance;
     private readonly WmiMethod _method;
     private readonly WmiNamespace _namespace;
+
+    [ObservableProperty]
     private WmiBaseObject? _outputParameters;
+
     private readonly ObservableCollection<MethodParameterViewModel> _parameters = new();
+
+    [ObservableProperty]
     private int _selectedTabIndex;
+
+    [ObservableProperty]
     private string _statusMessage = "Ready";
 
     /// <summary>
@@ -44,39 +56,14 @@ public class MethodExecutionViewModel : ViewModelBase
         if (_instance == null && !_method.IsStatic)
         {
             throw new ArgumentException("Cannot execute non-static method without an instance");
-        }
-
-        // Load parameters
+        }        // Load parameters
         LoadMethodParameters();
-
-        // Initialize commands
-        ExecuteMethodCommand = new RelayCommand(ExecuteMethodWrapper);
-        CancelCommand = new RelayCommand(Cancel);
     }
-
-    /// <summary>
-    /// Gets the command to cancel and close the dialog.
-    /// </summary>
-    public ICommand CancelCommand { get; }
 
     /// <summary>
     /// Gets the class name.
     /// </summary>
     public string ClassName => _class.ClassName;
-
-    /// <summary>
-    /// Gets the command to execute the method.
-    /// </summary>
-    public ICommand ExecuteMethodCommand { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether there are output parameters to display.
-    /// </summary>
-    public bool HasOutputParameters
-    {
-        get => _hasOutputParameters;
-        private set => SetProperty(ref _hasOutputParameters, value);
-    }
 
     /// <summary>
     /// Gets the instance name (if applicable).
@@ -99,43 +86,23 @@ public class MethodExecutionViewModel : ViewModelBase
     public string MethodName => _method.Name;
 
     /// <summary>
-    /// Gets the output parameters to display in the PropertyGrid.
-    /// </summary>
-    public WmiBaseObject? OutputParameters
-    {
-        get => _outputParameters;
-        private set => SetProperty(ref _outputParameters, value);
-    }
-
-    /// <summary>
     /// Gets the collection of parameters for the method.
     /// </summary>
     public ObservableCollection<MethodParameterViewModel> Parameters => _parameters;
 
     /// <summary>
-    /// Gets or sets the selected tab index (0 = Input, 1 = Output).
+    /// Command to cancel and close the dialog
     /// </summary>
-    public int SelectedTabIndex
+    [RelayCommand]
+    private void Cancel()
     {
-        get => _selectedTabIndex;
-        set => SetProperty(ref _selectedTabIndex, value);
-    }
-
-    /// <summary>
-    /// Gets the status message to display in the status bar.
-    /// </summary>
-    public string StatusMessage
-    {
-        get => _statusMessage;
-        private set => SetProperty(ref _statusMessage, value);
-    }
-
-    private void Cancel(object? parameter)
-    {
-        // To be implemented in the dialog
         CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Command to execute the method
+    /// </summary>
+    [RelayCommand]
     private void ExecuteMethod()
     {
         try
@@ -232,11 +199,6 @@ public class MethodExecutionViewModel : ViewModelBase
         {
             StatusMessage = $"Error: {ex.Message}";
         }
-    }
-
-    private void ExecuteMethodWrapper(object? parameter)
-    {
-        ExecuteMethod();
     }
 
     private void LoadMethodParameters()
