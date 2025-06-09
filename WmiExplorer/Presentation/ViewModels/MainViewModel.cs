@@ -20,7 +20,6 @@ public class MainViewModel : MessagingViewModelBase
     private int _selectedTabIndex;
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
-    private WmiWatcherViewModel? _watcherViewModel;
     private MainWindowPosition _windowPosition;
     private readonly IWmiService _wmiService;
 
@@ -31,7 +30,6 @@ public class MainViewModel : MessagingViewModelBase
            IApplicationService applicationService,
            ICacheService cacheService,
            ThemeManager themeManager,
-           WmiWatcherViewModel watcherViewModel,
            Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
            Coordinators.OptionsViewModel optionsViewModel)
     {
@@ -42,7 +40,6 @@ public class MainViewModel : MessagingViewModelBase
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacePaneViewModel = namespacePaneViewModel ?? throw new ArgumentNullException(nameof(namespacePaneViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
-        _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
 
         // Initialize messaging
         InitializeMessaging(messagingService);
@@ -180,7 +177,7 @@ public class MainViewModel : MessagingViewModelBase
     /// <summary>
     /// Gets the view model for the WMI Event Watcher
     /// </summary>
-    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel!;
+    public WmiWatcherViewModel WatcherViewModel => _namespacePaneViewModel.WatcherViewModel;
 
     /// <summary>
     /// Gets the window position settings

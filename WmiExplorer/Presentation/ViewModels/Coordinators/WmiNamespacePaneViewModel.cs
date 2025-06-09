@@ -21,6 +21,7 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
     private readonly ISettingsService _settingsService;
     private MainWindowPosition _windowPosition;
     private readonly IWmiService _wmiService;
+    private readonly WmiWatcherViewModel _watcherViewModel;
 
     public WmiNamespacePaneViewModel(
         IMessagingService messagingService,
@@ -28,13 +29,15 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
         IWmiService wmiService,
         IApplicationService applicationService,
         ICacheService cacheService,
-        WmiClassesTabViewModel classesTabViewModel)
+        WmiClassesTabViewModel classesTabViewModel,
+        WmiWatcherViewModel watcherViewModel)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
+        _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
 
         // Initialize messaging
         InitializeMessaging(messagingService);
@@ -52,6 +55,11 @@ public class WmiNamespacePaneViewModel : MessagingViewModelBase
     /// Gets the WmiClassesTabViewModel
     /// </summary>
     public WmiClassesTabViewModel ClassesTabViewModel => _classesTabViewModel;
+
+    /// <summary>
+    /// Gets the view model for the WMI Event Watcher
+    /// </summary>
+    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel;
 
     /// <summary>
     /// Collection of WMI namespaces in the tree
