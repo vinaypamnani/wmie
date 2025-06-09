@@ -101,11 +101,14 @@ public partial class App : Application
         services.AddSingleton<IApplicationService, ApplicationService>();
 
         // Register MainWindow for DI
-        services.AddSingleton<Presentation.Views.MainWindow>();        // Register all ViewModel classes for DI - order matters for dependencies
+        services.AddSingleton<Presentation.Views.MainWindow>();
+
+        // Register all ViewModel classes for DI - order matters for dependencies
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiInstancesTabViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiClassesTabViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiNamespacePaneViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.OptionsViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.PropertyGridViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.MainViewModel>();
 
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiWatcherViewModel>();

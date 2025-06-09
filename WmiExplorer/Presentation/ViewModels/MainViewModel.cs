@@ -1,7 +1,6 @@
 ﻿using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
-using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 
@@ -9,37 +8,30 @@ namespace WmiExplorer.Presentation.ViewModels;
 
 public class MainViewModel : MessagingViewModelBase
 {
-    private readonly IApplicationService _applicationService;
-    private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
     private string _elapsedTimeMessage = string.Empty;
     private readonly Coordinators.WmiNamespacePaneViewModel _namespacePaneViewModel;
     private readonly Coordinators.OptionsViewModel _optionsViewModel;
-    private object? _selectedObject;
+    private readonly Coordinators.PropertyGridViewModel _propertyGridViewModel;
     private int _selectedTabIndex;
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
     private MainWindowPosition _windowPosition;
-    private readonly IWmiService _wmiService;
 
     public MainViewModel(
-           IMessagingService messagingService,
-           ISettingsService settingsService,
-           IWmiService wmiService,
-           IApplicationService applicationService,
-           ICacheService cacheService,
-           ThemeManager themeManager,
-           Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
-           Coordinators.OptionsViewModel optionsViewModel)
+              IMessagingService messagingService,
+              ISettingsService settingsService,
+              ThemeManager themeManager,
+              Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
+              Coordinators.OptionsViewModel optionsViewModel,
+              Coordinators.PropertyGridViewModel propertyGridViewModel)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-        _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacePaneViewModel = namespacePaneViewModel ?? throw new ArgumentNullException(nameof(namespacePaneViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
+        _propertyGridViewModel = propertyGridViewModel ?? throw new ArgumentNullException(nameof(propertyGridViewModel));
 
         // Initialize messaging
         InitializeMessaging(messagingService);
@@ -52,15 +44,8 @@ public class MainViewModel : MessagingViewModelBase
 
         // Subscribe to messages
         StrongSubscribe<ApplicationStateMessage>(HandleApplicationStateMessage);
-        StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
-        StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
-        StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
-        StrongSubscribe<ClassTypeFilterChangedMessage>(HandleClassTypeFilterChangedMessage);
-        StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
-        StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
-        StrongSubscribe<WmiQueryInstanceChangedMessage>(HandleWmiQueryInstanceChangedMessage);
 
         // Subscribe to theme change messages
         StrongSubscribe<ThemeChangedMessage>(_ =>
@@ -108,43 +93,9 @@ public class MainViewModel : MessagingViewModelBase
     public Coordinators.OptionsViewModel OptionsViewModel => _optionsViewModel;
 
     /// <summary>
-    /// Object to display in the property grid - could be namespace, class, or instance
+    /// Gets the property grid view model
     /// </summary>
-    public object? SelectedObject
-    {
-        get => _selectedObject;
-        set
-        {
-            if (SetProperty(ref _selectedObject, value))
-            {
-                // Notify that the display name has changed when the selected object changes
-                OnPropertyChanged(nameof(SelectedObjectDisplayName));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets the display name of the currently selected object for the property grid header
-    /// </summary>
-    public string SelectedObjectDisplayName
-    {
-        get
-        {
-            if (_selectedObject == null)
-                return "No Selection";
-
-            if (_selectedObject is WmiNamespaceViewModel namespaceVm)
-                return $"Namespace: {namespaceVm.Name}";
-
-            if (_selectedObject is WmiClassViewModel classVm)
-                return $"Class: {classVm.ClassName}";
-
-            if (_selectedObject is WmiInstanceViewModel instanceVm)
-                return $"Instance: {instanceVm.InstanceName}";
-
-            return _selectedObject.GetType().Name;
-        }
-    }
+    public Coordinators.PropertyGridViewModel PropertyGridViewModel => _propertyGridViewModel;
 
     /// <summary>
     /// Gets or sets the selected tab index for the main window
@@ -224,17 +175,6 @@ public class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Handles class type filter changes
-    /// </summary>
-    private void HandleClassTypeFilterChangedMessage(ClassTypeFilterChangedMessage message)
-    {
-        if (message == null) return;
-
-        // This message is now handled by OptionsViewModel, no local action needed
-        System.Diagnostics.Debug.WriteLine($"MainViewModel received ClassTypeFilterChanged message");
-    }
-
-    /// <summary>
     /// Handles elapsed time messages for long-running operations
     /// </summary>
     private void HandleElapsedTimeMessage(ElapsedTimeMessage message)
@@ -256,84 +196,5 @@ public class MainViewModel : MessagingViewModelBase
 
         // Switch to Classes tab (assume tab index 0 is Classes)
         SelectedTabIndex = 0;
-    }
-
-    /// <summary>
-    /// Handles when a class is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)
-    {
-        if (message?.ClassViewModel == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.ClassViewModel.WmiClass;
-    }
-
-    /// <summary>
-    /// Handles when a WMI event is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedEventChangedMessage(SelectedEventChangedMessage message)
-    {
-        if (message?.WmiEvent == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.WmiEvent;
-    }
-
-    /// <summary>
-    /// Handles when an instance is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)
-    {
-        if (message?.InstanceViewModel == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.InstanceViewModel.WmiInstance;
-    }
-
-    /// <summary>
-    /// Handles when a namespace is selected to ensure it loads its children and updates the class count/status message
-    /// </summary>
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
-    {
-        if (message?.NamespaceViewModel == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.NamespaceViewModel.WmiNamespace;
-    }
-
-    /// <summary>
-    /// Handles when a search result is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedSearchResultChangedMessage(SelectedSearchResultChangedMessage message)
-    {        // Set SelectedObject to the underlying WMI object for the property grid
-        if (message?.SelectedResult != null)
-        {
-            if (message.SelectedResult.Class != null)
-                SelectedObject = message.SelectedResult.Class;
-            else if (message.SelectedResult.Method != null)
-                SelectedObject = message.SelectedResult.Method;
-            else if (message.SelectedResult.Property != null)
-                SelectedObject = message.SelectedResult.Property;
-            else
-                SelectedObject = message.SelectedResult.Match;
-        }
-        else
-        {
-            SelectedObject = null;
-        }
-    }
-
-    /// <summary>
-    /// Handles when a WMI query result instance is selected to update the property grid
-    /// </summary>
-    private void HandleWmiQueryInstanceChangedMessage(WmiQueryInstanceChangedMessage message)
-    {
-        // Set SelectedObject to the selected WMI instance for the property grid
-        SelectedObject = message.Instance;
     }
 }
