@@ -1,15 +1,18 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using MessageBox = System.Windows.MessageBox;
+using WmiExplorer.Integration.AvalonEdit.Behaviors;
 using WmiExplorer.Integration.PropertyTypeProvider;
+using WmiExplorer.Presentation.ViewModels.Coordinators;
+using WmiExplorer.Presentation.Views;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
-using CommunityToolkit.Mvvm.Messaging;
 
 namespace WmiExplorer;
 
@@ -74,7 +77,7 @@ public partial class App : Application
         SetMenuDropAlignment();
 
         // Create and show MainWindow using DI
-        var mainWindow = ServiceProvider.GetRequiredService<Presentation.Views.MainWindow>();
+        var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
         mainWindow.Show();
     }
 
@@ -105,23 +108,23 @@ public partial class App : Application
         services.AddSingleton<IApplicationService, ApplicationService>();
 
         // Register MainWindow for DI
-        services.AddSingleton<Presentation.Views.MainWindow>();
+        services.AddSingleton<MainWindow>();
 
         // Register all ViewModel classes for DI - order matters for dependencies
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiInstancesTabViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiClassesTabViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiNamespacePaneViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.OptionsViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.PropertyGridViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.MainViewModel>();
+        services.AddSingleton<WmiInstancesTabViewModel>();
+        services.AddSingleton<WmiClassesTabViewModel>();
+        services.AddSingleton<WmiNamespacePaneViewModel>();
+        services.AddSingleton<OptionsViewModel>();
+        services.AddSingleton<PropertyGridViewModel>();
+        services.AddSingleton<MainViewModel>();
 
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Watcher.WmiWatcherViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiMethodViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiPropertyViewModel>();
+        services.AddSingleton<Presentation.ViewModels.Watcher.WmiWatcherViewModel>();
+        services.AddSingleton<WmiMethodViewModel>();
+        services.AddSingleton<WmiPropertyViewModel>();
 
         // Register additional ViewModels that have multiple instances
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.Coordinators.WmiQueryViewModel>();
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.Coordinators.WmiSearchViewModel>();
+        services.AddTransient<WmiQueryViewModel>();
+        services.AddTransient<WmiSearchViewModel>();
 
 
         // Build the service provider
@@ -130,9 +133,9 @@ public partial class App : Application
         // Set up DI for AvalonEdit behaviors using static method
         var messengerService = ServiceProvider.GetRequiredService<IMessengerService>();
         var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
-        Integration.AvalonEdit.Behaviors.AvalonEditThemingBehavior.SetMessengerService(messengerService);
-        Integration.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetMessengerService(messengerService);
-        Integration.AvalonEdit.Behaviors.AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
+        AvalonEditThemingBehavior.SetMessengerService(messengerService);
+        AvalonEditWqlHighlightingBehavior.SetMessengerService(messengerService);
+        AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
 
         // Configure unhandled exception handling
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
