@@ -162,7 +162,7 @@
         <TabControl Grid.Row="0" Grid.Column="2">
             <TabItem Header="Instances">
                 <!--  Instances View  -->
-                <tabs:WmiInstancesTab DataContext="{Binding InstancesTabViewModel}" />
+                <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />
             </TabItem>
             <TabItem Header="Properties">
                 <!--  Properties View  -->

@@ -20,7 +20,7 @@ public partial class ClassesTabViewModel : MessagingViewModel
 
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
-    private readonly WmiInstancesTabViewModel _instancesTabViewModel;
+    private readonly InstancesTabViewModel _instancesTabViewModel;
 
     [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
@@ -45,7 +45,7 @@ public partial class ClassesTabViewModel : MessagingViewModel
         IWmiService wmiService,
         IApplicationService applicationService,
         ICacheService cacheService,
-        WmiInstancesTabViewModel instancesTabViewModel) : base(messengerService)
+        InstancesTabViewModel instancesTabViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
@@ -74,9 +74,9 @@ public partial class ClassesTabViewModel : MessagingViewModel
     }
 
     /// <summary>
-    /// Gets the WmiInstancesTabViewModel
+    /// Gets the InstancesTabViewModel
     /// </summary>
-    public WmiInstancesTabViewModel InstancesTabViewModel => _instancesTabViewModel;
+    public InstancesTabViewModel InstancesTabViewModel => _instancesTabViewModel;
 
     /// <summary>
     /// Command to execute the auto-generated query
