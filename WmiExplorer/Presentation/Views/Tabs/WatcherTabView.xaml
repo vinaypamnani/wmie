@@ -108,7 +108,7 @@
                                           HorizontalContentAlignment="Left"
                                           IsEditable="True"
                                           ItemsSource="{Binding EventDisplayPropertyList}"
-                                          SelectedItem="{Binding EventDisplayProperty, UpdateSourceTrigger=PropertyChanged}" />
+                                          SelectedItem="{Binding DisplayProperty, UpdateSourceTrigger=PropertyChanged}" />
                             </GroupBox>
                         </DockPanel>
 
