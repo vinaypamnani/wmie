@@ -12,9 +12,10 @@
 
                 <!--  Load modular styles  -->
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
-                <ResourceDictionary Source="Presentation/Styles/MainStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/AllStyles.xaml" />
+
                 <!--  Control styles  -->
-                <ResourceDictionary Source="Presentation/Styles/CompletionStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/AvalonEditCompletionStyles.xaml" />
                 <ResourceDictionary Source="Presentation/ColorPicker/ColorPickerTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
