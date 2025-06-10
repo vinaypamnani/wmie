@@ -84,8 +84,8 @@ public static class AvalonEditWqlHighlightingBehavior
         if (d is TextEditor editor && (bool)e.NewValue)
         {
             // Get current theme from settings service via DI
-            string theme = _settingsService?.CurrentTheme ?? "Dark";
-            ApplyWqlHighlighting(editor, theme);
+            // string theme = _settingsService?.CurrentTheme ?? "Dark";
+            // ApplyWqlHighlighting(editor, theme);
 
             // Subscribe to theme change messages via DI
             if (_messengerService != null)
