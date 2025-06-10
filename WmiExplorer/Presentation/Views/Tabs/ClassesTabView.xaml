@@ -166,11 +166,11 @@
             </TabItem>
             <TabItem Header="Properties">
                 <!--  Properties View  -->
-                <tabs:WmiPropertiesTab />
+                <tabs:PropertiesTabView />
             </TabItem>
             <TabItem Header="Methods">
                 <!--  Methods View  -->
-                <tabs:WmiMethodsTab />
+                <tabs:MethodsTabView />
             </TabItem>
         </TabControl>
 
