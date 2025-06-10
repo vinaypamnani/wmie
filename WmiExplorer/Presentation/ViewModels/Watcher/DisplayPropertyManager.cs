@@ -8,6 +8,12 @@ namespace WmiExplorer.Presentation.ViewModels.Watcher;
 /// </summary>
 public class DisplayPropertyManager : DisposableObservableObject
 {
+    private readonly PropertyDisplayInfo _defaultDisplayProperty = new PropertyDisplayInfo
+    {
+        Name = "__RELPATH",
+        Type = "string"
+    };
+
     private readonly ObservableCollection<PropertyDisplayInfo> _displayProperties = new();
 
     /// <summary>
@@ -37,8 +43,7 @@ public class DisplayPropertyManager : DisposableObservableObject
     /// <returns>The first property in the collection or a default __RELPATH property</returns>
     public PropertyDisplayInfo GetDefaultDisplayProperty()
     {
-        return _displayProperties.FirstOrDefault() ??
-               new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
+        return _displayProperties.FirstOrDefault() ?? _defaultDisplayProperty;
     }
 
     /// <summary>
@@ -75,11 +80,7 @@ public class DisplayPropertyManager : DisposableObservableObject
         else
         {
             // Use default intrinsic property
-            _displayProperties.Add(new PropertyDisplayInfo
-            {
-                Name = "__RELPATH",
-                Type = "string"
-            });
+            _displayProperties.Add(_defaultDisplayProperty);
         }
     }
 

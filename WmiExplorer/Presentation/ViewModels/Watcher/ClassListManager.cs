@@ -14,6 +14,7 @@ namespace WmiExplorer.Presentation.ViewModels.Watcher;
 public class ClassListManager : DisposableObservableObject
 {
     private readonly ICacheService _cacheService;
+    private readonly string _defaultEventClass = "__InstanceCreationEvent";
     private readonly ObservableCollection<string> _eventClasses = new();
     private readonly ObservableCollection<string> _targetClasses = new();
     private readonly FilterHelper<string> _targetClassFilter;
@@ -88,10 +89,10 @@ public class ClassListManager : DisposableObservableObject
     /// </summary>
     /// <param name="defaultEventClass">The default event class name to look for</param>
     /// <returns>The default event class if found, otherwise the first event class, or null if none exist</returns>
-    public string? GetDefaultOrFirstEventClass(string defaultEventClass)
+    public string? GetDefaultOrFirstEventClass()
     {
-        if (_eventClasses.Contains(defaultEventClass))
-            return defaultEventClass;
+        if (_eventClasses.Contains(_defaultEventClass))
+            return _defaultEventClass;
 
         return _eventClasses.FirstOrDefault();
     }
@@ -176,14 +177,16 @@ public class ClassListManager : DisposableObservableObject
         if (selectedNamespace != null)
         {
             // Prefer in-memory classes if available
-            var inMemory = selectedNamespace.Classes?
+            var inMemoryClassesLoaded = selectedNamespace.ClassLoadState == ClassLoadState.Success;
+
+            if (inMemoryClassesLoaded)
+            {
+                var inMemoryClasses = selectedNamespace.Classes?
                 .Where(c => eventClassesOnly ? c.IsEventClass : !c.IsEventClass)
                 .Select(c => c.ClassName)
                 .ToList();
 
-            if (inMemory != null && inMemory.Count > 0)
-            {
-                classNames = inMemory;
+                classNames = inMemoryClasses ?? Enumerable.Empty<string>();
             }
             else
             {

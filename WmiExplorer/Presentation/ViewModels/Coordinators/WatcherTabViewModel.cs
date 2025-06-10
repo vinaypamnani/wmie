@@ -17,10 +17,9 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 public partial class WatcherTabViewModel : MessagingViewModelBase
 {
     private readonly ClassListManager _classListManager;
-    private readonly string _defaultEventClass = "__InstanceCreationEvent";
 
     [ObservableProperty]
-    private PropertyDisplayInfo _displayProperty = new PropertyDisplayInfo { Name = "__RELPATH", Type = "string" };
+    private PropertyDisplayInfo? _displayProperty;
 
     private readonly DisplayPropertyManager _displayPropertyManager;
     private readonly EventManager _eventManager;
@@ -182,7 +181,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
             SelectedNamespace.ManagementScope,
             EventQueryBuilder.EventClass ?? "Unknown",
             EventQueryBuilder.EventTargetClass,
-            DisplayProperty.Name,
+            DisplayProperty?.Name ?? string.Empty,
             OnEventReceived
         );
 
@@ -386,7 +385,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         await _classListManager.UpdateClassListsAsync(SelectedNamespace);
 
         // Set default event class if available
-        var defaultClass = _classListManager.GetDefaultOrFirstEventClass(_defaultEventClass);
+        var defaultClass = _classListManager.GetDefaultOrFirstEventClass();
         if (defaultClass != null && EventQueryBuilder.EventClass != defaultClass)
         {
             EventQueryBuilder.EventClass = defaultClass;

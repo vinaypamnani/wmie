@@ -110,6 +110,9 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
     {
         get
         {
+            if (EventType == WmiEventType.Namespace)
+                return false; // Namespace events do not have a target class
+
             // True if EventProperty.Type == "object", else false
             return EventProperty != null && string.Equals(EventProperty.Type, "object", StringComparison.OrdinalIgnoreCase);
         }
