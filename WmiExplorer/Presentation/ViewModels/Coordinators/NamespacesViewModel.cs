@@ -17,7 +17,7 @@ public partial class NamespacesViewModel : MessagingViewModel
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
-    private readonly WmiClassesTabViewModel _classesTabViewModel;
+    private readonly ClassesTabViewModel _classesTabViewModel;
     private readonly CancellationTokenSource _cts = new();
 
     [ObservableProperty]
@@ -37,7 +37,7 @@ public partial class NamespacesViewModel : MessagingViewModel
            IWmiService wmiService,
            IApplicationService applicationService,
            ICacheService cacheService,
-           WmiClassesTabViewModel classesTabViewModel,
+           ClassesTabViewModel classesTabViewModel,
            WmiWatcherViewModel watcherViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
@@ -56,9 +56,9 @@ public partial class NamespacesViewModel : MessagingViewModel
     }
 
     /// <summary>
-    /// Gets the WmiClassesTabViewModel
+    /// Gets the ClassesTabViewModel
     /// </summary>
-    public WmiClassesTabViewModel ClassesTabViewModel => _classesTabViewModel;
+    public ClassesTabViewModel ClassesTabViewModel => _classesTabViewModel;
 
     /// <summary>
     /// Collection of WMI namespaces in the tree

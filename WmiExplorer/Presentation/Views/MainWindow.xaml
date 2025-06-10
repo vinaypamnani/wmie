@@ -87,8 +87,7 @@
                     <!--  TabControl  -->
                     <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="Classes">
-                            <!--  All the grid content has been moved to WmiClassesTab  -->
-                            <tabs:WmiClassesTab DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
+                            <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
                         </TabItem>
                         <TabItem Header="Search">
                             <!--  Search View  -->
