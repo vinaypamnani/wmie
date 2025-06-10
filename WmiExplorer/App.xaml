@@ -6,6 +6,10 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!--  Main Theme will be loaded dynamically by ThemeManager from the Themes folder  -->
+
+                <!--  Converters  -->
+                <ResourceDictionary Source="Presentation/Converters/Converters.xaml" />
+
                 <!--  Load modular styles  -->
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/MainStyles.xaml" />
