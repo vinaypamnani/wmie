@@ -4,7 +4,7 @@ using WmiExplorer.Core.Models;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
 
-public partial class MethodParameterViewModel : DisposableObservableObject
+public partial class WmiParameterViewModel : DisposableObservableObject
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEnabled))]
@@ -15,7 +15,7 @@ public partial class MethodParameterViewModel : DisposableObservableObject
 
     private WmiParameter _wmiParameter;
 
-    public MethodParameterViewModel(WmiParameter wmiParameter)
+    public WmiParameterViewModel(WmiParameter wmiParameter)
     {
         _wmiParameter = wmiParameter;
         _value = wmiParameter.Value;

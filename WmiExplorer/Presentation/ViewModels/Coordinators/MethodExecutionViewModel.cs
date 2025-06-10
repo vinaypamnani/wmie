@@ -27,7 +27,7 @@ public partial class MethodExecutionViewModel : DisposableObservableObject
     [ObservableProperty]
     private WmiBaseObject? _outputParameters;
 
-    private readonly ObservableCollection<MethodParameterViewModel> _parameters = new();
+    private readonly ObservableCollection<WmiParameterViewModel> _parameters = new();
 
     [ObservableProperty]
     private int _selectedTabIndex;
@@ -91,7 +91,7 @@ public partial class MethodExecutionViewModel : DisposableObservableObject
     /// <summary>
     /// Gets the collection of parameters for the method.
     /// </summary>
-    public ObservableCollection<MethodParameterViewModel> Parameters => _parameters;
+    public ObservableCollection<WmiParameterViewModel> Parameters => _parameters;
 
     /// <summary>
     /// Command to cancel and close the dialog
@@ -212,7 +212,7 @@ public partial class MethodExecutionViewModel : DisposableObservableObject
             // Sort InParameters by Id before adding to _parameters
             foreach (var param in _method.InParameters.OrderBy(p => p.Id))
             {
-                _parameters.Add(new MethodParameterViewModel(param));
+                _parameters.Add(new WmiParameterViewModel(param));
             }
         }
     }
