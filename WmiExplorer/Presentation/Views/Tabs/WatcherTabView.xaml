@@ -1,4 +1,4 @@
-<UserControl x:Class="WmiExplorer.Presentation.Views.Tabs.WmiWatcherTab"
+<UserControl x:Class="WmiExplorer.Presentation.Views.Tabs.WatcherTabView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"

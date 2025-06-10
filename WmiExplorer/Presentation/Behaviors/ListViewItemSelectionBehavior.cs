@@ -73,7 +73,7 @@ public static class ListViewItemSelectionBehavior
                     instanceViewModel.ForceSelection();
                 }
                 // Special handling for event items: get parent ListView's DataContext
-                else if (item.DataContext is WmiEvent && FindParentListView(item) is ListView listView && listView.DataContext is WmiWatcherViewModel watcherViewModel)
+                else if (item.DataContext is WmiEvent && FindParentListView(item) is ListView listView && listView.DataContext is WatcherTabViewModel watcherViewModel)
                 {
                     watcherViewModel.ForceSelection();
                 }

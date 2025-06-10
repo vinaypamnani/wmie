@@ -95,7 +95,7 @@
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
-                            <tabs:WmiWatcherTab DataContext="{Binding NamespacesViewModel.WatcherViewModel}" />
+                            <tabs:WatcherTabView DataContext="{Binding NamespacesViewModel.WatcherTabViewModel}" />
                         </TabItem>
                         <TabItem Header="Query">
                             <!--  Query View  -->

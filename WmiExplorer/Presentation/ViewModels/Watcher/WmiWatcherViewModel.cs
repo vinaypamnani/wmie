@@ -26,7 +26,7 @@ public class PropertyDisplayInfo
 /// <summary>
 /// View model for WMI Event Watcher tab
 /// </summary>
-public partial class WmiWatcherViewModel : MessagingViewModel
+public partial class WatcherTabViewModel : MessagingViewModel
 {
     private readonly ICacheService _cacheService;
 
@@ -70,11 +70,11 @@ public partial class WmiWatcherViewModel : MessagingViewModel
     private readonly ObservableCollection<WmiWatcherItem> _watchers = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WmiWatcherViewModel"/> class.
+    /// Initializes a new instance of the <see cref="WatcherTabViewModel"/> class.
     /// </summary>
     /// <param name="messengerService">The messenger service to use</param>
     /// <param name="cacheService">The cache service to use</param>
-    public WmiWatcherViewModel(
+    public WatcherTabViewModel(
         IMessengerService messengerService,
         ICacheService cacheService
     ) : base(messengerService)

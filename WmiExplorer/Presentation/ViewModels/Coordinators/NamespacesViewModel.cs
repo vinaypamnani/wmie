@@ -24,7 +24,7 @@ public partial class NamespacesViewModel : MessagingViewModel
     private WmiNamespaceViewModel? _selectedNamespace;
 
     private readonly ISettingsService _settingsService;
-    private readonly WmiWatcherViewModel _watcherViewModel;
+    private readonly WatcherTabViewModel _watcherTabViewModel;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
@@ -38,14 +38,14 @@ public partial class NamespacesViewModel : MessagingViewModel
            IApplicationService applicationService,
            ICacheService cacheService,
            ClassesTabViewModel classesTabViewModel,
-           WmiWatcherViewModel watcherViewModel) : base(messengerService)
+           WatcherTabViewModel watcherTabViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
-        _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
+        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel));
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
@@ -68,7 +68,7 @@ public partial class NamespacesViewModel : MessagingViewModel
     /// <summary>
     /// Gets the view model for the WMI Event Watcher
     /// </summary>
-    public WmiWatcherViewModel WatcherViewModel => _watcherViewModel;
+    public WatcherTabViewModel WatcherTabViewModel => _watcherTabViewModel;
 
     /// <summary>
     /// Connects to the specified computer or namespace path

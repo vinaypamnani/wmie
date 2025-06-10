@@ -118,7 +118,7 @@ public partial class App : Application
         services.AddSingleton<PropertyGridViewModel>();
         services.AddSingleton<MainViewModel>();
 
-        services.AddSingleton<Presentation.ViewModels.Watcher.WmiWatcherViewModel>();
+        services.AddSingleton<Presentation.ViewModels.Watcher.WatcherTabViewModel>();
         services.AddSingleton<MethodsTabViewModel>();
         services.AddSingleton<PropertiesTabViewModel>();
 
