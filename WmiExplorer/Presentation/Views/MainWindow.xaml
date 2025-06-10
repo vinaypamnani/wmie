@@ -61,7 +61,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <DockPanel Grid.Row="0" VerticalAlignment="Top">
-                <main:OptionsPanel DataContext="{Binding OptionsViewModel}" />
+                <main:OptionsView DataContext="{Binding OptionsViewModel}" />
             </DockPanel>
             <DockPanel Grid.Row="1" Margin="{StaticResource MarginHorizontalSmall}">
                 <Grid Name="ContentGrid">

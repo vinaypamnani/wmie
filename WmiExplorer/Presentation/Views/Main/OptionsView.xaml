@@ -1,4 +1,4 @@
-<UserControl x:Class="WmiExplorer.Presentation.Views.Main.OptionsPanel"
+<UserControl x:Class="WmiExplorer.Presentation.Views.Main.OptionsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:colorpicker="clr-namespace:WmiExplorer.Presentation.ColorPicker"

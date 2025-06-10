@@ -9,9 +9,9 @@ namespace WmiExplorer.Presentation.Views.Main
     /// <summary>
     /// Interaction logic for OptionsPanel.xaml
     /// </summary>
-    public partial class OptionsPanel : System.Windows.Controls.UserControl
+    public partial class OptionsView : UserControl
     {
-        public OptionsPanel()
+        public OptionsView()
         {
             InitializeComponent();
         }
