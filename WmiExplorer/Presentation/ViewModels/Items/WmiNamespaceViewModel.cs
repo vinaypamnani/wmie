@@ -9,6 +9,7 @@ using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
+using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;

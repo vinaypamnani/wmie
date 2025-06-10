@@ -4,8 +4,9 @@ using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels.Items;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
 /// <summary>
 /// ViewModel for executing WMI methods (both static and instance)

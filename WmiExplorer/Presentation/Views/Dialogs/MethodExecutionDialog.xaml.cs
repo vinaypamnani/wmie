@@ -1,6 +1,6 @@
 using System.Windows;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Presentation.ViewModels.Coordinators;
 
 namespace WmiExplorer.Presentation.Views.Dialogs;
 

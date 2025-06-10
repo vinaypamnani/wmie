@@ -1,7 +1,7 @@
 using WmiExplorer.Common.Base;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
 /// <summary>
 /// ViewModel for WMI method management and execution.

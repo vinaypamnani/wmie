@@ -10,7 +10,7 @@ using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
 /// <summary>
 /// ViewModel for WMI query execution and result management.

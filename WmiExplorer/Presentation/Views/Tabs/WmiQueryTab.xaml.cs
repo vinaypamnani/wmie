@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using WmiExplorer.Presentation.ViewModels.Coordinators;
 
 namespace WmiExplorer.Presentation.Views.Tabs;
 
@@ -17,11 +18,11 @@ public partial class WmiQueryTab : UserControl
     private void WmiQueryTab_DataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
     {
         SyncColumns();
-        if (e.OldValue is WmiExplorer.Presentation.ViewModels.WmiQueryViewModel oldVm)
+        if (e.OldValue is WmiQueryViewModel oldVm)
         {
             oldVm.ResultColumns.CollectionChanged -= ResultColumns_CollectionChanged;
         }
-        if (e.NewValue is WmiExplorer.Presentation.ViewModels.WmiQueryViewModel newVm)
+        if (e.NewValue is WmiQueryViewModel newVm)
         {
             newVm.ResultColumns.CollectionChanged += ResultColumns_CollectionChanged;
         }
@@ -34,7 +35,7 @@ public partial class WmiQueryTab : UserControl
 
     private void SyncColumns()
     {
-        if (DataContext is WmiExplorer.Presentation.ViewModels.WmiQueryViewModel vm)
+        if (DataContext is WmiQueryViewModel vm)
         {
             ResultsDataGrid.Columns.Clear();
             foreach (var col in vm.ResultColumns)

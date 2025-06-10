@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Items;
 
 public partial class MethodParameterViewModel : DisposableObservableObject
 {

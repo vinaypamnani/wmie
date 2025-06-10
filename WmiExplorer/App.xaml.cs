@@ -116,12 +116,12 @@ public partial class App : Application
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.MainViewModel>();
 
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Watcher.WmiWatcherViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiMethodViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiPropertyViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiMethodViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiPropertyViewModel>();
 
         // Register additional ViewModels that have multiple instances
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiQueryViewModel>();
-        services.AddTransient<WmiExplorer.Presentation.ViewModels.WmiSearchViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.Coordinators.WmiQueryViewModel>();
+        services.AddTransient<WmiExplorer.Presentation.ViewModels.Coordinators.WmiSearchViewModel>();
 
 
         // Build the service provider
