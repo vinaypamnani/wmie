@@ -21,6 +21,8 @@ public partial class WmiInstanceViewModel : MessagingViewModel
     }
 
     private readonly IApplicationService _applicationService;
+
+    [ObservableProperty]
     private ObservableCollection<WmiMethod>? _instanceMethods;
 
     [ObservableProperty]
@@ -59,11 +61,6 @@ public partial class WmiInstanceViewModel : MessagingViewModel
         // Load instance methods
         LoadInstanceMethods();
     }
-
-    /// <summary>
-    /// Collection of methods available for this instance.
-    /// </summary>
-    public ObservableCollection<WmiMethod> InstanceMethods => _instanceMethods!;
 
     /// <summary>
     /// The display name for this instance.
@@ -142,7 +139,7 @@ public partial class WmiInstanceViewModel : MessagingViewModel
     /// <summary>
     /// Command to copy the instance path to clipboard.
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CopyRelativePathCanExecute))]
     private void CopyRelativePath()
     {
         // Copies the instance path to clipboard and notifies the user.
@@ -153,10 +150,12 @@ public partial class WmiInstanceViewModel : MessagingViewModel
         PublishSuccessState($"Copied path: {NamespacePath}");
     }
 
+    private bool CopyRelativePathCanExecute() => !string.IsNullOrEmpty(NamespacePath);
+
     /// <summary>
     /// Command to execute a WMI method.
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(ExecuteMethodCanExecute))]
     private void ExecuteMethod(object? parameter)
     {
         if (parameter is WmiMethod method)
@@ -184,12 +183,18 @@ public partial class WmiInstanceViewModel : MessagingViewModel
         }
     }
 
+    private bool ExecuteMethodCanExecute(object? parameter)
+    {
+        return parameter is WmiMethod &&
+               ParentNamespace?.WmiNamespace != null;
+    }
+
     /// <summary>
     /// Loads the methods available for this instance from the parent class.
     /// </summary>
     private void LoadInstanceMethods()
     {
-        _instanceMethods = new ObservableCollection<WmiMethod>();
+        InstanceMethods = new ObservableCollection<WmiMethod>();
 
         try
         {
@@ -204,17 +209,25 @@ public partial class WmiInstanceViewModel : MessagingViewModel
                     if (!method.IsStatic)
                     {
                         // Add each method to the collection
-                        _instanceMethods.Add(method);
+                        InstanceMethods.Add(method);
                     }
                 }
             }
 
+            // Notify that command can execute state may have changed
+            ExecuteMethodCommand.NotifyCanExecuteChanged();
+
             // Log the number of methods found
-            // System.Diagnostics.Debug.WriteLine($"Loaded {_instanceMethods.Count} methods for instance {InstanceName}");
+            // System.Diagnostics.Debug.WriteLine($"Loaded {InstanceMethods.Count} methods for instance {InstanceName}");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading methods for instance {InstanceName}: {ex.Message}");
         }
+    }
+
+    partial void OnInstanceMethodsChanged(ObservableCollection<WmiMethod>? value)
+    {
+        ExecuteMethodCommand.NotifyCanExecuteChanged();
     }
 }

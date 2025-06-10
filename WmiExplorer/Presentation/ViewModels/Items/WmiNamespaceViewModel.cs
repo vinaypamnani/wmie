@@ -1,10 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CtkInput = CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Management;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
@@ -24,6 +23,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
     private readonly ObservableCollection<WmiNamespaceViewModel> _children = new();
     private readonly ObservableCollection<WmiClassViewModel> _classes = new();
     private readonly FilterHelper<WmiClassViewModel> _classFilterHelper;
+
+    [ObservableProperty]
+    private string _classFilterText = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LoadState))]
@@ -120,26 +122,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
     public ReadOnlyObservableCollection<WmiClassViewModel> Classes { get; }
 
     public ICollectionView ClassesView => _classFilterHelper.CollectionView;
-
-    public string ClassFilterText
-    {
-        get => _classFilterHelper.FilterText;
-        set
-        {
-            if (_classFilterHelper.FilterText != value)
-            {
-                _classFilterHelper.FilterText = value;
-                OnPropertyChanged();
-                PublishMessage(new ClassesFilteredMessage(this));
-            }
-        }
-    }
-
-    // Commands - manually created due to naming conflicts with custom command classes
-    public ICommand CopyRelativePathCommand => new CtkInput.RelayCommand(CopyRelativePath);
-
-    public ICommand ExpandCommand => new CtkInput.AsyncRelayCommand(ExpandAsync);
-    public ICommand LoadClassesCommand => new CtkInput.AsyncRelayCommand(LoadClassesAsync);
 
     public LoadState LoadState
     {
@@ -247,6 +229,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
         return rootViewModel;
     }
 
+    [RelayCommand]
     public async Task ExpandAsync()
     {
         if (HasLoadedChildren)
@@ -319,6 +302,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
         NotifyNamespaceSelected();
     }
 
+    [RelayCommand]
     public async Task LoadClassesAsync()
     {
         using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", _messengerService);
@@ -380,8 +364,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
         }
     }
 
-    public override string ToString() => _wmiNamespace.NamespacePath;
-
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -404,6 +386,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
         return true;
     }
 
+    // Commands
+    [RelayCommand]
     private void CopyRelativePath()
     {
         if (string.IsNullOrEmpty(NamespacePath))
@@ -427,6 +411,12 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
     private void NotifyNamespaceSelected()
     {
         PublishMessage(new SelectedNamespaceChangedMessage(this));
+    }
+
+    partial void OnClassFilterTextChanged(string value)
+    {
+        _classFilterHelper.FilterText = value;
+        PublishMessage(new ClassesFilteredMessage(this));
     }
 
     partial void OnIsExpandedChanged(bool value)

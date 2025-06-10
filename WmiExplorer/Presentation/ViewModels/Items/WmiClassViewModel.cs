@@ -1,10 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CtkInput = CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Management;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
@@ -24,9 +23,14 @@ public partial class WmiClassViewModel : MessagingViewModel
     private readonly object _collectionLock = new();
     private CancellationTokenSource _cts = new();
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
+
+    [ObservableProperty]
+    private string _instanceFilterText = string.Empty;
+
     private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CancelInstanceLoadCommand))]
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
 
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
@@ -63,36 +67,13 @@ public partial class WmiClassViewModel : MessagingViewModel
         LoadClassMethods();
     }
 
-    public ICommand CancelInstanceLoadCommand => new CommunityToolkit.Mvvm.Input.RelayCommand(
-        () => CancelInstanceLoad(),
-        () => LoadState == InstanceLoadState.Loading);
-
     /// <summary>
     /// Collection of methods available for this class.
     /// </summary>
     public ObservableCollection<WmiMethod> ClassMethods => _classMethods!;
 
     public string ClassName => _wmiClass.ClassName;
-    public ICommand CopyRelativePathCommand => new CommunityToolkit.Mvvm.Input.RelayCommand(CopyRelativePath);
     public string Description => _wmiClass.Description;
-
-    /// <summary>
-    /// Command to execute a WMI method.
-    /// </summary>
-    public ICommand ExecuteMethodCommand => new CommunityToolkit.Mvvm.Input.RelayCommand<object?>(ExecuteMethod);
-
-    public string InstanceFilterText
-    {
-        get => _instanceFilterHelper.FilterText;
-        set
-        {
-            if (_instanceFilterHelper.FilterText != value)
-            {
-                _instanceFilterHelper.FilterText = value;
-                OnPropertyChanged();
-            }
-        }
-    }
 
     /// <summary>
     /// Instances of this class (read-only).
@@ -101,7 +82,6 @@ public partial class WmiClassViewModel : MessagingViewModel
 
     public ICollectionView InstancesView => _instanceFilterHelper.CollectionView;
     public bool IsEventClass => WmiClass.Derivation.Contains("__Event") || WmiClass.ClassName == "__Event";
-    public ICommand LoadInstancesCommand => new CtkInput.AsyncRelayCommand(LoadInstancesAsync);
     public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
     public WmiClass WmiClass => _wmiClass;
@@ -133,89 +113,6 @@ public partial class WmiClassViewModel : MessagingViewModel
         PublishMessage(new SelectedClassChangedMessage(this));
     }
 
-    public async Task LoadInstancesAsync()
-    {
-        if (LoadState == InstanceLoadState.Loading)
-            return;
-
-        // Always create a new CTS for each load to ensure proper cancellation
-        _cts?.Dispose();
-        _cts = new CancellationTokenSource();
-
-        using var timer = OperationTimer.Start($"Loading instances for {ClassName}", _messengerService);
-        try
-        {
-            LoadState = InstanceLoadState.Loading;
-            PublishBusyState($"Loading instances for {ClassName}");
-
-            // Use the parent namespace's ManagementScope for the service call.
-            var wmiInstances = await _wmiService.GetInstancesAsync(
-                ParentNamespaceViewModel.ManagementScope,
-                ClassName,
-                _cts.Token);
-
-            // Map ManagementObject to WmiInstance and create view models for all instances at once.
-            var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo)); var instanceViewModels = WmiInstanceViewModel.CreateFromCollection(
-                instanceModels,
-                _wmiService,
-                _messengerService,
-                _applicationService,
-                this);
-
-            // Use RunOnUIThread for synchronous UI updates to avoid hanging
-            RunOnUIThread(() =>
-            {
-                lock (_collectionLock)
-                {
-                    _instances.Clear();
-                    foreach (var vm in instanceViewModels)
-                    {
-                        _instances.Add(vm);
-                    }
-                }
-                // No need to reapply filter or refresh, FilterHelper handles it.
-                OnPropertyChanged(nameof(InstanceFilterText));
-            });
-
-            // Check if operation was cancelled and show appropriate message
-            if (_cts.Token.IsCancellationRequested)
-            {
-                LoadState = InstanceLoadState.Warning;
-                PublishWarningState($"Found {instanceViewModels.Count} instances for {ClassName} before loading was cancelled");
-            }
-            else
-            {
-                LoadState = InstanceLoadState.Success;
-                PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
-            }
-        }
-        catch (OperationCanceledException ex)
-        {
-            LoadState = InstanceLoadState.Warning;
-            if (ex.Message.Contains("timed out"))
-            {
-                // Synchronous operation timed out
-                PublishWarningState($"Loading instances for {ClassName} timed out - this may indicate a very large result set. Consider switching to asynchronous mode for better cancellation support. Showing {_instances.Count} partial results");
-            }
-            else
-            {
-                // Regular cancellation
-                PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
-            }
-        }
-        catch (ManagementException ex) when (ex.ErrorCode == ManagementStatus.CallCanceled || ex.ErrorCode == ManagementStatus.OperationCanceled)
-        {
-            // Handle WMI cancellation errors - show partial results that we already loaded
-            LoadState = InstanceLoadState.Warning;
-            PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
-        }
-        catch (Exception ex)
-        {
-            LoadState = InstanceLoadState.Failed;
-            PublishErrorState($"Error loading instances for {ClassName}: {ex.Message}", ex);
-        }
-    }
-
     public override string ToString() => _wmiClass.ClassName;
 
     protected override void Dispose(bool disposing)
@@ -230,17 +127,18 @@ public partial class WmiClassViewModel : MessagingViewModel
         base.Dispose(disposing);
     }
 
+    /// <summary>
+    /// Provides immediate UI feedback when cancellation is requested and cancels the operation.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CancelInstanceLoadCanExecute))]
     private void CancelInstanceLoad()
     {
-        if (_cts == null || LoadState != InstanceLoadState.Loading)
-            return;
-
         try
         {
             // Show immediate feedback that cancellation was requested
             PublishBusyState($"Cancellation requested for {ClassName} - operation will stop soon");
 
-            // Request cancellation immediately - this is completely non-blocking
+            // Immediately cancel our internal token source - this is completely non-blocking
             _cts.Cancel();
         }
         catch (Exception ex)
@@ -249,6 +147,9 @@ public partial class WmiClassViewModel : MessagingViewModel
         }
     }
 
+    private bool CancelInstanceLoadCanExecute() => LoadState == InstanceLoadState.Loading;
+
+    [RelayCommand]
     private void CopyRelativePath()
     {
         var classPath = _wmiClass.ClassPath.RelativePath;
@@ -260,6 +161,7 @@ public partial class WmiClassViewModel : MessagingViewModel
     /// Executes a WMI method from the context menu.
     /// </summary>
     /// <param name="parameter">The WmiMethod to execute.</param>
+    [RelayCommand]
     private void ExecuteMethod(object? parameter)
     {
         if (parameter is WmiMethod method)
@@ -334,15 +236,96 @@ public partial class WmiClassViewModel : MessagingViewModel
         }
     }
 
-    partial void OnLoadStateChanged(InstanceLoadState value)
+    [RelayCommand]
+    private async Task LoadInstancesAsync()
     {
-        // Notify that CanExecute state may have changed for the cancel command
-        System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        if (LoadState == InstanceLoadState.Loading)
+            return;
+
+        // Create a new CTS for this operation
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+
+        using var timer = OperationTimer.Start($"Loading instances for {ClassName}", _messengerService);
+        try
+        {
+            LoadState = InstanceLoadState.Loading;
+            PublishBusyState($"Loading instances for {ClassName}");
+
+            // Use our own cancellation token
+            var wmiInstances = await _wmiService.GetInstancesAsync(
+                ParentNamespaceViewModel.ManagementScope,
+                ClassName,
+                _cts.Token);
+
+            // Map ManagementObject to WmiInstance and create view models for all instances at once.
+            var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo)); var instanceViewModels = WmiInstanceViewModel.CreateFromCollection(
+                instanceModels,
+                _wmiService,
+                _messengerService,
+                _applicationService,
+                this);
+
+            // Use RunOnUIThread for synchronous UI updates to avoid hanging
+            RunOnUIThread(() =>
+            {
+                lock (_collectionLock)
+                {
+                    _instances.Clear();
+                    foreach (var vm in instanceViewModels)
+                    {
+                        _instances.Add(vm);
+                    }
+                }                // No need to reapply filter or refresh, FilterHelper handles it.
+                OnPropertyChanged(nameof(InstanceFilterText));
+            });
+
+            // Check if operation was cancelled and show appropriate message
+            if (_cts.Token.IsCancellationRequested)
+            {
+                LoadState = InstanceLoadState.Warning;
+                PublishWarningState($"Found {instanceViewModels.Count} instances for {ClassName} before loading was cancelled");
+            }
+            else
+            {
+                LoadState = InstanceLoadState.Success;
+                PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
+            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            LoadState = InstanceLoadState.Warning;
+            if (ex.Message.Contains("timed out"))
+            {
+                // Synchronous operation timed out
+                PublishWarningState($"Loading instances for {ClassName} timed out - this may indicate a very large result set. Consider switching to asynchronous mode for better cancellation support. Showing {_instances.Count} partial results");
+            }
+            else
+            {
+                // Regular cancellation
+                PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
+            }
+        }
+        catch (ManagementException ex) when (ex.ErrorCode == ManagementStatus.CallCanceled || ex.ErrorCode == ManagementStatus.OperationCanceled)
+        {
+            // Handle WMI cancellation errors - show partial results that we already loaded
+            LoadState = InstanceLoadState.Warning;
+            PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
+        }
+        catch (Exception ex)
+        {
+            LoadState = InstanceLoadState.Failed;
+            PublishErrorState($"Error loading instances for {ClassName}: {ex.Message}", ex);
+        }
     }
 
-    // Generated properties from [ObservableProperty]:
-    // - LoadState (from _loadState field)
-    // - SelectedInstance (from _selectedInstance field)
+    partial void OnInstanceFilterTextChanged(string value)
+    {
+        if (_instanceFilterHelper.FilterText != value)
+        {
+            _instanceFilterHelper.FilterText = value;
+        }
+    }
 
     partial void OnSelectedInstanceChanged(WmiInstanceViewModel? value)
     {
@@ -358,6 +341,8 @@ public partial class WmiClassViewModel : MessagingViewModel
             {
                 value.LoadState = WmiInstanceViewModel.InstanceLoadState.Failed;
             }
+
+            // Publish the selected instance change message
             PublishMessage(new SelectedInstanceChangedMessage(value));
         }
     }

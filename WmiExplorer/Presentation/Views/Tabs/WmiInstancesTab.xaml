@@ -11,7 +11,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-        </Grid.RowDefinitions>        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
+        </Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
             <TextBox VerticalAlignment="Center"
                      Style="{StaticResource TextBoxWithClearButton}"
                      Tag="Filter Instances..."
@@ -19,9 +20,9 @@
         </DockPanel>
 
         <ListView Grid.Row="1"
-                  BorderThickness="0"
                   behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedClass.SelectedInstance}"
+                  BorderThickness="0"
                   ItemsSource="{Binding SelectedClass.InstancesView}"
                   SelectedItem="{Binding SelectedClass.SelectedInstance}"
                   SelectionMode="Single"
@@ -40,6 +41,9 @@
                                             <TextBlock Margin="4,0,0,0" Text="{Binding InstanceMethods.Count, StringFormat='[{0}]'}" />
                                         </StackPanel>
                                     </MenuItem.Header>
+                                    <MenuItem.Icon>
+                                        <Ellipse Width="10" Height="10" Fill="Green" />
+                                    </MenuItem.Icon>
                                     <MenuItem.Style>
                                         <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
                                             <Style.Triggers>
@@ -49,9 +53,6 @@
                                             </Style.Triggers>
                                         </Style>
                                     </MenuItem.Style>
-                                    <MenuItem.Icon>
-                                        <Ellipse Width="10" Height="10" Fill="Green" />
-                                    </MenuItem.Icon>
                                     <MenuItem.ItemContainerStyle>
                                         <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
                                             <Setter Property="Header" Value="{Binding Name}" />

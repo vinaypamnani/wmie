@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -27,6 +26,7 @@ public partial class WmiClassesTabViewModel : MessagingViewModel
     private WmiClassViewModel? _selectedClass;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
     private WmiNamespaceViewModel? _selectedNamespace;
 
     private readonly ISettingsService _settingsService;
@@ -70,11 +70,7 @@ public partial class WmiClassesTabViewModel : MessagingViewModel
         _settingsService.ShowSystemClassesChanged += (s, v) =>
         {
             ShowSystemClasses = v;
-        };        // Initialize command
-        ReloadClassesCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(
-            () => SelectedNamespace?.LoadClassesCommand.Execute(null),
-            () => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
-        );
+        };
     }
 
     /// <summary>
@@ -83,19 +79,9 @@ public partial class WmiClassesTabViewModel : MessagingViewModel
     public WmiInstancesTabViewModel InstancesTabViewModel => _instancesTabViewModel;
 
     /// <summary>
-    /// Command to reload the classes of the selected namespace
-    /// </summary>
-    public ICommand ReloadClassesCommand { get; }
-
-    /// <summary>
-    /// Determines if the auto query command can execute
-    /// </summary>
-    private bool CanExecuteAutoQuery() => !string.IsNullOrWhiteSpace(AutoQueryText);
-
-    /// <summary>
     /// Command to execute the auto-generated query
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanExecuteAutoQuery))]
+    [RelayCommand(CanExecute = nameof(ExecuteAutoQueryCanExecute))]
     private void ExecuteAutoQuery()
     {
         if (string.IsNullOrWhiteSpace(AutoQueryText))
@@ -104,6 +90,11 @@ public partial class WmiClassesTabViewModel : MessagingViewModel
         // Log the query execution
         PublishWarningState($"[Not implemented] Executing query: {AutoQueryText}");
     }
+
+    /// <summary>
+    /// Determines if the auto query command can execute
+    /// </summary>
+    private bool ExecuteAutoQueryCanExecute() => !string.IsNullOrWhiteSpace(AutoQueryText);
 
     /// <summary>
     /// Handles the ClassesFilteredMessage
@@ -195,6 +186,20 @@ public partial class WmiClassesTabViewModel : MessagingViewModel
     {
         _settingsService.ShowSystemClasses = value;
     }
+
+    /// <summary>
+    /// Command to reload the classes of the selected namespace
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
+    private void ReloadClasses()
+    {
+        SelectedNamespace?.LoadClassesCommand.Execute(null);
+    }
+
+    /// <summary>
+    /// Determines if the reload classes command can execute
+    /// </summary>
+    private bool ReloadClassesCanExecute() => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null);
 
     /// <summary>
     /// Updates the auto-generated WQL query text based on the selected class or instance

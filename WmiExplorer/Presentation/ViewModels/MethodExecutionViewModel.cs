@@ -56,7 +56,9 @@ public partial class MethodExecutionViewModel : DisposableObservableObject
         if (_instance == null && !_method.IsStatic)
         {
             throw new ArgumentException("Cannot execute non-static method without an instance");
-        }        // Load parameters
+        }
+
+        // Load parameters
         LoadMethodParameters();
     }
 

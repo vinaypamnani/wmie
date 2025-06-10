@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -13,8 +12,6 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// </summary>
 public partial class WmiInstancesTabViewModel : MessagingViewModel
 {
-    private readonly IApplicationService _applicationService;
-    private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
 
     [ObservableProperty]
@@ -25,37 +22,18 @@ public partial class WmiInstancesTabViewModel : MessagingViewModel
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
-    private readonly IWmiService _wmiService;
-
     public WmiInstancesTabViewModel(
         IMessengerService messengerService,
-        ISettingsService settingsService,
-        IWmiService wmiService,
-        IApplicationService applicationService,
-        ICacheService cacheService) : base(messengerService)
+        ISettingsService settingsService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-        _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
 
         // Subscribe to messages
         StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
-
-        // Initialize command
-        LoadInstancesCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(
-            () => SelectedClass?.LoadInstancesCommand.Execute(null),
-            () => SelectedClass != null && SelectedClass.LoadInstancesCommand.CanExecute(null)
-        );
     }
-
-    /// <summary>
-    /// Command to load instances for the selected class
-    /// </summary>
-    public ICommand LoadInstancesCommand { get; }
 
     /// <summary>
     /// Cleanup resources on disposal

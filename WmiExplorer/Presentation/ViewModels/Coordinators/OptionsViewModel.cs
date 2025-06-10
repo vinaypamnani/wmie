@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
@@ -15,6 +14,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 public partial class OptionsViewModel : MessagingViewModel
 {
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
     private WmiClassTypeFlags _classTypeFilter;
 
     [ObservableProperty]
@@ -25,7 +25,6 @@ public partial class OptionsViewModel : MessagingViewModel
     [ObservableProperty]
     private WmiOperationMode _operationMode;
 
-    private ICommand? _reloadClassesCommand;
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
     private readonly IWmiService _wmiService;
@@ -61,36 +60,12 @@ public partial class OptionsViewModel : MessagingViewModel
     public Theme CurrentTheme => _themeManager.CurrentThemeObject!;
 
     /// <summary>
-    /// Command to reload classes in the current namespace
-    /// </summary>
-    public ICommand ReloadClassesCommand => _reloadClassesCommand ??= new RelayCommand(
-        ExecuteReloadClasses,
-        CanExecuteReloadClasses
-    );
-
-    /// <summary>
-    /// Determines if the reload classes command can be executed
-    /// </summary>
-    private bool CanExecuteReloadClasses()
-    {
-        return _namespacePaneViewModel.ReloadClassesCommand.CanExecute(null);
-    }
-
-    /// <summary>
     /// Command to connect to a WMI namespace
     /// </summary>
-    [RelayCommand()]
+    [RelayCommand]
     private async Task ConnectAsync()
     {
         await _namespacePaneViewModel.ConnectAsync(ComputerName.Trim());
-    }
-
-    /// <summary>
-    /// Executes the reload classes command
-    /// </summary>
-    private void ExecuteReloadClasses()
-    {
-        _namespacePaneViewModel.ReloadClassesCommand.Execute(null);
     }
 
     /// <summary>
@@ -176,6 +151,17 @@ public partial class OptionsViewModel : MessagingViewModel
     }
 
     /// <summary>
+    /// Command to reload classes in the current namespace
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
+    private void ReloadClasses()
+    {
+        _namespacePaneViewModel.ReloadClassesCommand.Execute(null);
+    }
+
+    private bool ReloadClassesCanExecute() => _namespacePaneViewModel.ReloadClassesCommand.CanExecute(null);
+
+    /// <summary>
     /// Subscribe to changes that affect the command's CanExecute state
     /// </summary>
     private void SubscribeToCommandStateChanges()
@@ -185,7 +171,7 @@ public partial class OptionsViewModel : MessagingViewModel
             if (e.PropertyName == nameof(_namespacePaneViewModel.SelectedNamespace))
             {
                 // Notify that the command's CanExecute state may have changed
-                ((RelayCommand)ReloadClassesCommand).NotifyCanExecuteChanged();
+                ReloadClassesCommand.NotifyCanExecuteChanged();
             }
         };
     }

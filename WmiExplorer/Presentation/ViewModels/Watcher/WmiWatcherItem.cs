@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Management;
 using WmiExplorer.Common.Base;
@@ -15,6 +16,11 @@ public partial class WmiWatcherItem : DisposableObservableObject
     private readonly Action<WmiEvent> _onEventReceived;
     private readonly Action<WmiWatcherItem> _onRemove;
     private readonly WmiEventWatcher _watcher;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StartCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopCommand))]
+    private bool _isRunning;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiWatcherItem"/> class.
@@ -34,6 +40,9 @@ public partial class WmiWatcherItem : DisposableObservableObject
         _eventDisplayPropertyName = eventDisplayPropertyName ?? string.Empty;
 
         _watcher.EventArrived += OnEventArrived;
+
+        // Initialize IsRunning from the watcher's current state
+        IsRunning = _watcher.IsRunning;
     }
 
     /// <summary>
@@ -42,11 +51,6 @@ public partial class WmiWatcherItem : DisposableObservableObject
     public DateTime CreatedAt => _watcher.CreatedAt;
 
     public string EventDisplayPropertyName => _eventDisplayPropertyName;
-
-    /// <summary>
-    /// Gets whether the watcher is currently running
-    /// </summary>
-    public bool IsRunning => _watcher.IsRunning;
 
     /// <summary>
     /// Gets the name of the watcher
@@ -77,16 +81,6 @@ public partial class WmiWatcherItem : DisposableObservableObject
     }
 
     /// <summary>
-    /// Determines if the watcher can be started
-    /// </summary>
-    private bool CanStart() => !IsRunning;
-
-    /// <summary>
-    /// Determines if the watcher can be stopped
-    /// </summary>
-    private bool CanStop() => IsRunning;
-
-    /// <summary>
     /// Handles the WMI event arrival
     /// </summary>
     private void OnEventArrived(object? sender, ManagementBaseObject e)
@@ -113,17 +107,13 @@ public partial class WmiWatcherItem : DisposableObservableObject
     /// <summary>
     /// Command to start the watcher
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanStart))]
+    [RelayCommand(CanExecute = nameof(StartCanExecute))]
     private void Start()
     {
         try
         {
             _watcher.Start();
-
-            // Notify that IsRunning has changed and update command states
-            OnPropertyChanged(nameof(IsRunning));
-            StartCommand.NotifyCanExecuteChanged();
-            StopCommand.NotifyCanExecuteChanged();
+            IsRunning = true;
         }
         catch (Exception)
         {
@@ -132,23 +122,29 @@ public partial class WmiWatcherItem : DisposableObservableObject
     }
 
     /// <summary>
+    /// Determines if the start command can be executed
+    /// </summary>
+    private bool StartCanExecute() => !IsRunning;
+
+    /// <summary>
     /// Command to stop the watcher
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanStop))]
+    [RelayCommand(CanExecute = nameof(StopCanExecute))]
     private void Stop()
     {
         try
         {
             _watcher.Stop();
-
-            // Notify that IsRunning has changed and update command states
-            OnPropertyChanged(nameof(IsRunning));
-            StartCommand.NotifyCanExecuteChanged();
-            StopCommand.NotifyCanExecuteChanged();
+            IsRunning = false;
         }
         catch (Exception)
         {
             // Optionally log or handle error
         }
     }
+
+    /// <summary>
+    /// Determines if the stop command can be executed
+    /// </summary>
+    private bool StopCanExecute() => IsRunning;
 }

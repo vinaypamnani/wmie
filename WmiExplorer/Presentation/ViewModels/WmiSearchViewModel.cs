@@ -35,6 +35,7 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
     private WmiNamespaceViewModel? _selectedNamespace;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(JumpToClassCommand))]
     private WmiSearchResult? _selectedResult;
 
     private readonly IWmiService _wmiService;
@@ -92,9 +93,7 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
             || SafeContains(() => result.Description) || SafeContains(() => result.TypeInfo);
     }
 
-    private bool CanCancelSearch() => IsSearching;
-
-    [RelayCommand(CanExecute = nameof(CanCancelSearch))]
+    [RelayCommand(CanExecute = nameof(CancelSearchCanExecute))]
     private void CancelSearch()
     {
         if (!IsSearching || _cts == null)
@@ -104,7 +103,7 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
         _cts.Cancel();
     }
 
-    private bool CanExecuteSearch() => !string.IsNullOrWhiteSpace(SearchQuery) && !IsSearching;
+    private bool CancelSearchCanExecute() => IsSearching;
 
     [RelayCommand]
     private void ClearResults()
@@ -138,7 +137,7 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanExecuteSearch))]
+    [RelayCommand(CanExecute = nameof(ExecuteSearchCanExecute))]
     private async Task ExecuteSearchAsync()
     {
         IsSearching = true;
@@ -200,6 +199,8 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
         }
     }
 
+    private bool ExecuteSearchCanExecute() => !string.IsNullOrWhiteSpace(SearchQuery) && !IsSearching;
+
     private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
     {
         if (message?.NamespaceViewModel == null)
@@ -207,13 +208,13 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
         SelectedNamespace = message.NamespaceViewModel;
     }
 
-    private bool HasSelectedResult() => SelectedResult != null;
-
-    [RelayCommand(CanExecute = nameof(HasSelectedResult))]
+    [RelayCommand(CanExecute = nameof(JumpToClassCanExecute))]
     private void JumpToClass()
     {
         ExecuteJumpToClass();
     }
+
+    private bool JumpToClassCanExecute() => SelectedResult != null;
 
     /// <summary>
     /// Called when SearchType property changes

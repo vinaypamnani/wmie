@@ -1,5 +1,6 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -12,16 +13,22 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Namespaces pane. Manages the collection of namespaces
 /// and related UI operations for the namespace tree view.
 /// </summary>
-public class WmiNamespacePaneViewModel : MessagingViewModel
+public partial class WmiNamespacePaneViewModel : MessagingViewModel
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
     private readonly WmiClassesTabViewModel _classesTabViewModel;
     private readonly CancellationTokenSource _cts = new();
+
+    [ObservableProperty]
     private WmiNamespaceViewModel? _selectedNamespace;
+
     private readonly ISettingsService _settingsService;
     private readonly WmiWatcherViewModel _watcherViewModel;
+
+    [ObservableProperty]
     private MainWindowPosition _windowPosition;
+
     private readonly IWmiService _wmiService;
 
     public WmiNamespacePaneViewModel(
@@ -41,8 +48,7 @@ public class WmiNamespacePaneViewModel : MessagingViewModel
         _watcherViewModel = watcherViewModel ?? throw new ArgumentNullException(nameof(watcherViewModel));
 
         // Subscribe to messages
-        StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
-        StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
+        StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
 
         // Initialize window position from settings
@@ -60,46 +66,14 @@ public class WmiNamespacePaneViewModel : MessagingViewModel
     public ObservableCollection<WmiNamespaceViewModel> Namespaces { get; } = new();
 
     /// <summary>
-    /// Command to reload the classes of the selected namespace
-    /// </summary>
-    public ICommand ReloadClassesCommand => new CommunityToolkit.Mvvm.Input.RelayCommand(
-        () => SelectedNamespace?.LoadClassesCommand.Execute(null),
-        () => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null)
-    );
-
-    /// <summary>
-    /// Currently selected namespace in the tree
-    /// </summary>
-    public WmiNamespaceViewModel? SelectedNamespace
-    {
-        get => _selectedNamespace;
-        set
-        {
-            if (SetProperty(ref _selectedNamespace, value) && value != null)
-            {
-                // Publish message about the selected namespace change
-                PublishMessage(new SelectedNamespaceChangedMessage(value));
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets the view model for the WMI Event Watcher
     /// </summary>
     public WmiWatcherViewModel WatcherViewModel => _watcherViewModel;
 
     /// <summary>
-    /// Gets the window position settings
-    /// </summary>
-    public MainWindowPosition WindowPosition
-    {
-        get => _windowPosition;
-        set => SetProperty(ref _windowPosition, value);
-    }
-
-    /// <summary>
     /// Connects to the specified computer or namespace path
     /// </summary>
+    [RelayCommand]
     public async Task ConnectAsync(string computerOrNamespacePath)
     {
         // Parse the input to determine what type of connection we're making
@@ -244,7 +218,8 @@ public class WmiNamespacePaneViewModel : MessagingViewModel
     /// <summary>
     /// Handles JumpToClassMessage to navigate to the correct namespace and class, handling lazy loading and tab switching.
     /// </summary>
-    private async void HandleJumpToClassMessage(JumpToClassMessage message)
+    [RelayCommand]
+    private async Task JumpToClass(JumpToClassMessage message)
     {
         if (message == null)
             return;
@@ -292,29 +267,30 @@ public class WmiNamespacePaneViewModel : MessagingViewModel
         }
     }
 
-    /// <summary>
-    /// Handles when a namespace is selected to ensure it loads its children
-    /// </summary>
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
+    partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? value)
     {
-        if (message?.NamespaceViewModel == null)
-            return;
-
-        // Make sure we always trigger expansion, even for already selected items
-        if (!message.NamespaceViewModel.IsExpanded)
+        if (value != null)
         {
-            message.NamespaceViewModel.IsExpanded = true;
-        }
-
-        // Make sure our local SelectedNamespace property is synchronized
-        if (_selectedNamespace != message.NamespaceViewModel)
-        {
-            _selectedNamespace = message.NamespaceViewModel;
-            OnPropertyChanged(nameof(SelectedNamespace));
+            // Publish message about the selected namespace change
+            PublishMessage(new SelectedNamespaceChangedMessage(value));
         }
 
         // Update the status bar based on the selected namespace
         UpdateLoadStateStatus();
+    }
+
+    /// <summary>
+    /// Command to reload the classes of the selected namespace
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
+    private void ReloadClasses()
+    {
+        SelectedNamespace?.LoadClassesCommand.Execute(null);
+    }
+
+    private bool ReloadClassesCanExecute()
+    {
+        return SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null);
     }
 
     /// <summary>

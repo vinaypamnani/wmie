@@ -115,8 +115,7 @@
                                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
                                     <!--  ContextMenu for Copy Relative Path and Cancel loading  -->
                                     <Setter Property="ContextMenu">
-                                        <Setter.Value>
-                                            <ContextMenu>
+                                        <Setter.Value>                                            <ContextMenu>
                                                 <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path" />
                                                 <MenuItem Command="{Binding CancelInstanceLoadCommand}" CommandParameter="{Binding}" Header="Cancel loading" />
                                                 <MenuItem ItemsSource="{Binding ClassMethods}">

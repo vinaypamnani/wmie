@@ -90,17 +90,9 @@ public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
     }
 
     /// <summary>
-    /// Determines if the query can be cancelled
-    /// </summary>
-    private bool CanCancelQuery()
-    {
-        return IsQuerying;
-    }
-
-    /// <summary>
     /// Command to cancel the current query operation
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanCancelQuery))]
+    [RelayCommand(CanExecute = nameof(CancelQueryCanExecute))]
     private void CancelQuery()
     {
         if (!IsQuerying || _cts == null)
@@ -111,11 +103,11 @@ public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
     }
 
     /// <summary>
-    /// Determines if the query can be executed
+    /// Determines if the query can be cancelled
     /// </summary>
-    private bool CanExecuteQuery()
+    private bool CancelQueryCanExecute()
     {
-        return !string.IsNullOrWhiteSpace(QueryText) && !IsQuerying;
+        return IsQuerying;
     }
 
     /// <summary>
@@ -132,7 +124,7 @@ public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
     /// <summary>
     /// Command to execute a WMI query
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanExecuteQuery))]
+    [RelayCommand(CanExecute = nameof(ExecuteQueryCanExecute))]
     private async Task ExecuteQueryAsync()
     {
         IsQuerying = true;
@@ -213,6 +205,14 @@ public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
         {
             IsQuerying = false;
         }
+    }
+
+    /// <summary>
+    /// Determines if the query can be executed
+    /// </summary>
+    private bool ExecuteQueryCanExecute()
+    {
+        return !string.IsNullOrWhiteSpace(QueryText) && !IsQuerying;
     }
 
     private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
