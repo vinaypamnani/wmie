@@ -91,7 +91,7 @@
                         </TabItem>
                         <TabItem Header="Search">
                             <!--  Search View  -->
-                            <tabs:WmiSearchTab DataContext="{Binding NamespacesViewModel.SelectedNamespace.SearchViewModel}" />
+                            <tabs:SearchTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.SearchTabViewModel}" />
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->

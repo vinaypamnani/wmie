@@ -124,7 +124,7 @@ public partial class App : Application
 
         // Register additional ViewModels that have multiple instances
         services.AddTransient<QueryTabViewModel>();
-        services.AddTransient<WmiSearchViewModel>();
+        services.AddTransient<SearchTabViewModel>();
 
 
         // Build the service provider

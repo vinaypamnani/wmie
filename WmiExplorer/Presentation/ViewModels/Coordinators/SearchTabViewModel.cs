@@ -10,7 +10,7 @@ using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
-public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
+public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 {
     private CancellationTokenSource? _cts;
 
@@ -40,7 +40,7 @@ public partial class WmiSearchViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private readonly IWmiService _wmiService;
 
-    public WmiSearchViewModel(IMessengerService messengerService, IWmiService wmiService)
+    public SearchTabViewModel(IMessengerService messengerService, IWmiService wmiService)
                  : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
