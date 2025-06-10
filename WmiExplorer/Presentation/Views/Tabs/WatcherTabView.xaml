@@ -148,7 +148,6 @@
                                     Height="28"
                                     Command="{Binding AddWatcherCommand}"
                                     Content="Add Watcher"
-                                    IsEnabled="{Binding CanAddWatcher}"
                                     ToolTip="{Binding EventQueryBuilder.ValidationError}"
                                     Visibility="Visible" />
 

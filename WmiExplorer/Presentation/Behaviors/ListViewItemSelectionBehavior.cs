@@ -4,7 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
-using WmiExplorer.Presentation.ViewModels.Watcher;
+using WmiExplorer.Presentation.ViewModels.Coordinators;
 
 namespace WmiExplorer.Presentation.Behaviors;
 
