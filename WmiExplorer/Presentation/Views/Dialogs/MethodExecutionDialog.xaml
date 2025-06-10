@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WmiExplorer.Presentation.Views.Dialogs"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
-        xmlns:uc="clr-namespace:WmiExplorer.Presentation.Views.UserControls"
+        xmlns:uc="clr-namespace:WmiExplorer.Presentation.Controls.UserControls"
         Width="600"
         Height="600"
         AllowsTransparency="True"

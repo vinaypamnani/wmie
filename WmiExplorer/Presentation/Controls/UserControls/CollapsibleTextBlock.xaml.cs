@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace WmiExplorer.Presentation.Views.UserControls;
+namespace WmiExplorer.Presentation.Controls.UserControls;
 
 public partial class CollapsibleTextBlock : UserControl
 {

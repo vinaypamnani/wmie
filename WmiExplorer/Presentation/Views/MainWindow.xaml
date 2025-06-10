@@ -1,7 +1,7 @@
 ﻿<Window x:Class="WmiExplorer.Presentation.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="clr-namespace:WmiExplorer.Presentation.Views.UserControls"
+        xmlns:controls="clr-namespace:WmiExplorer.Presentation.Controls.UserControls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:WmiExplorer"
         xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
