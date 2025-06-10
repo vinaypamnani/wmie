@@ -107,20 +107,17 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         _eventTargetClassList.Clear();
         EventTargetClassListView.Refresh();
 
-        // Initialize with default event query disabled until namespace selected
-        CanAddWatcher = false;
-
-        // In the constructor, after initializing Watchers:
+        // Monitor watchers collection for changes
+        UpdateWatcherNames();
         ((INotifyCollectionChanged)_watchers).CollectionChanged += (s, e) =>
             UpdateWatcherNames();
 
-        UpdateWatcherNames();
-
         // Collection for event properties
         EventPropertyList = new ReadOnlyObservableCollection<PropertyDisplayInfo>(_eventPropertyList);
-        // New: ReadOnly collection for EventTargetClassPropertyList
+        // ReadOnly collection for EventTargetClassPropertyList
         EventTargetClassPropertyList = new ReadOnlyObservableCollection<PropertyDisplayInfo>(_eventTargetClassPropertyList);
-        // New: ReadOnly collection for EventDisplayPropertyList
+
+        // ReadOnly collection for EventDisplayPropertyList
         EventDisplayPropertyList = new ReadOnlyObservableCollection<PropertyDisplayInfo>(_eventDisplayPropertyList);
 
         // Subscribe to builder property changes for UI sync and CanAddWatcher
