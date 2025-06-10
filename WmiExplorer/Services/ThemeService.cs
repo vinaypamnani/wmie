@@ -36,8 +36,8 @@ public class ThemeService : IThemeService
         _currentThemeName = _settingsService.CurrentTheme ?? "Dark";
 
         // Subscribe to color changes for the current theme
-        if (CurrentThemeObject != null)
-            CurrentThemeObject.PropertyChanged += OnThemeColorChanged;
+        if (CurrentTheme != null)
+            CurrentTheme.PropertyChanged += OnThemeColorChanged;
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class ThemeService : IThemeService
     /// <summary>
     /// Gets the current Theme object instance
     /// </summary>
-    public Theme? CurrentThemeObject => ThemeCollection.GetTheme(_currentThemeName);
+    public Theme? CurrentTheme => ThemeCollection.GetTheme(_currentThemeName);
 
     /// <summary>
     /// Applies the specified theme to the application
@@ -56,11 +56,11 @@ public class ThemeService : IThemeService
     public void ApplyTheme(string themeName)
     {
         if (!ThemeCollection.ThemeExists(themeName))
-            themeName = "Dark";
+            themeName = ThemeCollection.DarkTheme.ThemeName; // Fallback to Dark theme if invalid
 
         // Unsubscribe from previous theme color changes
-        if (CurrentThemeObject != null)
-            CurrentThemeObject.PropertyChanged -= OnThemeColorChanged;
+        if (CurrentTheme != null)
+            CurrentTheme.PropertyChanged -= OnThemeColorChanged;
 
         _currentThemeName = themeName;
         _settingsService.CurrentTheme = themeName;
@@ -84,8 +84,8 @@ public class ThemeService : IThemeService
             appResources[kvp.Key] = kvp.Value;
 
         // Subscribe to new theme color changes
-        if (CurrentThemeObject != null)
-            CurrentThemeObject.PropertyChanged += OnThemeColorChanged;
+        if (CurrentTheme != null)
+            CurrentTheme.PropertyChanged += OnThemeColorChanged;
 
         // Notify via messaging
         _messengerService.Send(new ThemeChangedMessage(themeName));
@@ -101,12 +101,12 @@ public class ThemeService : IThemeService
         try
         {
             // Set dark mode for title bar based on current theme
-            bool isDarkTheme = CurrentThemeName == "Dark";
+            bool isDarkTheme = CurrentThemeName == ThemeCollection.DarkTheme.ThemeName;
             uint darkModeValue = isDarkTheme ? 1u : 0u;
             DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkModeValue, sizeof(uint));
 
             // Get the background color from the current theme
-            if (CurrentThemeObject?.ThemeColors.TryGetValue("PrimaryBackgroundColor", out Color bgColor) == true)
+            if (CurrentTheme?.ThemeColors.TryGetValue("PrimaryBackgroundColor", out Color bgColor) == true)
             {
                 // Convert to win32 COLORREF format (BGR)
                 uint colorRef = (uint)((bgColor.R) | (bgColor.G << 8) | (bgColor.B << 16));
@@ -152,7 +152,7 @@ public class ThemeService : IThemeService
         {
             // Fallback to Dark theme if there's an error
             System.Diagnostics.Debug.WriteLine($"Error initializing theme: {ex.Message}");
-            ApplyTheme("Dark");
+            ApplyTheme(ThemeCollection.DarkTheme.ThemeName);
         }
     }
 
@@ -234,7 +234,7 @@ public class ThemeService : IThemeService
     /// </summary>
     public void ToggleTheme()
     {
-        ApplyTheme(_currentThemeName == "Dark" ? "Light" : "Dark");
+        ApplyTheme(_currentThemeName == ThemeCollection.DarkTheme.ThemeName ? ThemeCollection.LightTheme.ThemeName : ThemeCollection.DarkTheme.ThemeName);
     }
 
     [DllImport("dwmapi.dll")]

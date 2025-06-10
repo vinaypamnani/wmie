@@ -58,7 +58,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
     /// <summary>
     /// Gets the current theme object
     /// </summary>
-    public Theme CurrentTheme => _themeService.CurrentThemeObject!;
+    public Theme CurrentTheme => _themeService.CurrentTheme!;
 
     /// <summary>
     /// Command to connect to a WMI namespace

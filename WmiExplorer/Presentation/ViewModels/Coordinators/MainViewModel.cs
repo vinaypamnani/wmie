@@ -151,7 +151,7 @@ public partial class MainViewModel : MessagingViewModelBase
     /// </summary>
     private void UpdateThemeProperties()
     {
-        CurrentTheme = _themeService.CurrentThemeObject!;
+        CurrentTheme = _themeService.CurrentTheme!;
         ThemeToggleText = _themeService.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
     }
 }

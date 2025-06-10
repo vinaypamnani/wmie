@@ -16,7 +16,7 @@ public interface IThemeService
     /// <summary>
     /// Gets the current Theme object instance
     /// </summary>
-    Theme? CurrentThemeObject { get; }
+    Theme? CurrentTheme { get; }
 
     /// <summary>
     /// Applies the specified theme to the application
