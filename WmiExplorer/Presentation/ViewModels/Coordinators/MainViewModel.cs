@@ -5,7 +5,7 @@ using WmiExplorer.Common.Shared;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 
-namespace WmiExplorer.Presentation.ViewModels;
+namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
 /// <summary>
 /// Main ViewModel for the application

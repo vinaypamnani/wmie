@@ -2,9 +2,8 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
-using CommunityToolkit.Mvvm.Messaging;
 using WmiExplorer.Common.Shared;
-using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 
@@ -22,22 +21,16 @@ public partial class MainWindow : Window
         DWMWA_CAPTION_COLOR = 35 // Added in Windows 11
     }
 
-    private readonly IApplicationService _applicationService;
-    private readonly ICacheService _cacheService;
+    private readonly MainViewModel _mainViewModel;
     private readonly IMessengerService _messengerService;
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
-    private readonly MainViewModel _viewModel;
-    private readonly IWmiService _wmiService;
 
     public MainWindow(
         IMessengerService messengerService,
         ISettingsService settingsService,
         ThemeManager themeManager,
-        IWmiService wmiService,
-        IApplicationService applicationService,
-        ICacheService cacheService,
-        MainViewModel viewModel)
+        MainViewModel mainViewModel)
     {
         InitializeComponent();
         Current = this;
@@ -45,15 +38,12 @@ public partial class MainWindow : Window
         _messengerService = messengerService;
         _settingsService = settingsService;
         _themeManager = themeManager;
-        _wmiService = wmiService;
-        _applicationService = applicationService;
-        _cacheService = cacheService;
 
         // Create the main view model with injected services
-        _viewModel = viewModel;
+        _mainViewModel = mainViewModel;
 
         // Set the DataContext for data binding
-        DataContext = _viewModel;
+        DataContext = _mainViewModel;
 
         // Initialize title bar theming
         InitializeTitleBarTheming();
@@ -89,7 +79,7 @@ public partial class MainWindow : Window
         {
             // Update the view model's window position with current window dimensions
             // while preserving the expander states and column widths
-            _viewModel.WindowPosition.UpdatePosition(
+            _mainViewModel.WindowPosition.UpdatePosition(
                 left: Left,
                 top: Top,
                 width: Width,
@@ -97,13 +87,13 @@ public partial class MainWindow : Window
             );
 
             // Set IsWindowMaximized property based on current window state
-            _viewModel.WindowPosition.IsWindowMaximized = WindowState == WindowState.Maximized;
+            _mainViewModel.WindowPosition.IsWindowMaximized = WindowState == WindowState.Maximized;
 
             // Explicitly save all settings
             _settingsService.SaveSettings();
 
             // Clean up the view model resources
-            _viewModel?.Dispose();
+            _mainViewModel?.Dispose();
         };
     }
 

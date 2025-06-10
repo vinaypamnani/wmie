@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Windows;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Shared;
-using WmiExplorer.Presentation.ViewModels;
+using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.Views;
 
 namespace WmiExplorer.Services;
@@ -17,23 +17,18 @@ public class MessengerService : IMessengerService, IDisposable
     // Debounce interval for all message types (in milliseconds)
     private const int DebounceIntervalMs = 150;
 
+    // Debouncing infrastructure
+    private readonly ConcurrentDictionary<Type, DebounceDispatcher> _debouncers = new();
+
+    private int _isPublishing;
+    private readonly ConcurrentDictionary<Type, object> _latestMessages = new();
     private readonly IMessenger _messenger;
     private readonly ConcurrentDictionary<object, List<object>> _strongReferences = new();
     private readonly ConcurrentDictionary<object, List<object>> _weakSubscriptions = new();
 
-    // Debouncing infrastructure
-    private readonly ConcurrentDictionary<Type, DebounceDispatcher> _debouncers = new();
-    private readonly ConcurrentDictionary<Type, object> _latestMessages = new();
-    private int _isPublishing;
-
     public MessengerService(IMessenger messenger)
     {
         _messenger = messenger;
-    }
-
-    public void SendImmediate<T>(T message) where T : class
-    {
-        _messenger.Send(message);
     }
 
     /// <summary>
@@ -85,6 +80,24 @@ public class MessengerService : IMessengerService, IDisposable
         });
     }
 
+    public void SendImmediate<T>(T message) where T : class
+    {
+        _messenger.Send(message);
+    }
+
+    public void StrongSubscribe<T>(object subscriber, Action<T> handler, bool runOnUIThread = false) where T : class
+    {
+        var recipient = new StrongReferenceRecipient<T>(handler, runOnUIThread);
+
+        // Keep strong reference to prevent GC
+        _strongReferences.AddOrUpdate(subscriber,
+            [recipient],
+            (key, existing) => { existing.Add(recipient); return existing; });
+
+        // Register the recipient with the messenger
+        _messenger.Register<T>(recipient, (r, m) => ((StrongReferenceRecipient<T>)r).HandleMessage(m));
+    }
+
     public void Subscribe<T>(object subscriber, Action<T> handler, bool runOnUIThread = false) where T : class
     {
         // Create a wrapper that handles UI thread dispatch if needed
@@ -107,18 +120,9 @@ public class MessengerService : IMessengerService, IDisposable
         _weakSubscriptions.AddOrUpdate(subscriber,
             [typeof(T)],
             (key, existing) => { existing.Add(typeof(T)); return existing; });
-    }    public void StrongSubscribe<T>(object subscriber, Action<T> handler, bool runOnUIThread = false) where T : class
-    {
-        var recipient = new StrongReferenceRecipient<T>(handler, runOnUIThread);
+    }
 
-        // Keep strong reference to prevent GC
-        _strongReferences.AddOrUpdate(subscriber,
-            [recipient],
-            (key, existing) => { existing.Add(recipient); return existing; });
-
-        // Register the recipient with the messenger
-        _messenger.Register<T>(recipient, (r, m) => ((StrongReferenceRecipient<T>)r).HandleMessage(m));
-    }    public void Unsubscribe<T>(object subscriber) where T : class
+    public void Unsubscribe<T>(object subscriber) where T : class
     {
         // Unsubscribe weak subscriptions
         _messenger.Unregister<T>(subscriber);
@@ -148,7 +152,9 @@ public class MessengerService : IMessengerService, IDisposable
                 _strongReferences.TryRemove(subscriber, out _);
             }
         }
-    }    public void UnsubscribeAll(object subscriber)
+    }
+
+    public void UnsubscribeAll(object subscriber)
     {
         // Unsubscribe all weak subscriptions
         _messenger.UnregisterAll(subscriber);
@@ -180,7 +186,6 @@ public class MessengerService : IMessengerService, IDisposable
     }
 
     #region IDisposable
-
     private bool _disposed;
 
     public void Dispose()
@@ -219,12 +224,6 @@ internal class StrongReferenceRecipient<T> where T : class
     private readonly Action<T> _handler;
     private readonly bool _runOnUIThread;
 
-    public StrongReferenceRecipient(Action<T> handler, bool runOnUIThread)
-    {
-        _handler = handler;
-        _runOnUIThread = runOnUIThread;
-    }
-
     public void HandleMessage(T message)
     {
         if (_runOnUIThread && Application.Current != null)
@@ -235,5 +234,11 @@ internal class StrongReferenceRecipient<T> where T : class
         {
             _handler(message);
         }
+    }
+
+    public StrongReferenceRecipient(Action<T> handler, bool runOnUIThread)
+    {
+        _handler = handler;
+        _runOnUIThread = runOnUIThread;
     }
 }

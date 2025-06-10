@@ -113,7 +113,7 @@ public partial class App : Application
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.WmiNamespacePaneViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.OptionsViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.PropertyGridViewModel>();
-        services.AddSingleton<WmiExplorer.Presentation.ViewModels.MainViewModel>();
+        services.AddSingleton<WmiExplorer.Presentation.ViewModels.Coordinators.MainViewModel>();
 
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.Watcher.WmiWatcherViewModel>();
         services.AddSingleton<WmiExplorer.Presentation.ViewModels.WmiMethodViewModel>();
