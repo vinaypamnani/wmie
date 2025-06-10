@@ -4,7 +4,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Services;
-using WmiExplorer.Themes;
+using WmiExplorer.Presentation.Themes;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
@@ -27,18 +27,18 @@ public partial class OptionsViewModel : MessagingViewModelBase
     private WmiOperationMode _operationMode;
 
     private readonly ISettingsService _settingsService;
-    private readonly ThemeManager _themeManager;
+    private readonly IThemeService _themeService;
     private readonly IWmiService _wmiService;
 
     public OptionsViewModel(
            IMessengerService messengerService,
            ISettingsService settingsService,
-           ThemeManager themeManager,
+           IThemeService themeService,
            IWmiService wmiService,
            NamespacesViewModel namespacesViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
+        _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
 
@@ -58,7 +58,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
     /// <summary>
     /// Gets the current theme object
     /// </summary>
-    public Theme CurrentTheme => _themeManager.CurrentThemeObject!;
+    public Theme CurrentTheme => _themeService.CurrentThemeObject!;
 
     /// <summary>
     /// Command to connect to a WMI namespace
@@ -183,6 +183,6 @@ public partial class OptionsViewModel : MessagingViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        _themeManager.ToggleTheme();
+        _themeService.ToggleTheme();
     }
 }

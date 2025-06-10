@@ -11,7 +11,6 @@ using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.Views;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
-using WmiExplorer.Themes;
 
 namespace WmiExplorer;
 
@@ -65,8 +64,8 @@ public partial class App : Application
             throw new InvalidOperationException("ServiceProvider is not initialized.");
 
         // Initialize theme
-        var themeManager = ServiceProvider.GetRequiredService<ThemeManager>();
-        themeManager.InitializeTheme();
+        var themeService = ServiceProvider.GetRequiredService<IThemeService>();
+        themeService.InitializeTheme();
 
         // Register Base WMI providers for PropertyGrid using the new generic method
         var wmiService = ServiceProvider.GetRequiredService<IWmiService>();
@@ -97,8 +96,8 @@ public partial class App : Application
         services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<ISettingsService, SettingsService>(provider =>
             new SettingsService(provider.GetRequiredService<IMessengerService>()));
-        services.AddSingleton<ThemeManager>(provider =>
-            new ThemeManager(
+        services.AddSingleton<IThemeService>(provider =>
+            new ThemeService(
                 provider.GetRequiredService<IMessengerService>(),
                 provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<ICacheService, CacheService>();

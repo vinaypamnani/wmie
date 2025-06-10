@@ -1,7 +1,5 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
     <ResourceDictionary.MergedDictionaries>
-        <!--  Include generic default theme-specific resources (these get updated by theme system)  -->
-        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Themes/Generic.xaml" />
         <!--  Include all of our modular style files  -->
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/TextControlStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ButtonStyles.xaml" />

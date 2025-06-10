@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows.Media;
 using WmiExplorer.Common.Base;
 
-namespace WmiExplorer.Themes;
+namespace WmiExplorer.Presentation.Themes;
 
 public partial class Theme : DisposableObservableObject
 {
@@ -153,11 +153,4 @@ public partial class Theme : DisposableObservableObject
     {
         ThemeBrushes = CreateThemeBrushes(ThemeColors);
     }
-}
-
-public class ThemeCollection : Dictionary<string, Theme>
-{
-    public ThemeCollection() : base(StringComparer.OrdinalIgnoreCase) { }
-
-    public Theme? Default => this.ContainsKey("Dark") ? this["Dark"] : this.Values.FirstOrDefault();
 }

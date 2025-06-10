@@ -4,7 +4,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Services;
-using WmiExplorer.Themes;
+using WmiExplorer.Presentation.Themes;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
@@ -37,7 +37,7 @@ public partial class MainViewModel : MessagingViewModelBase
     private int _selectedTabIndex;
 
     private readonly ISettingsService _settingsService;
-    private readonly ThemeManager _themeManager;
+    private readonly IThemeService _themeService;
 
     [ObservableProperty]
     private string _themeToggleText = string.Empty;
@@ -48,13 +48,13 @@ public partial class MainViewModel : MessagingViewModelBase
     public MainViewModel(
                  IMessengerService messengerService,
                  ISettingsService settingsService,
-                 ThemeManager themeManager,
+                 IThemeService themeService,
                  Coordinators.NamespacesViewModel namespacesViewModel,
                  Coordinators.OptionsViewModel optionsViewModel,
                  Coordinators.PropertyGridViewModel propertyGridViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
+        _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _propertyGridViewModel = propertyGridViewModel ?? throw new ArgumentNullException(nameof(propertyGridViewModel));
@@ -143,8 +143,7 @@ public partial class MainViewModel : MessagingViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        _themeManager.ToggleTheme();
-        // Theme change message will trigger UpdateThemeProperties via subscription
+        _themeService.ToggleTheme(); // Theme change message will trigger UpdateThemeProperties via subscription
     }
 
     /// <summary>
@@ -152,7 +151,7 @@ public partial class MainViewModel : MessagingViewModelBase
     /// </summary>
     private void UpdateThemeProperties()
     {
-        CurrentTheme = _themeManager.CurrentThemeObject!;
-        ThemeToggleText = _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
+        CurrentTheme = _themeService.CurrentThemeObject!;
+        ThemeToggleText = _themeService.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
     }
 }

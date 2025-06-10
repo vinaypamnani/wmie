@@ -5,7 +5,7 @@ using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Services;
-using WmiExplorer.Themes;
+using WmiExplorer.Presentation.Themes;
 
 namespace WmiExplorer.Presentation.Views;
 
@@ -17,12 +17,12 @@ public partial class MainWindow : Window
     private readonly MainViewModel _mainViewModel;
     private readonly IMessengerService _messengerService;
     private readonly ISettingsService _settingsService;
-    private readonly ThemeManager _themeManager;
+    private readonly IThemeService _themeService;
 
     public MainWindow(
         IMessengerService messengerService,
         ISettingsService settingsService,
-        ThemeManager themeManager,
+        IThemeService themeService,
         MainViewModel mainViewModel)
     {
         InitializeComponent();
@@ -30,7 +30,7 @@ public partial class MainWindow : Window
 
         _messengerService = messengerService;
         _settingsService = settingsService;
-        _themeManager = themeManager;
+        _themeService = themeService;
 
         // Create the main view model with injected services
         _mainViewModel = mainViewModel;
@@ -92,9 +92,9 @@ public partial class MainWindow : Window
 
     private void ApplyTitleBarTheme(IntPtr hwnd)
     {
-        // The DWMWINDOWATTRIBUTE enum and DwmSetWindowAttribute method have been moved to ThemeManager
-        // Use the ThemeManager's implementation
-        _themeManager.ApplyTitleBarTheme(hwnd, Background as SolidColorBrush);
+        // The DWMWINDOWATTRIBUTE enum and DwmSetWindowAttribute method have been moved to ThemeService
+        // Use the ThemeService's implementation
+        _themeService.ApplyTitleBarTheme(hwnd, Background as SolidColorBrush);
     }
 
 
