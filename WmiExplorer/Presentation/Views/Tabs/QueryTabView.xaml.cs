@@ -12,10 +12,10 @@ public partial class QueryTabView : UserControl
     public QueryTabView()
     {
         InitializeComponent();
-        DataContextChanged += WmiQueryTab_DataContextChanged;
+        DataContextChanged += QueryTab_DataContextChanged;
     }
 
-    private void WmiQueryTab_DataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
+    private void QueryTab_DataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
     {
         SyncColumns();
         if (e.OldValue is QueryTabViewModel oldVm)
