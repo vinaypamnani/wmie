@@ -9,12 +9,12 @@ namespace WmiExplorer.Presentation.ViewModels.Watcher;
 /// <summary>
 /// ViewModel for a single WMI event watcher item
 /// </summary>
-public partial class WmiWatcherItem : DisposableObservableObject
+public partial class WmiEventWatcherViewModel : DisposableObservableObject
 {
     private readonly string _eventDisplayPropertyName;
     private readonly string _eventType;
     private readonly Action<WmiEvent> _onEventReceived;
-    private readonly Action<WmiWatcherItem> _onRemove;
+    private readonly Action<WmiEventWatcherViewModel> _onRemove;
     private readonly WmiEventWatcher _watcher;
 
     [ObservableProperty]
@@ -23,11 +23,11 @@ public partial class WmiWatcherItem : DisposableObservableObject
     private bool _isRunning;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WmiWatcherItem"/> class.
+    /// Initializes a new instance of the <see cref="WmiEventWatcherViewModel"/> class.
     /// </summary>
-    public WmiWatcherItem(
+    public WmiEventWatcherViewModel(
         WmiEventWatcher watcher,
-        Action<WmiWatcherItem> onRemove,
+        Action<WmiEventWatcherViewModel> onRemove,
         Action<WmiEvent> onEventReceived,
         string eventType,
         string eventDisplayPropertyName = ""

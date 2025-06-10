@@ -6,7 +6,7 @@ namespace WmiExplorer.Presentation.ViewModels.Watcher;
 /// <summary>
 /// Encapsulates all state, validation, and query construction for a WMI event query.
 /// </summary>
-public partial class WmiWatcherQueryBuilder : DisposableObservableObject
+public partial class WatcherQueryBuilder : DisposableObservableObject
 {
     /// <summary>
     /// Represents the type of WMI event for query building and UI logic.
