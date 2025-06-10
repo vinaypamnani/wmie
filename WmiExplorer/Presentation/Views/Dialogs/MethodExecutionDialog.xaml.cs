@@ -1,6 +1,6 @@
 using System.Windows;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels.Coordinators;
+using WmiExplorer.Presentation.ViewModels.Dialogs;
 
 namespace WmiExplorer.Presentation.Views.Dialogs;
 
@@ -9,7 +9,7 @@ namespace WmiExplorer.Presentation.Views.Dialogs;
 /// </summary>
 public partial class MethodExecutionDialog : Window
 {
-    private readonly MethodExecutionViewModel? _viewModel;
+    private readonly MethodExecutionDialogViewModel? _viewModel;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionDialog"/> class.
@@ -23,7 +23,7 @@ public partial class MethodExecutionDialog : Window
     /// Initializes a new instance of the <see cref="MethodExecutionDialog"/> class with a ViewModel.
     /// </summary>
     /// <param name="viewModel">The ViewModel to use for this dialog.</param>
-    public MethodExecutionDialog(MethodExecutionViewModel viewModel) : this()
+    public MethodExecutionDialog(MethodExecutionDialogViewModel viewModel) : this()
     {
         _viewModel = viewModel;
         DataContext = _viewModel;
@@ -48,7 +48,7 @@ public partial class MethodExecutionDialog : Window
         WmiMethod wmiMethod,
         WmiInstance? wmiInstance = null)
     {
-        var viewModel = new MethodExecutionViewModel(
+        var viewModel = new MethodExecutionDialogViewModel(
             wmiNamespace,
             wmiClass,
             wmiMethod,

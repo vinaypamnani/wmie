@@ -6,12 +6,12 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 
-namespace WmiExplorer.Presentation.ViewModels.Coordinators;
+namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 
 /// <summary>
 /// ViewModel for executing WMI methods (both static and instance)
 /// </summary>
-public partial class MethodExecutionViewModel : DisposableObservableObject
+public partial class MethodExecutionDialogViewModel : DisposableObservableObject
 {
     public event EventHandler? CloseRequested;
 
@@ -36,13 +36,13 @@ public partial class MethodExecutionViewModel : DisposableObservableObject
     private string _statusMessage = "Ready";
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MethodExecutionViewModel"/> class.
+    /// Initializes a new instance of the <see cref="MethodExecutionDialogViewModel"/> class.
     /// </summary>
     /// <param name="wmiNamespace">The WMI namespace containing the class.</param>
     /// <param name="wmiClass">The WMI class containing the method.</param>
     /// <param name="wmiMethod">The WMI method to execute.</param>
     /// <param name="wmiInstance">The WMI instance for non-static methods (optional).</param>
-    public MethodExecutionViewModel(
+    public MethodExecutionDialogViewModel(
         WmiNamespace wmiNamespace,
         WmiClass wmiClass,
         WmiMethod wmiMethod,
