@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Application = System.Windows.Application;
 using System.Windows.Media;
@@ -12,6 +13,16 @@ namespace WmiExplorer.Themes;
 /// </summary>
 public class ThemeManager
 {
+    // Windows API enums and methods
+    private enum DWMWINDOWATTRIBUTE
+    {
+        DWMWA_USE_IMMERSIVE_DARK_MODE = 20, // Windows 10 1809+
+        DWMWA_CAPTION_COLOR = 35 // Added in Windows 11
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attribute, ref uint pvAttribute, int cbAttribute);
+
     private string _currentThemeName;
     private readonly IMessengerService _messengerService;
     private readonly ISettingsService _settingsService;
@@ -250,6 +261,42 @@ public class ThemeManager
     public void ToggleTheme()
     {
         ApplyTheme(_currentThemeName == "Dark" ? "Light" : "Dark");
+    }
+
+    /// <summary>
+    /// Applies the current theme to a window's title bar
+    /// </summary>
+    /// <param name="hwnd">Window handle</param>
+    /// <param name="fallbackBrush">Optional fallback brush to use if theme color isn't available</param>
+    public void ApplyTitleBarTheme(IntPtr hwnd, SolidColorBrush? fallbackBrush = null)
+    {
+        try
+        {
+            // Set dark mode for title bar based on current theme
+            bool isDarkTheme = CurrentThemeName == "Dark";
+            uint darkModeValue = isDarkTheme ? 1u : 0u;
+            DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkModeValue, sizeof(uint));
+
+            // Get the background color from the current theme
+            if (CurrentThemeObject?.ThemeColors.TryGetValue("PrimaryBackgroundColor", out Color bgColor) == true)
+            {
+                // Convert to win32 COLORREF format (BGR)
+                uint colorRef = (uint)((bgColor.R) | (bgColor.G << 8) | (bgColor.B << 16));
+
+                // Set title bar color via DwmApi
+                DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_CAPTION_COLOR, ref colorRef, sizeof(uint));
+            }
+            else if (fallbackBrush != null)
+            {
+                // Fallback to provided brush if theme color isn't available
+                uint colorRef = (uint)((fallbackBrush.Color.R) | (fallbackBrush.Color.G << 8) | (fallbackBrush.Color.B << 16));
+                DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_CAPTION_COLOR, ref colorRef, sizeof(uint));
+            }
+        }
+        catch
+        {
+            // Fail silently if API not supported on this Windows version
+        }
     }
 
     private static string GetThemesFilePath()

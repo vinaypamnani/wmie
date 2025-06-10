@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
-using MessageBox = System.Windows.MessageBox;
 using WmiExplorer.Integration.AvalonEdit.Behaviors;
 using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -168,7 +167,7 @@ public partial class App : Application
     private void HandleUnhandledException(Exception exception, string title)
     {
         string message = $"An unexpected error occurred: {exception?.Message}\n\n{exception?.StackTrace}";
-        MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+        Debug.WriteLine($"[Unhandled Exception] {title}: {message}");
         try
         {
             var logPath = GetErrorLogPath();

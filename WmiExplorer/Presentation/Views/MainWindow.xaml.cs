@@ -1,4 +1,3 @@
-﻿using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -14,13 +13,6 @@ namespace WmiExplorer.Presentation.Views;
 /// </summary>
 public partial class MainWindow : Window
 {
-    // Windows API enums and methods
-    private enum DWMWINDOWATTRIBUTE
-    {
-        DWMWA_USE_IMMERSIVE_DARK_MODE = 20, // Windows 10 1809+
-        DWMWA_CAPTION_COLOR = 35 // Added in Windows 11
-    }
-
     private readonly MainViewModel _mainViewModel;
     private readonly IMessengerService _messengerService;
     private readonly ISettingsService _settingsService;
@@ -99,37 +91,11 @@ public partial class MainWindow : Window
 
     private void ApplyTitleBarTheme(IntPtr hwnd)
     {
-        try
-        {
-            // Set dark mode for title bar based on current theme
-            bool isDarkTheme = _themeManager?.CurrentThemeName == "Dark";
-            uint darkModeValue = isDarkTheme ? 1u : 0u;
-            DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkModeValue, sizeof(uint));
-
-            // Get the background color from the current theme
-            if (_themeManager?.CurrentThemeObject?.ThemeColors.TryGetValue("PrimaryBackgroundColor", out Color bgColor) == true)
-            {
-                // Convert to win32 COLORREF format (BGR)
-                uint colorRef = (uint)((bgColor.R) | (bgColor.G << 8) | (bgColor.B << 16));
-
-                // Set title bar color via DwmApi
-                DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_CAPTION_COLOR, ref colorRef, sizeof(uint));
-            }
-            else if (Background is SolidColorBrush fallbackBrush)
-            {
-                // Fallback to window background if theme color isn't available
-                uint colorRef = (uint)((fallbackBrush.Color.R) | (fallbackBrush.Color.G << 8) | (fallbackBrush.Color.B << 16));
-                DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_CAPTION_COLOR, ref colorRef, sizeof(uint));
-            }
-        }
-        catch
-        {
-            // Fail silently if API not supported on this Windows version
-        }
+        // The DWMWINDOWATTRIBUTE enum and DwmSetWindowAttribute method have been moved to ThemeManager
+        // Use the ThemeManager's implementation
+        _themeManager.ApplyTitleBarTheme(hwnd, Background as SolidColorBrush);
     }
 
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attribute, ref uint pvAttribute, int cbAttribute);
 
     /// <summary>
     /// Initializes title bar theming to match the application theme.
@@ -144,7 +110,7 @@ public partial class MainWindow : Window
             HwndSource.FromHwnd(handle)?.AddHook(new HwndSourceHook(WndProc));
 
             // Apply the current theme to the title bar
-            ApplyTitleBarTheme(handle);
+            // ApplyTitleBarTheme(handle);
 
             // Subscribe to theme change messages to update title bar color with strong reference
             // This ensures the window handle is available when theme changes occur
