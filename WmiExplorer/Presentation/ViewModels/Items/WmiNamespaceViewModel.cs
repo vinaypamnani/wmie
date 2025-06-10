@@ -57,7 +57,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
     [ObservableProperty]
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
 
-    private WmiQueryViewModel _queryViewModel;
+    private QueryTabViewModel _queryTabViewModel;
     private WmiSearchViewModel _searchViewModel;
 
     [ObservableProperty]
@@ -108,8 +108,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
         // Initialize query and search view models using DI - transient.
         _searchViewModel = App.ServiceProvider?.GetRequiredService<WmiSearchViewModel>() ??
             throw new InvalidOperationException("Failed to resolve WmiSearchViewModel from service provider");
-        _queryViewModel = App.ServiceProvider?.GetRequiredService<WmiQueryViewModel>() ??
-            throw new InvalidOperationException("Failed to resolve WmiQueryViewModel from service provider");
+        _queryTabViewModel = App.ServiceProvider?.GetRequiredService<QueryTabViewModel>() ??
+            throw new InvalidOperationException("Failed to resolve QueryTabViewModel from service provider");
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModel
 
     public string Name => _wmiNamespace.IsRoot ? _wmiNamespace.NamespacePath : _wmiNamespace.NamespaceName;
     public string NamespacePath => _wmiNamespace.NamespacePath;
-    public WmiQueryViewModel QueryViewModel => _queryViewModel;
+    public QueryTabViewModel QueryTabViewModel => _queryTabViewModel;
     public WmiSearchViewModel SearchViewModel => _searchViewModel;
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 

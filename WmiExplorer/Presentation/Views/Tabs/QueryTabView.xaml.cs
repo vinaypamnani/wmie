@@ -5,11 +5,11 @@ using WmiExplorer.Presentation.ViewModels.Coordinators;
 namespace WmiExplorer.Presentation.Views.Tabs;
 
 /// <summary>
-/// Interaction logic for WmiQueryTab.xaml
+/// Interaction logic for QueryTabView.xaml
 /// </summary>
-public partial class WmiQueryTab : UserControl
+public partial class QueryTabView : UserControl
 {
-    public WmiQueryTab()
+    public QueryTabView()
     {
         InitializeComponent();
         DataContextChanged += WmiQueryTab_DataContextChanged;
@@ -18,11 +18,11 @@ public partial class WmiQueryTab : UserControl
     private void WmiQueryTab_DataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
     {
         SyncColumns();
-        if (e.OldValue is WmiQueryViewModel oldVm)
+        if (e.OldValue is QueryTabViewModel oldVm)
         {
             oldVm.ResultColumns.CollectionChanged -= ResultColumns_CollectionChanged;
         }
-        if (e.NewValue is WmiQueryViewModel newVm)
+        if (e.NewValue is QueryTabViewModel newVm)
         {
             newVm.ResultColumns.CollectionChanged += ResultColumns_CollectionChanged;
         }
@@ -35,7 +35,7 @@ public partial class WmiQueryTab : UserControl
 
     private void SyncColumns()
     {
-        if (DataContext is WmiQueryViewModel vm)
+        if (DataContext is QueryTabViewModel vm)
         {
             ResultsDataGrid.Columns.Clear();
             foreach (var col in vm.ResultColumns)

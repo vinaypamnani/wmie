@@ -16,7 +16,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// ViewModel for WMI query execution and result management.
 /// Handles query operations, filtering, and result display.
 /// </summary>
-public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
+public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
 {
     [ObservableProperty]
     private ICacheService _cacheService;
@@ -46,7 +46,7 @@ public partial class WmiQueryViewModel : ResultsViewModelBase<WmiInstance>
 
     private readonly IWmiService _wmiService;
 
-    public WmiQueryViewModel(IMessengerService messengerService, IWmiService wmiService, ICacheService cacheService)
+    public QueryTabViewModel(IMessengerService messengerService, IWmiService wmiService, ICacheService cacheService)
                  : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));

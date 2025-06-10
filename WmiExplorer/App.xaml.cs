@@ -123,7 +123,7 @@ public partial class App : Application
         services.AddSingleton<WmiPropertyViewModel>();
 
         // Register additional ViewModels that have multiple instances
-        services.AddTransient<WmiQueryViewModel>();
+        services.AddTransient<QueryTabViewModel>();
         services.AddTransient<WmiSearchViewModel>();
 
 
