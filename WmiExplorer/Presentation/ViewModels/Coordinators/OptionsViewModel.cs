@@ -20,7 +20,7 @@ public partial class OptionsViewModel : MessagingViewModel
     [ObservableProperty]
     private string _computerName = Environment.MachineName;
 
-    private readonly WmiNamespacePaneViewModel _namespacePaneViewModel;
+    private readonly NamespacesViewModel _namespacesViewModel;
 
     [ObservableProperty]
     private WmiOperationMode _operationMode;
@@ -34,12 +34,12 @@ public partial class OptionsViewModel : MessagingViewModel
            ISettingsService settingsService,
            ThemeManager themeManager,
            IWmiService wmiService,
-           WmiNamespacePaneViewModel namespacePaneViewModel) : base(messengerService)
+           NamespacesViewModel namespacesViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-        _namespacePaneViewModel = namespacePaneViewModel ?? throw new ArgumentNullException(nameof(namespacePaneViewModel));
+        _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
 
         // Initialize the operation mode from the service
         _operationMode = _wmiService.OperationMode;
@@ -65,7 +65,7 @@ public partial class OptionsViewModel : MessagingViewModel
     [RelayCommand]
     private async Task ConnectAsync()
     {
-        await _namespacePaneViewModel.ConnectAsync(ComputerName.Trim());
+        await _namespacesViewModel.ConnectAsync(ComputerName.Trim());
     }
 
     /// <summary>
@@ -156,19 +156,19 @@ public partial class OptionsViewModel : MessagingViewModel
     [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
     private void ReloadClasses()
     {
-        _namespacePaneViewModel.ReloadClassesCommand.Execute(null);
+        _namespacesViewModel.ReloadClassesCommand.Execute(null);
     }
 
-    private bool ReloadClassesCanExecute() => _namespacePaneViewModel.ReloadClassesCommand.CanExecute(null);
+    private bool ReloadClassesCanExecute() => _namespacesViewModel.ReloadClassesCommand.CanExecute(null);
 
     /// <summary>
     /// Subscribe to changes that affect the command's CanExecute state
     /// </summary>
     private void SubscribeToCommandStateChanges()
     {
-        _namespacePaneViewModel.PropertyChanged += (s, e) =>
+        _namespacesViewModel.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName == nameof(_namespacePaneViewModel.SelectedNamespace))
+            if (e.PropertyName == nameof(_namespacesViewModel.SelectedNamespace))
             {
                 // Notify that the command's CanExecute state may have changed
                 ReloadClassesCommand.NotifyCanExecuteChanged();

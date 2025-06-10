@@ -24,7 +24,7 @@ public partial class MainViewModel : MessagingViewModel
     private string _elapsedTimeMessage = string.Empty;
 
     [ObservableProperty]
-    private Coordinators.WmiNamespacePaneViewModel _namespacePaneViewModel = null!;
+    private Coordinators.NamespacesViewModel _namespacesViewModel = null!;
 
     [ObservableProperty]
     private Coordinators.OptionsViewModel _optionsViewModel = null!;
@@ -48,13 +48,13 @@ public partial class MainViewModel : MessagingViewModel
                  IMessengerService messengerService,
                  ISettingsService settingsService,
                  ThemeManager themeManager,
-                 Coordinators.WmiNamespacePaneViewModel namespacePaneViewModel,
+                 Coordinators.NamespacesViewModel namespacesViewModel,
                  Coordinators.OptionsViewModel optionsViewModel,
                  Coordinators.PropertyGridViewModel propertyGridViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
-        _namespacePaneViewModel = namespacePaneViewModel ?? throw new ArgumentNullException(nameof(namespacePaneViewModel));
+        _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _propertyGridViewModel = propertyGridViewModel ?? throw new ArgumentNullException(nameof(propertyGridViewModel));
 

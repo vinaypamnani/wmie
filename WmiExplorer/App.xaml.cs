@@ -113,7 +113,7 @@ public partial class App : Application
         // Register all ViewModel classes for DI - order matters for dependencies
         services.AddSingleton<WmiInstancesTabViewModel>();
         services.AddSingleton<WmiClassesTabViewModel>();
-        services.AddSingleton<WmiNamespacePaneViewModel>();
+        services.AddSingleton<NamespacesViewModel>();
         services.AddSingleton<OptionsViewModel>();
         services.AddSingleton<PropertyGridViewModel>();
         services.AddSingleton<MainViewModel>();

@@ -13,7 +13,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Namespaces pane. Manages the collection of namespaces
 /// and related UI operations for the namespace tree view.
 /// </summary>
-public partial class WmiNamespacePaneViewModel : MessagingViewModel
+public partial class NamespacesViewModel : MessagingViewModel
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
@@ -31,7 +31,7 @@ public partial class WmiNamespacePaneViewModel : MessagingViewModel
 
     private readonly IWmiService _wmiService;
 
-    public WmiNamespacePaneViewModel(
+    public NamespacesViewModel(
            IMessengerService messengerService,
            ISettingsService settingsService,
            IWmiService wmiService,

@@ -76,7 +76,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!--  Namespace View  -->
-                    <main:WmiNamespacesPane Grid.Column="0" DataContext="{Binding NamespacePaneViewModel}" />
+                    <main:NamespacesView Grid.Column="0" DataContext="{Binding NamespacesViewModel}" />
 
                     <GridSplitter Grid.Column="1"
                                   Width="{StaticResource SpacingMedium}"
@@ -88,19 +88,19 @@
                     <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="Classes">
                             <!--  All the grid content has been moved to WmiClassesTab  -->
-                            <tabs:WmiClassesTab DataContext="{Binding NamespacePaneViewModel.ClassesTabViewModel}" />
+                            <tabs:WmiClassesTab DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
                         </TabItem>
                         <TabItem Header="Search">
                             <!--  Search View  -->
-                            <tabs:WmiSearchTab DataContext="{Binding NamespacePaneViewModel.SelectedNamespace.SearchViewModel}" />
+                            <tabs:WmiSearchTab DataContext="{Binding NamespacesViewModel.SelectedNamespace.SearchViewModel}" />
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
-                            <tabs:WmiWatcherTab DataContext="{Binding NamespacePaneViewModel.WatcherViewModel}" />
+                            <tabs:WmiWatcherTab DataContext="{Binding NamespacesViewModel.WatcherViewModel}" />
                         </TabItem>
                         <TabItem Header="Query">
                             <!--  Query View  -->
-                            <tabs:WmiQueryTab DataContext="{Binding NamespacePaneViewModel.SelectedNamespace.QueryViewModel}" />
+                            <tabs:WmiQueryTab DataContext="{Binding NamespacesViewModel.SelectedNamespace.QueryViewModel}" />
                         </TabItem>
                     </TabControl>
 
