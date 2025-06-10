@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
-using CommunityToolkit.Mvvm.Messaging;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Models;
+using WmiExplorer.Common.Enums;
 
 namespace WmiExplorer.Services;
 

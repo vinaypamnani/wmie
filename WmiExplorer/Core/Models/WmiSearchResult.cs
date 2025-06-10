@@ -1,5 +1,5 @@
 using System.Management;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Enums;
 
 namespace WmiExplorer.Core.Models;
 

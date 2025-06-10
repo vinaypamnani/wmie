@@ -1,7 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Enums;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;
 

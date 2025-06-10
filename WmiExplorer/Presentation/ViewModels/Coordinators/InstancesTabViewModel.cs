@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Models;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 

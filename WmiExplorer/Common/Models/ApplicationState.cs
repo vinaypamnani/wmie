@@ -1,4 +1,6 @@
-namespace WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Enums;
+
+namespace WmiExplorer.Common.Models;
 
 /// <summary>
 /// Represents the current state of the application with additional metadata
@@ -88,17 +90,4 @@ public class ApplicationState
     /// </summary>
     public static ApplicationState Warning(string message)
         => new ApplicationState(AppState.Warning, message);
-}
-
-/// <summary>
-/// Enumeration of possible application states
-/// </summary>
-public enum AppState
-{
-    Ready,
-    Busy,
-    Error,
-    Success,
-    Warning,
-    Indeterminate
 }

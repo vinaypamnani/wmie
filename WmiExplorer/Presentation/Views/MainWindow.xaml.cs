@@ -1,7 +1,8 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Models;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Services;
 using WmiExplorer.Themes;

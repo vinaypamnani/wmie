@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:WmiExplorer.Presentation.Views.UserControls"
-             xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
+             xmlns:enums="clr-namespace:WmiExplorer.Common.Enums"
              Height="22"
              MinWidth="180">
     <UserControl.Resources>
@@ -45,7 +45,7 @@
                     <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Visible" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Busy}">
+                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Busy}">
                                 <Setter Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -62,7 +62,7 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Indeterminate}">
+                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Indeterminate}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -84,7 +84,7 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Error}">
+                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Error}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -106,10 +106,10 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Ready}">
+                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Ready}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Success}">
+                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Success}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -131,7 +131,7 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Warning}">
+                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Warning}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -160,7 +160,7 @@
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Busy}">
+                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Busy}">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -204,7 +204,7 @@
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static shared:AppState.Busy}">
+                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Busy}">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>

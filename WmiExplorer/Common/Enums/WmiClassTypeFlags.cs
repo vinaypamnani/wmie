@@ -1,4 +1,4 @@
-namespace WmiExplorer.Common.Shared;
+namespace WmiExplorer.Common.Enums;
 
 /// <summary>
 /// Flags enum to represent different types of WMI classes to include in enumeration

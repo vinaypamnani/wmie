@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Concurrent;
 using System.Windows;
 using WmiExplorer.Common.Helpers;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.Views;
 

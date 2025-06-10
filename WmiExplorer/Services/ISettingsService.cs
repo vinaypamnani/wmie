@@ -1,4 +1,5 @@
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Enums;
+using WmiExplorer.Common.Models;
 
 namespace WmiExplorer.Services;
 

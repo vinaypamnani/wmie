@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Helpers;

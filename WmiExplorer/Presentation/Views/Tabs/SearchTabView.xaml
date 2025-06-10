@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:shared="clr-namespace:WmiExplorer.Common.Shared"
+             xmlns:enums="clr-namespace:WmiExplorer.Common.Enums"
              d:DesignHeight="450"
              d:DesignWidth="800"
              mc:Ignorable="d">
@@ -54,19 +54,19 @@
                                  VerticalAlignment="Center"
                                  Content="Classes"
                                  GroupName="SearchType"
-                                 IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static shared:WmiSearchType.Class}}" />
+                                 IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static enums:WmiSearchType.Class}}" />
                     <RadioButton Grid.Column="1"
                                  Margin="0,0,8,0"
                                  VerticalAlignment="Center"
                                  Content="Methods"
                                  GroupName="SearchType"
-                                 IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static shared:WmiSearchType.Method}}" />
+                                 IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static enums:WmiSearchType.Method}}" />
                     <RadioButton Grid.Column="2"
                                  Margin="0,0,16,0"
                                  VerticalAlignment="Center"
                                  Content="Properties"
                                  GroupName="SearchType"
-                                 IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static shared:WmiSearchType.Property}}" />
+                                 IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static enums:WmiSearchType.Property}}" />
                     <TextBox Grid.Column="3"
                              Height="26"
                              MinWidth="120"
@@ -171,13 +171,13 @@
                             <GridViewColumn Header="Type">
                                 <GridViewColumn.Width>
                                     <Binding Converter="{StaticResource BooleanToDoubleConverter}"
-                                             ConverterParameter="{x:Static shared:WmiSearchType.Property}"
+                                             ConverterParameter="{x:Static enums:WmiSearchType.Property}"
                                              Path="DataContext.SearchType"
                                              RelativeSource="{RelativeSource AncestorType=UserControl}" />
                                 </GridViewColumn.Width>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Property.Type}" Visibility="{Binding DataContext.SearchType, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter={x:Static shared:WmiSearchType.Property}}" />
+                                        <TextBlock Text="{Binding Property.Type}" Visibility="{Binding DataContext.SearchType, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter={x:Static enums:WmiSearchType.Property}}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
@@ -186,13 +186,13 @@
                             <GridViewColumn Header="IsStatic">
                                 <GridViewColumn.Width>
                                     <Binding Converter="{StaticResource BooleanToDoubleConverter}"
-                                             ConverterParameter="{x:Static shared:WmiSearchType.Method}"
+                                             ConverterParameter="{x:Static enums:WmiSearchType.Method}"
                                              Path="DataContext.SearchType"
                                              RelativeSource="{RelativeSource AncestorType=UserControl}" />
                                 </GridViewColumn.Width>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Method.IsStatic}" Visibility="{Binding DataContext.SearchType, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter={x:Static shared:WmiSearchType.Method}}" />
+                                        <TextBlock Text="{Binding Method.IsStatic}" Visibility="{Binding DataContext.SearchType, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter={x:Static enums:WmiSearchType.Method}}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

@@ -1,6 +1,6 @@
 using System.Management;
 using System.Windows.Threading;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Core.Cache;
 
 namespace WmiExplorer.Services;

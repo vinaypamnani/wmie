@@ -4,7 +4,7 @@ using System.Text.Json;
 using Application = System.Windows.Application;
 using System.Windows.Media;
 using WmiExplorer.Services;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Messages;
 
 namespace WmiExplorer.Themes;
 

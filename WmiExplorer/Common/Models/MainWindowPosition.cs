@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows;
 
-namespace WmiExplorer.Common.Shared;
+namespace WmiExplorer.Common.Models;
 
 /// <summary>
 /// Represents the position and size of the main window

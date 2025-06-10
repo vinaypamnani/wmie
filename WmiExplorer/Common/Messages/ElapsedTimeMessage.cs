@@ -1,4 +1,4 @@
-namespace WmiExplorer.Common.Shared;
+namespace WmiExplorer.Common.Messages;
 
 /// <summary>
 /// Message containing elapsed time information for long-running operations

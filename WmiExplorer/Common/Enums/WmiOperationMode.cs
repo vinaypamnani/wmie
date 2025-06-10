@@ -1,4 +1,4 @@
-namespace WmiExplorer.Common.Shared;
+namespace WmiExplorer.Common.Enums;
 
 /// <summary>
 /// Specifies the mode for WMI operations.

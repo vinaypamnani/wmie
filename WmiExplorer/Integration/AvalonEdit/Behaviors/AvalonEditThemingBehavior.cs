@@ -3,7 +3,7 @@ using ICSharpCode.AvalonEdit.CodeCompletion;
 using System.Collections.Concurrent;
 using System.Windows;
 using System.Windows.Media;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Integration.AvalonEdit.Behaviors;

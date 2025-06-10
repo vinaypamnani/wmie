@@ -1,5 +1,6 @@
 using System.Windows;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Models;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Base;

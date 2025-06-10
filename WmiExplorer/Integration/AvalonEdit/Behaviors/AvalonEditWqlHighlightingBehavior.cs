@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Xml;
-using WmiExplorer.Common.Shared;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Integration.AvalonEdit.Behaviors;
