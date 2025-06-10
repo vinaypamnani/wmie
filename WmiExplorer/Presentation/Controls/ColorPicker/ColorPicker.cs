@@ -6,7 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace WmiExplorer.Presentation.ColorPicker;
+namespace WmiExplorer.Presentation.Controls.ColorPicker;
 
 /// <summary>
 /// A control that allows users to pick colors using a color picker dialog.

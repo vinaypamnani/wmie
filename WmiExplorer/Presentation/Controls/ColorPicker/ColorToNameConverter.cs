@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace WmiExplorer.Presentation.ColorPicker;
+namespace WmiExplorer.Presentation.Controls.ColorPicker;
 
 /// <summary>
 /// Converts a Color or SolidColorBrush to its known name, or ARGB hex if not known.

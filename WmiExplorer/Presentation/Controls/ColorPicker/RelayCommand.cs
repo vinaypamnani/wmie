@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace WmiExplorer.Presentation.ColorPicker;
+namespace WmiExplorer.Presentation.Controls.ColorPicker;
 
 /// <summary>
 /// A non-generic implementation of the ICommand interface.

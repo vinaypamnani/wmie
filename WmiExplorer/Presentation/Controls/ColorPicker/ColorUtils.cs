@@ -1,6 +1,6 @@
 using System.Windows.Media;
 
-namespace WmiExplorer.Presentation.ColorPicker;
+namespace WmiExplorer.Presentation.Controls.ColorPicker;
 
 /// <summary>
 /// Utility class for color conversion between RGB and HSV.

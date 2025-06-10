@@ -4,7 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace WmiExplorer.Presentation.ColorPicker;
+namespace WmiExplorer.Presentation.Controls.ColorPicker;
 
 /// <summary>
 /// A custom slider that displays the hue spectrum and allows selection of a hue value.
