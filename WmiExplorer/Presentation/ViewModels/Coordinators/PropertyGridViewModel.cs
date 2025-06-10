@@ -10,7 +10,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the PropertyGrid functionality.
 /// Manages property grid operations and selected object display.
 /// </summary>
-public partial class PropertyGridViewModel : MessagingViewModel
+public partial class PropertyGridViewModel : MessagingViewModelBase
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedObjectDisplayName))]

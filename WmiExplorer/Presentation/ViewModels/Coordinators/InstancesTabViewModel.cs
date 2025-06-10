@@ -10,7 +10,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Instances tab. Manages instance-related functionality
 /// and UI operations for the instances list view.
 /// </summary>
-public partial class InstancesTabViewModel : MessagingViewModel
+public partial class InstancesTabViewModel : MessagingViewModelBase
 {
     private readonly CancellationTokenSource _cts = new();
 

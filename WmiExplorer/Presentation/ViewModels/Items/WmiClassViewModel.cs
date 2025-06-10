@@ -16,7 +16,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// <summary>
 /// ViewModel for a WMI class, supports async loading, filtering, and selection of instances.
 /// </summary>
-public partial class WmiClassViewModel : MessagingViewModel
+public partial class WmiClassViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
     private ObservableCollection<WmiMethod>? _classMethods;

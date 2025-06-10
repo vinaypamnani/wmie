@@ -26,7 +26,7 @@ public class PropertyDisplayInfo
 /// <summary>
 /// View model for WMI Event Watcher tab
 /// </summary>
-public partial class WatcherTabViewModel : MessagingViewModel
+public partial class WatcherTabViewModel : MessagingViewModelBase
 {
     private readonly ICacheService _cacheService;
 

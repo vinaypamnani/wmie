@@ -11,7 +11,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for application options and settings.
 /// Manages all options-related functionality and UI operations.
 /// </summary>
-public partial class OptionsViewModel : MessagingViewModel
+public partial class OptionsViewModel : MessagingViewModelBase
 {
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]

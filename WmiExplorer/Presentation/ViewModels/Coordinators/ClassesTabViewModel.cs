@@ -11,7 +11,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Classes tab. Manages the collection of classes
 /// and related UI operations for the classes list view.
 /// </summary>
-public partial class ClassesTabViewModel : MessagingViewModel
+public partial class ClassesTabViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
 

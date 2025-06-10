@@ -9,7 +9,7 @@ namespace WmiExplorer.Common.Base;
 /// <summary>
 /// Base class for view models that manage a results collection, filter helper, and collection view.
 /// </summary>
-public abstract partial class ResultsViewModelBase<T> : MessagingViewModel
+public abstract partial class ResultsViewModelBase<T> : MessagingViewModelBase
 {
     protected FilterHelper<T> _filterHelper;
     protected ObservableCollection<T> _results = new();

@@ -11,7 +11,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// <summary>
 /// ViewModel for a WMI instance. Exposes instance properties and supports selection messaging.
 /// </summary>
-public partial class WmiInstanceViewModel : MessagingViewModel
+public partial class WmiInstanceViewModel : MessagingViewModelBase
 {
     public enum InstanceLoadState
     {

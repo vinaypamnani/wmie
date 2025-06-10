@@ -18,7 +18,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 // 3. Method invocation capabilities (using [RelayCommand])
 // 4. Parameter handling for method execution
 
-public partial class MethodsTabViewModel : MessagingViewModel
+public partial class MethodsTabViewModel : MessagingViewModelBase
 {
     private readonly IWmiService _wmiService;
 

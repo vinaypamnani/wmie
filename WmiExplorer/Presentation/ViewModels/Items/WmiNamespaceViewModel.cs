@@ -17,7 +17,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// <summary>
 /// ViewModel for a WMI namespace, supports async loading, filtering, and selection.
 /// </summary>
-public partial class WmiNamespaceViewModel : MessagingViewModel
+public partial class WmiNamespaceViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;

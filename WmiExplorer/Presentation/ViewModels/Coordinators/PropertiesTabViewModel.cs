@@ -18,7 +18,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 // 3. Filtering and sorting capabilities
 // 4. Commands using [RelayCommand] attributes
 
-public partial class PropertiesTabViewModel : MessagingViewModel
+public partial class PropertiesTabViewModel : MessagingViewModelBase
 {
     private readonly IWmiService _wmiService;
 

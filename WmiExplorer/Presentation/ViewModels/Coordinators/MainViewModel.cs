@@ -10,7 +10,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// <summary>
 /// Main ViewModel for the application
 /// </summary>
-public partial class MainViewModel : MessagingViewModel
+public partial class MainViewModel : MessagingViewModelBase
 {
     private readonly CancellationTokenSource _cts = new();
 

@@ -8,7 +8,7 @@ namespace WmiExplorer.Common.Base;
 /// Base class for ViewModels that need messaging capabilities
 /// Uses IMessengerService for comprehensive messaging functionality
 /// </summary>
-public abstract partial class MessagingViewModel : DisposableObservableObject
+public abstract partial class MessagingViewModelBase : DisposableObservableObject
 {
     protected readonly IMessengerService _messengerService;
 
@@ -16,7 +16,7 @@ public abstract partial class MessagingViewModel : DisposableObservableObject
     /// Initializes a new instance of the MessagingViewModel class
     /// </summary>
     /// <param name="messengerService">The messenger service to use</param>
-    protected MessagingViewModel(IMessengerService messengerService)
+    protected MessagingViewModelBase(IMessengerService messengerService)
     {
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
     }
