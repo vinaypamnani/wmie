@@ -119,8 +119,8 @@ public partial class App : Application
         services.AddSingleton<MainViewModel>();
 
         services.AddSingleton<Presentation.ViewModels.Watcher.WmiWatcherViewModel>();
-        services.AddSingleton<WmiMethodViewModel>();
-        services.AddSingleton<WmiPropertyViewModel>();
+        services.AddSingleton<MethodsTabViewModel>();
+        services.AddSingleton<PropertiesTabViewModel>();
 
         // Register additional ViewModels that have multiple instances
         services.AddTransient<QueryTabViewModel>();

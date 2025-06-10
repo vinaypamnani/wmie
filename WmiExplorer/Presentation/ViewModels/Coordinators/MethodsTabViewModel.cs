@@ -18,11 +18,11 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 // 3. Method invocation capabilities (using [RelayCommand])
 // 4. Parameter handling for method execution
 
-public partial class WmiMethodViewModel : MessagingViewModel
+public partial class MethodsTabViewModel : MessagingViewModel
 {
     private readonly IWmiService _wmiService;
 
-    public WmiMethodViewModel(IMessengerService messengerService, IWmiService wmiService) : base(messengerService)
+    public MethodsTabViewModel(IMessengerService messengerService, IWmiService wmiService) : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
     }
