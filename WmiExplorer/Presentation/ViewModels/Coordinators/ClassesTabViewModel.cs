@@ -134,7 +134,6 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
                 if (namespaceVm != SelectedNamespace)
                 {
                     SelectedNamespace = namespaceVm;
-                    SelectedClass = null; // Clear class selection when namespace changes
                 }
                 break;
 
