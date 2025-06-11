@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Data;
@@ -10,12 +11,17 @@ namespace WmiExplorer.Presentation.ViewModels.Watcher;
 /// <summary>
 /// Manages the collection of WMI events with filtering and lifecycle management
 /// </summary>
-public class EventManager : DisposableObservableObject
+public partial class EventManager : DisposableObservableObject
 {
     private readonly DebounceDispatcher _eventFilterDebouncer = new();
+
+    [ObservableProperty]
     private string _eventFilterText = string.Empty;
+
     private readonly ObservableCollection<WmiEvent> _events = new();
     private ICollectionView? _eventsView;
+
+    [ObservableProperty]
     private string? _selectedWatcherName;
 
     /// <summary>
@@ -25,23 +31,6 @@ public class EventManager : DisposableObservableObject
     {
         Events = new ReadOnlyObservableCollection<WmiEvent>(_events);
         TrackDisposable(_eventFilterDebouncer);
-    }
-
-    /// <summary>
-    /// Gets or sets the event filter text
-    /// </summary>
-    public string EventFilterText
-    {
-        get => _eventFilterText;
-        set
-        {
-            if (_eventFilterText != value)
-            {
-                _eventFilterText = value;
-                OnPropertyChanged();
-                RefreshFilterWithDebounce();
-            }
-        }
     }
 
     /// <summary>
@@ -69,23 +58,6 @@ public class EventManager : DisposableObservableObject
     /// Maximum number of events to keep in memory
     /// </summary>
     public int MaxEvents { get; set; } = 1000;
-
-    /// <summary>
-    /// Gets or sets the selected watcher name for filtering
-    /// </summary>
-    public string? SelectedWatcherName
-    {
-        get => _selectedWatcherName;
-        set
-        {
-            if (_selectedWatcherName != value)
-            {
-                _selectedWatcherName = value;
-                OnPropertyChanged();
-                EventsView.Refresh();
-            }
-        }
-    }
 
     /// <summary>
     /// Adds a new event to the collection
@@ -207,6 +179,22 @@ public class EventManager : DisposableObservableObject
 
         // Passed all filters
         return true;
+    }
+
+    /// <summary>
+    /// Partial method called when EventFilterText changes
+    /// </summary>
+    partial void OnEventFilterTextChanged(string value)
+    {
+        RefreshFilterWithDebounce();
+    }
+
+    /// <summary>
+    /// Partial method called when SelectedWatcherName changes
+    /// </summary>
+    partial void OnSelectedWatcherNameChanged(string? value)
+    {
+        EventsView.Refresh();
     }
 
     /// <summary>

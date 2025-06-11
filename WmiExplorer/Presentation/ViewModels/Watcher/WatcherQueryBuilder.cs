@@ -22,9 +22,17 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
     }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEventPropertyValueEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsTargetClassEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsTargetClassPropertyEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsEventTargetClassPropertyValueEnabled))]
     private string? _eventClass = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEventPropertyValueEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsTargetClassEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsTargetClassPropertyEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsEventTargetClassPropertyValueEnabled))]
     private PropertyDisplayInfo? _eventProperty = null;
 
     [ObservableProperty]
@@ -37,6 +45,7 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
     private string? _eventTargetClass = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEventTargetClassPropertyValueEnabled))]
     private PropertyDisplayInfo? _eventTargetClassProperty = null;
 
     [ObservableProperty]
@@ -46,6 +55,11 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
     private int _eventWithin = 5;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWithinEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsTargetClassEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsTargetClassPropertyEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsEventTargetClassPropertyValueEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsEventPropertyEnabled))]
     private bool _isIntrinsicEvent = true;
 
     [ObservableProperty]
@@ -234,23 +248,11 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
     }
 
     /// <summary>
-    /// Raises property changed notifications for all computed UI state properties that depend on EventClass or EventProperty.
-    /// </summary>
-    private void NotifyEventUiStateProperties()
-    {
-        OnPropertyChanged(nameof(IsEventPropertyValueEnabled));
-        OnPropertyChanged(nameof(IsTargetClassEnabled));
-        OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
-        OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
-    }
-
-    /// <summary>
     /// Called when EventClass property changes
     /// </summary>
     partial void OnEventClassChanged(string? value)
     {
         BuildQuery();
-        NotifyEventUiStateProperties();
 
         // Clear EventPropertyValue if property value entry is now disabled
         if (!IsEventPropertyValueEnabled && !string.IsNullOrEmpty(EventPropertyValue))
@@ -264,7 +266,6 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
     /// </summary>
     partial void OnEventPropertyChanged(PropertyDisplayInfo? value)
     {
-        NotifyEventUiStateProperties();
         BuildQuery();
     }
 
@@ -289,7 +290,6 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
     /// </summary>
     partial void OnEventTargetClassPropertyChanged(PropertyDisplayInfo? value)
     {
-        OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
         BuildQuery();
     }
 
@@ -320,17 +320,5 @@ public partial class WatcherQueryBuilder : DisposableObservableObject
             EventWithin = 1;
             return;
         }
-    }
-
-    /// <summary>
-    /// Called when IsIntrinsicEvent property changes
-    /// </summary>
-    partial void OnIsIntrinsicEventChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsWithinEnabled));
-        OnPropertyChanged(nameof(IsTargetClassEnabled));
-        OnPropertyChanged(nameof(IsTargetClassPropertyEnabled));
-        OnPropertyChanged(nameof(IsEventTargetClassPropertyValueEnabled));
-        OnPropertyChanged(nameof(IsEventPropertyEnabled));
     }
 }
