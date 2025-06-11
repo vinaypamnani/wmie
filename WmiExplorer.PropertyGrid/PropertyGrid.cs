@@ -466,7 +466,18 @@ public class PropertyGrid : Control
     private void LoadProperties()
     {
         if (SelectedObject == null)
+        {
+            // Clear the TreeView when no object is selected
+            if (_propertiesTreeView != null)
+            {
+                _propertiesTreeView.ItemsSource = null;
+            }
+
+            // Clear the selected hierarchy item
+            SelectedHierarchyItem = null;
+
             return;
+        }
 
         if (_propertiesTreeView != null)
         {
