@@ -1,4 +1,5 @@
 using WmiExplorer.Common.Models;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Messages;
 
@@ -26,4 +27,17 @@ public class ThemeChangedMessage : MessageBase
     }
 
     public string Theme { get; }
+}
+
+/// <summary>
+/// Unified message sent when any selection changes in the application
+/// </summary>
+public class SelectionChangedMessage : MessageBase
+{
+    public SelectionChangedMessage(ISelectionService selectionService)
+    {
+        SelectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+    }
+
+    public ISelectionService SelectionService { get; }
 }
