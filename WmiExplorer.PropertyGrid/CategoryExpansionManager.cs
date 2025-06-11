@@ -1,17 +1,12 @@
-using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WmiExplorer.PropertyGrid;
 
 /// <summary>
 /// Manages category expansion state for the property grid.
 /// </summary>
-public class CategoryExpansionManager : INotifyPropertyChanged
+public class CategoryExpansionManager : ObservableObject
 {
-    /// <summary>
-    /// Event that is raised when a category's expanded state changes.
-    /// </summary>
-    public event PropertyChangedEventHandler? PropertyChanged;
-
     private static readonly Dictionary<string, bool> _expandedCategories = new Dictionary<string, bool>();
     private static CategoryExpansionManager? _instance;
 
@@ -76,13 +71,5 @@ public class CategoryExpansionManager : INotifyPropertyChanged
 
         bool currentState = IsCategoryExpanded(category);
         SetCategoryExpanded(category, !currentState);
-    }
-
-    /// <summary>
-    /// Raises the PropertyChanged event.
-    /// </summary>
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

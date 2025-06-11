@@ -1,5 +1,4 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace WmiExplorer.PropertyGrid;
 
@@ -7,14 +6,11 @@ namespace WmiExplorer.PropertyGrid;
 /// Manages selection state for property items across the entire property grid.
 /// Uses a singleton pattern to ensure only one item is selected at a time.
 /// </summary>
-public class PropertyGridSelectionManager : INotifyPropertyChanged
+public partial class PropertyGridSelectionManager : ObservableObject
 {
-    /// <summary>
-    /// Event that is raised when a property value changes.
-    /// </summary>
-    public event PropertyChangedEventHandler? PropertyChanged;
-
     private static readonly Lazy<PropertyGridSelectionManager> _instance = new Lazy<PropertyGridSelectionManager>(() => new PropertyGridSelectionManager());
+
+    [ObservableProperty]
     private PropertyHierarchyItem? _selectedItem;
 
     /// <summary>
@@ -29,39 +25,20 @@ public class PropertyGridSelectionManager : INotifyPropertyChanged
     public static PropertyGridSelectionManager Instance => _instance.Value;
 
     /// <summary>
-    /// Gets or sets the currently selected property item.
+    /// Partial method called when SelectedItem changes.
     /// </summary>
-    public PropertyHierarchyItem? SelectedItem
+    partial void OnSelectedItemChanged(PropertyHierarchyItem? oldValue, PropertyHierarchyItem? newValue)
     {
-        get => _selectedItem;
-        set
+        // Clear selection on previous item
+        if (oldValue != null)
         {
-            if (_selectedItem != value)
-            {
-                // Clear selection on previous item
-                if (_selectedItem != null)
-                {
-                    _selectedItem.IsSelected = false;
-                }
-
-                _selectedItem = value;
-
-                // Set selection on new item
-                if (_selectedItem != null)
-                {
-                    _selectedItem.IsSelected = true;
-                }
-
-                OnPropertyChanged();
-            }
+            oldValue.IsSelected = false;
         }
-    }
 
-    /// <summary>
-    /// Raises the PropertyChanged event.
-    /// </summary>
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        // Set selection on new item
+        if (newValue != null)
+        {
+            newValue.IsSelected = true;
+        }
     }
 }

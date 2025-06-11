@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,7 +15,8 @@ namespace WmiExplorer.PropertyGrid;
 /// A custom PropertyGrid control that mimics Visual Studio's PropertyGrid appearance
 /// with better dark mode support and improved contrast.
 /// </summary>
-public class PropertyGrid : Control
+[INotifyPropertyChanged]
+public partial class PropertyGrid : Control
 {
     private const string _defaultCategory = "Misc";
 
@@ -178,12 +181,6 @@ public class PropertyGrid : Control
             Interval = TimeSpan.FromMilliseconds(300)
         };
         _searchDebounceTimer.Tick += OnSearchDebounceTimerTick;
-
-        // Initialize the ClearSearchCommand
-        ClearSearchCommand = new RelayCommand(
-            execute: _ => ClearSearch(),
-            canExecute: _ => _searchBox != null && !string.IsNullOrEmpty(_searchBox.Text)
-        );
     }
 
     static PropertyGrid()
@@ -208,11 +205,6 @@ public class PropertyGrid : Control
             typeof(PropertyGrid),
             new CommandBinding(HelpPaneSelectAllCommand, OnHelpPaneSelectAllExecuted, OnHelpPaneSelectAllCanExecute));
     }
-
-    /// <summary>
-    /// Command to clear the search box
-    /// </summary>
-    public ICommand ClearSearchCommand { get; }
 
     /// <summary>
     /// Gets or sets whether virtualization is enabled.
@@ -414,14 +406,24 @@ public class PropertyGrid : Control
     }
 
     /// <summary>
-    /// Clears the search box text
+    /// Determines if the search can be cleared.
     /// </summary>
+    private bool CanClearSearch() => !string.IsNullOrEmpty(_searchBox?.Text);
+
+    /// <summary>
+    /// Clears the search box text.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanClearSearch))]
     private void ClearSearch()
     {
         if (_searchBox != null)
         {
             _searchBox.Clear();
             _searchBox.Focus();
+
+            // The command's CanExecute will be automatically updated by the source generator
+            // when the text changes, but we can also manually trigger it
+            ClearSearchCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -805,6 +807,9 @@ public class PropertyGrid : Control
             // Reset the debounce timer
             _searchDebounceTimer.Stop();
             _searchDebounceTimer.Start();
+
+            // Notify that the ClearSearchCommand's CanExecute state may have changed
+            ClearSearchCommand.NotifyCanExecuteChanged();
         }
     }
 

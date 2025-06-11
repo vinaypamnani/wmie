@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace WmiExplorer.PropertyGrid;
 
 /// <summary>
@@ -18,24 +20,17 @@ public class PropertyCategoryItem : PropertyHierarchyItem
 
         // Check initial expansion state from the manager
         IsExpanded = CategoryExpansionManager.Instance.IsCategoryExpanded(categoryName);
+
+        // Subscribe to property changes to handle IsExpanded changes
+        PropertyChanged += OnPropertyChanged;
     }
 
-    /// <summary>
-    /// Override to toggle category expansion state in the manager.
-    /// </summary>
-    public override bool IsExpanded
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        get => base.IsExpanded;
-        set
+        if (e.PropertyName == nameof(IsExpanded))
         {
-            // Set the value in the base property
-            if (base.IsExpanded != value)
-            {
-                base.IsExpanded = value;
-
-                // Update the expansion state in the category manager
-                CategoryExpansionManager.Instance.SetCategoryExpanded(Name, value);
-            }
+            // Update the expansion state in the category manager
+            CategoryExpansionManager.Instance.SetCategoryExpanded(Name, IsExpanded);
         }
     }
 }

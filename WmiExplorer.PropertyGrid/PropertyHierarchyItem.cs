@@ -1,6 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using WmiExplorer.PropertyGrid.Abstractions;
 
@@ -10,24 +9,41 @@ namespace WmiExplorer.PropertyGrid;
 /// Represents a property item in the hierarchical property grid.
 /// This is the base class for all items in the tree structure.
 /// </summary>
-public class PropertyHierarchyItem : DependencyObject, INotifyPropertyChanged
+public partial class PropertyHierarchyItem : ObservableObject
 {
-    /// <summary>
-    /// Event that is raised when a property value changes.
-    /// </summary>
-    public event PropertyChangedEventHandler? PropertyChanged;
-
+    [ObservableProperty]
     private string _category = string.Empty;
+
+    [ObservableProperty]
     private string _description = string.Empty;
+
+    [ObservableProperty]
     private string _displayName = string.Empty;
+
     private readonly bool _includeNullValues = true;
     private readonly bool _includeSystemProperties = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsExpandable))]
     private bool _isExpanded;
+
+    [ObservableProperty]
     private bool _isReadOnly;
+
+    [ObservableProperty]
     private bool _isSelected;
+
+    [ObservableProperty]
     private string _name = string.Empty;
+
+    [ObservableProperty]
     private Type _propertyType = typeof(object);
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FormattedValue))]
     private object? _value;
+
+    [ObservableProperty]
     private Visibility _visibility = Visibility.Visible;
 
     /// <summary>
@@ -67,57 +83,9 @@ public class PropertyHierarchyItem : DependencyObject, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Gets or sets the category of the property.
-    /// </summary>
-    public string Category
-    {
-        get => _category;
-        set
-        {
-            if (_category != value)
-            {
-                _category = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets child property items.
     /// </summary>
     public ObservableCollection<PropertyHierarchyItem> Children { get; } = new ObservableCollection<PropertyHierarchyItem>();
-
-    /// <summary>
-    /// Gets or sets the description of the property.
-    /// </summary>
-    public string Description
-    {
-        get => _description;
-        set
-        {
-            if (_description != value)
-            {
-                _description = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the display name of the property.
-    /// </summary>
-    public string DisplayName
-    {
-        get => _displayName;
-        set
-        {
-            if (_displayName != value)
-            {
-                _displayName = value;
-                OnPropertyChanged();
-            }
-        }
-    }
 
     /// <summary>
     /// Gets the formatted value as a string.
@@ -167,156 +135,14 @@ public class PropertyHierarchyItem : DependencyObject, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Gets or sets whether the property is expanded in the UI.
-    /// </summary>
-    public virtual bool IsExpanded
-    {
-        get => _isExpanded;
-        set
-        {
-            if (_isExpanded != value)
-            {
-                _isExpanded = value;
-                OnPropertyChanged();
-
-                // When expanded, ensure child items are loaded
-                if (_isExpanded && HasItems && Children.Count == 0)
-                {
-                    LoadChildren(_includeSystemProperties, _includeNullValues);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets whether the property is read-only.
-    /// </summary>
-    public bool IsReadOnly
-    {
-        get => _isReadOnly;
-        set
-        {
-            if (_isReadOnly != value)
-            {
-                _isReadOnly = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets whether the property is selected in the UI.
-    /// </summary>
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected != value)
-            {
-                _isSelected = value;
-                OnPropertyChanged();
-
-                // When this item is selected, notify the grid
-                if (_isSelected)
-                {
-                    PropertyGridSelectionManager.Instance.SelectedItem = this;
-                }
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets or sets the level in the hierarchy (used for indentation).
     /// </summary>
     public int Level { get; set; }
 
     /// <summary>
-    /// Gets or sets the name of the property.
-    /// </summary>
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (_name != value)
-            {
-                _name = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    /// <summary>
     /// Gets or sets the property descriptor for this item.
     /// </summary>
     public IPropertyDescriptor? PropertyDescriptor { get; set; }
-
-    /// <summary>
-    /// Gets or sets the type of the property.
-    /// </summary>
-    public Type PropertyType
-    {
-        get => _propertyType;
-        set
-        {
-            if (_propertyType != value)
-            {
-                _propertyType = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the value of the property.
-    /// </summary>
-    public object? Value
-    {
-        get => _value;
-        set
-        {
-            if (_value != value)
-            {
-                _value = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(FormattedValue));
-                OnPropertyValueChanged();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the visibility of this item in the UI.
-    /// </summary>
-    public Visibility Visibility
-    {
-        get => _visibility;
-        set
-        {
-            if (_visibility != value)
-            {
-                _visibility = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Resets visibility for this item and all its children recursively.
-    /// Used when clearing a search filter.
-    /// </summary>
-    public virtual void ResetVisibilityRecursive()
-    {
-        // Reset this item's visibility
-        Visibility = Visibility.Visible;
-
-        // Reset all children's visibility recursively
-        foreach (var child in Children)
-        {
-            child.ResetVisibilityRecursive();
-        }
-    }
 
     /// <summary>
     /// Loads child items when the property is expandable.
@@ -365,11 +191,19 @@ public class PropertyHierarchyItem : DependencyObject, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Raises the PropertyChanged event.
+    /// Resets visibility for this item and all its children recursively.
+    /// Used when clearing a search filter.
     /// </summary>
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    public virtual void ResetVisibilityRecursive()
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        // Reset this item's visibility
+        Visibility = Visibility.Visible;
+
+        // Reset all children's visibility recursively
+        foreach (var child in Children)
+        {
+            child.ResetVisibilityRecursive();
+        }
     }
 
     /// <summary>
@@ -379,5 +213,37 @@ public class PropertyHierarchyItem : DependencyObject, INotifyPropertyChanged
     {
         // Update the value in the underlying property descriptor if possible
         PropertyDescriptor?.SetValue(Value);
+    }
+
+    /// <summary>
+    /// Called when IsExpanded property changes
+    /// </summary>
+    partial void OnIsExpandedChanged(bool value)
+    {
+        // When expanded, ensure child items are loaded
+        if (value && HasItems && Children.Count == 0)
+        {
+            LoadChildren(_includeSystemProperties, _includeNullValues);
+        }
+    }
+
+    /// <summary>
+    /// Called when IsSelected property changes
+    /// </summary>
+    partial void OnIsSelectedChanged(bool value)
+    {
+        // When this item is selected, notify the grid
+        if (value)
+        {
+            PropertyGridSelectionManager.Instance.SelectedItem = this;
+        }
+    }
+
+    /// <summary>
+    /// Called when Value property changes
+    /// </summary>
+    partial void OnValueChanged(object? value)
+    {
+        OnPropertyValueChanged();
     }
 }
