@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
 
@@ -29,6 +28,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
 
     private readonly WmiClassViewModel _parentClass;
+    private readonly ISelectionService _selectionService;
     private readonly WmiInstance _wmiInstance;
     private readonly IWmiService _wmiService;
 
@@ -40,23 +40,27 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     /// <param name="wmiService">The WMI service.</param>
     /// <param name="messenger">The messenger.</param>
     /// <param name="applicationService">The application service.</param>
+    /// <param name="selectionService">The selection service.</param>
     public WmiInstanceViewModel(
         WmiInstance wmiInstance,
         WmiClassViewModel parentClass,
         IWmiService wmiService,
         IMessengerService messengerService,
-        IApplicationService applicationService) : base(messengerService)
+        IApplicationService applicationService,
+        ISelectionService selectionService) : base(messengerService)
     {
         if (wmiInstance == null) throw new ArgumentNullException(nameof(wmiInstance));
         if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
         if (wmiService == null) throw new ArgumentNullException(nameof(wmiService));
         if (messengerService == null) throw new ArgumentNullException(nameof(messengerService));
         if (applicationService == null) throw new ArgumentNullException(nameof(applicationService));
+        if (selectionService == null) throw new ArgumentNullException(nameof(selectionService));
 
         _wmiInstance = wmiInstance;
         _wmiService = wmiService;
         _applicationService = applicationService;
         _parentClass = parentClass;
+        _selectionService = selectionService;
 
         // Load instance methods
         LoadInstanceMethods();
@@ -95,12 +99,14 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     /// <param name="messenger">The messenger.</param>
     /// <param name="applicationService">The application service.</param>
     /// <param name="parentClass">The parent class ViewModel.</param>
+    /// <param name="selectionService">The selection service.</param>
     /// <returns>A collection of WmiInstanceViewModel.</returns>
     public static ObservableCollection<WmiInstanceViewModel> CreateFromCollection(
         IEnumerable<WmiInstance> wmiInstances,
         IWmiService wmiService,
         IMessengerService messengerService,
         IApplicationService applicationService,
+        ISelectionService selectionService,
         WmiClassViewModel parentClass)
     {
         if (wmiInstances == null)
@@ -115,7 +121,8 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
                 parentClass,
                 wmiService,
                 messengerService,
-                applicationService));
+                applicationService,
+                selectionService));
         }
 
         return viewModels;
@@ -126,8 +133,8 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     /// </summary>
     public void ForceSelection()
     {
-        // Always publish the message even if already selected (for UI refresh scenarios).
-        PublishMessage(new SelectedInstanceChangedMessage(this));
+        // Update SelectionService with the current selection
+        _selectionService.SetSelectedObject(this);
     }
 
     /// <summary>

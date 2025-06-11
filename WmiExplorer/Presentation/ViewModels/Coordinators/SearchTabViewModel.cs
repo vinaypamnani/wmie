@@ -2,8 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Enums;
+using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -39,15 +39,17 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     [NotifyCanExecuteChangedFor(nameof(JumpToClassCommand))]
     private WmiSearchResult? _selectedResult;
 
+    private readonly ISelectionService _selectionService;
     private readonly IWmiService _wmiService;
 
-    public SearchTabViewModel(IMessengerService messengerService, IWmiService wmiService)
-                 : base(messengerService)
+    public SearchTabViewModel(IMessengerService messengerService, IWmiService wmiService, ISelectionService selectionService)
+                    : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
 
-        // Subscribe to namespace selection changes
-        StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
+        // Subscribe to unified selection changes
+        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
     }
 
     // Clear results for the current search type only
@@ -202,11 +204,18 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private bool ExecuteSearchCanExecute() => !string.IsNullOrWhiteSpace(SearchQuery) && !IsSearching;
 
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
+    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.NamespaceViewModel == null)
+        if (message?.SelectionService == null)
             return;
-        SelectedNamespace = message.NamespaceViewModel;
+
+        var selectedObject = message.SelectionService.SelectedObject;
+
+        // Only respond to namespace selections
+        if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
+        {
+            SelectedNamespace = namespaceVm;
+        }
     }
 
     [RelayCommand(CanExecute = nameof(JumpToClassCanExecute))]
@@ -238,6 +247,8 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
         // Clear current results and query
         _results.Clear();
+        _selectionService.ClearSelections();
+
         SearchQuery = string.Empty;
 
         // Restore state for the new type if available
@@ -255,8 +266,8 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     /// </summary>
     partial void OnSelectedResultChanged(WmiSearchResult? value)
     {
-        // Publish message when selection changes
-        PublishMessage(new SelectedSearchResultChangedMessage(value));
+        // Update SelectionService with the new selection
+        _selectionService.SetSelectedObject(value);
     }
 
     private class SearchTypeState

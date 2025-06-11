@@ -104,6 +104,7 @@ public partial class App : Application
         services.AddSingleton<IWmiService, WmiService>(provider =>
             new WmiService(provider.GetRequiredService<ICacheService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
+        services.AddSingleton<ISelectionService, SelectionService>();
 
         // Register MainWindow for DI
         services.AddSingleton<MainWindow>();

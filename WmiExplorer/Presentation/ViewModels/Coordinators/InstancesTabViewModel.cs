@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
@@ -18,19 +18,22 @@ public partial class InstancesTabViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
 
+    private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
     public InstancesTabViewModel(
-        IMessengerService messengerService,
-        ISettingsService settingsService) : base(messengerService)
+           IMessengerService messengerService,
+           ISettingsService settingsService,
+           ISelectionService selectionService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
 
-        // Subscribe to messages
-        StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
+        // Subscribe to unified selection changes instead of individual messages
+        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -50,10 +53,34 @@ public partial class InstancesTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Handles the SelectedClassChangedMessage
+    /// Handles the unified selection changed message
     /// </summary>
-    private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)
+    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        SelectedClass = message.ClassViewModel;
+        if (message?.SelectionService == null)
+            return;
+
+        var selectedObject = message.SelectionService.SelectedObject;
+
+        switch (selectedObject)
+        {
+            // If a namespace is selected, update class selection
+            case WmiNamespaceViewModel namespaceVm:
+
+                if (namespaceVm.SelectedClass != SelectedClass)
+                {
+                    SelectedClass = namespaceVm.SelectedClass;
+                }
+                break;
+
+            // If a class is selected, update the selected class
+            case WmiClassViewModel classVm:
+                if (classVm != SelectedClass)
+                {
+                    SelectedClass = classVm;
+                }
+                break;
+        }
+
     }
 }

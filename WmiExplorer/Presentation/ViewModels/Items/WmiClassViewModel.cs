@@ -38,22 +38,26 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiInstanceViewModel? _selectedInstance;
 
+    private readonly ISelectionService _selectionService;
     private readonly WmiClass _wmiClass;
     private readonly IWmiService _wmiService;
 
     public WmiClassViewModel(
-           WmiClass wmiClass,
-           WmiNamespaceViewModel parentNamespaceViewModel,
-           IWmiService wmiService,
-           IMessengerService messengerService,
-           IApplicationService applicationService) : base(messengerService)
+              WmiClass wmiClass,
+              WmiNamespaceViewModel parentNamespaceViewModel,
+              IWmiService wmiService,
+              IMessengerService messengerService,
+              IApplicationService applicationService,
+              ISelectionService selectionService) : base(messengerService)
     {
         _wmiClass = wmiClass;
         _wmiService = wmiService;
-        _applicationService = applicationService; _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
+        _applicationService = applicationService;
+        _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
 
         // StrongSubscribe ensures message handlers are not garbage collected.
-        StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
+        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // The collection view is used for filtering and sorting instances in the UI.
         _instanceFilterHelper = new FilterHelper<WmiInstanceViewModel>(
@@ -87,11 +91,12 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     public WmiClass WmiClass => _wmiClass;
 
     public static ObservableCollection<WmiClassViewModel> CreateFromCollection(
-        IEnumerable<WmiClass> wmiClasses,
-        WmiNamespaceViewModel parentNamespaceViewModel,
-        IWmiService wmiService,
-        IMessengerService messengerService,
-        IApplicationService applicationService)
+           IEnumerable<WmiClass> wmiClasses,
+           WmiNamespaceViewModel parentNamespaceViewModel,
+           IWmiService wmiService,
+           IMessengerService messengerService,
+           IApplicationService applicationService,
+           ISelectionService selectionService)
     {
         var viewModels = new ObservableCollection<WmiClassViewModel>();
 
@@ -102,7 +107,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 parentNamespaceViewModel,
                 wmiService,
                 messengerService,
-                applicationService));
+                applicationService,
+                selectionService));
         }
 
         return viewModels;
@@ -110,7 +116,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     public void ForceSelection()
     {
-        PublishMessage(new SelectedClassChangedMessage(this));
+        // Update SelectionService with the current selection
+        _selectionService.SetSelectedObject(this);
     }
 
     public override string ToString() => _wmiClass.ClassName;
@@ -188,14 +195,19 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         }
     }
 
-    private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)
+    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.InstanceViewModel == null)
+        if (message?.SelectionService == null)
             return;
 
-        if (_instances.Contains(message.InstanceViewModel) && SelectedInstance != message.InstanceViewModel)
+        var selectedObject = message.SelectionService.SelectedObject;
+
+        // Only respond to instance selections that belong to this class
+        if (selectedObject is WmiInstanceViewModel instanceVm &&
+            _instances.Contains(instanceVm) &&
+            SelectedInstance != instanceVm)
         {
-            SelectedInstance = message.InstanceViewModel;
+            SelectedInstance = instanceVm;
         }
     }
 
@@ -259,11 +271,13 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 _cts.Token);
 
             // Map ManagementObject to WmiInstance and create view models for all instances at once.
-            var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo)); var instanceViewModels = WmiInstanceViewModel.CreateFromCollection(
+            var instanceModels = wmiInstances.Select(mo => new WmiInstance(mo));
+            var instanceViewModels = WmiInstanceViewModel.CreateFromCollection(
                 instanceModels,
                 _wmiService,
                 _messengerService,
                 _applicationService,
+                _selectionService,
                 this);
 
             // Use RunOnUIThread for synchronous UI updates to avoid hanging
@@ -341,9 +355,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             {
                 value.LoadState = WmiInstanceViewModel.InstanceLoadState.Failed;
             }
-
-            // Publish the selected instance change message
-            PublishMessage(new SelectedInstanceChangedMessage(value));
         }
     }
 }

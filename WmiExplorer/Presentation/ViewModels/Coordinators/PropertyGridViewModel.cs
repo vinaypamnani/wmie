@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Models;
-using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Common.Models;
+using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -17,6 +18,7 @@ public partial class PropertyGridViewModel : MessagingViewModelBase
     [NotifyPropertyChangedFor(nameof(SelectedObjectDisplayName))]
     private object? _selectedObject;
 
+    private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
@@ -24,125 +26,62 @@ public partial class PropertyGridViewModel : MessagingViewModelBase
 
     public PropertyGridViewModel(
            IMessengerService messengerService,
-           ISettingsService settingsService) : base(messengerService)
+           ISettingsService settingsService,
+           ISelectionService selectionService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
 
         // Initialize window position from settings (following the pattern)
         _windowPosition = _settingsService.MainWindowPosition;
 
-        // Subscribe to selection change messages
-        StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
-        StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
-        StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
-        StrongSubscribe<SelectedEventChangedMessage>(HandleSelectedEventChangedMessage);
-        StrongSubscribe<SelectedSearchResultChangedMessage>(HandleSelectedSearchResultChangedMessage);
-        StrongSubscribe<WmiQueryInstanceChangedMessage>(HandleWmiQueryInstanceChangedMessage);
+        // Subscribe to the unified selection change message
+        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
     }
 
     /// <summary>
     /// Gets the display name of the currently selected object for the property grid header
     /// </summary>
-    public string SelectedObjectDisplayName
+    public string SelectedObjectDisplayName => _selectionService.SelectedObjectDisplayName;
+
+    /// <summary>
+    /// Handles the unified selection changed message to update the property grid
+    /// </summary>
+    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        get
+        if (message?.SelectionService == null)
+            return;
+
+        //TODO: Add a debug option here to see raw message.SelectionService.SelectedObject
+
+        // Get the selected object from the selection service
+        var selectedObject = message.SelectionService.SelectedObject;
+        switch (selectedObject)
         {
-            if (SelectedObject == null)
-                return "No Selection";
-
-            if (SelectedObject is WmiNamespaceViewModel namespaceVm)
-                return $"Namespace: {namespaceVm.Name}";
-
-            if (SelectedObject is WmiClassViewModel classVm)
-                return $"Class: {classVm.ClassName}";
-
-            if (SelectedObject is WmiInstanceViewModel instanceVm)
-                return $"Instance: {instanceVm.InstanceName}";
-
-            return SelectedObject.GetType().Name;
+            case WmiNamespaceViewModel namespaceViewModel:
+                selectedObject = namespaceViewModel.WmiNamespace;
+                break;
+            case WmiClassViewModel classViewModel:
+                selectedObject = classViewModel.WmiClass;
+                break;
+            case WmiInstanceViewModel instanceViewModel:
+                selectedObject = instanceViewModel.WmiInstance;
+                break;
+            case WmiSearchResult wmiSearchResult:
+                if (wmiSearchResult.Class is WmiClass wmiClass)
+                    selectedObject = wmiClass;
+                else if (wmiSearchResult.Method is WmiMethod wmiMethod)
+                    selectedObject = wmiMethod;
+                else if (wmiSearchResult.Property is WmiProperty wmiProperty)
+                    selectedObject = wmiProperty;
+                else
+                    selectedObject = wmiSearchResult.Match;
+                break;
+            default:
+                break;
         }
-    }
 
-    /// <summary>
-    /// Handles when a class is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)
-    {
-        if (message?.ClassViewModel == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.ClassViewModel.WmiClass;
-    }
-
-    /// <summary>
-    /// Handles when a WMI event is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedEventChangedMessage(SelectedEventChangedMessage message)
-    {
-        if (message?.WmiEvent == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.WmiEvent;
-    }
-
-    /// <summary>
-    /// Handles when an instance is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)
-    {
-        if (message?.InstanceViewModel == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.InstanceViewModel.WmiInstance;
-    }
-
-    /// <summary>
-    /// Handles when a namespace is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
-    {
-        if (message?.NamespaceViewModel == null)
-            return;
-
-        // Update the selected object for the property grid
-        SelectedObject = message.NamespaceViewModel.WmiNamespace;
-    }
-
-    /// <summary>
-    /// Handles when a search result is selected to update the property grid
-    /// </summary>
-    private void HandleSelectedSearchResultChangedMessage(SelectedSearchResultChangedMessage message)
-    {
-        // Set SelectedObject to the underlying WMI object for the property grid
-        if (message?.SelectedResult != null)
-        {
-            if (message.SelectedResult.Class != null)
-                SelectedObject = message.SelectedResult.Class;
-            else if (message.SelectedResult.Method != null)
-                SelectedObject = message.SelectedResult.Method;
-            else if (message.SelectedResult.Property != null)
-                SelectedObject = message.SelectedResult.Property;
-            else
-                SelectedObject = message.SelectedResult.Match;
-        }
-        else
-        {
-            SelectedObject = null;
-        }
-    }
-
-    /// <summary>
-    /// Handles when a WMI query result instance is selected to update the property grid
-    /// </summary>
-    private void HandleWmiQueryInstanceChangedMessage(WmiQueryInstanceChangedMessage message)
-    {
-        if (message?.Instance == null)
-            return;
-
-        // Set SelectedObject to the selected WMI instance for the property grid
-        SelectedObject = message.Instance;
+        // Update the selected object for the property grid from the selection service
+        SelectedObject = selectedObject;
     }
 }

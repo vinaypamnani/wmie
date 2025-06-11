@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Common.Models;
+using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
@@ -30,6 +31,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
     private WmiNamespaceViewModel? _selectedNamespace;
 
+    private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
@@ -41,25 +43,25 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private readonly IWmiService _wmiService;
 
     public ClassesTabViewModel(
-        IMessengerService messengerService,
-        ISettingsService settingsService,
-        IWmiService wmiService,
-        IApplicationService applicationService,
-        ICacheService cacheService,
-        InstancesTabViewModel instancesTabViewModel) : base(messengerService)
+           IMessengerService messengerService,
+           ISettingsService settingsService,
+           IWmiService wmiService,
+           IApplicationService applicationService,
+           ICacheService cacheService,
+           ISelectionService selectionService,
+           InstancesTabViewModel instancesTabViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
 
         // Subscribe to messages
-        StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
+        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
         StrongSubscribe<ClassesLoadedMessage>(HandleClassesLoadedMessage);
-        StrongSubscribe<SelectedClassChangedMessage>(HandleSelectedClassChangedMessage);
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
-        StrongSubscribe<SelectedInstanceChangedMessage>(HandleSelectedInstanceChangedMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -116,47 +118,31 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         // Update UI or perform other actions when classes are loaded
         OnPropertyChanged(nameof(SelectedNamespace));
-    }
-
-    /// <summary>
-    /// Handles the SelectedClassChangedMessage
+    }    /// <summary>
+    /// Handles the unified selection changed message
     /// </summary>
-    private void HandleSelectedClassChangedMessage(SelectedClassChangedMessage message)
+    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        // Only update if it's not already the selected class to avoid circular updates
-        if (SelectedClass != message.ClassViewModel)
-        {
-            SelectedClass = message.ClassViewModel;
-
-            // Update the auto-generated query when class changes
-            if (SelectedClass != null)
-            {
-                UpdateAutoQueryText(SelectedClass);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Handles when an instance is selected to update the auto-generated query
-    /// </summary>
-    private void HandleSelectedInstanceChangedMessage(SelectedInstanceChangedMessage message)
-    {
-        if (message?.InstanceViewModel == null)
+        if (message?.SelectionService == null)
             return;
 
-        // Update the auto-generated query
-        UpdateAutoQueryText(message.InstanceViewModel);
-    }
+        var selectedObject = message.SelectionService.SelectedObject;
 
-    /// <summary>
-    /// Handles the SelectedNamespaceChangedMessage
-    /// </summary>
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
-    {
-        SelectedNamespace = message.NamespaceViewModel;
+        switch (selectedObject)
+        {
+            case WmiNamespaceViewModel namespaceVm:
+                if (namespaceVm != SelectedNamespace)
+                {
+                    SelectedNamespace = namespaceVm;
+                    SelectedClass = null; // Clear class selection when namespace changes
+                }
+                break;
 
-        // Reset selected class when namespace changes
-        SelectedClass = null;
+            case WmiInstanceViewModel instanceVm:
+                // Update auto-query for instance selections
+                UpdateAutoQueryText(instanceVm);
+                break;
+        }
     }
 
     partial void OnAutoQueryTextChanged(string value)
@@ -170,8 +156,8 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         if (value != null)
         {
-            // Publish message about the selected class change
-            PublishMessage(new SelectedClassChangedMessage(value));
+            // Update SelectionService with the new selection
+            _selectionService.SetSelectedObject(value);
 
             // Update the auto-generated query
             UpdateAutoQueryText(value);

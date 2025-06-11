@@ -31,11 +31,15 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     private bool _isCustomQuery = false;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedEvent))]
     private WmiEvent? _selectedEvent;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasActiveNamespace))]
+    [NotifyCanExecuteChangedFor(nameof(AddWatcherCommand))]
     private WmiNamespaceViewModel? _selectedNamespace;
 
+    private readonly ISelectionService _selectionService;
     private readonly PropertyListManager _targetPropertyManager;
     private readonly WatcherManager _watcherManager;
 
@@ -44,11 +48,15 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     /// <param name="messengerService">The messenger service to use</param>
     /// <param name="cacheService">The cache service to use</param>
+    /// <param name="selectionService">The selection service to use</param>
     public WatcherTabViewModel(
         IMessengerService messengerService,
-        ICacheService cacheService
+        ICacheService cacheService,
+        ISelectionService selectionService
     ) : base(messengerService)
     {
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+
         // Initialize managers
         _eventPropertyManager = TrackDisposable(new PropertyListManager(cacheService));
         _targetPropertyManager = TrackDisposable(new PropertyListManager(cacheService));
@@ -60,7 +68,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         _eventQueryBuilder = new WatcherQueryBuilder();
 
         // Subscribe to essential messages only
-        StrongSubscribe<SelectedNamespaceChangedMessage>(HandleSelectedNamespaceChangedMessage);
+        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
         StrongSubscribe<ClassesLoadedMessage>(HandleClassesLoadedMessage);
 
         // Wire up cross-manager dependencies
@@ -152,15 +160,15 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
 
     /// <summary>
     /// Forces the selection logic for the currently selected event.
-    /// Used by ListViewItemSelectionBehavior to re-publish the SelectedEventChangedMessage
+    /// Used by ListViewItemSelectionBehavior to re-publish the selection
     /// even if the same event is clicked again.
     /// </summary>
     public void ForceSelection()
     {
         if (SelectedEvent != null)
         {
-            // Re-publish the message for the currently selected event
-            PublishMessage(new SelectedEventChangedMessage(SelectedEvent));
+            // Update SelectionService with the current selection
+            _selectionService.SetSelectedObject(SelectedEvent);
         }
     }
 
@@ -280,14 +288,20 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Handles when the selected namespace changes
+    /// Handles the unified selection changed message
     /// </summary>
-    private void HandleSelectedNamespaceChangedMessage(SelectedNamespaceChangedMessage message)
+    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.NamespaceViewModel == null)
+        if (message?.SelectionService == null)
             return;
 
-        SelectedNamespace = message.NamespaceViewModel;
+        var selectedObject = message.SelectionService.SelectedObject;
+
+        // Only respond to namespace selections
+        if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
+        {
+            SelectedNamespace = namespaceVm;
+        }
     }
 
     /// <summary>
@@ -306,8 +320,8 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     partial void OnSelectedEventChanged(WmiEvent? value)
     {
-        PublishMessage(new SelectedEventChangedMessage(value));
-        OnPropertyChanged(nameof(HasSelectedEvent));
+        // Update SelectionService with the new selection
+        _selectionService.SetSelectedObject(value);
     }
 
     /// <summary>
@@ -320,10 +334,6 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         {
             _ = UpdateClassListsAndPropertiesAsync();
         }
-
-        // Notify computed properties and commands that state changed
-        OnPropertyChanged(nameof(HasActiveNamespace));
-        AddWatcherCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>

@@ -2,10 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
-using WmiExplorer.Presentation.ViewModels.Watcher;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -24,6 +23,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiNamespaceViewModel? _selectedNamespace;
 
+    private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
     private readonly WatcherTabViewModel _watcherTabViewModel;
 
@@ -33,13 +33,14 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     private readonly IWmiService _wmiService;
 
     public NamespacesViewModel(
-           IMessengerService messengerService,
-           ISettingsService settingsService,
-           IWmiService wmiService,
-           IApplicationService applicationService,
-           ICacheService cacheService,
-           ClassesTabViewModel classesTabViewModel,
-           WatcherTabViewModel watcherTabViewModel) : base(messengerService)
+              IMessengerService messengerService,
+              ISettingsService settingsService,
+              IWmiService wmiService,
+              IApplicationService applicationService,
+              ICacheService cacheService,
+              ClassesTabViewModel classesTabViewModel,
+              WatcherTabViewModel watcherTabViewModel,
+              ISelectionService selectionService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
@@ -47,6 +48,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
         _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel));
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
@@ -132,6 +134,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
                 _applicationService,
                 _settingsService,
                 _cacheService,
+                _selectionService,
                 _cts.Token);
 
             // Load initial children
@@ -270,12 +273,6 @@ public partial class NamespacesViewModel : MessagingViewModelBase
 
     partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? value)
     {
-        if (value != null)
-        {
-            // Publish message about the selected namespace change
-            PublishMessage(new SelectedNamespaceChangedMessage(value));
-        }
-
         // Update the status bar based on the selected namespace
         UpdateLoadStateStatus();
     }
