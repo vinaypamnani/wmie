@@ -360,7 +360,7 @@ public class PropertyHierarchyItem : DependencyObject, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading child properties: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PropertyHierarchyItem] Error loading child properties: {ex.Message}");
         }
     }
 

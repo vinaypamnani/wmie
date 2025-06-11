@@ -109,7 +109,7 @@ public class EventManager : DisposableObservableObject
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error disposing WmiEvent: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[EventManager] Error disposing WmiEvent: {ex.Message}");
             }
         }
 
@@ -131,7 +131,7 @@ public class EventManager : DisposableObservableObject
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error disposing WmiEvent: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[EventManager] Error disposing WmiEvent: {ex.Message}");
             }
         }
         _events.Clear();

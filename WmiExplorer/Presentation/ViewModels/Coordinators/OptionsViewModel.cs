@@ -105,7 +105,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
             // Publish the message to notify other components
             PublishMessage(new ClassTypeFilterChangedMessage(newValue));
 
-            System.Diagnostics.Debug.WriteLine($"ClassTypeFilter flag cleared, new value: {newValue}");
+            System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter flag cleared, new value: {newValue}");
             return;
         }
         else if ((int)value > 0 && (int)value <= (int)WmiClassTypeFlags.All)
@@ -125,7 +125,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
                 // Publish the message to notify other components
                 PublishMessage(new ClassTypeFilterChangedMessage(newValue));
 
-                System.Diagnostics.Debug.WriteLine($"ClassTypeFilter flag set, new value: {newValue}");
+                System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter flag set, new value: {newValue}");
                 return;
             }
         }        // Only update the service if the value is different
@@ -137,7 +137,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
             // Publish the message ourselves to notify other components
             PublishMessage(new ClassTypeFilterChangedMessage(newValue));
 
-            System.Diagnostics.Debug.WriteLine($"ClassTypeFilter updated to: {newValue}");
+            System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter updated to: {newValue}");
         }
     }
 

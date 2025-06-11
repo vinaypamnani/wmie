@@ -22,7 +22,7 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             // Log or handle the exception as needed
-            System.Diagnostics.Debug.WriteLine($"Error copying to clipboard: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ApplicationService] Error copying to clipboard: {ex.Message}");
         }
     }
 }

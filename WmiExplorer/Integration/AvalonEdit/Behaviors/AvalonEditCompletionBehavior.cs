@@ -140,7 +140,7 @@ public static class AvalonEditCompletionBehavior
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error in {providerName}: {ex.Message}");
+            Debug.WriteLine($"[AvalonEditCompletion] Error in {providerName}: {ex.Message}");
             return (providerName, new List<ICompletionData>());
         }
     }
@@ -445,7 +445,7 @@ public static class AvalonEditCompletionBehavior
         catch (Exception ex)
         {
             // Log error but don't crash the editor
-            Debug.WriteLine($"Error showing completion window: {ex.Message}");
+            Debug.WriteLine($"[AvalonEditCompletion] Error showing completion window: {ex.Message}");
             CloseCompletionWindow(editor);
         }
     }

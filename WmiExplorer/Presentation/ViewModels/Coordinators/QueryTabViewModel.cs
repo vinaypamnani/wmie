@@ -171,7 +171,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
                 catch (Exception ex)
                 {
                     // Log and skip invalid objects
-                    System.Diagnostics.Debug.WriteLine($"Error converting ManagementObject to WmiInstance: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[QueryTabViewModel] Error converting ManagementObject to WmiInstance: {ex.Message}");
                 }
             }
 

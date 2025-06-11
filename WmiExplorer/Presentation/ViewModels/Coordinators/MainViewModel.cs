@@ -110,7 +110,7 @@ public partial class MainViewModel : MessagingViewModelBase
         });
 
         // Log state change for debugging
-        System.Diagnostics.Debug.WriteLine($"Application state changed: {message.State.State}, Message: {message.State.Message}");
+        System.Diagnostics.Debug.WriteLine($"[MainViewModel] Application state changed: {message.State.State}, Message: {message.State.Message}");
     }
 
     /// <summary>

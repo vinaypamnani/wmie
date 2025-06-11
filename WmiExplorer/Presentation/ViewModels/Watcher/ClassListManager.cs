@@ -202,7 +202,7 @@ public class ClassListManager : DisposableObservableObject
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Cache error: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[ClassListManager] Cache error: {ex.Message}");
                 }
             }
         }

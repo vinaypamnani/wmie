@@ -86,7 +86,7 @@ public class WatcherManager : DisposableObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to add watcher: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WatcherManager] Failed to add watcher: {ex.Message}");
             return false;
         }
     }

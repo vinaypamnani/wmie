@@ -54,7 +54,7 @@ public partial class App : Application
             AttachConsole(ATTACH_PARENT_PROCESS);
             Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
             Trace.AutoFlush = true;
-            Trace.WriteLine("=== DEBUG logging enabled ===");
+            Trace.WriteLine("\n=== DEBUG logging enabled ===\n");
         }
 
         base.OnStartup(e);

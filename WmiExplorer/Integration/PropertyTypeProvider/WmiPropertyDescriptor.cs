@@ -97,7 +97,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error setting WMI property value: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error setting WMI property value: {ex.Message}");
             return false;
         }
     }
@@ -150,7 +150,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         catch (Exception ex)
         {
             // Log any errors but don't let them propagate
-            System.Diagnostics.Debug.WriteLine($"Error getting property description from class: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error getting property description from class: {ex.Message}");
         }
 
         return null;

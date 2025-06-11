@@ -556,7 +556,7 @@ public class PropertyGrid : Control
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading hierarchical properties: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PropertyGrid] Error loading hierarchical properties: {ex.Message}");
 
             var errorCategory = new PropertyCategoryItem("Errors");
             var errorProperty = new PropertyHierarchyItem

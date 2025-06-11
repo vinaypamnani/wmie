@@ -35,7 +35,7 @@ public class SettingsService : ISettingsService
         // Load settings from file
         LoadSettings();
 
-        Debug.WriteLine($"SettingsService initialized with file path: {_filePath}");
+        Debug.WriteLine($"[SettingsService] Settings initialized with file path: {_filePath}");
     }
 
     // ClassTypeFilter property with change notification
@@ -61,7 +61,7 @@ public class SettingsService : ISettingsService
             {
                 _currentTheme = value;
                 ThemeChanged?.Invoke(this, value);
-                Debug.WriteLine($"CurrentTheme changed to: {value}");
+                Debug.WriteLine($"[SettingsService] CurrentTheme changed to: {value}");
             }
         }
     }
@@ -126,7 +126,7 @@ public class SettingsService : ISettingsService
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
-                Debug.WriteLine($"Created settings directory: {dir}");
+                Debug.WriteLine($"[SettingsService] Created settings directory: {dir}");
             }
 
             // Serialize and save settings
@@ -134,12 +134,11 @@ public class SettingsService : ISettingsService
             var json = JsonSerializer.Serialize(settingsData, options);
             File.WriteAllText(_filePath, json);
 
-            Debug.WriteLine($"Saved settings to: {_filePath}");
-            Debug.WriteLine($"Current theme saved as: {_currentTheme}");
+            Debug.WriteLine($"[SettingsService] Saved settings to: {_filePath}");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error saving settings: {ex.Message}");
+            Debug.WriteLine($"[SettingsService] Error saving settings: {ex.Message}");
         }
     }
 
@@ -151,7 +150,7 @@ public class SettingsService : ISettingsService
             if (File.Exists(_filePath))
             {
                 var json = File.ReadAllText(_filePath);
-                Debug.WriteLine($"Loaded settings from: {_filePath}");
+                Debug.WriteLine($"[SettingsService] Loaded settings from: {_filePath}");
 
                 var settings = JsonSerializer.Deserialize<JsonElement>(json);
 
@@ -182,7 +181,7 @@ public class SettingsService : ISettingsService
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Error deserializing MainWindowPosition: {ex.Message}");
+                        Debug.WriteLine($"[SettingsService] Error deserializing MainWindowPosition: {ex.Message}");
                         // Use default values on error
                     }
                 }
@@ -205,7 +204,7 @@ public class SettingsService : ISettingsService
                                 IsWindowMaximized = false // Default to false for backward compatibility
                             };
 
-                            Debug.WriteLine("Migrated from old window position settings");
+                            Debug.WriteLine("[SettingsService] Migrated from old window position settings");
 
                             // Save settings to update the format
                             SaveSettings();
@@ -213,19 +212,19 @@ public class SettingsService : ISettingsService
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Error migrating window position settings: {ex.Message}");
+                        Debug.WriteLine($"[SettingsService] Error migrating window position settings: {ex.Message}");
                     }
                 }
             }
             else
             {
                 // Use default values if file doesn't exist
-                Debug.WriteLine("Settings file not found, using defaults");
+                Debug.WriteLine("[SettingsService] Settings file not found, using defaults");
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error loading settings: {ex.Message}");
+            Debug.WriteLine($"[SettingsService] Error loading settings: {ex.Message}");
             // Keep default values on error
         }
     }

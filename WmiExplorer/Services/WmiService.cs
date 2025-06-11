@@ -306,17 +306,17 @@ public class WmiService : IWmiService, IDisposable
             }
             catch (ManagementException mex)
             {
-                System.Diagnostics.Debug.WriteLine($"WMI ManagementException connecting scope: {mex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[WmiService] WMI ManagementException connecting scope: {mex.Message}");
                 throw;
             }
             catch (UnauthorizedAccessException uex)
             {
-                System.Diagnostics.Debug.WriteLine($"WMI UnauthorizedAccessException connecting scope: {uex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[WmiService] WMI UnauthorizedAccessException connecting scope: {uex.Message}");
                 throw;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"WMI Exception connecting scope: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[WmiService] WMI Exception connecting scope: {ex.Message}");
                 throw;
             }
         }
@@ -546,7 +546,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error creating root namespace: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiService] Error creating root namespace: {ex.Message}");
             return null;
         }
     }
@@ -601,7 +601,7 @@ public class WmiService : IWmiService, IDisposable
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error canceling WMI observer: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI observer: {ex.Message}");
                     }
                 });
                 // Don't set as cancelled here - let the Completed event handle it and return partial results
@@ -622,7 +622,7 @@ public class WmiService : IWmiService, IDisposable
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error canceling WMI observer: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI observer: {ex.Message}");
                     }
                 });
                 // Don't set as cancelled here - let the Completed event handle it and return partial results
@@ -682,7 +682,7 @@ public class WmiService : IWmiService, IDisposable
                 catch (Exception ex)
                 {
                     // Log the error but continue with other namespaces
-                    System.Diagnostics.Debug.WriteLine($"Error searching in child namespace: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[WmiService] Error searching in child namespace: {ex.Message}");
                     // Continue processing other child namespaces
                 }
             }
@@ -690,7 +690,7 @@ public class WmiService : IWmiService, IDisposable
         catch (Exception ex)
         {
             // Log the error but don't propagate to avoid breaking the entire search
-            System.Diagnostics.Debug.WriteLine($"Error getting child namespaces for recursive search: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiService] Error getting child namespaces for recursive search: {ex.Message}");
         }
     }
 

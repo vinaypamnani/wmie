@@ -73,7 +73,6 @@ public class MainWindowPosition : INotifyPropertyChanged
             if (value > MIN_COLUMN_WIDTH && SetProperty(ref _classesColumnWidth, value))
             {
                 OnPropertyChanged(nameof(ClassesColumnGridLength));
-                System.Diagnostics.Debug.WriteLine($"Saved classes column width: {value}");
             }
         }
     }
@@ -105,7 +104,6 @@ public class MainWindowPosition : INotifyPropertyChanged
             if (value > 0 && SetProperty(ref _contentColumnStarWidth, value))
             {
                 OnPropertyChanged(nameof(ContentColumnStarGridLength));
-                System.Diagnostics.Debug.WriteLine($"Saved content column star value: {value}");
             }
         }
     }
@@ -230,7 +228,6 @@ public class MainWindowPosition : INotifyPropertyChanged
             if (value > MIN_COLUMN_WIDTH && SetProperty(ref _namespaceColumnWidth, value))
             {
                 OnPropertyChanged(nameof(NamespaceColumnGridLength));
-                System.Diagnostics.Debug.WriteLine($"Saved namespace column width: {value}");
             }
         }
     }
@@ -263,7 +260,6 @@ public class MainWindowPosition : INotifyPropertyChanged
             if (value > 0 && SetProperty(ref _propertyGridColumnStarWidth, value))
             {
                 OnPropertyChanged(nameof(PropertyGridColumnStarGridLength));
-                System.Diagnostics.Debug.WriteLine($"Saved property grid column star value: {value}");
             }
         }
     }

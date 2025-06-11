@@ -124,7 +124,7 @@ public class PropertyListManager : DisposableObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Cache error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PropertyListManager] Cache error: {ex.Message}");
             return Enumerable.Empty<PropertyDisplayInfo>();
         }
     }

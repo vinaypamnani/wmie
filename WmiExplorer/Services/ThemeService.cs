@@ -146,12 +146,12 @@ public class ThemeService : IThemeService
             ApplyTheme(_currentThemeName);
 
             // Log initialization
-            System.Diagnostics.Debug.WriteLine($"Theme initialized: {_currentThemeName}");
+            System.Diagnostics.Debug.WriteLine($"[ThemeService] Theme initialized: {_currentThemeName}");
         }
         catch (Exception ex)
         {
             // Fallback to Dark theme if there's an error
-            System.Diagnostics.Debug.WriteLine($"Error initializing theme: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ThemeService] Error initializing theme: {ex.Message}");
             ApplyTheme(ThemeCollection.DarkTheme.ThemeName);
         }
     }

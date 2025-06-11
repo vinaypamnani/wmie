@@ -244,7 +244,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error loading methods for class {ClassName}: {ex.Message}");
+            Debug.WriteLine($"[WmiClassViewModel] Error loading methods for class {ClassName}: {ex.Message}");
         }
     }
 

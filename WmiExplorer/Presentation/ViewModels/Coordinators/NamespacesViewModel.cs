@@ -231,7 +231,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         try
         {
             // Debug logging for incoming message
-            System.Diagnostics.Debug.WriteLine($"[JumpToClass] Received JumpToClassMessage: NamespacePath='{message.NamespacePath}', ClassName='{message.ClassName}'");
+            System.Diagnostics.Debug.WriteLine($"[NamespacesViewModel] Received JumpToClassMessage: NamespacePath='{message.NamespacePath}', ClassName='{message.ClassName}'");
 
             // Find or expand the namespace path recursively
             var nsVm = await FindOrExpandNamespaceAsync(message.NamespacePath);

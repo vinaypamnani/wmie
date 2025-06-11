@@ -23,7 +23,7 @@ public static class ProviderModule
         {
             registry.RegisterConverter(converter);
         }
-        System.Diagnostics.Debug.WriteLine($"{provider.GetType().Name} registered{(converter != null ? " with converter" : "")}");
+        System.Diagnostics.Debug.WriteLine($"[ProviderModule] {provider.GetType().Name} registered{(converter != null ? " with converter" : "")}");
     }
 
     /// <summary>
@@ -38,6 +38,6 @@ public static class ProviderModule
         {
             registry.UnregisterConverter(converter);
         }
-        System.Diagnostics.Debug.WriteLine($"{provider.GetType().Name} unregistered{(converter != null ? " with converter" : "")}");
+        System.Diagnostics.Debug.WriteLine($"[ProviderModule] {provider.GetType().Name} unregistered{(converter != null ? " with converter" : "")}");
     }
 }

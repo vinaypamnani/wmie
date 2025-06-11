@@ -223,13 +223,10 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
 
             // Notify that command can execute state may have changed
             ExecuteMethodCommand.NotifyCanExecuteChanged();
-
-            // Log the number of methods found
-            // System.Diagnostics.Debug.WriteLine($"Loaded {InstanceMethods.Count} methods for instance {InstanceName}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading methods for instance {InstanceName}: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiInstanceViewModel] Error loading methods for instance {InstanceName}: {ex.Message}");
         }
     }
 
