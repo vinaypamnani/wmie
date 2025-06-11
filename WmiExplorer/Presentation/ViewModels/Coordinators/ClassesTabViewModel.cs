@@ -118,7 +118,9 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         // Update UI or perform other actions when classes are loaded
         OnPropertyChanged(nameof(SelectedNamespace));
-    }    /// <summary>
+    }
+
+    /// <summary>
     /// Handles the unified selection changed message
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
@@ -137,6 +139,11 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
                 }
                 break;
 
+            case WmiClassViewModel classVm:
+                SelectedClass = classVm;
+                UpdateAutoQueryText(classVm);
+                break;
+
             case WmiInstanceViewModel instanceVm:
                 // Update auto-query for instance selections
                 UpdateAutoQueryText(instanceVm);
@@ -148,24 +155,6 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         // Notify that the CanExecute state of ExecuteAutoQueryCommand may have changed
         ExecuteAutoQueryCommand.NotifyCanExecuteChanged();
-    }
-
-    // Property change notification methods
-    partial void OnSelectedClassChanged(WmiClassViewModel? value)
-    {
-        if (value != null)
-        {
-            // Update SelectionService with the new selection
-            _selectionService.SetSelectedObject(value);
-
-            // Update the auto-generated query
-            UpdateAutoQueryText(value);
-        }
-        else
-        {
-            // Clear the query text when no class is selected
-            AutoQueryText = string.Empty;
-        }
     }
 
     partial void OnShowSystemClassesChanged(bool value)

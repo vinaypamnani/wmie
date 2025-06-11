@@ -321,7 +321,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     partial void OnSelectedEventChanged(WmiEvent? value)
     {
         // Update SelectionService with the new selection
-        _selectionService.SetSelectedObject(value);
+        ForceSelection();
     }
 
     /// <summary>

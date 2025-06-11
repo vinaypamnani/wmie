@@ -144,7 +144,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
             await RunOnUIThreadAsync(() =>
             {
                 Namespaces.Add(rootViewModel);
-                SelectedNamespace = rootViewModel; // Select the root namespace
+                rootViewModel.IsSelected = true;
                 return Task.CompletedTask;
             });
 
