@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
@@ -11,13 +13,9 @@ namespace WmiExplorer.Presentation.Controls.ColorPicker;
 /// <summary>
 /// A control that allows users to pick colors using a color picker dialog.
 /// </summary>
-public class ColorPicker : Control, INotifyPropertyChanged
+[INotifyPropertyChanged]
+public partial class ColorPicker : Control
 {
-    /// <summary>
-    /// Occurs when a property value changes.
-    /// </summary>
-    public event PropertyChangedEventHandler? PropertyChanged;
-
     private const int MaxRecentColors = 22;
 
     public static readonly DependencyProperty SelectedColorProperty =
@@ -48,17 +46,28 @@ public class ColorPicker : Control, INotifyPropertyChanged
     private Button? _colorButton;
 
     private Popup? _colorPickerPopup;
-    private double _hue;
     private HueSlider? _hueSlider;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Hue))]
+    private double _hueValue;
+
+    private bool _isOkClicked = false;
     private bool _isUpdatingValues = false;
     private Button? _okButton;
+    private Color _originalColor;
     private readonly ObservableCollection<SolidColorBrush> _recentColors = new ObservableCollection<SolidColorBrush>();
-    private double _saturation;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Saturation))]
+    private double _saturationValue;
+
     private SaturationValueCanvas? _saturationValueCanvas;
     private readonly ObservableCollection<SolidColorBrush> _standardColors = new ObservableCollection<SolidColorBrush>();
-    private Color _originalColor;
-    private double _value;
-    private bool _isOkClicked = false; // Tracks if OK was clicked
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Value))]
+    private double _valueValue;
 
     /// <summary>
     /// Initializes a new instance of the ColorPicker control.
@@ -186,18 +195,8 @@ public class ColorPicker : Control, INotifyPropertyChanged
     /// </summary>
     public double Hue
     {
-        get => Math.Round(_hue, 10);
-        set
-        {
-            if (_hue != value && !_isUpdatingValues)
-            {
-                _isUpdatingValues = true;
-                _hue = value;
-                UpdateRGBFromHSV();
-                _isUpdatingValues = false;
-                OnPropertyChanged(nameof(Hue));
-            }
-        }
+        get => Math.Round(HueValue, 10);
+        set => HueValue = value;
     }
 
     /// <summary>
@@ -231,18 +230,8 @@ public class ColorPicker : Control, INotifyPropertyChanged
     /// </summary>
     public double Saturation
     {
-        get => Math.Round(_saturation, 10);
-        set
-        {
-            if (_saturation != value && !_isUpdatingValues)
-            {
-                _isUpdatingValues = true;
-                _saturation = value;
-                UpdateRGBFromHSV();
-                _isUpdatingValues = false;
-                OnPropertyChanged(nameof(Saturation));
-            }
-        }
+        get => Math.Round(SaturationValue, 10);
+        set => SaturationValue = value;
     }
 
     /// <summary>
@@ -298,18 +287,8 @@ public class ColorPicker : Control, INotifyPropertyChanged
     /// </summary>
     public double Value
     {
-        get => Math.Round(_value, 10);
-        set
-        {
-            if (_value != value && !_isUpdatingValues)
-            {
-                _isUpdatingValues = true;
-                _value = value;
-                UpdateRGBFromHSV();
-                _isUpdatingValues = false;
-                OnPropertyChanged(nameof(Value));
-            }
-        }
+        get => Math.Round(ValueValue, 10);
+        set => ValueValue = value;
     }
 
     /// <summary>
@@ -361,14 +340,6 @@ public class ColorPicker : Control, INotifyPropertyChanged
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-    }
-
-    /// <summary>
-    /// Raises the PropertyChanged event.
-    /// </summary>
-    protected void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private void AddToRecentColors(SolidColorBrush brush)
@@ -430,16 +401,6 @@ public class ColorPicker : Control, INotifyPropertyChanged
         }
     }
 
-    // Handles Escape key to cancel color selection
-    private void ColorPickerPopup_PreviewKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Escape)
-        {
-            CancelButton_Click(sender, new RoutedEventArgs());
-            e.Handled = true;
-        }
-    }
-
     private void ColorPickerPopup_Closed(object? sender, EventArgs e)
     {
         // If popup closed and OK was not clicked, treat as Cancel
@@ -452,6 +413,16 @@ public class ColorPicker : Control, INotifyPropertyChanged
         {
             _colorPickerPopup.PreviewKeyDown -= ColorPickerPopup_PreviewKeyDown;
             _colorPickerPopup.Closed -= ColorPickerPopup_Closed;
+        }
+    }
+
+    // Handles Escape key to cancel color selection
+    private void ColorPickerPopup_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            CancelButton_Click(sender, new RoutedEventArgs());
+            e.Handled = true;
         }
     }
 
@@ -504,7 +475,33 @@ public class ColorPicker : Control, INotifyPropertyChanged
         }
     }
 
-    private void OnSelectColor(SolidColorBrush brush)
+    /// <summary>
+    /// Partial method called when HueValue property changes.
+    /// </summary>
+    partial void OnHueValueChanged(double value)
+    {
+        if (!_isUpdatingValues)
+        {
+            _isUpdatingValues = true;
+            UpdateRGBFromHSV();
+            _isUpdatingValues = false;
+        }
+    }
+
+    /// <summary>
+    /// Partial method called when SaturationValue property changes.
+    /// </summary>
+    partial void OnSaturationValueChanged(double value)
+    {
+        if (!_isUpdatingValues)
+        {
+            _isUpdatingValues = true;
+            UpdateRGBFromHSV();
+            _isUpdatingValues = false;
+        }
+    }
+
+    private void OnSelectColor(SolidColorBrush? brush)
     {
         if (brush != null)
         {
@@ -541,6 +538,19 @@ public class ColorPicker : Control, INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Partial method called when ValueValue property changes.
+    /// </summary>
+    partial void OnValueValueChanged(double value)
+    {
+        if (!_isUpdatingValues)
+        {
+            _isUpdatingValues = true;
+            UpdateRGBFromHSV();
+            _isUpdatingValues = false;
+        }
+    }
+
     private void UpdateColorComponents(Color color)
     {
         if (!_isUpdatingValues)
@@ -556,15 +566,15 @@ public class ColorPicker : Control, INotifyPropertyChanged
     private void UpdateHSVFromRGB()
     {
         ColorUtils.ColorToHSV(SelectedColor, out double h, out double s, out double v);
-        _hue = h;
-        _saturation = s;
-        _value = v;
+        Hue = h;
+        Saturation = s;
+        Value = v;
         OnPropertiesChanged(nameof(Hue), nameof(Saturation), nameof(Value));
     }
 
     private void UpdateRGBFromHSV()
     {
-        Color color = ColorUtils.HSVToColor(_hue, _saturation, _value, SelectedColor.A);
+        Color color = ColorUtils.HSVToColor(Hue, Saturation, Value, SelectedColor.A);
         SelectedColor = color;
     }
 }
