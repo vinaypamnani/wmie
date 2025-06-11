@@ -134,18 +134,24 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
         {
             case WmiNamespaceViewModel namespaceVm:
                 if (namespaceVm != SelectedNamespace)
-                {
                     SelectedNamespace = namespaceVm;
-                }
+
                 break;
 
             case WmiClassViewModel classVm:
-                SelectedClass = classVm;
+                if (classVm != SelectedClass)
+                    SelectedClass = classVm;
                 UpdateAutoQueryText(classVm);
                 break;
 
             case WmiInstanceViewModel instanceVm:
-                // Update auto-query for instance selections
+                // Ensure the parent class is selected when an instance is selected
+                var parentClassVm = instanceVm.ParentClass;
+                if (parentClassVm != null && parentClassVm != SelectedClass)
+                {
+                    SelectedClass = parentClassVm;
+                }
+
                 UpdateAutoQueryText(instanceVm);
                 break;
         }
