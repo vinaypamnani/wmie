@@ -111,7 +111,7 @@
                             <ListView.ItemContainerStyle>
                                 <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                                    <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
+                                    <Setter Property="behaviors:ItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
                                     <Setter Property="behaviors:ForceItemSelectionBehavior.EnableForceSelection" Value="True" />
                                     <!--  ContextMenu for Copy Relative Path and Cancel loading  -->
                                     <Setter Property="ContextMenu">
