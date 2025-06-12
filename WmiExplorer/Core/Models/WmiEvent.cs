@@ -35,7 +35,7 @@ public class WmiEvent : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Embedded instance access error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiEvent] Embedded instance access error: {ex.Message}");
         }
 
         // Try to use the requested display property, fallback to __RELPATH
@@ -78,18 +78,6 @@ public class WmiEvent : IDisposable
 
     public string WatcherName { get; }
 
-    public void Dispose()
-    {
-        // Dispose the main ManagementBaseObject
-        EventData?.Dispose();
-        // No other disposable fields currently held
-    }
-
-    public override string ToString()
-    {
-        return $"{EventDisplayPropertyName}: {EventDisplayPropertyValue}";
-    }
-
     /// <summary>
     /// Utility to diff two ManagementBaseObject instances.
     /// </summary>
@@ -117,6 +105,11 @@ public class WmiEvent : IDisposable
         return diff;
     }
 
+    public override string ToString()
+    {
+        return $"Event: {EventDisplayPropertyName} = {EventDisplayPropertyValue}";
+    }
+
     private static string? TryGetPropertyValue(ManagementBaseObject? obj, string propertyName)
     {
         if (obj == null || string.IsNullOrWhiteSpace(propertyName))
@@ -131,6 +124,16 @@ public class WmiEvent : IDisposable
             return null;
         }
     }
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+        // Dispose the main ManagementBaseObject
+        EventData?.Dispose();
+    }
+
+    #endregion
 }
 
 /// <summary>

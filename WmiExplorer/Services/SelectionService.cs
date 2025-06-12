@@ -19,29 +19,6 @@ public class SelectionService : ISelectionService
     public object? PreviousObject { get; private set; }
     public object? SelectedObject { get; private set; }
 
-    public string SelectedObjectDisplayName
-    {
-        get
-        {
-            if (SelectedObject == null)
-                return "No Selection";
-
-            return SelectedObject switch
-            {
-                WmiNamespaceViewModel nsVm => $"Namespace: {nsVm.Name}",
-                WmiClassViewModel clsVm => $"Class: {clsVm.ClassName}",
-                WmiClass cls => $"Class: {cls.ClassName}",
-                WmiInstanceViewModel instVm => $"Instance: {instVm.InstanceName}",
-                WmiInstance inst => $"Instance: {inst.InstanceName}",
-                WmiProperty prop => $"Property: {prop.Name}",
-                WmiMethod method => $"Method: {method.Name}",
-                WmiEvent evt => $"Event: {evt.EventDisplayPropertyValue}",
-                WmiSearchResult result => $"Search Result: {result.Name}",
-                _ => SelectedObject.GetType().Name
-            };
-        }
-    }
-
     public void ClearSelections()
     {
         PreviousObject = SelectedObject;

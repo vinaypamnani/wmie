@@ -12,7 +12,9 @@ public class WmiSearchResult
     {
         SearchType = searchType;
         Match = match ?? throw new ArgumentNullException(nameof(match));
-        Parent = parent ?? throw new ArgumentNullException(nameof(parent));        // Create appropriate model objects based on search type and match object
+        Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+
+        // Create appropriate model objects based on search type and match object
         switch (searchType)
         {
             case WmiSearchType.Class when match is ManagementClass managementClass:
@@ -44,7 +46,6 @@ public class WmiSearchResult
     };
 
     public object Match { get; }
-
     public WmiMethod? Method { get; }
 
     // Unified properties for simplified binding
@@ -56,6 +57,7 @@ public class WmiSearchResult
         _ => "Unknown"
     };
 
+    public string NamespacePath { get; }
     public ManagementBaseObject Parent { get; }
 
     public string Path => SearchType switch
@@ -75,24 +77,8 @@ public class WmiSearchResult
         _ => null
     };
 
-    public string NamespacePath { get; }
-
-    private static string? ExtractName(object obj)
+    public override string ToString()
     {
-        try
-        {
-            // Handle different object types that might have a Name property
-            return obj switch
-            {
-                MethodData method => method.Name,
-                PropertyData property => property.Name,
-                ManagementBaseObject mbo => mbo["Name"]?.ToString(),
-                _ => null
-            };
-        }
-        catch
-        {
-            return null;
-        }
+        return "Search Result: " + Name + " (" + SearchType + ")";
     }
 }

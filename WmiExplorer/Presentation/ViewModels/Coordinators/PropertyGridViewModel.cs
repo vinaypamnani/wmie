@@ -14,9 +14,14 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// </summary>
 public partial class PropertyGridViewModel : MessagingViewModelBase
 {
+    private const string NoSelectionDisplayName = "No Selection";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedObjectDisplayName))]
     private object? _selectedObject;
+
+    [ObservableProperty]
+    private string _selectedObjectDisplayName = NoSelectionDisplayName;
 
     private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
@@ -40,11 +45,6 @@ public partial class PropertyGridViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Gets the display name of the currently selected object for the property grid header
-    /// </summary>
-    public string SelectedObjectDisplayName => _selectionService.SelectedObjectDisplayName;
-
-    /// <summary>
     /// Handles the unified selection changed message to update the property grid
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
@@ -56,32 +56,39 @@ public partial class PropertyGridViewModel : MessagingViewModelBase
 
         // Get the selected object from the selection service
         var selectedObject = message.SelectionService.SelectedObject;
+        string? displayName;
         switch (selectedObject)
         {
             case WmiNamespaceViewModel namespaceViewModel:
                 selectedObject = namespaceViewModel.WmiNamespace;
+                displayName = selectedObject?.ToString();
                 break;
             case WmiClassViewModel classViewModel:
                 selectedObject = classViewModel.WmiClass;
+                displayName = selectedObject?.ToString();
                 break;
             case WmiInstanceViewModel instanceViewModel:
                 selectedObject = instanceViewModel.WmiInstance;
+                displayName = selectedObject?.ToString();
                 break;
             case WmiSearchResult wmiSearchResult:
-                if (wmiSearchResult.Class is WmiClass wmiClass)
+                displayName = wmiSearchResult?.ToString();
+                if (wmiSearchResult?.Class is WmiClass wmiClass)
                     selectedObject = wmiClass;
-                else if (wmiSearchResult.Method is WmiMethod wmiMethod)
+                else if (wmiSearchResult?.Method is WmiMethod wmiMethod)
                     selectedObject = wmiMethod;
-                else if (wmiSearchResult.Property is WmiProperty wmiProperty)
+                else if (wmiSearchResult?.Property is WmiProperty wmiProperty)
                     selectedObject = wmiProperty;
                 else
-                    selectedObject = wmiSearchResult.Match;
+                    selectedObject = wmiSearchResult?.Match;
                 break;
             default:
+                displayName = selectedObject?.ToString();
                 break;
         }
 
         // Update the selected object for the property grid from the selection service
         SelectedObject = selectedObject;
+        SelectedObjectDisplayName = displayName ?? NoSelectionDisplayName;
     }
 }

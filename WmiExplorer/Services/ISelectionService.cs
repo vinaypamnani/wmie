@@ -16,11 +16,6 @@ public interface ISelectionService
     object? SelectedObject { get; }
 
     /// <summary>
-    /// Gets the display name of the currently selected object
-    /// </summary>
-    string SelectedObjectDisplayName { get; }
-
-    /// <summary>
     /// Clears all selections
     /// </summary>
     void ClearSelections();
