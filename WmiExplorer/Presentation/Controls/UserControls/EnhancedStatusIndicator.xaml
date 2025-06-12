@@ -4,6 +4,12 @@
              xmlns:enums="clr-namespace:WmiExplorer.Common.Enums"
              Height="22"
              MinWidth="180">
+
+    <!--
+        EnhancedStatusIndicator now supports external AppState and Message bindings via dependency properties.
+        All bindings reference these properties using RelativeSource.
+    -->
+
     <UserControl.Resources>
         <!--  Animations  -->
         <Storyboard x:Key="PulseStoryboard" RepeatBehavior="Forever">
@@ -23,19 +29,20 @@
                              Duration="0:0:1.2" />
         </Storyboard>
     </UserControl.Resources>
+
     <Border Padding="2,0,10,0"
             Background="Transparent"
             BorderBrush="Transparent"
             BorderThickness="1"
             CornerRadius="10">
+
         <Grid>
             <Grid.ColumnDefinitions>
-                <!--  First column can be Auto for indicator dots or fixed width for progress bar  -->
                 <ColumnDefinition x:Name="IndicatorColumn" Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!--  Status Indicator Section (Left) - For Ready/Error/Indeterminate states  -->
+            <!--  Status Indicator Section (Left)  -->
             <Grid x:Name="StatusIndicators"
                   Grid.Column="0"
                   Width="22"
@@ -44,7 +51,7 @@
                     <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Visible" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Busy}">
+                            <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Busy}">
                                 <Setter Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -61,7 +68,7 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Indeterminate}">
+                                <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Indeterminate}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -83,7 +90,7 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Error}">
+                                <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Error}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -105,10 +112,10 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Ready}">
+                                <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Ready}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Success}">
+                                <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Success}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -130,7 +137,7 @@
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Warning}">
+                                <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Warning}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -159,7 +166,7 @@
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Busy}">
+                            <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Busy}">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -187,7 +194,7 @@
             <TextBlock Grid.Column="1"
                        Margin="2,0,4,0"
                        VerticalAlignment="Center"
-                       Text="{Binding CurrentApplicationState.Message}"
+                       Text="{Binding Message, RelativeSource={RelativeSource AncestorType=UserControl}}"
                        TextTrimming="CharacterEllipsis" />
 
             <!--  Border Glow Effect for Busy State  -->
@@ -203,7 +210,7 @@
                     <Style TargetType="Border">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentApplicationState.State}" Value="{x:Static enums:AppState.Busy}">
+                            <DataTrigger Binding="{Binding AppState, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="{x:Static enums:AppState.Busy}">
                                 <Setter Property="Visibility" Value="Visible" />
                             </DataTrigger>
                         </Style.Triggers>
