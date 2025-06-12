@@ -11,13 +11,13 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 public partial class WmiParameterViewModel : DisposableObservableObject
 {
     [ObservableProperty]
-    private bool _isLoadingReferenceValues = false;
-
-    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEnabled))]
     private bool _isSelected = false;
 
     private readonly ManagementScope? _managementScope;
+
+    [ObservableProperty]
+    private ReferenceValueLoadState _referenceLoadState = ReferenceValueLoadState.None;
 
     [ObservableProperty]
     private ObservableCollection<string> _referenceValues = new();
@@ -60,7 +60,7 @@ public partial class WmiParameterViewModel : DisposableObservableObject
 
     private bool CancelLoadReferenceValuesCanExecute()
     {
-        return IsLoadingReferenceValues;
+        return ReferenceLoadState == ReferenceValueLoadState.Loading;
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ public partial class WmiParameterViewModel : DisposableObservableObject
         try
         {
             // Set loading state
-            IsLoadingReferenceValues = true;
+            ReferenceLoadState = ReferenceValueLoadState.Loading;
 
             // Extract the reference class name from the CimType
             // CimType for references typically looks like "ref:ClassName" or just "ClassName"
@@ -170,20 +170,18 @@ public partial class WmiParameterViewModel : DisposableObservableObject
                     ReferenceValues.Add(refValue);
                 }
                 Value = ReferenceValues.FirstOrDefault(); // Set the first value as default
-
+                ReferenceLoadState = ReferenceValueLoadState.Loaded;
             });
         }
         catch (OperationCanceledException)
         {
+            ReferenceLoadState = ReferenceValueLoadState.Cancelled;
             System.Diagnostics.Debug.WriteLine("[WmiParameterViewModel] Reference value loading cancelled.");
         }
         catch (Exception ex)
         {
+            ReferenceLoadState = ReferenceValueLoadState.Error;
             System.Diagnostics.Debug.WriteLine($"[WmiParameterViewModel] Error loading reference values: {ex.Message}");
-        }
-        finally
-        {
-            IsLoadingReferenceValues = false;
         }
     }
 
@@ -199,4 +197,13 @@ public partial class WmiParameterViewModel : DisposableObservableObject
     {
         _wmiParameter.Value = value;
     }
+}
+
+public enum ReferenceValueLoadState
+{
+    None,
+    Loading,
+    Loaded,
+    Cancelled,
+    Error
 }

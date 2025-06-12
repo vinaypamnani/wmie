@@ -179,6 +179,7 @@
                                                                                     <Grid.ColumnDefinitions>
                                                                                         <ColumnDefinition Width="*" />
                                                                                         <ColumnDefinition Width="Auto" />
+                                                                                        <ColumnDefinition Width="Auto" />
                                                                                     </Grid.ColumnDefinitions>
                                                                                     <ComboBox Grid.Column="0"
                                                                                               IsEditable="True"
@@ -190,15 +191,13 @@
                                                                                             Height="24"
                                                                                             Margin="8,0,0,0"
                                                                                             Command="{Binding DataContext.LoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
-                                                                                            Content="Load"
-                                                                                            Visibility="{Binding DataContext.IsLoadingReferenceValues, RelativeSource={RelativeSource AncestorType=ContentControl}, Converter={StaticResource InverseBooleanConverter}}" />
+                                                                                            Content="Load" />
                                                                                     <Button Grid.Column="2"
                                                                                             Width="60"
                                                                                             Height="24"
                                                                                             Margin="8,0,0,0"
                                                                                             Command="{Binding DataContext.CancelLoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
-                                                                                            Content="Cancel"
-                                                                                            Visibility="{Binding DataContext.IsLoadingReferenceValues, RelativeSource={RelativeSource AncestorType=ContentControl}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                                                            Content="Cancel" />
                                                                                 </Grid>
                                                                             </DataTemplate>
                                                                         </Setter.Value>

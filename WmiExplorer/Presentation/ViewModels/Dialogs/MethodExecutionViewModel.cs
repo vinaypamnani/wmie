@@ -308,18 +308,31 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
 
     private void WmiParameterViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(WmiParameterViewModel.IsLoadingReferenceValues))
+        if (e.PropertyName == nameof(WmiParameterViewModel.ReferenceLoadState))
         {
             var param = (WmiParameterViewModel)sender!;
-            if (param.IsLoadingReferenceValues)
+
+            // Update status based on reference load state
+            switch (param.ReferenceLoadState)
             {
-                StatusMessage = "Loading reference values...";
-                ExecutionState = AppState.Busy;
-            }
-            else
-            {
-                StatusMessage = "Loaded reference values.";
-                ExecutionState = AppState.Ready;
+                case ReferenceValueLoadState.Loading:
+                    StatusMessage = "Loading reference values...";
+                    ExecutionState = AppState.Busy;
+                    break;
+                case ReferenceValueLoadState.Loaded:
+                    StatusMessage = "Reference values loaded.";
+                    ExecutionState = AppState.Success;
+                    break;
+                case ReferenceValueLoadState.Cancelled:
+                    StatusMessage = "Reference value loading cancelled.";
+                    ExecutionState = AppState.Warning;
+                    break;
+                case ReferenceValueLoadState.Error:
+                    StatusMessage = "Error loading reference values.";
+                    ExecutionState = AppState.Error;
+                    break;
+                default:
+                    break;
             }
         }
     }
