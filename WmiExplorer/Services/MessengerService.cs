@@ -49,23 +49,10 @@ public class MessengerService : IMessengerService, IDisposable
         var debouncer = _debouncers.GetOrAdd(messageType, _ => new DebounceDispatcher(DebounceIntervalMs));
 
         debouncer.Debounce(() =>
-        {
-            // Only send if there's still a message of this type waiting
+        {            // Only send if there's still a message of this type waiting
             // This ensures we only send the most recent message
             if (_latestMessages.TryRemove(messageType, out var latestMessageObj) && latestMessageObj is T latestMessage)
             {
-                // Special handling for ApplicationStateMessage
-                if (message is ApplicationStateMessage appStateMsg && Application.Current != null)
-                {
-                    Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        if (MainWindow.Current?.DataContext is MainViewModel mainVm)
-                        {
-                            mainVm.CurrentApplicationState = appStateMsg.State;
-                        }
-                    });
-                }
-
                 Interlocked.Increment(ref _isPublishing);
 
                 try
