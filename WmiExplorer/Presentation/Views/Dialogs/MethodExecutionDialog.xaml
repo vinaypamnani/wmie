@@ -208,10 +208,11 @@
                                                                     <Setter Property="ContentTemplate">
                                                                         <Setter.Value>
                                                                             <DataTemplate>
-                                                                                <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}">
+                                                                                <TextBox HorizontalAlignment="Stretch" IsEnabled="False" Text="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}">
                                                                                     <TextBox.Style>
                                                                                         <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
-                                                                                            <Setter Property="Tag" Value="{Binding DataContext.CimType, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                                                                                            <!-- <Setter Property="Tag" Value="{Binding DataContext.CimType, RelativeSource={RelativeSource AncestorType=ContentControl}}" /> -->
+                                                                                            <Setter Property="Tag" Value="Object parameters are not supported." />
                                                                                         </Style>
                                                                                     </TextBox.Style>
                                                                                 </TextBox>
