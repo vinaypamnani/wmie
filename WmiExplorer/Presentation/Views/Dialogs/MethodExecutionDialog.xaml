@@ -182,16 +182,15 @@
                                                                                     </Grid.ColumnDefinitions>
                                                                                     <ComboBox Grid.Column="0"
                                                                                               IsEditable="True"
-                                                                                              IsEnabled="{Binding IsSelected}"
-                                                                                              ItemsSource="{Binding ReferenceOptions}"
-                                                                                              SelectedItem="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                              IsEnabled="{Binding IsEnabled}"
+                                                                                              ItemsSource="{Binding DataContext.ReferenceValues, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                              SelectedItem="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     <Button Grid.Column="1"
                                                                                             Width="60"
                                                                                             Height="24"
                                                                                             Margin="8,0,0,0"
-                                                                                            Command="{Binding LoadReferenceCommand}"
-                                                                                            Content="Load"
-                                                                                            IsEnabled="{Binding IsSelected}" />
+                                                                                            Command="{Binding DataContext.LoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                            Content="Load"/>
                                                                                 </Grid>
                                                                             </DataTemplate>
                                                                         </Setter.Value>

@@ -16,7 +16,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
 {
     public event EventHandler? CloseRequested;
 
-    private readonly WmiClass _class;
+    private readonly WmiClass? _class;
     private CancellationTokenSource _cts = new();
 
     [ObservableProperty]
@@ -29,8 +29,9 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     [NotifyCanExecuteChangedFor(nameof(ExecuteMethodCommand))]
     private bool _isExecuting;
 
-    private readonly WmiMethod _method;
-    private readonly WmiNamespace _namespace;
+    private ManagementScope _managementScope;
+    private readonly WmiMethod? _method;
+    private readonly WmiNamespace? _namespace;
 
     [ObservableProperty]
     private WmiBaseObject? _outputParameters;
@@ -65,20 +66,32 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _instance = wmiInstance;
 
-        // Verify method is appropriate for the context (static vs instance)
+        // Set management scope based on instance or class
+        if (_instance != null && _instance.ActualObject != null)
+        {
+            _managementScope = _instance.ActualObject.Scope;
+        }
+        else if (_class != null && _class.ActualClass != null)
+        {
+            _managementScope = _class.ActualClass.Scope;
+        }
+        else
+        {
+            throw new ArgumentException("Could not determine management scope from class or instance");
+        }
+
         if (_instance == null && !_method.IsStatic)
         {
             throw new ArgumentException("Cannot execute non-static method without an instance");
         }
 
-        // Load parameters
         LoadMethodParameters();
     }
 
     /// <summary>
     /// Gets the class name.
     /// </summary>
-    public string ClassName => _class.ClassName;
+    public string ClassName => _class!.ClassName;
 
     /// <summary>
     /// Gets the instance name (if applicable).
@@ -88,17 +101,17 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     /// <summary>
     /// Gets a value indicating whether the method is static.
     /// </summary>
-    public bool IsStaticMethod => _method.IsStatic;
+    public bool IsStaticMethod => _method!.IsStatic;
 
     /// <summary>
     /// Gets the description of the method being executed.
     /// </summary>
-    public string MethodDescription => _method.Description;
+    public string MethodDescription => _method!.Description;
 
     /// <summary>
     /// Gets the name of the method being executed.
     /// </summary>
-    public string MethodName => _method.Name;
+    public string MethodName => _method!.Name;
 
     /// <summary>
     /// Gets the collection of parameters for the method.
@@ -192,7 +205,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
             if (_parameters.Count > 0)
             {
                 // Get the in-parameters for the method from the class
-                inParams = _class.ActualClass.GetMethodParameters(_method.Name);
+                inParams = _class!.ActualClass.GetMethodParameters(_method!.Name);
 
                 // Set parameter values
                 foreach (var param in _parameters.Where(p => p.IsSelected))
@@ -211,7 +224,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
                 // Execute instance method
                 outParams = await _wmiService.ExecuteMethodAsync(
                     _instance.ActualObject,
-                    _method.Name,
+                    _method!.Name,
                     inParams,
                     _cts.Token);
             }
@@ -219,8 +232,8 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
             {
                 // Execute static method
                 outParams = await _wmiService.ExecuteStaticMethodAsync(
-                    _class.ActualClass,
-                    _method.Name,
+                    _class!.ActualClass,
+                    _method!.Name,
                     inParams,
                     _cts.Token);
             }
@@ -263,10 +276,9 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         _parameters.Clear();
         if (_method != null && _method.InParameters.Count > 0)
         {
-            // Sort InParameters by Id before adding to _parameters
             foreach (var param in _method.InParameters.OrderBy(p => p.Id))
             {
-                _parameters.Add(new WmiParameterViewModel(param));
+                _parameters.Add(new WmiParameterViewModel(param, _wmiService, _managementScope));
             }
         }
     }
