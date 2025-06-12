@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
@@ -20,11 +21,15 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     private CancellationTokenSource _cts = new();
 
     [ObservableProperty]
+    private AppState _executionState = AppState.Ready;
+
+    [ObservableProperty]
     private bool _hasOutputParameters;
 
     private readonly WmiInstance? _instance;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ExecutionState))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExecuteMethodCommand))]
     private bool _isExecuting;
@@ -189,7 +194,8 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         {
             // Set executing state
             IsExecuting = true;
-            StatusMessage = "Executing method...";
+            ExecutionState = AppState.Busy;
+            StatusMessage = $"Executing method {MethodName}...";
 
             // Reset output parameters
             HasOutputParameters = false;
@@ -246,6 +252,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
             }
 
             // Update status
+            ExecutionState = AppState.Success;
             StatusMessage = "Method executed successfully";
 
             // Switch to Output tab to show results
@@ -253,10 +260,12 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         }
         catch (OperationCanceledException)
         {
+            ExecutionState = AppState.Warning;
             StatusMessage = "Method execution was cancelled";
         }
         catch (Exception ex)
         {
+            ExecutionState = AppState.Error;
             StatusMessage = $"Error: {ex.Message}";
         }
         finally
@@ -280,6 +289,15 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
             {
                 _parameters.Add(new WmiParameterViewModel(param, _wmiService, _managementScope));
             }
+        }
+    }
+
+    partial void OnIsExecutingChanged(bool value)
+    {
+        if (value)
+        {
+            ExecutionState = AppState.Busy;
+            StatusMessage = "Executing method...";
         }
     }
 }

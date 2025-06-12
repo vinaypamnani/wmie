@@ -190,7 +190,7 @@
                                                                                             Height="24"
                                                                                             Margin="8,0,0,0"
                                                                                             Command="{Binding DataContext.LoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
-                                                                                            Content="Load"/>
+                                                                                            Content="Load" />
                                                                                 </Grid>
                                                                             </DataTemplate>
                                                                         </Setter.Value>
@@ -267,12 +267,14 @@
             <!--  Button Panel and Status Bar  -->
             <DockPanel Grid.Row="3">
                 <!--  Status Bar  -->
-                <Border BorderThickness="0,1,0,0" DockPanel.Dock="Bottom">
-                    <TextBlock Padding="10,3"
-                               Background="{DynamicResource SecondaryBackgroundBrush}"
-                               FontSize="12"
-                               Text="{Binding StatusMessage}" />
-                </Border>
+                <StatusBar Background="{DynamicResource SecondaryBackgroundBrush}" DockPanel.Dock="Bottom" Foreground="{DynamicResource PrimaryForegroundBrush}">
+                    <StatusBarItem>
+                        <uc:EnhancedStatusIndicator Margin="4,0"
+                                                    AppState="{Binding ExecutionState}"
+                                                    Message="{Binding StatusMessage}"
+                                                    ToolTip="{Binding StatusMessage}" />
+                    </StatusBarItem>
+                </StatusBar>
 
                 <!--  Button Panel  -->
                 <StackPanel Margin="15,10"
