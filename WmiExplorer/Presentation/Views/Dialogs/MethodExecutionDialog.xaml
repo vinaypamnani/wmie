@@ -190,7 +190,15 @@
                                                                                             Height="24"
                                                                                             Margin="8,0,0,0"
                                                                                             Command="{Binding DataContext.LoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
-                                                                                            Content="Load" />
+                                                                                            Content="Load"
+                                                                                            Visibility="{Binding DataContext.IsLoadingReferenceValues, RelativeSource={RelativeSource AncestorType=ContentControl}, Converter={StaticResource InverseBooleanConverter}}" />
+                                                                                    <Button Grid.Column="2"
+                                                                                            Width="60"
+                                                                                            Height="24"
+                                                                                            Margin="8,0,0,0"
+                                                                                            Command="{Binding DataContext.CancelLoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                            Content="Cancel"
+                                                                                            Visibility="{Binding DataContext.IsLoadingReferenceValues, RelativeSource={RelativeSource AncestorType=ContentControl}, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                                                 </Grid>
                                                                             </DataTemplate>
                                                                         </Setter.Value>

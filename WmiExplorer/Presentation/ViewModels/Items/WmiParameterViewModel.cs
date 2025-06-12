@@ -11,6 +11,9 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 public partial class WmiParameterViewModel : DisposableObservableObject
 {
     [ObservableProperty]
+    private bool _isLoadingReferenceValues = false;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEnabled))]
     private bool _isSelected = false;
 
@@ -18,6 +21,8 @@ public partial class WmiParameterViewModel : DisposableObservableObject
 
     [ObservableProperty]
     private ObservableCollection<string> _referenceValues = new();
+
+    private CancellationTokenSource? _referenceValuesCts;
 
     [ObservableProperty]
     private object? _value;
@@ -44,9 +49,18 @@ public partial class WmiParameterViewModel : DisposableObservableObject
     public string? Type => _wmiParameter.Type;
     public WmiParameter WmiParameter => _wmiParameter;
 
-    private bool CanLoadReferenceValues()
+    /// <summary>
+    /// Command to cancel the loading of reference values
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CancelLoadReferenceValuesCanExecute))]
+    private void CancelLoadReferenceValues()
     {
-        return IsReference && _wmiService != null && _managementScope != null;
+        _referenceValuesCts?.Cancel();
+    }
+
+    private bool CancelLoadReferenceValuesCanExecute()
+    {
+        return IsLoadingReferenceValues;
     }
 
     /// <summary>
@@ -101,14 +115,20 @@ public partial class WmiParameterViewModel : DisposableObservableObject
     /// <summary>
     /// Command to load reference values for reference-type parameters
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanLoadReferenceValues))]
+    [RelayCommand(CanExecute = nameof(LoadReferenceValuesCanExecute))]
     private async Task LoadReferenceValuesAsync()
     {
         if (_wmiService == null || _managementScope == null || !IsReference)
             return;
 
+        _referenceValuesCts?.Dispose();
+        _referenceValuesCts = new CancellationTokenSource();
+
         try
         {
+            // Set loading state
+            IsLoadingReferenceValues = true;
+
             // Extract the reference class name from the CimType
             // CimType for references typically looks like "ref:ClassName" or just "ClassName"
             var referenceClassName = ExtractReferenceClassName();
@@ -116,7 +136,7 @@ public partial class WmiParameterViewModel : DisposableObservableObject
                 return;
 
             // Load instances of the reference class
-            var instances = await _wmiService.GetInstancesAsync(_managementScope, referenceClassName);
+            var instances = await _wmiService.GetInstancesAsync(_managementScope, referenceClassName, _referenceValuesCts.Token);
 
             // Convert instances to string representations for the ComboBox
             var referenceStrings = new List<string>();
@@ -153,10 +173,23 @@ public partial class WmiParameterViewModel : DisposableObservableObject
 
             });
         }
+        catch (OperationCanceledException)
+        {
+            System.Diagnostics.Debug.WriteLine("[WmiParameterViewModel] Reference value loading cancelled.");
+        }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[WmiParameterViewModel] Error loading reference values: {ex.Message}");
         }
+        finally
+        {
+            IsLoadingReferenceValues = false;
+        }
+    }
+
+    private bool LoadReferenceValuesCanExecute()
+    {
+        return IsReference && _wmiService != null && _managementScope != null;
     }
 
     /// <summary>

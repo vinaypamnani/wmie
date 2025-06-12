@@ -287,7 +287,12 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         {
             foreach (var param in _method.InParameters.OrderBy(p => p.Id))
             {
-                _parameters.Add(new WmiParameterViewModel(param, _wmiService, _managementScope));
+                var parameterViewModel = new WmiParameterViewModel(param, _wmiService, _managementScope);
+                if (parameterViewModel.IsReference)
+                {
+                    parameterViewModel.PropertyChanged += WmiParameterViewModel_PropertyChanged;
+                }
+                _parameters.Add(parameterViewModel);
             }
         }
     }
@@ -298,6 +303,24 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         {
             ExecutionState = AppState.Busy;
             StatusMessage = "Executing method...";
+        }
+    }
+
+    private void WmiParameterViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(WmiParameterViewModel.IsLoadingReferenceValues))
+        {
+            var param = (WmiParameterViewModel)sender!;
+            if (param.IsLoadingReferenceValues)
+            {
+                StatusMessage = "Loading reference values...";
+                ExecutionState = AppState.Busy;
+            }
+            else
+            {
+                StatusMessage = "Loaded reference values.";
+                ExecutionState = AppState.Ready;
+            }
         }
     }
 }
