@@ -9,4 +9,5 @@
     <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
     <conv:NewLineToSpaceConverter x:Key="NewLineToSpaceConverter" />
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    <conv:DebugConverter x:Key="DebugConverter" />
 </ResourceDictionary>
