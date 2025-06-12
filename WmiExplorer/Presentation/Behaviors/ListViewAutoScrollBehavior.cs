@@ -34,19 +34,20 @@ public static class ListViewAutoScrollBehavior
     /// </summary>
     public static void ScrollToSelectedItem(ListView listView)
     {
-        if (listView?.SelectedItem == null)
+        var selectedItem = GetSelectedItemMonitor(listView) ?? listView.SelectedItem;
+        if (listView == null || selectedItem == null)
             return;
 
         // Method 1: Try using ScrollIntoView (works with virtualization)
-        if (TryScrollIntoView(listView))
+        if (TryScrollIntoView(listView, selectedItem))
             return;
 
         // Method 2: Try index-based scrolling
-        if (TryScrollByIndex(listView))
+        if (TryScrollByIndex(listView, selectedItem))
             return;
 
         // Method 3: Try container generation with limited attempts
-        TryScrollWithContainerGeneration(listView, 3);
+        TryScrollWithContainerGeneration(listView, selectedItem, 3);
     }
 
     public static void SetAutoScroll(DependencyObject obj, bool value) => obj.SetValue(AutoScrollProperty, value);
@@ -158,12 +159,12 @@ public static class ListViewAutoScrollBehavior
         }
     }
 
-    private static bool TryScrollByIndex(ListView listView)
+    private static bool TryScrollByIndex(ListView listView, object selectedItem)
     {
         try
         {
             // Get the index of the selected item
-            var selectedIndex = listView.SelectedIndex;
+            var selectedIndex = listView.Items.IndexOf(selectedItem);
             if (selectedIndex < 0)
                 return false;
 
@@ -203,12 +204,12 @@ public static class ListViewAutoScrollBehavior
         }
     }
 
-    private static bool TryScrollIntoView(ListView listView)
+    private static bool TryScrollIntoView(ListView listView, object selectedItem)
     {
         try
         {
             // This is the most virtualization-friendly approach
-            listView.ScrollIntoView(listView.SelectedItem);
+            listView.ScrollIntoView(selectedItem);
             return true;
         }
         catch
@@ -217,13 +218,13 @@ public static class ListViewAutoScrollBehavior
         }
     }
 
-    private static void TryScrollWithContainerGeneration(ListView listView, int attemptsLeft)
+    private static void TryScrollWithContainerGeneration(ListView listView, object selectedItem, int attemptsLeft)
     {
         if (attemptsLeft <= 0)
             return;
 
         // Try to get the container
-        var container = listView.ItemContainerGenerator.ContainerFromItem(listView.SelectedItem) as ListViewItem;
+        var container = listView.ItemContainerGenerator.ContainerFromItem(selectedItem) as ListViewItem;
         if (container != null)
         {
             container.BringIntoView();
@@ -233,7 +234,7 @@ public static class ListViewAutoScrollBehavior
         // If container doesn't exist, force a single layout update and try again
         listView.UpdateLayout();
 
-        container = listView.ItemContainerGenerator.ContainerFromItem(listView.SelectedItem) as ListViewItem;
+        container = listView.ItemContainerGenerator.ContainerFromItem(selectedItem) as ListViewItem;
         if (container != null)
         {
             container.BringIntoView();
@@ -243,6 +244,6 @@ public static class ListViewAutoScrollBehavior
         // Schedule next attempt with minimal delay
         listView.Dispatcher.BeginInvoke(
             DispatcherPriority.Background,
-            new Action(() => TryScrollWithContainerGeneration(listView, attemptsLeft - 1)));
+            new Action(() => TryScrollWithContainerGeneration(listView, selectedItem, attemptsLeft - 1)));
     }
 }

@@ -28,14 +28,12 @@
             <TreeView Name="WmiNamespaces"
                       Margin="{StaticResource MarginSmall}"
                       behaviors:TreeViewAutoScrollBehavior.AutoScroll="True"
-                      behaviors:TreeViewSelectedItemBehavior.SelectedItem="{Binding SelectedNamespace}"
                       ItemsSource="{Binding Namespaces}">
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource ModernTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                         <Setter Property="behaviors:TreeViewItemDoubleClickBehavior.Command" Value="{Binding LoadClassesCommand}" />
-                        <Setter Property="behaviors:TreeViewSelectedItemBehavior.EnableForceSelection" Value="True" />
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu>

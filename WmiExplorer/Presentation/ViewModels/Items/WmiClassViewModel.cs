@@ -30,6 +30,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private readonly ObservableCollection<WmiInstanceViewModel> _instances = new();
 
     [ObservableProperty]
+    private bool _isSelected;
+
+    private bool _isUpdatingSelection = false;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CancelInstanceLoadCommand))]
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
 
@@ -197,7 +202,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (_isUpdatingSelection || message?.SelectionService == null)
             return;
 
         var selectedObject = message.SelectionService.SelectedObject;
@@ -207,7 +212,15 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             _instances.Contains(instanceVm) &&
             SelectedInstance != instanceVm)
         {
-            SelectedInstance = instanceVm;
+            try
+            {
+                _isUpdatingSelection = true;
+                SelectedInstance = instanceVm;
+            }
+            finally
+            {
+                _isUpdatingSelection = false;
+            }
         }
     }
 
@@ -338,22 +351,33 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         if (_instanceFilterHelper.FilterText != value)
         {
             _instanceFilterHelper.FilterText = value;
+            if (IsSelected)
+                PublishMessage(new InstancesFilteredMessage(this));
         }
     }
 
-    partial void OnSelectedInstanceChanged(WmiInstanceViewModel? value)
+    partial void OnIsSelectedChanged(bool value)
     {
-        if (value != null)
+        if (_isUpdatingSelection) return;
+
+        if (value)
         {
             try
             {
-                // Attempt to load the instance data if not already loaded (useful for lazy props)
-                value.WmiInstance.ActualObject?.Get();
-                value.LoadState = WmiInstanceViewModel.InstanceLoadState.Success;
+                _isUpdatingSelection = true;
+
+                // Update parent namespace selection to keep them in sync
+                if (ParentNamespaceViewModel.SelectedClass != this)
+                {
+                    ParentNamespaceViewModel.SelectedClass = this;
+                }
+
+                // Notify selection service
+                ForceSelection();
             }
-            catch
+            finally
             {
-                value.LoadState = WmiInstanceViewModel.InstanceLoadState.Failed;
+                _isUpdatingSelection = false;
             }
         }
     }

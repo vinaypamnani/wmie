@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
-using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
@@ -23,9 +22,6 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
     private readonly InstancesTabViewModel _instancesTabViewModel;
-
-    [ObservableProperty]
-    private WmiClassViewModel? _selectedClass;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
@@ -60,8 +56,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
 
         // Subscribe to messages
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
-        StrongSubscribe<ClassesLoadedMessage>(HandleClassesLoadedMessage);
-        StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
+        StrongSubscribe<InstancesFilteredMessage>(HandleInstancesFilteredMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -100,24 +95,12 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private bool ExecuteAutoQueryCanExecute() => !string.IsNullOrWhiteSpace(AutoQueryText);
 
     /// <summary>
-    /// Handles the ClassesFilteredMessage
+    /// Handles the instances filtered message
     /// </summary>
-    private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
+    private void HandleInstancesFilteredMessage(InstancesFilteredMessage message)
     {
-        // Update UI or perform other actions when classes are filtered
-        if (message.NamespaceViewModel == SelectedNamespace)
-        {
-            OnPropertyChanged(nameof(SelectedNamespace));
-        }
-    }
-
-    /// <summary>
-    /// Handles the ClassesLoadedMessage
-    /// </summary>
-    private void HandleClassesLoadedMessage(ClassesLoadedMessage message)
-    {
-        // Update UI or perform other actions when classes are loaded
-        OnPropertyChanged(nameof(SelectedNamespace));
+        if (message?.ClassViewModel != null && message.ClassViewModel == SelectedNamespace?.SelectedClass)
+            UpdateStatusBar();
     }
 
     /// <summary>
@@ -135,23 +118,14 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
             case WmiNamespaceViewModel namespaceVm:
                 if (namespaceVm != SelectedNamespace)
                     SelectedNamespace = namespaceVm;
-
                 break;
 
             case WmiClassViewModel classVm:
-                if (classVm != SelectedClass)
-                    SelectedClass = classVm;
+                UpdateStatusBar();
                 UpdateAutoQueryText(classVm);
                 break;
 
             case WmiInstanceViewModel instanceVm:
-                // Ensure the parent class is selected when an instance is selected
-                var parentClassVm = instanceVm.ParentClass;
-                if (parentClassVm != null && parentClassVm != SelectedClass)
-                {
-                    SelectedClass = parentClassVm;
-                }
-
                 UpdateAutoQueryText(instanceVm);
                 break;
         }
@@ -187,7 +161,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     /// </summary>
     private void UpdateAutoQueryText(object selectedObject)
     {
-        var selectedClassName = SelectedClass?.ClassName ?? string.Empty;
+        var selectedClassName = SelectedNamespace?.SelectedClass?.ClassName ?? string.Empty;
 
         if (selectedObject is WmiInstanceViewModel selectedInstance)
         {
@@ -220,6 +194,46 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
         else
         {
             AutoQueryText = string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Updates the status bar message based on the selected namespace or class load states
+    /// </summary>
+    private void UpdateStatusBar()
+    {
+        // If no namespace is selected, do nothing
+        if (SelectedNamespace == null || SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
+            return;
+
+        // If a class is selected, show status based on class load state
+        if (SelectedNamespace.SelectedClass != null)
+        {
+            var selectedClass = SelectedNamespace.SelectedClass;
+            switch (selectedClass.LoadState)
+            {
+                case InstanceLoadState.Unknown:
+                    PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click to load instances.");
+                    break;
+                case InstanceLoadState.Loading:
+                    PublishBusyState($"Loading instances for class {selectedClass.ClassName}...");
+                    break;
+                case InstanceLoadState.Warning:
+                    PublishWarningState($"Showing partial results for class {selectedClass.ClassName}.");
+                    break;
+                case InstanceLoadState.Failed:
+                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click class to try again.");
+                    break;
+                case InstanceLoadState.Success:
+                    var count = selectedClass.InstancesView.Cast<object>().Count();
+                    var total = selectedClass.Instances.Count;
+                    if (count < total)
+                        PublishSuccessState($"Showing {count} of {total} instances for class {selectedClass.ClassName}.");
+                    else
+                        PublishSuccessState($"Showing {count} instances for class {selectedClass.ClassName}.");
+                    break;
+            }
+            return;
         }
     }
 }

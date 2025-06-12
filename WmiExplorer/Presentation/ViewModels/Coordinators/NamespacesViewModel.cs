@@ -53,6 +53,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
+        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -215,7 +216,24 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     {
         if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectedNamespace)
         {
-            UpdateLoadStateStatus();
+            UpdateStatusBar();
+        }
+    }
+
+    /// <summary>
+    /// Handles the unified selection changed message to update SelectedNamespace
+    /// </summary>
+    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
+    {
+        if (message?.SelectionService == null)
+            return;
+
+        var selectedObject = message.SelectionService.SelectedObject;
+
+        // Only respond to namespace selections
+        if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
+        {
+            SelectedNamespace = namespaceVm;
         }
     }
 
@@ -273,8 +291,8 @@ public partial class NamespacesViewModel : MessagingViewModelBase
 
     partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? value)
     {
-        // Update the status bar based on the selected namespace
-        UpdateLoadStateStatus();
+        // Update the status bar based on the selected namespace - this is updated by binding via TreeViewSelectedItemBehavior
+        UpdateStatusBar();
     }
 
     /// <summary>
@@ -292,39 +310,13 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Updates the status bar message based on the selected namespace or class load states
+    /// Updates the status bar message based on the selected namespace state
     /// </summary>
-    private void UpdateLoadStateStatus()
+    private void UpdateStatusBar()
     {
         // If no namespace is selected, do nothing
         if (SelectedNamespace == null || SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
             return;
-
-        // If a class is selected, show status based on class load state
-        if (SelectedNamespace.SelectedClass != null)
-        {
-            var selectedClass = SelectedNamespace.SelectedClass;
-            switch (selectedClass.LoadState)
-            {
-                case InstanceLoadState.Unknown:
-                    PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click to load instances.");
-                    break;
-                case InstanceLoadState.Loading:
-                    PublishBusyState($"Loading instances for class {selectedClass.ClassName}...");
-                    break;
-                case InstanceLoadState.Warning:
-                    PublishWarningState($"Showing partial results for class {selectedClass.ClassName}.");
-                    break;
-                case InstanceLoadState.Failed:
-                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click class to try again.");
-                    break;
-                case InstanceLoadState.Success:
-                    var count = selectedClass.Instances.Count;
-                    PublishSuccessState($"Showing {count} instances for class {selectedClass.ClassName}.");
-                    break;
-            }
-            return;
-        }
 
         // Otherwise, show status based on namespace class load state
         var ns = SelectedNamespace;
@@ -344,7 +336,11 @@ public partial class NamespacesViewModel : MessagingViewModelBase
                 break;
             case ClassLoadState.Success when ns.NamespaceLoadState == NamespaceLoadState.Success:
                 var count = ns.ClassesView.Cast<object>().Count();
-                PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
+                var total = ns.Classes.Count;
+                if (count < total)
+                    PublishSuccessState($"Showing {count} of {total} classes for {ns.NamespacePath}.");
+                else
+                    PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
                 break;
         }
     }

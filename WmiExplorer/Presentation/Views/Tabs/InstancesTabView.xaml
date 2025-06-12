@@ -18,17 +18,16 @@
                      Tag="Filter Instances..."
                      Text="{Binding SelectedClass.InstanceFilterText, UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
-
         <ListView Grid.Row="1"
                   behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedClass.SelectedInstance}"
                   BorderThickness="0"
                   ItemsSource="{Binding SelectedClass.InstancesView}"
-                  SelectedItem="{Binding SelectedClass.SelectedInstance}"
                   SelectionMode="Single"
                   Style="{StaticResource ModernListViewStyle}">
             <ListView.ItemContainerStyle>
                 <Style BasedOn="{StaticResource ModernListViewItemStyle}" TargetType="{x:Type ListViewItem}">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>

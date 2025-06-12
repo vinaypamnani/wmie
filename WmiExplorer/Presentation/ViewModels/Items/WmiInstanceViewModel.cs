@@ -12,7 +12,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// </summary>
 public partial class WmiInstanceViewModel : MessagingViewModelBase
 {
-    public enum InstanceLoadState
+    public enum InstanceState
     {
         Unknown,
         Success,
@@ -25,7 +25,12 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     private ObservableCollection<WmiMethod>? _instanceMethods;
 
     [ObservableProperty]
-    private InstanceLoadState _loadState = InstanceLoadState.Unknown;
+    private bool _isSelected;
+
+    private bool _isUpdatingSelection = false;
+
+    [ObservableProperty]
+    private InstanceState _loadState = InstanceState.Unknown;
 
     private readonly WmiClassViewModel _parentClass;
     private readonly ISelectionService _selectionService;
@@ -233,5 +238,48 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     partial void OnInstanceMethodsChanged(ObservableCollection<WmiMethod>? value)
     {
         ExecuteMethodCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsSelectedChanged(bool value)
+    {
+        if (_isUpdatingSelection) return;
+
+        if (value)
+        {
+            try
+            {
+                _isUpdatingSelection = true;
+
+                // Update parent class selection to keep them in sync
+                if (ParentClass.SelectedInstance != this)
+                {
+                    ParentClass.SelectedInstance = this;
+                }
+
+                // Ensure instance data is loaded
+                TryGetInstance();
+
+                // Notify selection service
+                ForceSelection();
+            }
+            finally
+            {
+                _isUpdatingSelection = false;
+            }
+        }
+    }
+
+    private void TryGetInstance()
+    {
+        try
+        {
+            // Attempt to load the instance data if not already loaded (useful for lazy props)
+            WmiInstance.ActualObject?.Get();
+            LoadState = InstanceState.Success;
+        }
+        catch
+        {
+            LoadState = InstanceState.Failed;
+        }
     }
 }

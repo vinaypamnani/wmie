@@ -26,6 +26,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private readonly FilterHelper<WmiClassViewModel> _classFilterHelper;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ClassesView))]
     private string _classFilterText = string.Empty;
 
     [ObservableProperty]
@@ -48,6 +49,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [ObservableProperty]
     private bool _isSelected;
 
+    private bool _isUpdatingSelection = false;
     private ManagementScope? _managementScope;
 
     [ObservableProperty]
@@ -63,10 +65,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
 
+    private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
-    private readonly ISelectionService _selectionService;
 
     public WmiNamespaceViewModel(
            WmiNamespace wmiNamespace,
@@ -93,14 +95,17 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         );
 
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
-        Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);        // StrongSubscribe ensures message handlers are not garbage collected.
+        Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
+
+        // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Subscribe to ShowSystemClassesChanged to refresh filter
         _settingsService.ShowSystemClassesChanged += (s, show) =>
         {
             _classFilterHelper.CollectionView.Refresh();
-            PublishMessage(new ClassesFilteredMessage(this));
+            if (IsSelected)
+                PublishMessage(new ClassesFilteredMessage(this));
         };
 
         // Set parent namespace if provided
@@ -305,11 +310,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
     }
 
-    public void ForceSelection()
-    {
-        NotifyNamespaceSelected();
-    }
-
     [RelayCommand]
     public async Task LoadClassesAsync()
     {
@@ -408,7 +408,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (_isUpdatingSelection || message?.SelectionService == null)
             return;
 
         var selectedObject = message.SelectionService.SelectedObject;
@@ -418,11 +418,19 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             Classes.Contains(classVm) &&
             SelectedClass != classVm)
         {
-            SelectedClass = classVm;
+            try
+            {
+                _isUpdatingSelection = true;
+                SelectedClass = classVm;
+            }
+            finally
+            {
+                _isUpdatingSelection = false;
+            }
         }
     }
 
-    private void NotifyNamespaceSelected()
+    private void ForceSelection()
     {
         _selectionService.SetSelectedObject(this);
     }
@@ -430,7 +438,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     partial void OnClassFilterTextChanged(string value)
     {
         _classFilterHelper.FilterText = value;
-        PublishMessage(new ClassesFilteredMessage(this));
+        if (IsSelected)
+            PublishMessage(new ClassesFilteredMessage(this));
     }
 
     partial void OnIsExpandedChanged(bool value)
@@ -444,13 +453,24 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     // Property change notification methods
     partial void OnIsSelectedChanged(bool value)
     {
+        if (_isUpdatingSelection) return;
+
         if (value)
         {
-            // Expand the namespace if it is not already expanded
-            if (!IsExpanded)
-                IsExpanded = true;
+            try
+            {
+                _isUpdatingSelection = true;
 
-            NotifyNamespaceSelected();
+                // Expand the namespace if it is not already expanded
+                if (!IsExpanded)
+                    IsExpanded = true;
+
+                ForceSelection();
+            }
+            finally
+            {
+                _isUpdatingSelection = false;
+            }
         }
     }
 }
@@ -477,5 +497,6 @@ public enum NamespaceLoadState
 {
     Unknown,
     Loading,
-    Success, Failed
+    Success,
+    Failed
 }

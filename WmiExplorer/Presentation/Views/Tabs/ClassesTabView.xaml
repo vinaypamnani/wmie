@@ -61,7 +61,6 @@
                                   behaviors:ListViewSortBehavior.EnableSorting="True"
                                   BorderThickness="0"
                                   ItemsSource="{Binding SelectedNamespace.ClassesView}"
-                                  SelectedItem="{Binding SelectedNamespace.SelectedClass}"
                                   SelectionMode="Single"
                                   Style="{StaticResource ModernGridListViewStyle}">
                             <ListView.View>
@@ -111,11 +110,13 @@
                             </ListView.View>
                             <ListView.ItemContainerStyle>
                                 <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
+                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                                     <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
                                     <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
                                     <!--  ContextMenu for Copy Relative Path and Cancel loading  -->
                                     <Setter Property="ContextMenu">
-                                        <Setter.Value>                                            <ContextMenu>
+                                        <Setter.Value>
+                                            <ContextMenu>
                                                 <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path" />
                                                 <MenuItem Command="{Binding CancelInstanceLoadCommand}" CommandParameter="{Binding}" Header="Cancel loading" />
                                                 <MenuItem ItemsSource="{Binding ClassMethods}">
