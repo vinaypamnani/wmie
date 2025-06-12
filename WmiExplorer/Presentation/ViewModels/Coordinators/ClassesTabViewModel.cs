@@ -27,6 +27,9 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
     private WmiNamespaceViewModel? _selectedNamespace;
 
+    [ObservableProperty]
+    private int _selectedTabIndex;
+
     private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
 
@@ -135,6 +138,17 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         // Notify that the CanExecute state of ExecuteAutoQueryCommand may have changed
         ExecuteAutoQueryCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Clear selections when the selected tab index changes
+    /// </summary>
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        if (value != 0) // Assuming 0 is the index for Classes tab
+            _selectionService.ClearSelections();
+        else
+            _selectionService.SetSelectedObject(_selectionService.PreviousObject);
     }
 
     partial void OnShowSystemClassesChanged(bool value)

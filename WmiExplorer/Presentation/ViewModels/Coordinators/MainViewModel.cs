@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Services;
+using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.Themes;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
@@ -36,6 +36,7 @@ public partial class MainViewModel : MessagingViewModelBase
     [ObservableProperty]
     private int _selectedTabIndex;
 
+    private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
     private readonly IThemeService _themeService;
 
@@ -48,12 +49,14 @@ public partial class MainViewModel : MessagingViewModelBase
     public MainViewModel(
                  IMessengerService messengerService,
                  ISettingsService settingsService,
+                 ISelectionService selectionService,
                  IThemeService themeService,
                  Coordinators.NamespacesViewModel namespacesViewModel,
                  Coordinators.OptionsViewModel optionsViewModel,
                  Coordinators.PropertyGridViewModel propertyGridViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
@@ -135,6 +138,17 @@ public partial class MainViewModel : MessagingViewModelBase
 
         // Switch to Classes tab (assume tab index 0 is Classes)
         SelectedTabIndex = 0;
+    }
+
+    /// <summary>
+    /// Clear selections when the selected tab index changes
+    /// </summary>
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        if (value != 0) // Assuming 0 is the index for Classes tab
+            _selectionService.ClearSelections();
+        else
+            _selectionService.SetSelectedObject(_selectionService.PreviousObject);
     }
 
     /// <summary>

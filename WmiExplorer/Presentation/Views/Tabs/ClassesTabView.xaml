@@ -112,7 +112,7 @@
                                 <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                                     <Setter Property="behaviors:ListViewItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
-                                    <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
+                                    <Setter Property="behaviors:ForceItemSelectionBehavior.EnableForceSelection" Value="True" />
                                     <!--  ContextMenu for Copy Relative Path and Cancel loading  -->
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
@@ -160,7 +160,7 @@
                       HorizontalAlignment="Center"
                       VerticalAlignment="Stretch"
                       Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-        <TabControl Grid.Row="0" Grid.Column="2">
+        <TabControl Grid.Row="0" Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
             <TabItem Header="Instances">
                 <!--  Instances View  -->
                 <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />

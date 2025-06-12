@@ -16,6 +16,7 @@ public class SelectionService : ISelectionService
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
     }
 
+    public object? PreviousObject { get; private set; }
     public object? SelectedObject { get; private set; }
 
     public string SelectedObjectDisplayName
@@ -43,12 +44,16 @@ public class SelectionService : ISelectionService
 
     public void ClearSelections()
     {
+        PreviousObject = SelectedObject;
         SelectedObject = null;
         PublishSelectionChanged();
     }
 
     public void SetSelectedObject(object? selectedObject)
     {
+        // Store the current selection as previous before setting new one
+        PreviousObject = SelectedObject;
+
         // Set the appropriate selection based on object type
         switch (selectedObject)
         {

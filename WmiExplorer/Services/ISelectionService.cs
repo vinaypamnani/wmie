@@ -1,6 +1,3 @@
-using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels.Items;
-
 namespace WmiExplorer.Services;
 
 /// <summary>
@@ -8,6 +5,11 @@ namespace WmiExplorer.Services;
 /// </summary>
 public interface ISelectionService
 {
+    /// <summary>
+    /// Gets the previously selected object
+    /// </summary>
+    object? PreviousObject { get; }
+
     /// <summary>
     /// Gets the currently selected object for property grid display
     /// </summary>
@@ -19,13 +21,13 @@ public interface ISelectionService
     string SelectedObjectDisplayName { get; }
 
     /// <summary>
+    /// Clears all selections
+    /// </summary>
+    void ClearSelections();
+
+    /// <summary>
     /// Sets the selected object - service determines type automatically
     /// </summary>
     /// <param name="selectedObject">The object to select</param>
     void SetSelectedObject(object? selectedObject);
-
-    /// <summary>
-    /// Clears all selections
-    /// </summary>
-    void ClearSelections();
 }

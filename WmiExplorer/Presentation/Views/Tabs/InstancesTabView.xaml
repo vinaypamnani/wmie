@@ -28,7 +28,7 @@
             <ListView.ItemContainerStyle>
                 <Style BasedOn="{StaticResource ModernListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="behaviors:ListViewItemSelectionBehavior.EnableForceSelection" Value="True" />
+                    <Setter Property="behaviors:ForceItemSelectionBehavior.EnableForceSelection" Value="True" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>

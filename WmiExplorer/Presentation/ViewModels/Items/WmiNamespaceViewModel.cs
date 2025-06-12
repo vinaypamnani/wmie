@@ -310,6 +310,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
     }
 
+    public void ForceSelection()
+    {
+        _selectionService.SetSelectedObject(this);
+    }
+
     [RelayCommand]
     public async Task LoadClassesAsync()
     {
@@ -428,11 +433,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _isUpdatingSelection = false;
             }
         }
-    }
-
-    private void ForceSelection()
-    {
-        _selectionService.SetSelectedObject(this);
     }
 
     partial void OnClassFilterTextChanged(string value)

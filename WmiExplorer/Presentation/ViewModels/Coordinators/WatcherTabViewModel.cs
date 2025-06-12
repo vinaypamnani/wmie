@@ -160,7 +160,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
 
     /// <summary>
     /// Forces the selection logic for the currently selected event.
-    /// Used by ListViewItemSelectionBehavior to re-publish the selection
+    /// Used by ForceItemSelectionBehavior to re-publish the selection
     /// even if the same event is clicked again.
     /// </summary>
     public void ForceSelection()
