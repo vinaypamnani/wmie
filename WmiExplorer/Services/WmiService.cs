@@ -37,6 +37,17 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Executes a WMI method asynchronously on an instance
+    /// </summary>
+    public async Task<ManagementBaseObject?> ExecuteMethodAsync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default)
+    {
+        if (OperationMode == WmiOperationMode.Synchronous)
+            return await ExecuteSyncWithTimeout(() => ExecuteMethodSync(instance, methodName, inputParameters, cancellationToken), cancellationToken);
+        else
+            return await ExecuteMethodAsyncInternal(instance, methodName, inputParameters, cancellationToken);
+    }
+
+    /// <summary>
     /// Executes a search for classes, methods, or properties based on the search type.
     /// Returns tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class.
     /// </summary>
@@ -63,6 +74,17 @@ public class WmiService : IWmiService, IDisposable
 
             return (IEnumerable<(object, ManagementBaseObject)>)results;
         }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes a static WMI method asynchronously on a class
+    /// </summary>
+    public async Task<ManagementBaseObject?> ExecuteStaticMethodAsync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default)
+    {
+        if (OperationMode == WmiOperationMode.Synchronous)
+            return await ExecuteSyncWithTimeout(() => ExecuteStaticMethodSync(managementClass, methodName, inputParameters, cancellationToken), cancellationToken);
+        else
+            return await ExecuteStaticMethodAsyncInternal(managementClass, methodName, inputParameters, cancellationToken);
     }
 
     /// <summary>
@@ -319,6 +341,182 @@ public class WmiService : IWmiService, IDisposable
                 System.Diagnostics.Debug.WriteLine($"[WmiService] WMI Exception connecting scope: {ex.Message}");
                 throw;
             }
+        }
+    }
+
+    /// <summary>
+    /// Executes a WMI method asynchronously on an instance using ManagementOperationObserver
+    /// </summary>
+    private async Task<ManagementBaseObject?> ExecuteMethodAsyncInternal(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
+    {
+        var tcs = new TaskCompletionSource<ManagementBaseObject?>();
+        var observer = new ManagementOperationObserver();
+        var cancelCalled = false;
+
+        observer.ObjectReady += (sender, e) =>
+        {
+            if (e.NewObject is ManagementBaseObject result)
+            {
+                _disposables.Add(result);
+                tcs.TrySetResult(result);
+            }
+            else
+            {
+                tcs.TrySetResult(null);
+            }
+        };
+
+        observer.Completed += (sender, e) =>
+        {
+            if (e.Status == ManagementStatus.NoError)
+            {
+                // Result already set in ObjectReady if applicable
+                if (!tcs.Task.IsCompleted)
+                    tcs.TrySetResult(null);
+            }
+            else if (e.Status == ManagementStatus.CallCanceled || e.Status == ManagementStatus.OperationCanceled)
+            {
+                tcs.TrySetCanceled(cancellationToken);
+            }
+            else
+            {
+                tcs.TrySetException(new ManagementException($"WMI async method execution failed: {e.Status}"));
+            }
+        };
+
+        using (cancellationToken.Register(() =>
+        {
+            if (!cancelCalled)
+            {
+                cancelCalled = true;
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        observer.Cancel();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI method observer: {ex.Message}");
+                    }
+                });
+            }
+        }))
+        {
+            try
+            {
+                instance.InvokeMethod(observer, methodName, inputParameters, null);
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+            }
+            return await tcs.Task.ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Executes a WMI method synchronously on an instance
+    /// </summary>
+    private ManagementBaseObject? ExecuteMethodSync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            return instance.InvokeMethod(methodName, inputParameters, null);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WmiService] Error executing instance method '{methodName}': {ex.Message}");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Executes a static WMI method asynchronously on a class using ManagementOperationObserver
+    /// </summary>
+    private async Task<ManagementBaseObject?> ExecuteStaticMethodAsyncInternal(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
+    {
+        var tcs = new TaskCompletionSource<ManagementBaseObject?>();
+        var observer = new ManagementOperationObserver();
+        var cancelCalled = false;
+
+        observer.ObjectReady += (sender, e) =>
+        {
+            if (e.NewObject is ManagementBaseObject result)
+            {
+                _disposables.Add(result);
+                tcs.TrySetResult(result);
+            }
+            else
+            {
+                tcs.TrySetResult(null);
+            }
+        };
+
+        observer.Completed += (sender, e) =>
+        {
+            if (e.Status == ManagementStatus.NoError)
+            {
+                // Result already set in ObjectReady if applicable
+                if (!tcs.Task.IsCompleted)
+                    tcs.TrySetResult(null);
+            }
+            else if (e.Status == ManagementStatus.CallCanceled || e.Status == ManagementStatus.OperationCanceled)
+            {
+                tcs.TrySetCanceled(cancellationToken);
+            }
+            else
+            {
+                tcs.TrySetException(new ManagementException($"WMI async static method execution failed: {e.Status}"));
+            }
+        };
+
+        using (cancellationToken.Register(() =>
+        {
+            if (!cancelCalled)
+            {
+                cancelCalled = true;
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        observer.Cancel();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI static method observer: {ex.Message}");
+                    }
+                });
+            }
+        }))
+        {
+            try
+            {
+                managementClass.InvokeMethod(observer, methodName, inputParameters, null);
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+            }
+            return await tcs.Task.ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Executes a static WMI method synchronously on a class
+    /// </summary>
+    private ManagementBaseObject? ExecuteStaticMethodSync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            return managementClass.InvokeMethod(methodName, inputParameters, null);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WmiService] Error executing static method '{methodName}': {ex.Message}");
+            throw;
         }
     }
 

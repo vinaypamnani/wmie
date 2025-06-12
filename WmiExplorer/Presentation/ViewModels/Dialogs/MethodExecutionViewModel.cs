@@ -5,6 +5,7 @@ using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 
@@ -16,11 +17,18 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     public event EventHandler? CloseRequested;
 
     private readonly WmiClass _class;
+    private CancellationTokenSource _cts = new();
 
     [ObservableProperty]
     private bool _hasOutputParameters;
 
     private readonly WmiInstance? _instance;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteMethodCommand))]
+    private bool _isExecuting;
+
     private readonly WmiMethod _method;
     private readonly WmiNamespace _namespace;
 
@@ -35,14 +43,17 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     [ObservableProperty]
     private string _statusMessage = "Ready";
 
+    private readonly IWmiService _wmiService;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionDialogViewModel"/> class.
-    /// </summary>
-    /// <param name="wmiNamespace">The WMI namespace containing the class.</param>
+    /// </summary>    /// <param name="wmiNamespace">The WMI namespace containing the class.</param>
     /// <param name="wmiClass">The WMI class containing the method.</param>
     /// <param name="wmiMethod">The WMI method to execute.</param>
     /// <param name="wmiInstance">The WMI instance for non-static methods (optional).</param>
+    /// <param name="wmiService">The WMI service for executing methods.</param>
     public MethodExecutionDialogViewModel(
+        IWmiService wmiService,
         WmiNamespace wmiNamespace,
         WmiClass wmiClass,
         WmiMethod wmiMethod,
@@ -51,6 +62,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         _namespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
         _class = wmiClass ?? throw new ArgumentNullException(nameof(wmiClass));
         _method = wmiMethod ?? throw new ArgumentNullException(nameof(wmiMethod));
+        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _instance = wmiInstance;
 
         // Verify method is appropriate for the context (static vs instance)
@@ -93,116 +105,158 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     /// </summary>
     public ObservableCollection<WmiParameterViewModel> Parameters => _parameters;
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
     /// <summary>
-    /// Command to cancel and close the dialog
+    /// Command to cancel the current operation
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CancelCanExecute))]
     private void Cancel()
     {
+        try
+        {
+            // Cancel any ongoing method execution
+            _cts?.Cancel();
+            StatusMessage = "Requesting cancellation...";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error cancelling operation: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Determines if the cancel command can be executed
+    /// </summary>
+    private bool CancelCanExecute() => IsExecuting;
+
+    /// <summary>
+    /// Command to close the dialog
+    /// </summary>
+    [RelayCommand]
+    private void CloseDialog()
+    {
+        // Cancel any ongoing operation before closing
+        if (IsExecuting)
+        {
+            try
+            {
+                _cts?.Cancel();
+                StatusMessage = "Cancelling operation and closing...";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error cancelling operation: {ex.Message}";
+            }
+        }
+
         CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
     /// Command to execute the method
     /// </summary>
-    [RelayCommand]
-    private void ExecuteMethod()
+    [RelayCommand(CanExecute = nameof(ExecuteMethodCanExecute))]
+    private async Task ExecuteMethodAsync()
     {
+        // Create a new cancellation token source for this execution
+        // This is necessary because once a CTS is cancelled, it cannot be reused
+        _cts?.Dispose();
+        _cts = new CancellationTokenSource();
+
         try
         {
-            // Update status
+            // Set executing state
+            IsExecuting = true;
             StatusMessage = "Executing method...";
 
             // Reset output parameters
             HasOutputParameters = false;
             OutputParameters = null;
 
+            // Reset output parameters
+            HasOutputParameters = false;
+            OutputParameters = null;
+
+            // Create parameters for the method invocation
+            ManagementBaseObject? inParams = null;
+
+            if (_parameters.Count > 0)
+            {
+                // Get the in-parameters for the method from the class
+                inParams = _class.ActualClass.GetMethodParameters(_method.Name);
+
+                // Set parameter values
+                foreach (var param in _parameters.Where(p => p.IsSelected))
+                {
+                    if (param.Name != null && param.Value != null)
+                    {
+                        inParams[param.Name] = param.Value;
+                    }
+                }
+            }
+
+            ManagementBaseObject? outParams;
+
             if (_instance != null)
             {
                 // Execute instance method
-                // Create parameters for the method invocation
-                ManagementBaseObject? inParams = null;
-
-                if (_parameters.Count > 0)
-                {
-                    // Get the in-parameters for the method from the class
-                    inParams = _class.ActualClass.GetMethodParameters(_method.Name);
-
-                    // Set parameter values
-                    foreach (var param in _parameters.Where(p => p.IsSelected))
-                    {
-                        if (param.Name != null && param.Value != null)
-                        {
-                            inParams[param.Name] = param.Value;
-                        }
-                    }
-                }
-
-                // Invoke the method on the instance
-                var outParams = _instance.ActualObject.InvokeMethod(
+                outParams = await _wmiService.ExecuteMethodAsync(
+                    _instance.ActualObject,
                     _method.Name,
                     inParams,
-                    null);
-
-                // Update output parameters
-                if (outParams != null && outParams.Properties.Count > 0)
-                {
-                    OutputParameters = new WmiBaseObject(outParams);
-                    HasOutputParameters = true;
-                }
-
-                // Update status
-                StatusMessage = "Method executed successfully";
-
-                // Switch to Output tab to show results
-                SelectedTabIndex = 1;
+                    _cts.Token);
             }
             else
             {
                 // Execute static method
-                // Create parameters for the method invocation
-                ManagementBaseObject? inParams = null;
-
-                if (_parameters.Count > 0)
-                {
-                    // Get the in-parameters for the method from the class
-                    inParams = _class.ActualClass.GetMethodParameters(_method.Name);
-
-                    // Set parameter values
-                    foreach (var param in _parameters.Where(p => p.IsSelected))
-                    {
-                        if (param.Name != null && param.Value != null)
-                        {
-                            inParams[param.Name] = param.Value;
-                        }
-                    }
-                }
-
-                // Invoke the static method on the class
-                var outParams = _class.ActualClass.InvokeMethod(
+                outParams = await _wmiService.ExecuteStaticMethodAsync(
+                    _class.ActualClass,
                     _method.Name,
                     inParams,
-                    null);
-
-                // Update output parameters
-                if (outParams != null && outParams.Properties.Count > 0)
-                {
-                    OutputParameters = new WmiBaseObject(outParams);
-                    HasOutputParameters = true;
-                }
-
-                // Update status
-                StatusMessage = "Method executed successfully";
-
-                // Switch to Output tab to show results
-                SelectedTabIndex = 1;
+                    _cts.Token);
             }
+
+            // Update output parameters
+            if (outParams != null && outParams.Properties.Count > 0)
+            {
+                OutputParameters = new WmiBaseObject(outParams);
+                HasOutputParameters = true;
+            }
+
+            // Update status
+            StatusMessage = "Method executed successfully";
+
+            // Switch to Output tab to show results
+            SelectedTabIndex = 1;
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = "Method execution was cancelled";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error: {ex.Message}";
         }
+        finally
+        {
+            // Always clear executing state
+            IsExecuting = false;
+        }
     }
+
+    /// <summary>
+    /// Determines if the execute method command can be executed
+    /// </summary>
+    private bool ExecuteMethodCanExecute() => !IsExecuting;
 
     private void LoadMethodParameters()
     {

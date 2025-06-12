@@ -187,6 +187,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 {
                     Presentation.Views.Dialogs.MethodExecutionDialog.ShowDialog(
                         mainWindow,
+                        _wmiService,
                         _parentNamespaceViewModel.WmiNamespace,
                         _wmiClass,
                         method);

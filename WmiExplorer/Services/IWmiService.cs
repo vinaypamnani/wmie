@@ -76,4 +76,24 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A ManagementObject</returns>
     Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes a WMI method asynchronously on an instance
+    /// </summary>
+    /// <param name="instance">The ManagementObject instance to execute the method on</param>
+    /// <param name="methodName">The name of the method to execute</param>
+    /// <param name="inputParameters">The input parameters for the method (optional)</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The output parameters from the method execution</returns>
+    Task<ManagementBaseObject?> ExecuteMethodAsync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes a static WMI method asynchronously on a class
+    /// </summary>
+    /// <param name="managementClass">The ManagementClass to execute the static method on</param>
+    /// <param name="methodName">The name of the method to execute</param>
+    /// <param name="inputParameters">The input parameters for the method (optional)</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The output parameters from the method execution</returns>
+    Task<ManagementBaseObject?> ExecuteStaticMethodAsync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default);
 }

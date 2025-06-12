@@ -288,6 +288,10 @@
                     <Button Width="80"
                             Height="24"
                             Command="{Binding CancelCommand}"
+                            Content="Cancel" />
+                    <Button Width="80"
+                            Height="24"
+                            Command="{Binding CloseDialogCommand}"
                             Content="Close" />
                 </StackPanel>
             </DockPanel>

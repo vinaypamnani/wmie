@@ -1,6 +1,7 @@
 using System.Windows;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Dialogs;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.Views.Dialogs;
 
@@ -36,6 +37,7 @@ public partial class MethodExecutionDialog : Window
     /// Shows the method execution dialog.
     /// </summary>
     /// <param name="owner">The owner window.</param>
+    /// <param name="wmiService">The WMI service for executing methods.</param>
     /// <param name="wmiNamespace">The WMI namespace.</param>
     /// <param name="wmiClass">The WMI class.</param>
     /// <param name="wmiMethod">The WMI method to execute.</param>
@@ -43,12 +45,14 @@ public partial class MethodExecutionDialog : Window
     /// <returns>True if the dialog was closed successfully, false otherwise.</returns>
     public static bool ShowDialog(
         Window owner,
+        IWmiService wmiService,
         WmiNamespace wmiNamespace,
         WmiClass wmiClass,
         WmiMethod wmiMethod,
         WmiInstance? wmiInstance = null)
     {
         var viewModel = new MethodExecutionDialogViewModel(
+            wmiService,
             wmiNamespace,
             wmiClass,
             wmiMethod,
