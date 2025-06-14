@@ -30,7 +30,8 @@
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                     <Setter Property="behaviors:ForceItemSelectionBehavior.EnableForceSelection" Value="True" />
                     <Setter Property="ContextMenu">
-                        <Setter.Value>                            <ContextMenu>
+                        <Setter.Value>
+                            <ContextMenu>
                                 <MenuItem Command="{Binding EditPropertiesCommand}" Header="Edit Properties..." />
                                 <Separator />
                                 <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path" />

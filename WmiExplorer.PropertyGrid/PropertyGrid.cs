@@ -66,6 +66,16 @@ public partial class PropertyGrid : Control
             new PropertyMetadata(false, OnIncludeNullValuesChanged));
 
     /// <summary>
+    /// Whether to include read-only properties in the property grid.
+    /// </summary>
+    public static readonly DependencyProperty IncludeReadOnlyPropertiesProperty =
+        DependencyProperty.Register(
+            nameof(IncludeReadOnlyProperties),
+            typeof(bool),
+            typeof(PropertyGrid),
+            new PropertyMetadata(true, OnIncludeReadOnlyPropertiesChanged));
+
+    /// <summary>
     /// Whether to include system properties (properties whose names start with "__") in the property grid.
     /// </summary>
     public static readonly DependencyProperty IncludeSystemPropertiesProperty =
@@ -165,6 +175,16 @@ public partial class PropertyGrid : Control
             new PropertyMetadata(true));
 
     /// <summary>
+    /// Whether to show WMI-specific options (like IncludeSystemProperties checkbox).
+    /// </summary>
+    public static readonly DependencyProperty ShowWmiOptionsProperty =
+        DependencyProperty.Register(
+            nameof(ShowWmiOptions),
+            typeof(bool),
+            typeof(PropertyGrid),
+            new PropertyMetadata(true));
+
+    /// <summary>
     /// Command to toggle a category's expanded state
     /// </summary>
     public static readonly RoutedUICommand ToggleCategoryCommand = new RoutedUICommand(
@@ -240,6 +260,15 @@ public partial class PropertyGrid : Control
     {
         get => (bool)GetValue(IncludeNullValuesProperty);
         set => SetValue(IncludeNullValuesProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether to include read-only properties in the property grid.
+    /// </summary>
+    public bool IncludeReadOnlyProperties
+    {
+        get => (bool)GetValue(IncludeReadOnlyPropertiesProperty);
+        set => SetValue(IncludeReadOnlyPropertiesProperty, value);
     }
 
     /// <summary>
@@ -330,6 +359,15 @@ public partial class PropertyGrid : Control
     {
         get => (bool)GetValue(ShowSearchBoxProperty);
         set => SetValue(ShowSearchBoxProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether to show WMI-specific options (like IncludeSystemProperties checkbox).
+    /// </summary>
+    public bool ShowWmiOptions
+    {
+        get => (bool)GetValue(ShowWmiOptionsProperty);
+        set => SetValue(ShowWmiOptionsProperty, value);
     }
 
     /// <summary>
@@ -471,7 +509,7 @@ public partial class PropertyGrid : Control
         // If the item is expandable and has no children, load them
         if (item.HasItems && item.Children.Count == 0)
         {
-            item.LoadChildren(true, true);
+            item.LoadChildren(true, true, true);
         }
         // Recursively load children for each child
         foreach (var child in item.Children)
@@ -529,12 +567,16 @@ public partial class PropertyGrid : Control
                 }
                 // For non-reflection descriptors, assume browsable
                 return true;
-            }).ToList();
-
-            // Filter out system properties at the top level if IncludeSystemProperties is false
+            }).ToList();            // Filter out system properties at the top level if IncludeSystemProperties is false
             if (!IncludeSystemProperties)
             {
                 descriptors = descriptors.Where(p => !(p.Name?.StartsWith("__") ?? false)).ToList();
+            }
+
+            // Filter out read-only properties if IncludeReadOnlyProperties is false
+            if (!IncludeReadOnlyProperties)
+            {
+                descriptors = descriptors.Where(p => !p.IsReadOnly).ToList();
             }
 
             var categoryGroups = descriptors
@@ -579,12 +621,12 @@ public partial class PropertyGrid : Control
                         }
                         foreach (var childDesc in childDescriptors)
                         {
-                            var childItem = new PropertyHierarchyItem(childDesc, 1, IncludeSystemProperties, IncludeNullValues);
+                            var childItem = new PropertyHierarchyItem(childDesc, 1, IncludeSystemProperties, IncludeNullValues, IncludeReadOnlyProperties);
                             categoryItem.Children.Add(childItem);
                         }
                         continue; // Do not add the property itself
                     }
-                    var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, IncludeNullValues);
+                    var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, IncludeNullValues, IncludeReadOnlyProperties);
                     categoryItem.Children.Add(propertyItem);
                 }
             }
@@ -653,6 +695,14 @@ public partial class PropertyGrid : Control
     }
 
     private static void OnIncludeNullValuesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyGrid grid)
+        {
+            grid.LoadProperties();
+        }
+    }
+
+    private static void OnIncludeReadOnlyPropertiesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is PropertyGrid grid)
         {
@@ -763,9 +813,9 @@ public partial class PropertyGrid : Control
     private static void OnVirtualizationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not PropertyGrid grid)
-            return;
+            return; bool enableVirtualization = (bool)e.NewValue;
 
-        bool enableVirtualization = (bool)e.NewValue;        // Apply virtualization settings to TreeView
+        // Apply virtualization settings to TreeView
         if (grid._propertiesTreeView != null)
         {
             VirtualizingStackPanel.SetIsVirtualizing(grid._propertiesTreeView, enableVirtualization);

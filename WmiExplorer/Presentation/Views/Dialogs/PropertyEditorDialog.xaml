@@ -58,12 +58,14 @@
                     BorderThickness="1"
                     CornerRadius="3">
                 <pg:PropertyGrid IncludeNullValues="True"
+                                 IncludeReadOnlyProperties="False"
                                  IsPropertyGridReadOnly="False"
                                  NameColumnWidth="150"
                                  SelectedObject="{Binding EditableObject}"
                                  ShowHelpPane="True"
-                                 ShowOptions="False"
-                                 ShowSearchBox="True" />
+                                 ShowOptions="True"
+                                 ShowSearchBox="True"
+                                 ShowWmiOptions="False" />
             </Border>
 
             <!--  Button Area  -->
@@ -72,12 +74,8 @@
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="0,1,0,0">
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                    <Button Margin="0,0,8,0"
-                            Command="{Binding CancelCommand}"
-                            Content="Cancel" />
-                    <Button Command="{Binding OkCommand}"
-                            Content="OK"
-                            IsDefault="True" />
+                    <Button Margin="0,0,8,0" Command="{Binding CancelCommand}" Content="Cancel" />
+                    <Button Command="{Binding OkCommand}" Content="OK" IsDefault="True" />
                 </StackPanel>
             </Border>
         </Grid>
