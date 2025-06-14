@@ -71,9 +71,18 @@ public partial class PropertyGrid : Control
     public static readonly DependencyProperty IncludeSystemPropertiesProperty =
         DependencyProperty.Register(
             nameof(IncludeSystemProperties),
+            typeof(bool), typeof(PropertyGrid),
+            new PropertyMetadata(true, OnIncludeSystemPropertiesChanged));
+
+    /// <summary>
+    /// Whether the property grid is read-only (overrides individual property writability).
+    /// </summary>
+    public static readonly DependencyProperty IsPropertyGridReadOnlyProperty =
+        DependencyProperty.Register(
+            nameof(IsPropertyGridReadOnly),
             typeof(bool),
             typeof(PropertyGrid),
-            new PropertyMetadata(true, OnIncludeSystemPropertiesChanged));
+            new PropertyMetadata(true));
 
     /// <summary>
     /// The width of the name column.
@@ -240,6 +249,15 @@ public partial class PropertyGrid : Control
     {
         get => (bool)GetValue(IncludeSystemPropertiesProperty);
         set => SetValue(IncludeSystemPropertiesProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the property grid is read-only.
+    /// </summary>
+    public bool IsPropertyGridReadOnly
+    {
+        get => (bool)GetValue(IsPropertyGridReadOnlyProperty);
+        set => SetValue(IsPropertyGridReadOnlyProperty, value);
     }
 
     /// <summary>

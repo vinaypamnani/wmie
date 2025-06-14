@@ -38,10 +38,37 @@ public partial class PropertyGridViewModel : MessagingViewModelBase
         _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
 
         // Initialize window position from settings (following the pattern)
-        _windowPosition = _settingsService.MainWindowPosition;
-
-        // Subscribe to the unified selection change message
+        _windowPosition = _settingsService.MainWindowPosition;        // Subscribe to the unified selection change message
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
+
+        // Subscribe to PropertyGrid refresh requests
+        StrongSubscribe<PropertyGridRefreshMessage>(HandlePropertyGridRefreshMessage);
+    }
+
+    /// <summary>
+    /// Forces the PropertyGrid to refresh by temporarily clearing and resetting the SelectedObject.
+    /// This is useful when the underlying object's properties have been modified.
+    /// </summary>
+    public void RefreshPropertyGrid()
+    {
+        var currentObject = SelectedObject;
+        var currentDisplayName = SelectedObjectDisplayName;
+
+        // Temporarily clear the selection to force refresh
+        SelectedObject = null;
+        SelectedObjectDisplayName = NoSelectionDisplayName;
+
+        // Immediately restore the selection
+        SelectedObject = currentObject;
+        SelectedObjectDisplayName = currentDisplayName;
+    }
+
+    /// <summary>
+    /// Handles PropertyGrid refresh messages
+    /// </summary>
+    private void HandlePropertyGridRefreshMessage(PropertyGridRefreshMessage message)
+    {
+        RefreshPropertyGrid();
     }
 
     /// <summary>

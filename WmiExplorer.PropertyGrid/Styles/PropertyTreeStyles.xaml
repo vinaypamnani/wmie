@@ -7,6 +7,8 @@
     <conv:NewlineToSpaceSingleConverter x:Key="NewlineToSpaceSingleConverter" />
     <conv:NameValueToStringConverter x:Key="NameValueToStringConverter" />
     <conv:TextHighlightConverter x:Key="TextHighlightConverter" />
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <conv:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />
 
     <!--  Common style for property text  -->
     <Style x:Key="PropertyTextBlockStyle" TargetType="TextBlock">
@@ -181,14 +183,33 @@
             </Border>
             <!--  Property Value - using column 1 now  -->
             <Border Grid.Column="1" Background="Transparent">
-                <ContentPresenter Margin="5,0,0,0">
-                    <ContentPresenter.Content>
-                        <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
-                            <Binding Converter="{StaticResource NewlineToSpaceSingleConverter}" Path="FormattedValue" />
-                            <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
-                        </MultiBinding>
-                    </ContentPresenter.Content>
-                </ContentPresenter>
+                <Grid>
+                    <!--  Always show read-only ContentPresenter when PropertyGrid is readonly  -->
+                    <ContentPresenter Margin="5,0,0,0" Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ContentPresenter.Content>
+                            <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
+                                <Binding Converter="{StaticResource NewlineToSpaceSingleConverter}" Path="FormattedValue" />
+                                <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
+                            </MultiBinding>
+                        </ContentPresenter.Content>
+                    </ContentPresenter>
+
+                    <!--  When PropertyGrid is NOT readonly, show either PropertyEditor or read-only ContentPresenter based on property  -->
+                    <Grid Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}, Converter={StaticResource BooleanNotToVisibilityConverter}}">
+                        <!--  Editable PropertyEditor (visible when property is writable)  -->
+                        <local:PropertyEditor Margin="5,0,0,0" PropertyItem="{Binding}" Visibility="{Binding IsReadOnly, Converter={StaticResource BooleanNotToVisibilityConverter}}" />
+
+                        <!--  Read-only ContentPresenter (visible when property is readonly)  -->
+                        <ContentPresenter Margin="5,0,0,0" Visibility="{Binding IsReadOnly, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ContentPresenter.Content>
+                                <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
+                                    <Binding Converter="{StaticResource NewlineToSpaceSingleConverter}" Path="FormattedValue" />
+                                    <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
+                                </MultiBinding>
+                            </ContentPresenter.Content>
+                        </ContentPresenter>
+                    </Grid>
+                </Grid>
             </Border>
         </Grid>
     </HierarchicalDataTemplate>

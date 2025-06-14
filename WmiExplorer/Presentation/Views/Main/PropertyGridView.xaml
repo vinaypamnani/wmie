@@ -47,12 +47,12 @@
                                            Text="{Binding SelectedObjectDisplayName}"
                                            TextTrimming="CharacterEllipsis" />
                             </Border>
-
                             <pg:PropertyGrid x:Name="PropertyGrid"
                                              Grid.Row="1"
                                              Margin="{StaticResource MarginRightSmall}"
                                              Background="{DynamicResource PropertyGridBackgroundBrush}"
                                              EnableVirtualization="True"
+                                             IsPropertyGridReadOnly="True"
                                              NameColumnWidth="150"
                                              SelectedObject="{Binding SelectedObject, Mode=OneWay}"
                                              ShowSearchBox="True" />

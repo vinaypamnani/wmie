@@ -32,8 +32,9 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
                objectType == typeof(WmiClass) ||
                objectType == typeof(WmiInstance) ||
                objectType == typeof(ManagementBaseObject) ||
+               objectType == typeof(ManagementObject) ||
                objectType == typeof(PropertyDataCollection) ||
-               objectType == typeof(QualifierDataCollection);
+               objectType == typeof(QualifierDataCollection) == true;
     }
 
     /// <summary>
@@ -93,6 +94,16 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     {
         if (obj == null)
             yield break;
+
+        // Special handling for ManagementBaseObject - expose its properties directly (we used this for editing)
+        if (obj is ManagementObject managementObject)
+        {
+            foreach (PropertyData property in managementObject.Properties)
+            {
+                yield return new WmiPropertyDescriptor(property, managementObject, "Properties");
+            }
+            yield break;
+        }
 
         var type = obj.GetType();
         bool yieldedSpecial = false;

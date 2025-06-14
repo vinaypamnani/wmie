@@ -188,13 +188,11 @@
                                                                                               SelectedItem="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                                                     <Button Grid.Column="1"
                                                                                             Width="60"
-                                                                                            Height="24"
                                                                                             Margin="8,0,0,0"
                                                                                             Command="{Binding DataContext.LoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
                                                                                             Content="Load" />
                                                                                     <Button Grid.Column="2"
                                                                                             Width="60"
-                                                                                            Height="24"
                                                                                             Margin="8,0,0,0"
                                                                                             Command="{Binding DataContext.CancelLoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
                                                                                             Content="Cancel" />
@@ -203,19 +201,36 @@
                                                                         </Setter.Value>
                                                                     </Setter>
                                                                 </DataTrigger>
-                                                                <!--  Object: Read-only TextBox (respects IsSelected state)  -->
+                                                                <!--  Object: Read-only TextBox with Edit Button  -->
                                                                 <DataTrigger Binding="{Binding IsObject}" Value="True">
                                                                     <Setter Property="ContentTemplate">
                                                                         <Setter.Value>
                                                                             <DataTemplate>
-                                                                                <TextBox HorizontalAlignment="Stretch" IsEnabled="False" Text="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}">
-                                                                                    <TextBox.Style>
-                                                                                        <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
-                                                                                            <!-- <Setter Property="Tag" Value="{Binding DataContext.CimType, RelativeSource={RelativeSource AncestorType=ContentControl}}" /> -->
-                                                                                            <Setter Property="Tag" Value="Object parameters are not supported." />
-                                                                                        </Style>
-                                                                                    </TextBox.Style>
-                                                                                </TextBox>
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*" />
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                    </Grid.ColumnDefinitions>
+
+                                                                                    <!--  Read-only TextBox showing object info  -->
+                                                                                    <TextBox Grid.Column="0"
+                                                                                             HorizontalAlignment="Stretch"
+                                                                                             IsReadOnly="True"
+                                                                                             TextWrapping="Wrap">
+                                                                                        <TextBox.Style>
+                                                                                            <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
+                                                                                                <Setter Property="Tag" Value="{Binding DataContext.ObjectDisplayText, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=OneWay}" />
+                                                                                            </Style>
+                                                                                        </TextBox.Style>
+                                                                                    </TextBox>
+
+                                                                                    <!--  Edit Button  -->
+                                                                                    <Button Grid.Column="1"
+                                                                                            Width="60"
+                                                                                            Margin="8,0,0,0"
+                                                                                            Command="{Binding DataContext.EditObjectCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                            Content="Edit..." />
+                                                                                </Grid>
                                                                             </DataTemplate>
                                                                         </Setter.Value>
                                                                     </Setter>
@@ -259,6 +274,7 @@
                                          Margin="0"
                                          BorderThickness="0"
                                          EnableVirtualization="True"
+                                         IsPropertyGridReadOnly="True"
                                          NameColumnWidth="150"
                                          SelectedObject="{Binding OutputParameters}"
                                          ShowHelpPane="False"

@@ -25,11 +25,11 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         _allowExpansion = allowExpansion;
         _category = category;
 
-        // Determine if property is read-only (generally true for WMI properties)
-        _isReadOnly = true;
+        // Auto-detect read-only status based on context and qualifiers
+        _isReadOnly = DetermineReadOnlyStatus();
 
         // Check if this is a key property
-        _isKey = GetQualifierValue("key") != null;
+        _isKey = GetQualifierFromClassOrInstance("key") != null;
 
         // Get property description from qualifiers
         Description = GetPropertyDescription();
@@ -80,32 +80,140 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     /// </summary>
     public bool SetValue(object? value)
     {
-        // Most WMI properties are read-only in this context
         if (_isReadOnly || _source == null)
+        {
+            // System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] SetValue rejected for {Name}: IsReadOnly={_isReadOnly}, Source=null={_source == null}");
             return false;
+        }
 
         try
         {
-            // For writable properties, set the value and return success/failure
-            if (_source is ManagementObject managementObject)
-            {
-                _propertyData.Value = value;
-                managementObject.Put();
-                return true;
-            }
-            return false;
+            // Convert value to appropriate type if needed
+            var convertedValue = ConvertValueToPropertyType(value, _propertyData.Type, _propertyData.IsArray);
+
+            //System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Setting property {Name} from {_propertyData.Value} to {convertedValue}");
+
+            // Set the value on the property
+            _propertyData.Value = convertedValue;
+
+            // System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {Name} successfully set to: {_propertyData.Value}");
+
+            return true;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error setting WMI property value: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error setting property value: {ex.Message}");
             return false;
         }
     }
 
     /// <summary>
-    /// Gets property description from the class definition using UseAmendedQualifiers
+    /// Converts a value to the appropriate type for the WMI property.
     /// </summary>
-    private string? GetDescriptionFromClass()
+    private object? ConvertValueToPropertyType(object? value, CimType cimType, bool isArray)
+    {
+        if (value == null)
+            return null;
+
+        // Handle string input that needs conversion
+        if (value is string stringValue)
+        {
+            if (string.IsNullOrEmpty(stringValue))
+                return null;
+
+            try
+            {
+                return cimType switch
+                {
+                    CimType.Boolean => bool.Parse(stringValue),
+                    CimType.SInt16 => short.Parse(stringValue),
+                    CimType.UInt16 => ushort.Parse(stringValue),
+                    CimType.SInt32 => int.Parse(stringValue),
+                    CimType.UInt32 => uint.Parse(stringValue),
+                    CimType.SInt64 => long.Parse(stringValue),
+                    CimType.UInt64 => ulong.Parse(stringValue),
+                    CimType.Real32 => float.Parse(stringValue),
+                    CimType.Real64 => double.Parse(stringValue),
+                    CimType.String => stringValue,
+                    CimType.DateTime => ManagementDateTimeConverter.ToDateTime(stringValue),
+                    _ => stringValue
+                };
+            }
+            catch
+            {
+                // If conversion fails, return the original string
+                return stringValue;
+            }
+        }
+
+        return value;
+    }
+
+    /// <summary>
+    /// Determines if the property should be read-only based on qualifiers.
+    /// First checks instance qualifiers, then falls back to class definition qualifiers.
+    /// </summary>
+    private bool DetermineReadOnlyStatus()
+    {
+        // Check if property has Write qualifier - this is the authoritative source
+        var writeQualifier = GetQualifierFromClassOrInstance("write");
+        if (writeQualifier is bool writeBool)
+        {
+            //System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {_propertyData.Name} write qualifier: {writeBool}");
+            return !writeBool; // If write=true, then not read-only
+        }
+
+        // Check if property is marked as read-only
+        var readOnlyQualifier = GetQualifierFromClassOrInstance("read");
+        if (readOnlyQualifier is bool readBool && readBool)
+        {
+            //System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {_propertyData.Name} is read-only due to read=true qualifier");
+            return true;
+        }
+
+        // Default: For regular WMI instances without explicit qualifiers, properties are generally read-only
+        // System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {_propertyData.Name} is read-only (no write qualifier found)");
+        return true;
+    }
+
+    /// <summary>
+    /// Gets a description from PropertyData qualifiers.
+    /// </summary>
+    private string GetPropertyDescription()
+    {
+        // Add the type information
+        string typeLine = $"Type: {_propertyData.Type}{(_propertyData.IsArray ? " (Array)" : "")}";
+
+        // Get description from qualifiers (instance first, then class definition)
+        string? description = GetQualifierFromClassOrInstance("description")?.ToString();
+
+        // If it's a referenced instance (embedded object), add that information
+        if (_propertyData.Type == CimType.Object || _propertyData.Type == CimType.Reference)
+        {
+            string? cimType = GetQualifierFromClassOrInstance("cimtype")?.ToString();
+            if (!string.IsNullOrEmpty(cimType))
+            {
+                typeLine += $" (Instance of {cimType})";
+            }
+            else
+            {
+                typeLine += " (Referenced WMI instance)";
+            }
+        }
+
+        // Compose the description: type line first, then description if present
+        string result = typeLine;
+        if (!string.IsNullOrEmpty(description))
+        {
+            result += $"\n{description}";
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Gets a qualifier value from the class definition using UseAmendedQualifiers.
+    /// </summary>
+    private object? GetQualifierFromClass(string qualifierName)
     {
         try
         {
@@ -140,60 +248,37 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
                     }
                 }
 
-                // Get the description qualifier if the property was found
+                // Get the qualifier value if the property was found
                 if (classProperty != null)
                 {
-                    return GetQualifierValue(classProperty, "description")?.ToString();
+                    return GetQualifierValue(classProperty, qualifierName);
                 }
             }
         }
         catch (Exception ex)
         {
             // Log any errors but don't let them propagate
-            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error getting property description from class: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error getting qualifier '{qualifierName}' from class: {ex.Message}");
         }
 
         return null;
     }
 
     /// <summary>
-    /// Gets a description from PropertyData qualifiers.
+    /// Gets a qualifier value from either the instance property or class definition.
+    /// First checks the instance property, then falls back to the class definition with UseAmendedQualifiers.
     /// </summary>
-    private string GetPropertyDescription()
+    private object? GetQualifierFromClassOrInstance(string qualifierName)
     {
-        // Add the type information
-        string typeLine = $"Type: {_propertyData.Type}{(_propertyData.IsArray ? " (Array)" : "")}";
-
-        // Get description from qualifiers
-        string? description = GetQualifierValue("description")?.ToString();
-
-        // If not found directly, try to get it from the class definition with UseAmendedQualifiers
-        if (string.IsNullOrEmpty(description))
+        // First try to get the qualifier from the instance property
+        var instanceValue = GetQualifierValue(qualifierName);
+        if (instanceValue != null)
         {
-            description = GetDescriptionFromClass();
+            return instanceValue;
         }
 
-        // If it's a referenced instance (embedded object), add that information
-        if (_propertyData.Type == CimType.Object || _propertyData.Type == CimType.Reference)
-        {
-            string? cimType = GetQualifierValue("cimtype")?.ToString();
-            if (!string.IsNullOrEmpty(cimType))
-            {
-                typeLine += $" (Instance of {cimType})";
-            }
-            else
-            {
-                typeLine += " (Referenced WMI instance)";
-            }
-        }
-
-        // Compose the description: type line first, then description if present
-        string result = typeLine;
-        if (!string.IsNullOrEmpty(description))
-        {
-            result += $"\n{description}";
-        }
-        return result;
+        // Fall back to class definition
+        return GetQualifierFromClass(qualifierName);
     }
 
     /// <summary>

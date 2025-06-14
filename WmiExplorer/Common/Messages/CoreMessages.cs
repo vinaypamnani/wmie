@@ -17,16 +17,13 @@ public class ApplicationStateMessage : MessageBase
 }
 
 /// <summary>
-/// Message sent when theme changes
+/// Message to request PropertyGrid refresh
 /// </summary>
-public class ThemeChangedMessage : MessageBase
+public class PropertyGridRefreshMessage : MessageBase
 {
-    public ThemeChangedMessage(string theme)
+    public PropertyGridRefreshMessage()
     {
-        Theme = theme;
     }
-
-    public string Theme { get; }
 }
 
 /// <summary>
@@ -40,4 +37,17 @@ public class SelectionChangedMessage : MessageBase
     }
 
     public ISelectionService SelectionService { get; }
+}
+
+/// <summary>
+/// Message sent when theme changes
+/// </summary>
+public class ThemeChangedMessage : MessageBase
+{
+    public ThemeChangedMessage(string theme)
+    {
+        Theme = theme;
+    }
+
+    public string Theme { get; }
 }

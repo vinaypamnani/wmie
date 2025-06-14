@@ -165,6 +165,48 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     private bool CopyRelativePathCanExecute() => !string.IsNullOrEmpty(NamespacePath);
 
     /// <summary>
+    /// Command to edit instance properties using PropertyEditorDialog.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(EditPropertiesCanExecute))]
+    private void EditProperties()
+    {
+        try
+        {
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            var managementObject = _wmiInstance.ActualObject;
+
+            if (managementObject != null)
+            {
+                // Show the PropertyEditorDialog
+                var result = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(
+                    mainWindow,
+                    managementObject,
+                    $"Edit {InstanceName}"); if (result != null)
+                {
+                    _wmiInstance.ActualObject.Put(); // Save changes to the instance
+
+                    // Refresh the instance data
+                    TryGetInstance();
+
+                    // Request PropertyGrid refresh
+                    PublishMessage(new Common.Messages.PropertyGridRefreshMessage());
+
+                    PublishSuccessState($"Properties updated for instance: {InstanceName}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            PublishErrorState($"Error editing instance properties: {ex.Message}", ex);
+        }
+    }
+
+    private bool EditPropertiesCanExecute()
+    {
+        return _wmiInstance.ActualObject != null;
+    }
+
+    /// <summary>
     /// Command to execute a WMI method.
     /// </summary>
     [RelayCommand(CanExecute = nameof(ExecuteMethodCanExecute))]
