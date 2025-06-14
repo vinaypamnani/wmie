@@ -57,15 +57,17 @@
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="3">
-                <pg:PropertyGrid IncludeNullValues="True"
-                                 IncludeReadOnlyProperties="False"
-                                 IsPropertyGridReadOnly="False"
+                <pg:PropertyGrid IsPropertyGridReadOnly="False"
                                  NameColumnWidth="150"
                                  SelectedObject="{Binding EditableObject}"
                                  ShowHelpPane="True"
                                  ShowOptions="True"
                                  ShowSearchBox="True"
-                                 ShowWmiOptions="False" />
+                                 ShowWmiOptions="False">
+                    <pg:PropertyGrid.FilterOptions>
+                        <pg:PropertyFilterOptions IncludeNullValues="True" IncludeReadOnlyProperties="False" IncludeSystemProperties="True" />
+                    </pg:PropertyGrid.FilterOptions>
+                </pg:PropertyGrid>
             </Border>
 
             <!--  Button Area  -->

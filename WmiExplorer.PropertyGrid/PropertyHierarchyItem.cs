@@ -20,9 +20,7 @@ public partial class PropertyHierarchyItem : ObservableObject
     [ObservableProperty]
     private string _displayName = string.Empty;
 
-    private readonly bool _includeNullValues = true;
-    private readonly bool _includeReadOnlyProperties = true;
-    private readonly bool _includeSystemProperties = true;
+    private readonly PropertyFilterOptions _filterOptions;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsExpandable))]
@@ -55,14 +53,19 @@ public partial class PropertyHierarchyItem : ObservableObject
     /// </summary>
     public PropertyHierarchyItem()
     {
+        _filterOptions = PropertyFilterOptions.DefaultWmiOptions;
     }
 
     /// <summary>
     /// Creates a new instance of PropertyHierarchyItem from a property descriptor.
     /// </summary>
-    public PropertyHierarchyItem(IPropertyDescriptor descriptor, int level = 0, bool includeSystemProperties = true, bool includeNullValues = true, bool includeReadOnlyProperties = true)
+    public PropertyHierarchyItem(IPropertyDescriptor descriptor, int level = 0, PropertyFilterOptions? filterOptions = null)
     {
-        PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));        // Initialize from property descriptor
+        PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));        // Use provided filter options or create default
+        filterOptions ??= PropertyFilterOptions.DefaultObjectOptions;
+        _filterOptions = filterOptions;
+
+        // Initialize from property descriptor
         Name = descriptor.Name;
         DisplayName = descriptor.DisplayName;
         Value = descriptor.Value;
@@ -70,12 +73,7 @@ public partial class PropertyHierarchyItem : ObservableObject
         IsReadOnly = descriptor.IsReadOnly;
         IsKey = descriptor.IsKey;
         Category = descriptor.Category;
-        Description = descriptor.Description;
-        Level = level;
-
-        _includeSystemProperties = includeSystemProperties;
-        _includeNullValues = includeNullValues;
-        _includeReadOnlyProperties = includeReadOnlyProperties;
+        Description = descriptor.Description; Level = level;
 
         // Check if this property is expandable
         HasItems = PropertyTypeProviderRegistry.Instance.IsExpandable(Value, PropertyType);
@@ -152,46 +150,39 @@ public partial class PropertyHierarchyItem : ObservableObject
     /// <summary>
     /// Loads child items when the property is expandable.
     /// </summary>
-    public virtual void LoadChildren(bool includeSystemProperties = true, bool includeNullValues = true, bool includeReadOnlyProperties = true)
+    public virtual void LoadChildren(PropertyFilterOptions? filterOptions = null)
     {
         if (Value == null || !HasItems)
-            return;
+            return;        // Use provided filter options or current filter options
+        filterOptions ??= _filterOptions;
 
         try
         {
             var registry = PropertyTypeProviderRegistry.Instance;
-            var childDescriptors = registry.GetChildItems(Value, Name, Category).OrderBy(cd => cd.DisplayName).ToList(); if (!includeNullValues)
-            {
-                childDescriptors = childDescriptors.Where(cd => cd.Value != null).ToList();
-            }
-            if (!includeReadOnlyProperties)
-            {
-                childDescriptors = childDescriptors.Where(cd => !cd.IsReadOnly).ToList();
-            }
+            var childDescriptors = registry.GetChildItems(Value, Name, Category).OrderBy(cd => cd.DisplayName).ToList();
+
+            // Filter child descriptors based on filter options
+            childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly)).ToList();
+
             foreach (var descriptor in childDescriptors)
             {
-                if (!includeSystemProperties && descriptor.Name != null && descriptor.Name.StartsWith("__"))
-                    continue;
                 // If this child has ShowChildrenAsParentAttribute, promote its children
                 if (PropertyGridAttributeHelpers.HasPropertyAttribute<ShowChildrenAsParentAttribute>(descriptor))
                 {
                     // Use empty string if name/category is null to avoid null reference
-                    var grandChildren = registry.GetChildItems(descriptor.Value, descriptor.Name ?? string.Empty, descriptor.Category ?? string.Empty); if (!includeNullValues)
-                    {
-                        grandChildren = grandChildren.Where(cd => cd.Value != null).ToList();
-                    }
-                    if (!includeReadOnlyProperties)
-                    {
-                        grandChildren = grandChildren.Where(cd => !cd.IsReadOnly).ToList();
-                    }
+                    var grandChildren = registry.GetChildItems(descriptor.Value, descriptor.Name ?? string.Empty, descriptor.Category ?? string.Empty);
+
+                    // Filter grandchildren based on filter options
+                    grandChildren = grandChildren.Where(gc => filterOptions.ShouldIncludeProperty(gc.Name, gc.Value, gc.IsReadOnly)).ToList();
+
                     foreach (var grandChild in grandChildren)
                     {
-                        var grandChildItem = new PropertyHierarchyItem(grandChild, Level + 1, includeSystemProperties, includeNullValues, includeReadOnlyProperties);
+                        var grandChildItem = new PropertyHierarchyItem(grandChild, Level + 1, filterOptions);
                         Children.Add(grandChildItem);
                     }
                     continue; // Skip adding this descriptor itself
                 }
-                var childItem = new PropertyHierarchyItem(descriptor, Level + 1, includeSystemProperties, includeNullValues, includeReadOnlyProperties);
+                var childItem = new PropertyHierarchyItem(descriptor, Level + 1, filterOptions);
                 Children.Add(childItem);
             }
         }
@@ -234,7 +225,7 @@ public partial class PropertyHierarchyItem : ObservableObject
         // When expanded, ensure child items are loaded
         if (value && HasItems && Children.Count == 0)
         {
-            LoadChildren(_includeSystemProperties, _includeNullValues, _includeReadOnlyProperties);
+            LoadChildren(_filterOptions);
         }
     }
 

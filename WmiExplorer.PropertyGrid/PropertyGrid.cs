@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,6 +35,16 @@ public partial class PropertyGrid : Control
             new PropertyMetadata(false, OnVirtualizationChanged));
 
     /// <summary>
+    /// Configuration options for filtering properties in the property grid.
+    /// </summary>
+    public static readonly DependencyProperty FilterOptionsProperty =
+        DependencyProperty.Register(
+            nameof(FilterOptions),
+            typeof(PropertyFilterOptions),
+            typeof(PropertyGrid),
+            new PropertyMetadata(PropertyFilterOptions.DefaultWmiOptions, OnFilterOptionsChanged));
+
+    /// <summary>
     /// Command to copy text from the help pane
     /// </summary>
     public static readonly RoutedUICommand HelpPaneCopyCommand = new RoutedUICommand(
@@ -54,35 +65,6 @@ public partial class PropertyGrid : Control
     /// </summary>
     public static readonly RoutedUICommand HelpPaneSelectAllCommand = new RoutedUICommand(
         string.Empty, "HelpPaneSelectAll", typeof(PropertyGrid));
-
-    /// <summary>
-    /// Whether to include properties with null values in the property grid.
-    /// </summary>
-    public static readonly DependencyProperty IncludeNullValuesProperty =
-        DependencyProperty.Register(
-            nameof(IncludeNullValues),
-            typeof(bool),
-            typeof(PropertyGrid),
-            new PropertyMetadata(false, OnIncludeNullValuesChanged));
-
-    /// <summary>
-    /// Whether to include read-only properties in the property grid.
-    /// </summary>
-    public static readonly DependencyProperty IncludeReadOnlyPropertiesProperty =
-        DependencyProperty.Register(
-            nameof(IncludeReadOnlyProperties),
-            typeof(bool),
-            typeof(PropertyGrid),
-            new PropertyMetadata(true, OnIncludeReadOnlyPropertiesChanged));
-
-    /// <summary>
-    /// Whether to include system properties (properties whose names start with "__") in the property grid.
-    /// </summary>
-    public static readonly DependencyProperty IncludeSystemPropertiesProperty =
-        DependencyProperty.Register(
-            nameof(IncludeSystemProperties),
-            typeof(bool), typeof(PropertyGrid),
-            new PropertyMetadata(true, OnIncludeSystemPropertiesChanged));
 
     /// <summary>
     /// Whether the property grid is read-only (overrides individual property writability).
@@ -245,6 +227,15 @@ public partial class PropertyGrid : Control
     }
 
     /// <summary>
+    /// Gets or sets the configuration options for filtering properties in the property grid.
+    /// </summary>
+    public PropertyFilterOptions FilterOptions
+    {
+        get => (PropertyFilterOptions)GetValue(FilterOptionsProperty);
+        set => SetValue(FilterOptionsProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the height of the help pane.
     /// </summary>
     public double HelpPaneHeight
@@ -254,31 +245,8 @@ public partial class PropertyGrid : Control
     }
 
     /// <summary>
-    /// Gets or sets whether to include properties with null values in the property grid.
-    /// </summary>
-    public bool IncludeNullValues
-    {
-        get => (bool)GetValue(IncludeNullValuesProperty);
-        set => SetValue(IncludeNullValuesProperty, value);
-    }
-
+    /// Gets or sets whether to iws
     /// <summary>
-    /// Gets or sets whether to include read-only properties in the property grid.
-    /// </summary>
-    public bool IncludeReadOnlyProperties
-    {
-        get => (bool)GetValue(IncludeReadOnlyPropertiesProperty);
-        set => SetValue(IncludeReadOnlyPropertiesProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets whether to include system properties (properties whose names start with "__") in the property grid.
-    /// </summary>
-    public bool IncludeSystemProperties
-    {
-        get => (bool)GetValue(IncludeSystemPropertiesProperty);
-        set => SetValue(IncludeSystemPropertiesProperty, value);
-    }
 
     /// <summary>
     /// Gets or sets whether the property grid is read-only.
@@ -433,13 +401,18 @@ public partial class PropertyGrid : Control
                 EnableVirtualization ? VirtualizationMode.Recycling : VirtualizationMode.Standard);
             ScrollViewer.SetCanContentScroll(_propertiesTreeView, EnableVirtualization);
         }
-
         if (ShowHelpPane && Template != null)
         {
             if (Template.FindName("PART_GridSplitter", this) is GridSplitter splitter)
             {
                 splitter.DragCompleted += GridSplitter_DragCompleted;
             }
+        }
+
+        // Ensure we're subscribed to the initial FilterOptions PropertyChanged event
+        if (FilterOptions != null)
+        {
+            FilterOptions.PropertyChanged += OnFilterOptionsPropertyChanged;
         }
 
         LoadProperties();
@@ -509,7 +482,7 @@ public partial class PropertyGrid : Control
         // If the item is expandable and has no children, load them
         if (item.HasItems && item.Children.Count == 0)
         {
-            item.LoadChildren(true, true, true);
+            item.LoadChildren(PropertyFilterOptions.DefaultObjectOptions);
         }
         // Recursively load children for each child
         foreach (var child in item.Children)
@@ -519,8 +492,7 @@ public partial class PropertyGrid : Control
     }
 
     /// <summary>
-    /// Load properties of the selected object based on the current view mode
-    /// </summary>
+    /// Load properties of the selected object based on the current view mode    /// </summary>
     private void LoadProperties()
     {
         if (SelectedObject == null)
@@ -567,17 +539,11 @@ public partial class PropertyGrid : Control
                 }
                 // For non-reflection descriptors, assume browsable
                 return true;
-            }).ToList();            // Filter out system properties at the top level if IncludeSystemProperties is false
-            if (!IncludeSystemProperties)
-            {
-                descriptors = descriptors.Where(p => !(p.Name?.StartsWith("__") ?? false)).ToList();
-            }
+            }).ToList();
 
-            // Filter out read-only properties if IncludeReadOnlyProperties is false
-            if (!IncludeReadOnlyProperties)
-            {
-                descriptors = descriptors.Where(p => !p.IsReadOnly).ToList();
-            }
+            // Filter properties based on current filter options
+            var filterOptions = FilterOptions;
+            descriptors = descriptors.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly)).ToList();
 
             var categoryGroups = descriptors
                 .GroupBy(p => string.IsNullOrEmpty(p.Category) ? _defaultCategory : p.Category)
@@ -591,14 +557,9 @@ public partial class PropertyGrid : Control
             {
                 string categoryName = category.Key;
                 var categoryItem = new PropertyCategoryItem(categoryName);
-                rootItems.Add(categoryItem);
-
-                // Only filter out nulls if IncludeNullValues is false
+                rootItems.Add(categoryItem);                // Only filter out nulls if IncludeNullValues is false
                 IEnumerable<Abstractions.IPropertyDescriptor> filteredProperties = category;
-                if (!IncludeNullValues)
-                {
-                    filteredProperties = filteredProperties.Where(p => p.Value != null);
-                }
+                filteredProperties = filteredProperties.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly));
 
                 // Sort properties: IsKey properties first, then alphabetically by DisplayName
                 var filteredList = filteredProperties
@@ -609,24 +570,21 @@ public partial class PropertyGrid : Control
                 foreach (var descriptor in filteredList)
                 {
                     // Check for ShowChildrenAsParentAttribute
-                    bool showChildAsParent = PropertyGridAttributeHelpers.HasPropertyAttribute<ShowChildrenAsParentAttribute>(descriptor);
-                    if (showChildAsParent)
+                    bool showChildAsParent = PropertyGridAttributeHelpers.HasPropertyAttribute<ShowChildrenAsParentAttribute>(descriptor); if (showChildAsParent)
                     {
                         // Promote children: add child properties directly to the parent category
                         var childDescriptors = PropertyTypeProviderRegistry.Instance.GetChildItems(descriptor.Value, descriptor.Name, descriptor.Category);
-                        // Filter childDescriptors based on IncludeNullValues
-                        if (!IncludeNullValues)
-                        {
-                            childDescriptors = childDescriptors.Where(cd => cd.Value != null).ToList();
-                        }
+                        // Filter childDescriptors based on filter options
+                        childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly)).ToList();
+
                         foreach (var childDesc in childDescriptors)
                         {
-                            var childItem = new PropertyHierarchyItem(childDesc, 1, IncludeSystemProperties, IncludeNullValues, IncludeReadOnlyProperties);
+                            var childItem = new PropertyHierarchyItem(childDesc, 1, filterOptions);
                             categoryItem.Children.Add(childItem);
                         }
                         continue; // Do not add the property itself
                     }
-                    var propertyItem = new PropertyHierarchyItem(descriptor, 1, IncludeSystemProperties, IncludeNullValues, IncludeReadOnlyProperties);
+                    var propertyItem = new PropertyHierarchyItem(descriptor, 1, filterOptions);
                     categoryItem.Children.Add(propertyItem);
                 }
             }
@@ -668,6 +626,31 @@ public partial class PropertyGrid : Control
         }
     }
 
+    private static void OnFilterOptionsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyGrid grid)
+        {
+            // Subscribe to property changes on the new filter options
+            if (e.OldValue is PropertyFilterOptions oldOptions)
+            {
+                oldOptions.PropertyChanged -= grid.OnFilterOptionsPropertyChanged;
+            }
+
+            if (e.NewValue is PropertyFilterOptions newOptions)
+            {
+                newOptions.PropertyChanged += grid.OnFilterOptionsPropertyChanged;
+            }
+
+            grid.LoadProperties();
+        }
+    }
+
+    private void OnFilterOptionsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Reload properties when any filter option changes
+        LoadProperties();
+    }
+
     private static void OnHelpPaneCopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
         e.CanExecute = e.OriginalSource is TextBox tb && tb.IsReadOnly && !string.IsNullOrEmpty(tb.SelectedText);
@@ -691,30 +674,6 @@ public partial class PropertyGrid : Control
         if (e.OriginalSource is TextBox tb && tb.IsReadOnly)
         {
             tb.SelectAll();
-        }
-    }
-
-    private static void OnIncludeNullValuesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is PropertyGrid grid)
-        {
-            grid.LoadProperties();
-        }
-    }
-
-    private static void OnIncludeReadOnlyPropertiesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is PropertyGrid grid)
-        {
-            grid.LoadProperties();
-        }
-    }
-
-    private static void OnIncludeSystemPropertiesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is PropertyGrid grid)
-        {
-            grid.LoadProperties();
         }
     }
 
