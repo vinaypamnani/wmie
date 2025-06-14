@@ -40,25 +40,25 @@
                 <ControlTemplate TargetType="{x:Type TreeViewItem}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" MinWidth="19" />
+                            <ColumnDefinition Width="Auto" MinWidth="16" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-
-                        <!--  Expander Button - Make sure it appears for collections  -->
+                        <!--  Expander Button - 16x16 with minimal spacing  -->
                         <ToggleButton x:Name="Expander"
                                       Grid.Row="0"
                                       Grid.Column="0"
+                                      Width="16"
+                                      Height="16"
+                                      Margin="0,0,0,0"
                                       ClickMode="Press"
                                       IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
                             <ToggleButton.Style>
                                 <Style TargetType="{x:Type ToggleButton}">
                                     <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="Width" Value="16" />
-                                    <Setter Property="Height" Value="16" />
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="{x:Type ToggleButton}">
@@ -81,8 +81,7 @@
                                 </Style>
                             </ToggleButton.Style>
                         </ToggleButton>
-
-                        <!--  Content  -->
+                        <!--  Content - No gap after expander  -->
                         <Border x:Name="OuterBd"
                                 Grid.Row="0"
                                 Grid.Column="1"
@@ -98,9 +97,11 @@
                                 <ContentPresenter x:Name="PART_Header" ContentSource="Header" />
                             </Border>
                         </Border>
-
-                        <!--  ItemsPresenter (Children)  -->
-                        <ItemsPresenter x:Name="ItemsHost" Grid.Row="1" Grid.Column="1" />
+                        <!--  ItemsPresenter (Children) - Minimal 5px indentation  -->
+                        <ItemsPresenter x:Name="ItemsHost"
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Margin="5,0,0,0" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsExpanded" Value="false">
@@ -162,14 +163,18 @@
             </Grid.ContextMenu>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding NameColumnWidth, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" />
+                <ColumnDefinition Width="16" />
+                <!--  Key icon column - fixed 16px width  -->
                 <ColumnDefinition Width="*" />
+                <!--  Value column  -->
             </Grid.ColumnDefinitions>
-            <!--  Property Name - using column 0 now  -->
+
+            <!--  Property Name - directly in column 0  -->
             <Border Grid.Column="0"
                     Background="Transparent"
                     BorderBrush="{DynamicResource PropertyGridBorderBrush}"
-                    BorderThickness="0,0,1,0">
-                <ContentPresenter Margin="5,0,0,0" VerticalAlignment="Center">
+                    BorderThickness="0,0,0,0">
+                <ContentPresenter Margin="2,0,0,0" VerticalAlignment="Center">
                     <ContentPresenter.Content>
                         <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
                             <Binding Path="DisplayName" />
@@ -181,8 +186,24 @@
                     </ContentPresenter.ToolTip>
                 </ContentPresenter>
             </Border>
-            <!--  Property Value - using column 1 now  -->
-            <Border Grid.Column="1" Background="Transparent">
+
+            <!--  Key icon - directly in column 1  -->
+            <Path Grid.Column="1"
+                  Width="16"
+                  Height="16"
+                  Margin="4,0,4,0"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Data="M8,2 L9.5,6 L14,6 L10.5,9 L12,13 L8,10.5 L4,13 L5.5,9 L2,6 L6.5,6 Z"
+                  Fill="{DynamicResource PropertyGridForegroundBrush}"
+                  ToolTip="Primary Key"
+                  Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+            <!--  Property Value - directly in column 2  -->
+            <Border Grid.Column="2"
+                    Background="Transparent"
+                    BorderBrush="{DynamicResource PropertyGridBorderBrush}"
+                    BorderThickness="1,0,0,0">
                 <Grid>
                     <!--  Always show read-only ContentPresenter when PropertyGrid is readonly  -->
                     <ContentPresenter Margin="5,0,0,0" Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}, Converter={StaticResource BoolToVisibilityConverter}}">

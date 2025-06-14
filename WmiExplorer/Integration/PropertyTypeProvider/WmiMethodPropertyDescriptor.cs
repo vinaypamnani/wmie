@@ -17,6 +17,7 @@ public class WmiMethodPropertyDescriptor : IPropertyDescriptor
     public string Category => _category;
     public string Description => _method.Description;
     public string DisplayName => _method.Name;
+    public bool IsKey => false;
     public bool IsReadOnly => true;
     public string Name => _method.Name;
     public Type? PropertyType => typeof(WmiMethod);
@@ -24,5 +25,6 @@ public class WmiMethodPropertyDescriptor : IPropertyDescriptor
 
     // Return full object as Value for expansion
     public object? Value => _method;
+
     public bool SetValue(object? value) => false;
 }

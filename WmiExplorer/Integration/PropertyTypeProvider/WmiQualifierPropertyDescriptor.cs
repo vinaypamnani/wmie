@@ -35,6 +35,7 @@ public class WmiQualifierPropertyDescriptor : IPropertyDescriptor
     }
 
     public string DisplayName => _qualifier.Name;
+    public bool IsKey => false;
     public bool IsReadOnly => true;
     public string Name => _qualifier.Name;
     public Type? PropertyType => typeof(QualifierData);

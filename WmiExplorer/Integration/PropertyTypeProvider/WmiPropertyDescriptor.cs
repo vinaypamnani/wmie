@@ -46,9 +46,14 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public string Description { get; }
 
     /// <summary>
-    /// Gets the display name of the property, with a special marker (*) for key properties.
+    /// Gets the display name of the property.
     /// </summary>
-    public string DisplayName => _isKey ? $"*{Name}" : Name;
+    public string DisplayName => Name;
+
+    /// <summary>
+    /// Gets whether this property is a key property.
+    /// </summary>
+    public bool IsKey => _isKey;
 
     /// <summary>
     /// Gets whether the property is read-only.
@@ -183,6 +188,10 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     {
         // Add the type information
         string typeLine = $"Type: {_propertyData.Type}{(_propertyData.IsArray ? " (Array)" : "")}";
+        if (_isKey)
+        {
+            typeLine += " [Key Property]";
+        }
 
         // Get description from qualifiers (instance first, then class definition)
         string? description = GetQualifierFromClassOrInstance("description")?.ToString();

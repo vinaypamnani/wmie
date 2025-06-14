@@ -200,6 +200,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
         public string Category { get; }
         public string Description => $"Collection Item at index {_index}";
         public string DisplayName { get; }
+        public bool IsKey => false;
         public bool IsReadOnly => true;
         public string Name { get; }
         public Type? PropertyType => _item?.GetType() ?? typeof(object);
@@ -238,6 +239,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
         public string Category { get; }
         public string Description => $"Dictionary {_propertyName.ToLowerInvariant()} at index {_index}";
         public string DisplayName { get; }
+        public bool IsKey => false;
         public bool IsReadOnly => true;
         public string Name { get; }
         public Type? PropertyType => Value?.GetType() ?? typeof(object);
@@ -274,6 +276,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
         public string Category { get; }
         public string Description => $"Item at index {_index}";
         public string DisplayName { get; }
+        public bool IsKey => false;
         public bool IsReadOnly => false;
         public string Name { get; }
         public Type? PropertyType => Value?.GetType() ?? _array.GetType().GetElementType();

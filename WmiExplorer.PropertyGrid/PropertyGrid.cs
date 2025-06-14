@@ -557,7 +557,13 @@ public partial class PropertyGrid : Control
                 {
                     filteredProperties = filteredProperties.Where(p => p.Value != null);
                 }
-                var filteredList = filteredProperties.OrderBy(p => p.DisplayName).ToList();
+
+                // Sort properties: IsKey properties first, then alphabetically by DisplayName
+                var filteredList = filteredProperties
+                    .OrderByDescending(p => p.IsKey)  // Key properties first (true sorts before false)
+                    .ThenBy(p => p.DisplayName)       // Then alphabetically by display name
+                    .ToList();
+
                 foreach (var descriptor in filteredList)
                 {
                     // Check for ShowChildrenAsParentAttribute

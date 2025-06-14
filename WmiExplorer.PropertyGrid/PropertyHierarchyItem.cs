@@ -28,6 +28,9 @@ public partial class PropertyHierarchyItem : ObservableObject
     private bool _isExpanded;
 
     [ObservableProperty]
+    private bool _isKey;
+
+    [ObservableProperty]
     private bool _isReadOnly;
 
     [ObservableProperty]
@@ -58,14 +61,13 @@ public partial class PropertyHierarchyItem : ObservableObject
     /// </summary>
     public PropertyHierarchyItem(IPropertyDescriptor descriptor, int level = 0, bool includeSystemProperties = true, bool includeNullValues = true)
     {
-        PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
-
-        // Initialize from property descriptor
+        PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));        // Initialize from property descriptor
         Name = descriptor.Name;
         DisplayName = descriptor.DisplayName;
         Value = descriptor.Value;
         PropertyType = descriptor.PropertyType ?? typeof(object);
         IsReadOnly = descriptor.IsReadOnly;
+        IsKey = descriptor.IsKey;
         Category = descriptor.Category;
         Description = descriptor.Description;
         Level = level;

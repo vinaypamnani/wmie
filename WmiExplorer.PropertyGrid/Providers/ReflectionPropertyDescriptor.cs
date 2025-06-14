@@ -55,6 +55,11 @@ public class DefaultPropertyDescriptor : IPropertyDescriptor
     public string DisplayName { get; }
 
     /// <summary>
+    /// Gets whether this property is a key property. Always false for reflection-based properties.
+    /// </summary>
+    public bool IsKey => false;
+
+    /// <summary>
     /// Gets whether the property is read-only.
     /// </summary>
     public bool IsReadOnly => _isReadOnly;

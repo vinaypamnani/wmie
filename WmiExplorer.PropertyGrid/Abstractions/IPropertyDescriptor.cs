@@ -19,6 +19,10 @@ public interface IPropertyDescriptor
     /// </summary>
     string DisplayName { get; }
     /// <summary>
+    /// Gets whether the property is a key property.
+    /// </summary>
+    bool IsKey { get; }
+    /// <summary>
     /// Gets whether the property is read-only.
     /// </summary>
     bool IsReadOnly { get; }
