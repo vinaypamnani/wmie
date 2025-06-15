@@ -90,17 +90,17 @@
                         <TabItem Header="Classes">
                             <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
                         </TabItem>
-                        <TabItem Header="Search" IsEnabled="{Binding NamespacesViewModel.SelectedNamespace, Converter={StaticResource NullToBoolConverter}}">
+                        <TabItem Header="Search">
                             <!--  Search View  -->
                             <tabs:SearchTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.SearchTabViewModel}" />
+                        </TabItem>
+                        <TabItem Header="Query">
+                            <!--  Query View  -->
+                            <tabs:QueryTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.QueryTabViewModel}" />
                         </TabItem>
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
                             <tabs:WatcherTabView DataContext="{Binding NamespacesViewModel.WatcherTabViewModel}" />
-                        </TabItem>
-                        <TabItem Header="Query" IsEnabled="{Binding NamespacesViewModel.SelectedNamespace, Converter={StaticResource NullToBoolConverter}}">
-                            <!--  Query View  -->
-                            <tabs:QueryTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.QueryTabViewModel}" />
                         </TabItem>
                     </TabControl>
 

@@ -43,22 +43,14 @@
                             Command="{Binding ExecuteQueryCommand}"
                             Content="Execute"
                             IsDefault="True"
-                            IsEnabled="{Binding IsQuerying, Converter={StaticResource InverseBooleanConverter}}">
-                        <Button.Style>
-                            <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
-                                <Setter Property="Background" Value="{DynamicResource AccentColorBrush}" />
-                                <Setter Property="Foreground" Value="White" />
-                            </Style>
-                        </Button.Style>
-                    </Button>
-
+                            IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}" />
                     <Button Grid.Column="2"
                             Width="90"
                             Height="30"
                             Margin="0,0,0,0"
                             Command="{Binding CancelQueryCommand}"
                             Content="Cancel"
-                            IsEnabled="{Binding IsQuerying}" />
+                            IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}" />
                 </Grid>
 
                 <!--  Query Editor  -->
@@ -69,12 +61,12 @@
                     <avalonedit:TextEditor MinHeight="80"
                                            Margin="0"
                                            Padding="4"
-                                           avalonbehaviors:AvalonEditTextBindingBehavior.BoundText="{Binding QueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                           avalonbehaviors:AvalonEditThemingBehavior.EnableTheming="True"
-                                           avalonbehaviors:AvalonEditWqlHighlightingBehavior.EnableWqlHighlighting="True"
                                            avalonbehaviors:AvalonEditCompletionBehavior.CacheService="{Binding CacheService}"
                                            avalonbehaviors:AvalonEditCompletionBehavior.EnableCompletion="True"
                                            avalonbehaviors:AvalonEditCompletionBehavior.Namespace="{Binding SelectedNamespace.NamespacePath}"
+                                           avalonbehaviors:AvalonEditTextBindingBehavior.BoundText="{Binding QueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           avalonbehaviors:AvalonEditThemingBehavior.EnableTheming="True"
+                                           avalonbehaviors:AvalonEditWqlHighlightingBehavior.EnableWqlHighlighting="True"
                                            Background="{DynamicResource PrimaryBackgroundBrush}"
                                            DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                            FontFamily="Consolas, Courier New, Monospace"
