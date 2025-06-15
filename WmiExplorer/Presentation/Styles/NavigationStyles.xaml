@@ -36,7 +36,9 @@
                         </Trigger>
                         <!--  Disabled Tab Style  -->
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="Gray" />
+                            <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                            <Setter Property="FontStyle" Value="Italic" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
