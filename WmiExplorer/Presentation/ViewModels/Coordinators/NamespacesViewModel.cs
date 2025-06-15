@@ -278,7 +278,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
 
             // Select the class
             nsVm.SelectedClass = classVm;
-            classVm.ForceSelection();
+            classVm.IsSelected = true;
 
             // Publish success state for user feedback
             PublishSuccessState($"Jumped to class '{message.ClassName}' in namespace '{message.NamespacePath}'.");
