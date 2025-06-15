@@ -227,7 +227,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
             switch (selectedClass.LoadState)
             {
                 case InstanceLoadState.Unknown:
-                    PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click to load instances.");
+                    PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click the class to load instances.");
                     break;
                 case InstanceLoadState.Loading:
                     PublishBusyState($"Loading instances for class {selectedClass.ClassName}...");
@@ -236,7 +236,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
                     PublishWarningState($"Showing partial results for class {selectedClass.ClassName}.");
                     break;
                 case InstanceLoadState.Failed:
-                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click class to try again.");
+                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click the class to try again.");
                     break;
                 case InstanceLoadState.Success:
                     var count = selectedClass.InstancesView.Cast<object>().Count();

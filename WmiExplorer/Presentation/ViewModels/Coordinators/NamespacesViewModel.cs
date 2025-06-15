@@ -323,7 +323,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         switch (ns.ClassLoadState)
         {
             case ClassLoadState.Unknown:
-                PublishSuccessState($"Selected {ns.NamespacePath} Double-click to load classes.");
+                PublishSuccessState($"Selected {ns.NamespacePath} Double-click the namespace to load classes.");
                 break;
             case ClassLoadState.Loading:
                 PublishBusyState($"Loading classes for {ns.NamespacePath}...");
@@ -332,7 +332,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
                 PublishBusyState($"Showing partial results for {ns.NamespacePath}.");
                 break;
             case ClassLoadState.Failed:
-                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click namespace to try again.");
+                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click the namespace to try again.");
                 break;
             case ClassLoadState.Success when ns.NamespaceLoadState == NamespaceLoadState.Success:
                 var count = ns.ClassesView.Cast<object>().Count();
