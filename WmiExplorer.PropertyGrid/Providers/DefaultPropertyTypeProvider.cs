@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reflection;
 using WmiExplorer.PropertyGrid.Abstractions;
@@ -31,6 +32,20 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
             yield break;
 
         Type valueType = value.GetType();
+
+        // Handle NameObjectCollectionBase (NameValueCollection, ManagementNamedValueCollection, etc.)
+        if (value is NameObjectCollectionBase nameObjectCollection)
+        {
+            // Use Keys property and indexer to access name-value pairs
+            var keys = nameObjectCollection.Keys;
+            for (int i = 0; i < nameObjectCollection.Count; i++)
+            {
+                string? key = keys[i];
+                string displayKey = key ?? $"[{i}]"; // Handle null keys
+                yield return new NameObjectCollectionPropertyDescriptor(nameObjectCollection, i, displayKey, parentCategory);
+            }
+            yield break;
+        }
 
         // Handle arrays
         if (valueType.IsArray)
@@ -294,6 +309,103 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
             {
                 return false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Property descriptor for NameObjectCollectionBase entries (ManagementNamedValueCollection, NameValueCollection, etc.)
+    /// </summary>
+    private class NameObjectCollectionPropertyDescriptor : IPropertyDescriptor
+    {
+        private readonly NameObjectCollectionBase _collection;
+        private readonly int _index;
+        private readonly string _key;
+
+        public NameObjectCollectionPropertyDescriptor(NameObjectCollectionBase collection, int index, string key, string category)
+        {
+            _collection = collection;
+            _index = index;
+            _key = key;
+            Name = key;
+            DisplayName = key;
+            Category = category;
+        }
+
+        public string Category { get; }
+        public string Description => $"Name-value pair: '{_key}' at index {_index}";
+        public string DisplayName { get; }
+        public bool IsKey => false;
+        public bool IsReadOnly => true;
+
+        // Most NameObjectCollectionBase implementations are read-only through indexer
+        public string Name { get; }
+
+        public Type? PropertyType => Value?.GetType() ?? typeof(object);
+        public object Source => _collection;
+
+        public object? Value
+        {
+            get
+            {
+                try
+                {
+                    // Use reflection to access the protected BaseGet method
+                    var baseGetMethod = typeof(NameObjectCollectionBase).GetMethod("BaseGet",
+                        BindingFlags.NonPublic | BindingFlags.Instance,
+                        null,
+                        new[] { typeof(int) },
+                        null);
+                    return baseGetMethod?.Invoke(_collection, new object[] { _index });
+                }
+                catch
+                {
+                    // Fallback: try to access through Keys and then indexer if available
+                    try
+                    {
+                        // For derived types like NameValueCollection, try indexer access
+                        var indexerProperty = _collection.GetType().GetProperty("Item", new[] { typeof(string) });
+                        if (indexerProperty != null)
+                        {
+                            return indexerProperty.GetValue(_collection, new object[] { _key });
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore and return null
+                    }
+                    return null;
+                }
+            }
+        }
+
+        public bool SetValue(object? value)
+        {
+            try
+            {
+                // Try to use BaseSet method if available
+                var baseSetMethod = typeof(NameObjectCollectionBase).GetMethod("BaseSet",
+                    BindingFlags.NonPublic | BindingFlags.Instance,
+                    null,
+                    new[] { typeof(string), typeof(object) },
+                    null); if (baseSetMethod != null)
+                {
+                    baseSetMethod.Invoke(_collection, new object?[] { _key, value });
+                    return true;
+                }
+
+                // Fallback: try indexer setter if available
+                var indexerProperty = _collection.GetType().GetProperty("Item", new[] { typeof(string) });
+                if (indexerProperty != null && indexerProperty.CanWrite)
+                {
+                    indexerProperty.SetValue(_collection, value, new object[] { _key });
+                    return true;
+                }
+            }
+            catch
+            {
+                // Setting failed
+            }
+            return false;
         }
     }
 }
