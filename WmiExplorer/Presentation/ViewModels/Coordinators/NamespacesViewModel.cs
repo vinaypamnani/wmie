@@ -19,16 +19,6 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
     private readonly ClassesTabViewModel _classesTabViewModel;
-
-    private readonly ConnectionOptions _connectionOptions = new ConnectionOptions
-    {
-        EnablePrivileges = true,
-        Impersonation = ImpersonationLevel.Impersonate,
-        Authentication = AuthenticationLevel.Default,
-        Username = null,
-        SecurePassword = null
-    };
-
     private readonly CancellationTokenSource _cts = new();
 
     [ObservableProperty]
@@ -58,8 +48,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
-        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel)); _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
@@ -86,10 +75,11 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     public WatcherTabViewModel WatcherTabViewModel => _watcherTabViewModel;
 
     /// <summary>
-    /// Connects to the specified computer or namespace path
+    /// Connects to the specified computer or namespace path with specified connection options
     /// </summary>
-    [RelayCommand]
-    public async Task ConnectAsync(string computerOrNamespacePath)
+    /// <param name="computerOrNamespacePath">Computer name or namespace path</param>
+    /// <param name="connectionOptions">Connection options to use for the connection</param>
+    public async Task ConnectAsync(string computerOrNamespacePath, ConnectionOptions connectionOptions)
     {
         // Parse the input to determine what type of connection we're making
         string effectivePath;
@@ -141,7 +131,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
             // Create the root namespace view model using the async method
             var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
                 effectivePath,
-                _connectionOptions,
+                connectionOptions,
                 _wmiService,
                 _messengerService,
                 _applicationService,

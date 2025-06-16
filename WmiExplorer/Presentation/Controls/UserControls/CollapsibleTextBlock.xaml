@@ -17,7 +17,7 @@
                    VerticalAlignment="Top"
                    Cursor="Hand"
                    FontSize="12"
-                   Foreground="{DynamicResource PrimaryAccentBrush}"
+                   Foreground="{DynamicResource SecondaryAccentBrush}"
                    MouseLeftButtonDown="ToggleButton_MouseLeftButtonDown">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">

@@ -1,9 +1,9 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
-                    xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors">
+                    xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!-- Standard TextBox Context Menu -->
+    <!--  Standard TextBox Context Menu  -->
     <ContextMenu x:Key="TextBoxContextMenu">
         <MenuItem Command="ApplicationCommands.Cut" Header="Cut" />
         <MenuItem Command="ApplicationCommands.Copy" Header="Copy" />
@@ -30,6 +30,25 @@
             <Trigger Property="IsReadOnly" Value="True">
                 <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--  TextBox  -->
+    <Style TargetType="PasswordBox">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingSmall}" />
+        <Setter Property="Margin" Value="{StaticResource MarginSmall}" />
+        <Setter Property="ContextMenu" Value="{StaticResource TextBoxContextMenu}" />
+
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
                 <Setter Property="BorderThickness" Value="0" />
             </Trigger>
@@ -87,15 +106,32 @@
                             BorderBrush="{DynamicResource PrimaryAccentBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid VerticalAlignment="Center">
-                            <!-- Search Icon -->
-                            <Viewbox Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,0,0,0">
+                            <!--  Search Icon  -->
+                            <Viewbox Width="16"
+                                     Height="16"
+                                     Margin="4,0,0,0"
+                                     HorizontalAlignment="Left"
+                                     VerticalAlignment="Center">
                                 <Canvas Width="16" Height="16">
-                                    <!-- Adjusted magnifying glass icon for better vertical centering -->
-                                    <Ellipse Stroke="Gray" StrokeThickness="2" Width="10" Height="10" Canvas.Left="1" Canvas.Top="2" />
-                                    <Line X1="9" Y1="10" X2="14" Y2="15" Stroke="Gray" StrokeThickness="2" />
+                                    <!--  Adjusted magnifying glass icon for better vertical centering  -->
+                                    <Ellipse Canvas.Left="1"
+                                             Canvas.Top="2"
+                                             Width="10"
+                                             Height="10"
+                                             Stroke="Gray"
+                                             StrokeThickness="2" />
+                                    <Line Stroke="Gray"
+                                          StrokeThickness="2"
+                                          X1="9"
+                                          X2="14"
+                                          Y1="10"
+                                          Y2="15" />
                                 </Canvas>
                             </Viewbox>
-                            <ScrollViewer x:Name="PART_ContentHost" Background="Transparent" Focusable="false" Margin="24,0,0,0" />
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="24,0,0,0"
+                                          Background="Transparent"
+                                          Focusable="false" />
                             <TextBlock x:Name="PlaceholderText"
                                        Margin="24,0,0,0"
                                        Padding="{StaticResource PaddingLeftTiny}"
@@ -104,31 +140,31 @@
                                        IsHitTestVisible="False"
                                        Text="{TemplateBinding Tag}"
                                        Visibility="Collapsed" />
-                            <!-- Clear Button -->
+                            <!--  Clear Button  -->
                             <Button x:Name="PART_ClearButton"
                                     Width="18"
                                     Height="18"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
                                     Margin="4,0,4,0"
                                     Padding="0"
-                                    Focusable="False"
-                                    Visibility="Visible"
-                                    Cursor="Hand"
-                                    ToolTip="Clear"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
                                     Background="Transparent"
+                                    BorderBrush="Transparent"
                                     BorderThickness="0"
-                                    BorderBrush="Transparent">
+                                    Cursor="Hand"
+                                    Focusable="False"
+                                    ToolTip="Clear"
+                                    Visibility="Visible">
                                 <Path Data="M3,3 L9,9 M9,3 L3,9"
                                       Stroke="Gray"
-                                      StrokeThickness="2"
                                       StrokeEndLineCap="Round"
-                                      StrokeStartLineCap="Round" />
+                                      StrokeStartLineCap="Round"
+                                      StrokeThickness="2" />
                             </Button>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <!-- Show placeholder and hide clear button if empty or null -->
+                        <!--  Show placeholder and hide clear button if empty or null  -->
                         <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
                             <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
                             <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
@@ -139,14 +175,14 @@
                             <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
                             <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
                         </DataTrigger>
-                        <!-- Show clear button only when Text is not empty or null -->
+                        <!--  Show clear button only when Text is not empty or null  -->
                         <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
                             <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
                             <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
                         </DataTrigger>
-                        <!-- Default: PART_ClearButton is Visible when Text is not empty or null -->
+                        <!--  Default: PART_ClearButton is Visible when Text is not empty or null  -->
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed" />
                         </Trigger>

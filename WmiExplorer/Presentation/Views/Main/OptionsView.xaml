@@ -23,11 +23,34 @@
                          Style="{StaticResource TextBoxWithPlaceholder}"
                          Tag="Computer Name..."
                          Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" />
-                <Button Height="28"
-                        MinWidth="75"
-                        Margin="{StaticResource MarginSmall}"
-                        Command="{Binding ConnectCommand}"
-                        Content="Connect" />
+
+                <!--  Split Button for Connect with Dropdown  -->
+                <StackPanel Orientation="Horizontal">
+                    <!--  Main Connect Button  -->
+                    <Button Height="26"
+                            Margin="4,0,0,0"
+                            Command="{Binding ConnectCommand}"
+                            Content="Connect" />
+
+                    <!--  Dropdown Arrow Button  -->
+                    <Button Name="ConnectDropdownButton"
+                            Width="24"
+                            Height="26"
+                            Margin="0,0,0,0"
+                            Click="ConnectDropdownButton_Click">
+                        <Path HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Data="M 0 0 L 4 4 L 8 0 Z"
+                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+
+                        <!--  Popup for additional options  -->
+                        <Button.ContextMenu>
+                            <ContextMenu Name="ConnectContextMenu">
+                                <MenuItem Command="{Binding ConnectWithOptionsCommand}" Header="Connection Options" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </StackPanel>
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="1" Header="Mode">
@@ -60,7 +83,7 @@
                         MinWidth="100"
                         Margin="{StaticResource MarginSmall}"
                         Command="{Binding ReloadClassesCommand}"
-                        Content="Reload Classes"/>
+                        Content="Reload Classes" />
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="3" Header="Accent Colors">

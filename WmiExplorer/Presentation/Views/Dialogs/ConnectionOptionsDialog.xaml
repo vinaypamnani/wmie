@@ -1,0 +1,388 @@
+<Window x:Class="WmiExplorer.Presentation.Views.Dialogs.ConnectionOptionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mgmt="clr-namespace:System.Management;assembly=System.Management"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Width="600"
+        Height="600"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        mc:Ignorable="d">
+
+    <Window.Resources>
+        <!--  Enum ObjectDataProvider for AuthenticationLevel  -->
+        <ObjectDataProvider x:Key="AuthenticationLevelValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mgmt:AuthenticationLevel" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <!--  Enum ObjectDataProvider for ImpersonationLevel  -->
+        <ObjectDataProvider x:Key="ImpersonationLevelValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mgmt:ImpersonationLevel" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
+
+    <Border Background="{DynamicResource PrimaryBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="3">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  Header Area  -->
+            <Border Grid.Row="0"
+                    Margin="8,0,8,0"
+                    Padding="8"
+                    behaviors:WindowDragBehavior.IsDragEnabled="True"
+                    Background="{DynamicResource PrimaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryForegroundBrush}"
+                               Text="Connection Options" />
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="13"
+                               Foreground="{DynamicResource SecondaryForegroundBrush}"
+                               Text="Configure authentication and connection options for WMI operations" />
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="12"
+                               FontStyle="Italic"
+                               Foreground="{DynamicResource SecondaryForegroundBrush}"
+                               Text="Leave username/password empty to use current Windows credentials" />
+                    <!--  Learn More Link  -->
+                    <TextBlock Margin="0,4,0,0">
+                        <Hyperlink FontSize="12"
+                                   Foreground="{DynamicResource SecondaryAccentBrush}"
+                                   NavigateUri="https://learn.microsoft.com/en-us/dotnet/api/system.management.connectionoptions#properties"
+                                   RequestNavigate="Hyperlink_RequestNavigate">
+                            Learn more about connection options
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <!--  Accent underline  -->
+                    <Rectangle Height="2"
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource PrimaryAccentBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!--  Content Area  -->
+            <ScrollViewer Grid.Row="1" Margin="8" VerticalScrollBarVisibility="Auto">
+
+                <StackPanel Margin="0,0,0,8" Orientation="Vertical">
+
+                    <!--  Credentials Section  -->
+                    <GroupBox HorizontalContentAlignment="Stretch" Header="Computer Name &amp; Credentials">
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+
+                            <!--  Computer Name (or path)  -->
+                            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
+                                <TextBlock Margin="4,0"
+                                           FontWeight="Medium"
+                                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                           Text="Computer Name:" />
+                                <TextBox HorizontalAlignment="Stretch" Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" ToolTip="Name or IP address of the computer to connect to (leave empty for local machine)" />
+                            </StackPanel>
+
+                            <!--  Username  -->
+                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
+                                <TextBlock Margin="4,0"
+                                           FontWeight="Medium"
+                                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                           Text="Username:" />
+                                <TextBox HorizontalAlignment="Stretch" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" ToolTip="Username for authentication (leave empty for current user)" />
+                            </StackPanel>
+
+                            <!--  Password  -->
+                            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Vertical">
+                                <TextBlock Margin="4,0"
+                                           FontWeight="Medium"
+                                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                           Text="Password:" />
+                                <PasswordBox x:Name="PasswordBox"
+                                             HorizontalAlignment="Stretch"
+                                             PasswordChanged="PasswordBox_PasswordChanged"
+                                             ToolTip="Password for authentication" />
+                            </StackPanel>
+
+                            <!--  Enable Privileges  -->
+                            <CheckBox Grid.Row="1"
+                                      Grid.ColumnSpan="3"
+                                      Margin="4"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Center"
+                                      Content="Enable user privileges"
+                                      IsChecked="{Binding EnablePrivileges}"
+                                      ToolTip="Enable user privileges for operations that require elevated permissions" />
+
+                        </Grid>
+                    </GroupBox>
+
+                    <!--  Authentication Settings  -->
+                    <GroupBox HorizontalContentAlignment="Stretch" Header="Authentication ">
+
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MinWidth="150" />
+                                <ColumnDefinition Width="Auto" MinWidth="150" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!--  Authentication Level  -->
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0" Orientation="Vertical">
+                                <TextBlock Margin="0,0,0,4"
+                                           FontWeight="Medium"
+                                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                           Text="Authentication Level:" />
+                                <ComboBox MinWidth="120"
+                                          HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding Source={StaticResource AuthenticationLevelValues}}"
+                                          SelectedItem="{Binding Authentication}"
+                                          ToolTip="COM authentication level for the connection" />
+                            </StackPanel>
+
+                            <!--  Impersonation Level  -->
+                            <StackPanel Grid.Column="1" Margin="0,0,12,0" Orientation="Vertical">
+                                <TextBlock Margin="0,0,0,4"
+                                           FontWeight="Medium"
+                                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                           Text="Impersonation Level:" />
+                                <ComboBox MinWidth="120"
+                                          HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding Source={StaticResource ImpersonationLevelValues}}"
+                                          SelectedItem="{Binding Impersonation}"
+                                          ToolTip="COM impersonation level for the connection" />
+                            </StackPanel>
+
+                            <!--  Authority  -->
+                            <StackPanel Grid.Column="2" HorizontalAlignment="Stretch" Orientation="Vertical">
+                                <TextBlock Margin="4,0,0,0"
+                                           FontWeight="Medium"
+                                           Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                           Text="Authority:" />
+                                <TextBox HorizontalAlignment="Stretch" Text="{Binding Authority, UpdateSourceTrigger=PropertyChanged}" ToolTip="Authority to authenticate (e.g., kerberos:&lt;DOMAIN&gt; or ntlmdomain:&lt;DOMAIN&gt;)" />
+                            </StackPanel>
+
+                        </Grid>
+
+                    </GroupBox>
+
+                    <!--  Advanced  -->
+                    <GroupBox HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" Header="Advanced">
+
+                        <StackPanel Margin="0,8,0,0" Orientation="Vertical">
+
+                            <StackPanel Orientation="Horizontal">
+                                <!--  Locale  -->
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Margin="4,0,0,0"
+                                               FontWeight="Medium"
+                                               Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                               Text="Timeout:" />
+                                    <TextBox MinWidth="180"
+                                             HorizontalAlignment="Stretch"
+                                             Text="{Binding Timeout, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="Timeout" />
+                                </StackPanel>
+
+                                <!--  Locale  -->
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Margin="4,0,0,0"
+                                               FontWeight="Medium"
+                                               Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                               Text="Locale:" />
+                                    <TextBox MinWidth="60"
+                                             HorizontalAlignment="Stretch"
+                                             Text="{Binding Locale, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="Locale identifier for localized operations (e.g., 'MS_409')" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Vertical">
+
+                                <!--  Edit Context Checkbox  -->
+                                <CheckBox Margin="0,8,0,8"
+                                          Content="Edit Context"
+                                          IsChecked="{Binding EditContext}"
+                                          ToolTip="Enable editing of context name-value pairs" />
+
+                                <!--  Context Editor Panel - Only visible when EditContext is checked  -->
+                                <StackPanel Orientation="Vertical" Visibility="{Binding EditContext, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                                    <!--  Add Context Item Panel  -->
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MaxWidth="180" />
+                                            <ColumnDefinition Width="*" MaxWidth="180" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <!--  Labels  -->
+                                        <TextBlock Grid.Row="0"
+                                                   Grid.Column="0"
+                                                   Margin="4,0,0,2"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                                   Text="Key:" />
+                                        <TextBlock Grid.Row="0"
+                                                   Grid.Column="1"
+                                                   Margin="4,0,0,2"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                                   Text="Value:" />
+
+                                        <!--  Input Fields  -->
+                                        <TextBox Grid.Row="1"
+                                                 Grid.Column="0"
+                                                 Style="{StaticResource TextBoxWithPlaceholder}"
+                                                 Tag="Enter Context key name"
+                                                 Text="{Binding NewContextKey, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Enter the context key name" />
+                                        <TextBox Grid.Row="1"
+                                                 Grid.Column="1"
+                                                 Style="{StaticResource TextBoxWithPlaceholder}"
+                                                 Tag="Enter Context value"
+                                                 Text="{Binding NewContextValue, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Enter the context value" />
+                                        <Button Grid.Row="1"
+                                                Grid.Column="2"
+                                                Padding="8,4"
+                                                Command="{Binding AddContextItemCommand}"
+                                                Content="Add"
+                                                ToolTip="Add the key-value pair to the context" />
+                                    </Grid>
+                                    <!--  Context Items ListView  -->
+                                    <ListView Margin="0,0,0,8"
+                                              behaviors:ListViewScrollPassthroughBehavior.IsEnabled="True"
+                                              ItemsSource="{Binding ContextItems}"
+                                              SelectionMode="Single"
+                                              Style="{StaticResource ModernGridListViewStyle}">
+                                        <ListView.ItemContainerStyle>
+                                            <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}" />
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridView.ColumnHeaderContainerStyle>
+                                                    <Style BasedOn="{StaticResource ModernGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
+                                                </GridView.ColumnHeaderContainerStyle>
+
+                                                <!--  Key Column  -->
+                                                <GridViewColumn Width="180" Header="Key">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Button Width="20"
+                                                                        Height="20"
+                                                                        Padding="0"
+                                                                        HorizontalAlignment="Left"
+                                                                        VerticalAlignment="Center"
+                                                                        Background="Transparent"
+                                                                        BorderThickness="0"
+                                                                        Command="{Binding DataContext.RemoveContextItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                                        CommandParameter="{Binding}"
+                                                                        ToolTip="Remove">
+                                                                    <Path Width="10"
+                                                                          Height="10"
+                                                                          Data="M1,1 L9,9 M1,9 L9,1"
+                                                                          Stroke="{DynamicResource ErrorBrush}"
+                                                                          StrokeThickness="1" />
+                                                                </Button>
+                                                                <TextBlock Margin="8,0,0,0"
+                                                                           VerticalAlignment="Center"
+                                                                           Background="Transparent"
+                                                                           Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}" />
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+
+                                                <!--  Value Column  -->
+                                                <GridViewColumn Width="180" Header="Value">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock MinWidth="85"
+                                                                       VerticalAlignment="Center"
+                                                                       Background="Transparent"
+                                                                       Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
+
+                                    <!--  Clear All Button  -->
+                                    <Button Padding="8,4"
+                                            HorizontalAlignment="Left"
+                                            Command="{Binding ClearContextCommand}"
+                                            Content="Clear All"
+                                            ToolTip="Clear all context items" />
+
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </GroupBox>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!--  Button Area  -->
+            <Border Grid.Row="2"
+                    Margin="8,0,8,0"
+                    Padding="8"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,1,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Reset button aligned left  -->
+                    <Button Grid.Column="0"
+                            Width="120"
+                            HorizontalAlignment="Left"
+                            Command="{Binding ResetCommand}"
+                            Content="Reset to Defaults"
+                            ToolTip="Reset all options to default values" />
+
+                    <!--  Ok/Cancel buttons aligned right  -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Margin="0,0,8,0" Command="{Binding CancelCommand}" Content="Cancel" />
+                        <Button Command="{Binding ConnectCommand}" Content="Connect" IsDefault="True" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

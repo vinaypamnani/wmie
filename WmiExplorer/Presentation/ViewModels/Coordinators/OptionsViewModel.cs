@@ -1,10 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Management;
+using System.Windows;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Services;
 using WmiExplorer.Presentation.Themes;
+using WmiExplorer.Presentation.Views.Dialogs;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
@@ -20,6 +23,19 @@ public partial class OptionsViewModel : MessagingViewModelBase
 
     [ObservableProperty]
     private string _computerName = Environment.MachineName;
+
+    /// <summary>
+    /// Connection options for WMI connections. Updated when ConnectAs is used.
+    /// </summary>
+    [ObservableProperty]
+    private ConnectionOptions _connectionOptions = new ConnectionOptions
+    {
+        EnablePrivileges = true,
+        Impersonation = ImpersonationLevel.Impersonate,
+        Authentication = AuthenticationLevel.Default,
+        Username = null,
+        SecurePassword = null
+    };
 
     private readonly NamespacesViewModel _namespacesViewModel;
 
@@ -61,12 +77,39 @@ public partial class OptionsViewModel : MessagingViewModelBase
     public Theme CurrentTheme => _themeService.CurrentTheme!;
 
     /// <summary>
+    /// Command to connect to a WMI namespace with custom connection options
+    /// </summary>
+    [RelayCommand]
+    private async Task ConnectWithOptionsAsync()
+    {
+        // Show the connection options dialog with current options pre-populated
+        var mainWindow = Application.Current.MainWindow;
+        var dialog = new ConnectionOptionsDialog(mainWindow, ConnectionOptions, ComputerName);
+        var result = dialog.ShowDialog();
+
+        if (result == true && dialog.Result != null)
+        {
+            // Update our stored connection options
+            ConnectionOptions = dialog.Result;
+
+            // Update the computer name if it was changed in the dialog
+            if (!string.IsNullOrWhiteSpace(dialog.ComputerNameResult))
+            {
+                ComputerName = dialog.ComputerNameResult;
+            }
+
+            // Connect using the new connection options and computer name
+            await _namespacesViewModel.ConnectAsync(ComputerName.Trim(), ConnectionOptions);
+        }
+    }
+
+    /// <summary>
     /// Command to connect to a WMI namespace
     /// </summary>
     [RelayCommand]
     private async Task ConnectAsync()
     {
-        await _namespacesViewModel.ConnectAsync(ComputerName.Trim());
+        await _namespacesViewModel.ConnectAsync(ComputerName.Trim(), ConnectionOptions);
     }
 
     /// <summary>
