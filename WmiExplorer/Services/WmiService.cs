@@ -750,7 +750,7 @@ public class WmiService : IWmiService, IDisposable
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[WmiService] Error getting the root namespace {namespacePath}: {ex.Message}");
-            return null;
+            throw;
         }
     }
 
