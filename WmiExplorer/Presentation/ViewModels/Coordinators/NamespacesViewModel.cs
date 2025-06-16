@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
@@ -18,6 +19,16 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
     private readonly ClassesTabViewModel _classesTabViewModel;
+
+    private readonly ConnectionOptions _connectionOptions = new ConnectionOptions
+    {
+        EnablePrivileges = true,
+        Impersonation = ImpersonationLevel.Impersonate,
+        Authentication = AuthenticationLevel.Default,
+        Username = null,
+        SecurePassword = null
+    };
+
     private readonly CancellationTokenSource _cts = new();
 
     [ObservableProperty]
@@ -130,6 +141,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
             // Create the root namespace view model using the async method
             var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
                 effectivePath,
+                _connectionOptions,
                 _wmiService,
                 _messengerService,
                 _applicationService,

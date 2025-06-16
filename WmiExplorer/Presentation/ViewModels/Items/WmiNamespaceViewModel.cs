@@ -211,7 +211,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     }
 
     public static async Task<WmiNamespaceViewModel> CreateRootAsync(
-        string namespacePath, IWmiService wmiService,
+        string namespacePath,
+        ConnectionOptions connectionOptions,
+        IWmiService wmiService,
         IMessengerService messengerService,
         IApplicationService applicationService,
         ISettingsService settingsService,
@@ -222,11 +224,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         if (string.IsNullOrEmpty(namespacePath))
             throw new ArgumentException("Namespace path cannot be empty", nameof(namespacePath));
 
-        var rootMbo = await wmiService.GetRootNamespaceAsync(namespacePath, cancellationToken);
+        var rootMbo = await wmiService.GetRootNamespaceAsync(namespacePath, connectionOptions, cancellationToken);
         if (rootMbo == null)
             throw new InvalidOperationException("Failed to retrieve the root WMI namespace object.");
 
-        var rootNamespace = new WmiNamespace(rootMbo, namespacePath, new ConnectionOptions());
+        var rootNamespace = new WmiNamespace(rootMbo, namespacePath, connectionOptions);
         var rootViewModel = new WmiNamespaceViewModel(
             rootNamespace,
             wmiService,

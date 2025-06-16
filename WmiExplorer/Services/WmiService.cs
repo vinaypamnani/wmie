@@ -29,9 +29,14 @@ public class WmiService : IWmiService, IDisposable
     /// <summary>
     /// Creates a connected ManagementScope for a namespace path and optional connection options
     /// </summary>
-    public ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions? options = null)
+    public ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions connectionOptions)
     {
-        var scope = options != null ? new ManagementScope(namespacePath, options) : new ManagementScope(namespacePath);
+        if (string.IsNullOrWhiteSpace(namespacePath))
+            throw new ArgumentException("Namespace path cannot be null or empty", nameof(namespacePath));
+        if (connectionOptions == null)
+            throw new ArgumentNullException(nameof(connectionOptions));
+
+        var scope = new ManagementScope(namespacePath, connectionOptions);
         EnsureScopeConnected(scope);
         return scope;
     }
@@ -204,10 +209,10 @@ public class WmiService : IWmiService, IDisposable
     /// <summary>
     /// Gets a root ManagementObject for a given namespace path
     /// </summary>
-    public async Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, CancellationToken cancellationToken = default)
+    public async Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken = default)
     {
         // Always use sync for root namespace, even in async mode
-        return await Task.Run(() => GetRootNamespaceSync(namespacePath, cancellationToken), cancellationToken);
+        return await Task.Run(() => GetRootNamespaceSync(namespacePath, connectionOptions, cancellationToken), cancellationToken);
     }
 
     /// <summary>
@@ -730,13 +735,13 @@ public class WmiService : IWmiService, IDisposable
         return result;
     }
 
-    private ManagementObject? GetRootNamespaceSync(string namespacePath, CancellationToken cancellationToken)
+    private ManagementObject? GetRootNamespaceSync(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
+            var mScope = CreateManagementScope(namespacePath, connectionOptions);
             var mPath = new ManagementPath(namespacePath);
-            var mScope = new ManagementScope(mPath);
             EnsureScopeConnected(mScope);
             var oOptions = new ObjectGetOptions();
             var mObject = new ManagementObject(mScope, mPath, oOptions);
@@ -744,7 +749,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiService] Error creating root namespace: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[WmiService] Error getting the root namespace {namespacePath}: {ex.Message}");
             return null;
         }
     }

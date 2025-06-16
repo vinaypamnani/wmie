@@ -13,7 +13,7 @@ public class WmiNamespace
     /// <summary>
     /// Constructor for a WMI namespace, optionally with ConnectionOptions (root if specified)
     /// </summary>
-    public WmiNamespace(ManagementObject actualObject, string namespacePath, ConnectionOptions? connectionOptions = null)
+    public WmiNamespace(ManagementObject actualObject, string namespacePath, ConnectionOptions connectionOptions)
     {
         _actualObject = actualObject;
         NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
@@ -28,7 +28,7 @@ public class WmiNamespace
     {
         _actualObject = actualObject;
         NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
-        ConnectionOptions = parent?.ConnectionOptions;
+        ConnectionOptions = parent.ConnectionOptions;
         IsRoot = false;
     }
 
@@ -36,10 +36,10 @@ public class WmiNamespace
     public ManagementObject ActualObject => _actualObject;
 
     /// <summary>
-    /// The ConnectionOptions used for this namespace (can be null)
+    /// The ConnectionOptions used for this namespace
     /// </summary>
     [Category("Namespace")]
-    public ConnectionOptions? ConnectionOptions { get; }
+    public ConnectionOptions ConnectionOptions { get; }
 
     /// <summary>
     /// Indicates whether this namespace is the root namespace (if ConnectionOptions is specified)
@@ -52,8 +52,8 @@ public class WmiNamespace
     /// </summary>
     [Category("Namespace")]
     public string NamespaceName =>
-                string.IsNullOrEmpty(NamespacePath) ? string.Empty :
-                NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
+                    string.IsNullOrEmpty(NamespacePath) ? string.Empty :
+                    NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
 
     /// <summary>
     /// The path of the namespace (e.g., "root\\cimv2")
