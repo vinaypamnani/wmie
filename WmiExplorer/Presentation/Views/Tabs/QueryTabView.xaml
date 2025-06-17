@@ -127,6 +127,8 @@
                           CanUserResizeColumns="True"
                           CanUserResizeRows="False"
                           CanUserSortColumns="True"
+                          CellStyle="{StaticResource ModernDataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
                           EnableColumnVirtualization="True"
                           EnableRowVirtualization="True"
                           GridLinesVisibility="Horizontal"
@@ -134,120 +136,15 @@
                           IsReadOnly="True"
                           ItemsSource="{Binding ResultsView}"
                           RowHeaderWidth="0"
+                          RowStyle="{StaticResource ModernDataGridRowStyle}"
                           SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                           SelectionMode="Extended"
                           SelectionUnit="FullRow"
+                          Style="{StaticResource ModernDataGridStyle}"
                           VerticalScrollBarVisibility="Auto">
                     <DataGrid.Resources>
                         <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
                     </DataGrid.Resources>
-                    <DataGrid.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                        <Border Padding="{TemplateBinding Padding}"
-                                                Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                SnapsToDevicePixels="True">
-                                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </DataGrid.CellStyle>
-                    <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow">
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-                            <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource AccentColorBrush}" />
-                                    <Setter Property="Foreground" Value="White" />
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.RowStyle>
-                    <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-                            <Setter Property="Height" Value="24" />
-                            <Setter Property="Padding" Value="8,4" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-                            <Setter Property="BorderThickness" Value="0,0,0,1" />
-                            <Setter Property="HorizontalContentAlignment" Value="Left" />
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="DataGridColumnHeader">
-                                        <Border x:Name="HeaderBorder"
-                                                Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition />
-                                                    <ColumnDefinition Width="20" />
-                                                </Grid.ColumnDefinitions>
-                                                <ContentPresenter Margin="0,0,2,0" VerticalAlignment="Center" />
-                                                <Path x:Name="SortArrow"
-                                                      Grid.Column="1"
-                                                      Width="10"
-                                                      Height="10"
-                                                      Margin="0,0,8,0"
-                                                      HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"
-                                                      Data="M 0,0 L 5,5 L 10,0"
-                                                      Fill="{TemplateBinding Foreground}"
-                                                      Opacity="0.7"
-                                                      RenderTransformOrigin="0.5,0.5"
-                                                      Stretch="Uniform"
-                                                      StrokeThickness="0"
-                                                      Visibility="Collapsed" />
-                                                <Thumb x:Name="PART_HeaderGripper"
-                                                       Grid.Column="1"
-                                                       Width="{StaticResource SpacingLarge}"
-                                                       Margin="0,0,-3,0"
-                                                       HorizontalAlignment="Right"
-                                                       Cursor="SizeWE"
-                                                       Opacity="0" />
-                                            </Grid>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
-                                            </Trigger>
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
-                                            </Trigger>
-                                            <Trigger Property="SortDirection" Value="Ascending">
-                                                <Setter TargetName="SortArrow" Property="Visibility" Value="Visible" />
-                                                <Setter TargetName="SortArrow" Property="RenderTransform">
-                                                    <Setter.Value>
-                                                        <RotateTransform Angle="180" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Trigger>
-                                            <Trigger Property="SortDirection" Value="Descending">
-                                                <Setter TargetName="SortArrow" Property="Visibility" Value="Visible" />
-                                                <Setter TargetName="SortArrow" Property="RenderTransform">
-                                                    <Setter.Value>
-                                                        <RotateTransform Angle="0" />
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </DataGrid.ColumnHeaderStyle>
                 </DataGrid>
             </Grid>
         </GroupBox>
