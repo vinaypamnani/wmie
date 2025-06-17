@@ -26,10 +26,10 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-
             <!--  Header Area - Draggable  -->
             <Border Grid.Row="0"
                     Padding="16,8,16,8"
+                    behaviors:HyperlinkNavigationBehavior.IsEnabled="True"
                     behaviors:WindowDragBehavior.IsDragEnabled="True"
                     Background="{DynamicResource PrimaryBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
@@ -82,6 +82,12 @@
                                    Text="{Binding InstanceName}"
                                    Visibility="{Binding InstanceName, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
                     </Grid>
+                    <!--  Learn More Hyperlink  -->
+                    <TextBlock Margin="0,4,0,0">
+                        <Hyperlink NavigateUri="{Binding LearnMoreUrl, Mode=OneWay}">
+                            <Run Text="{Binding LearnMoreText, Mode=OneWay}" />
+                        </Hyperlink>
+                    </TextBlock>
 
                     <!--  Accent underline  -->
                     <Rectangle Height="2"

@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using System.Management;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Navigation;
 using WmiExplorer.Presentation.ViewModels.Dialogs;
 
 namespace WmiExplorer.Presentation.Views.Dialogs;
@@ -39,27 +37,6 @@ public partial class ConnectionOptionsDialog : Window
     /// Gets the ViewModel for this dialog.
     /// </summary>
     public ConnectionOptionsDialogViewModel ViewModel { get; }
-
-    /// <summary>
-    /// Handles hyperlink navigation to open URLs in the default browser.
-    /// </summary>
-    private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = e.Uri.AbsoluteUri,
-                UseShellExecute = true
-            });
-            e.Handled = true;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[ConnectionOptionsDialog] Error opening URL: {ex.Message}");
-            // Silently fail - don't show error to user for link clicks
-        }
-    }
 
     /// <summary>
     /// Handles password changes from the PasswordBox control.

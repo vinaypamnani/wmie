@@ -30,8 +30,8 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </Window.Resources>
-
-    <Border Background="{DynamicResource PrimaryBackgroundBrush}"
+    <Border behaviors:HyperlinkNavigationBehavior.IsEnabled="True"
+            Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
             CornerRadius="3">
@@ -60,10 +60,7 @@
                                Text="Configure authentication and connection options for WMI operations" />
                     <!--  Learn More Link  -->
                     <TextBlock Margin="0,4,0,0">
-                        <Hyperlink FontSize="12"
-                                   Foreground="{DynamicResource SecondaryAccentBrush}"
-                                   NavigateUri="https://learn.microsoft.com/en-us/dotnet/api/system.management.connectionoptions#properties"
-                                   RequestNavigate="Hyperlink_RequestNavigate">
+                        <Hyperlink NavigateUri="https://learn.microsoft.com/en-us/dotnet/api/system.management.connectionoptions#properties">
                             Learn more about connection options
                         </Hyperlink>
                     </TextBlock>
