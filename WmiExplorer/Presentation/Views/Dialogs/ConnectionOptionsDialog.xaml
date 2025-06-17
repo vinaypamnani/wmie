@@ -58,11 +58,6 @@
                                FontSize="13"
                                Foreground="{DynamicResource SecondaryForegroundBrush}"
                                Text="Configure authentication and connection options for WMI operations" />
-                    <TextBlock Margin="0,4,0,0"
-                               FontSize="12"
-                               FontStyle="Italic"
-                               Foreground="{DynamicResource SecondaryForegroundBrush}"
-                               Text="Leave username/password empty to use current Windows credentials" />
                     <!--  Learn More Link  -->
                     <TextBlock Margin="0,4,0,0">
                         <Hyperlink FontSize="12"
@@ -88,7 +83,7 @@
 
                     <!--  Credentials Section  -->
                     <GroupBox HorizontalContentAlignment="Stretch" Header="Computer Name &amp; Credentials">
-                        <Grid Margin="0,8,0,0">
+                        <Grid Margin="0,0,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -97,11 +92,19 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
+                            <TextBlock Grid.Row="0"
+                                       Grid.ColumnSpan="3"
+                                       Margin="0,0,0,4"
+                                       FontSize="12"
+                                       FontStyle="Italic"
+                                       Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                       Text="Leave username/password empty to use current Windows credentials" />
 
                             <!--  Computer Name (or path)  -->
-                            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
+                            <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical">
                                 <TextBlock Margin="4,0"
                                            FontWeight="Medium"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
@@ -110,7 +113,7 @@
                             </StackPanel>
 
                             <!--  Username  -->
-                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical">
                                 <TextBlock Margin="4,0"
                                            FontWeight="Medium"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
@@ -119,7 +122,7 @@
                             </StackPanel>
 
                             <!--  Password  -->
-                            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Vertical">
+                            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Vertical">
                                 <TextBlock Margin="4,0"
                                            FontWeight="Medium"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
@@ -131,7 +134,7 @@
                             </StackPanel>
 
                             <!--  Enable Privileges  -->
-                            <CheckBox Grid.Row="1"
+                            <CheckBox Grid.Row="2"
                                       Grid.ColumnSpan="3"
                                       Margin="4"
                                       HorizontalAlignment="Right"

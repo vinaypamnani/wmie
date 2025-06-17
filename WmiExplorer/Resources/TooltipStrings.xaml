@@ -1,18 +1,16 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!-- Connection Options Dialog Tooltips -->
-    <sys:String x:Key="Tooltip.ConnectionOptions.ComputerName">Name or IP address of the computer to connect to (leave empty for local machine)</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.Username">Username for authentication (leave empty for current user)</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.Password">Password for authentication</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.EnablePrivileges">Enable user privileges for operations that require elevated permissions</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.AuthenticationLevel">COM authentication level for the connection</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.ImpersonationLevel">COM impersonation level for the connection</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.Authority">Authority to authenticate (e.g., kerberos:&lt;DOMAIN&gt; or ntlmdomain:&lt;DOMAIN&gt;)</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.Timeout">Timeout</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.Locale">Locale identifier for WMI operations (e.g., 'MS_409' for English US). Leave empty for system default.</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.EditContext">Enable editing of context name-value pairs</sys:String>
+    <!--  Connection Options Dialog Tooltips  -->
+    <sys:String x:Key="Tooltip.ConnectionOptions.ComputerName">Computer Name, IP address or the namespace path (e.g. \\remotepc\root\default) to connect to (leave empty for local machine).</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.Username">Set the user name to be used for the connection operation (leave empty for current user).</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.Password">Set the password for the specified user.</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.EnablePrivileges">Specify whether user privileges need to be enabled for the connection operation. This property should only be used when the operation performed requires a certain user privilege to be enabled (for example, a machine restart).</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.AuthenticationLevel">Set the COM authentication level to be used for operatoins in this connection.</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.ImpersonationLevel">Set the COM impersonation level to be used for operations in this connection.</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.Authority">Set the Authority (e.g., kerberos:&lt;DOMAIN&gt; or ntlmdomain:&lt;DOMAIN&gt;) to authenticate the specified user.</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.Timeout"> Set the time-out to apply to the operation.</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.Locale">Set the Locale to be used for the connection operation (e.g., 'MS_409' for English US). Leave empty for system default.</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.EditContext">Enable editing of WMI context object. This is a name-value pairs list to be passed through to a WMI provider that supports context information for customized operation.</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.ContextKey">Enter the context key name</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.ContextValue">Enter the context value</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.AddContext">Add the key-value pair to the context</sys:String>
@@ -20,16 +18,16 @@
     <sys:String x:Key="Tooltip.ConnectionOptions.ClearContext">Clear all context items</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.Reset">Reset all options to default values</sys:String>
 
-    <!-- Watcher Tab Tooltips -->
+    <!--  Watcher Tab Tooltips  -->
     <sys:String x:Key="Tooltip.Watcher.Start">Start</sys:String>
     <sys:String x:Key="Tooltip.Watcher.Stop">Stop</sys:String>
     <sys:String x:Key="Tooltip.Watcher.Remove">Remove</sys:String>
 
-    <!-- Query Tab Tooltips -->
+    <!--  Query Tab Tooltips  -->
     <sys:String x:Key="Tooltip.Query.DirectAccess">Gets or sets a value indicating whether direct access to the WMI provider is requested for the specified class, without any regard to its super class or derived classes.</sys:String>
     <sys:String x:Key="Tooltip.Query.UseAmendedQualifiers">Gets or sets a value indicating whether the objects returned from WMI should contain amended information. Typically, amended information is localizable information attached to the WMI object, such as object and property descriptions.</sys:String>
 
-    <!-- Common UI Tooltips -->
+    <!--  Common UI Tooltips  -->
     <sys:String x:Key="Tooltip.Common.Clear">Clear</sys:String>
 
 </ResourceDictionary>
