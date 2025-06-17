@@ -106,7 +106,7 @@
                                            FontWeight="Medium"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
                                            Text="Computer Name:" />
-                                <TextBox HorizontalAlignment="Stretch" Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" ToolTip="Name or IP address of the computer to connect to (leave empty for local machine)" />
+                                <TextBox HorizontalAlignment="Stretch" Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" ToolTip="{StaticResource Tooltip.ConnectionOptions.ComputerName}" />
                             </StackPanel>
 
                             <!--  Username  -->
@@ -115,7 +115,7 @@
                                            FontWeight="Medium"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
                                            Text="Username:" />
-                                <TextBox HorizontalAlignment="Stretch" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" ToolTip="Username for authentication (leave empty for current user)" />
+                                <TextBox HorizontalAlignment="Stretch" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" ToolTip="{StaticResource Tooltip.ConnectionOptions.Username}" />
                             </StackPanel>
 
                             <!--  Password  -->
@@ -127,7 +127,7 @@
                                 <PasswordBox x:Name="PasswordBox"
                                              HorizontalAlignment="Stretch"
                                              PasswordChanged="PasswordBox_PasswordChanged"
-                                             ToolTip="Password for authentication" />
+                                             ToolTip="{StaticResource Tooltip.ConnectionOptions.Password}" />
                             </StackPanel>
 
                             <!--  Enable Privileges  -->
@@ -138,7 +138,7 @@
                                       VerticalAlignment="Center"
                                       Content="Enable user privileges"
                                       IsChecked="{Binding EnablePrivileges}"
-                                      ToolTip="Enable user privileges for operations that require elevated permissions" />
+                                      ToolTip="{StaticResource Tooltip.ConnectionOptions.EnablePrivileges}" />
 
                         </Grid>
                     </GroupBox>
@@ -163,7 +163,7 @@
                                           HorizontalAlignment="Stretch"
                                           ItemsSource="{Binding Source={StaticResource AuthenticationLevelValues}}"
                                           SelectedItem="{Binding Authentication}"
-                                          ToolTip="COM authentication level for the connection" />
+                                          ToolTip="{StaticResource Tooltip.ConnectionOptions.AuthenticationLevel}" />
                             </StackPanel>
 
                             <!--  Impersonation Level  -->
@@ -176,7 +176,7 @@
                                           HorizontalAlignment="Stretch"
                                           ItemsSource="{Binding Source={StaticResource ImpersonationLevelValues}}"
                                           SelectedItem="{Binding Impersonation}"
-                                          ToolTip="COM impersonation level for the connection" />
+                                          ToolTip="{StaticResource Tooltip.ConnectionOptions.ImpersonationLevel}" />
                             </StackPanel>
 
                             <!--  Authority  -->
@@ -189,7 +189,7 @@
                                          Style="{StaticResource TextBoxWithPlaceholder}"
                                          Tag="Authority (e.g., kerberos:&lt;DOMAIN&gt;)"
                                          Text="{Binding Authority, UpdateSourceTrigger=PropertyChanged}"
-                                         ToolTip="Authority to authenticate (e.g., kerberos:&lt;DOMAIN&gt; or ntlmdomain:&lt;DOMAIN&gt;)" />
+                                         ToolTip="{StaticResource Tooltip.ConnectionOptions.Authority}" />
                             </StackPanel>
 
                         </Grid>
@@ -211,7 +211,7 @@
                                     <TextBox MinWidth="180"
                                              HorizontalAlignment="Stretch"
                                              Text="{Binding Timeout, UpdateSourceTrigger=PropertyChanged}"
-                                             ToolTip="Timeout" />
+                                             ToolTip="{StaticResource Tooltip.ConnectionOptions.Timeout}" />
                                 </StackPanel>
 
                                 <!--  Locale  -->
@@ -225,7 +225,7 @@
                                              Style="{StaticResource TextBoxWithPlaceholder}"
                                              Tag="Locale ID (e.g., 'MS_409' for English US)"
                                              Text="{Binding Locale, UpdateSourceTrigger=PropertyChanged}"
-                                             ToolTip="Locale identifier for WMI operations (e.g., 'MS_409' for English US). Leave empty for system default." />
+                                             ToolTip="{StaticResource Tooltip.ConnectionOptions.Locale}" />
                                 </StackPanel>
                             </StackPanel>
 
@@ -235,7 +235,7 @@
                                 <CheckBox Margin="0,8,0,8"
                                           Content="Edit Context"
                                           IsChecked="{Binding EditContext}"
-                                          ToolTip="Enable editing of context name-value pairs" />
+                                          ToolTip="{StaticResource Tooltip.ConnectionOptions.EditContext}" />
 
                                 <!--  Context Editor Panel - Only visible when EditContext is checked  -->
                                 <StackPanel Orientation="Vertical" Visibility="{Binding EditContext, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -272,19 +272,19 @@
                                                  Style="{StaticResource TextBoxWithPlaceholder}"
                                                  Tag="Context key name"
                                                  Text="{Binding NewContextKey, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="Enter the context key name" />
+                                                 ToolTip="{StaticResource Tooltip.ConnectionOptions.ContextKey}" />
                                         <TextBox Grid.Row="1"
                                                  Grid.Column="1"
                                                  Style="{StaticResource TextBoxWithPlaceholder}"
                                                  Tag="Context value"
                                                  Text="{Binding NewContextValue, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="Enter the context value" />
+                                                 ToolTip="{StaticResource Tooltip.ConnectionOptions.ContextValue}" />
                                         <Button Grid.Row="1"
                                                 Grid.Column="2"
                                                 Padding="8,4"
                                                 Command="{Binding AddContextItemCommand}"
                                                 Content="Add"
-                                                ToolTip="Add the key-value pair to the context" />
+                                                ToolTip="{StaticResource Tooltip.ConnectionOptions.AddContext}" />
                                     </Grid>
                                     <!--  Context Items ListView  -->
                                     <ListView Margin="0,0,0,8"
@@ -315,7 +315,7 @@
                                                                         BorderThickness="0"
                                                                         Command="{Binding DataContext.RemoveContextItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                                                         CommandParameter="{Binding}"
-                                                                        ToolTip="Remove">
+                                                                        ToolTip="{StaticResource Tooltip.ConnectionOptions.RemoveContext}">
                                                                     <Path Width="10"
                                                                           Height="10"
                                                                           Data="M1,1 L9,9 M1,9 L9,1"
@@ -351,7 +351,7 @@
                                             HorizontalAlignment="Left"
                                             Command="{Binding ClearContextCommand}"
                                             Content="Clear All"
-                                            ToolTip="Clear all context items" />
+                                            ToolTip="{StaticResource Tooltip.ConnectionOptions.ClearContext}" />
 
                                 </StackPanel>
                             </StackPanel>
@@ -380,7 +380,7 @@
                             HorizontalAlignment="Left"
                             Command="{Binding ResetCommand}"
                             Content="Reset to Defaults"
-                            ToolTip="Reset all options to default values" />
+                            ToolTip="{StaticResource Tooltip.ConnectionOptions.Reset}" />
 
                     <!--  Ok/Cancel buttons aligned right  -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
