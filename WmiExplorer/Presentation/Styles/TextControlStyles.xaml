@@ -191,6 +191,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+
     <!--  TextBlock  -->
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />

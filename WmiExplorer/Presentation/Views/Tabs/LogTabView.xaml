@@ -22,7 +22,6 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <!--  Log Options  -->
                     <WrapPanel Grid.Column="0" VerticalAlignment="Center">
@@ -47,26 +46,16 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </WrapPanel>
-
                     <!--  Action Buttons  -->
                     <Button Grid.Column="1"
-                            Width="90"
-                            Height="30"
                             Margin="8,0,8,0"
                             Command="{Binding ClearLogsCommand}"
                             Content="Clear" />
                     <Button Grid.Column="2"
-                            Width="110"
-                            Height="30"
-                            Margin="0,0,8,0"
+                            Width="120"
+                            Margin="0,0,0,0"
                             Command="{Binding OpenLogFileLocationCommand}"
                             Content="Open Location" />
-                    <Button Grid.Column="3"
-                            Width="90"
-                            Height="30"
-                            Margin="0,0,0,0"
-                            Command="{Binding RefreshLogsCommand}"
-                            Content="Refresh" />
                 </Grid>
             </DockPanel>
         </GroupBox>
@@ -129,7 +118,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="{Binding HasException, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     <Setter Property="Text" Value="⚠" />
-                                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
                                     <Setter Property="HorizontalAlignment" Value="Center" />
                                     <Setter Property="ToolTip" Value="Has Exception Details" />
                                 </Style>

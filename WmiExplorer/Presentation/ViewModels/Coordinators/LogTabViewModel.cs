@@ -120,10 +120,12 @@ public partial class LogTabViewModel : MessagingViewModelBase
     [RelayCommand]
     private void ClearLogs()
     {
+        var count = _logEntries.Count;
         lock (_logEntriesLock)
         {
             _logEntries.Clear();
         }
+        Log.Information("Cleared {Count} log entries", count);
         OnPropertyChanged(nameof(HasLogEntries));
     }
 
@@ -221,16 +223,6 @@ public partial class LogTabViewModel : MessagingViewModelBase
         {
             PublishErrorState($"Failed to open log location: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// Command to refresh the log view
-    /// </summary>
-    [RelayCommand]
-    private void RefreshLogs()
-    {
-        FilteredLogsView.Refresh();
-        OnPropertyChanged(nameof(HasLogEntries));
     }
 
     /// <summary>
