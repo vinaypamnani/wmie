@@ -73,7 +73,7 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
             Authority = existingOptions.Authority ?? string.Empty;
             EnablePrivileges = existingOptions.EnablePrivileges;
             Impersonation = existingOptions.Impersonation;
-            Locale = existingOptions.Locale ?? string.Empty;
+            Locale = !string.IsNullOrWhiteSpace(existingOptions.Locale) ? existingOptions.Locale : string.Empty;
             Username = existingOptions.Username ?? string.Empty;
             Timeout = existingOptions.Timeout != TimeSpan.MaxValue ? existingOptions.Timeout : TimeSpan.MaxValue;
 

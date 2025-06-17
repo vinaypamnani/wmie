@@ -185,7 +185,11 @@
                                            FontWeight="Medium"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
                                            Text="Authority:" />
-                                <TextBox HorizontalAlignment="Stretch" Text="{Binding Authority, UpdateSourceTrigger=PropertyChanged}" ToolTip="Authority to authenticate (e.g., kerberos:&lt;DOMAIN&gt; or ntlmdomain:&lt;DOMAIN&gt;)" />
+                                <TextBox HorizontalAlignment="Stretch"
+                                         Style="{StaticResource TextBoxWithPlaceholder}"
+                                         Tag="Authority (e.g., kerberos:&lt;DOMAIN&gt;)"
+                                         Text="{Binding Authority, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Authority to authenticate (e.g., kerberos:&lt;DOMAIN&gt; or ntlmdomain:&lt;DOMAIN&gt;)" />
                             </StackPanel>
 
                         </Grid>
@@ -218,8 +222,10 @@
                                                Text="Locale:" />
                                     <TextBox MinWidth="60"
                                              HorizontalAlignment="Stretch"
+                                             Style="{StaticResource TextBoxWithPlaceholder}"
+                                             Tag="Locale ID (e.g., 'MS_409' for English US)"
                                              Text="{Binding Locale, UpdateSourceTrigger=PropertyChanged}"
-                                             ToolTip="Locale identifier for localized operations (e.g., 'MS_409')" />
+                                             ToolTip="Locale identifier for WMI operations (e.g., 'MS_409' for English US). Leave empty for system default." />
                                 </StackPanel>
                             </StackPanel>
 
@@ -264,13 +270,13 @@
                                         <TextBox Grid.Row="1"
                                                  Grid.Column="0"
                                                  Style="{StaticResource TextBoxWithPlaceholder}"
-                                                 Tag="Enter Context key name"
+                                                 Tag="Context key name"
                                                  Text="{Binding NewContextKey, UpdateSourceTrigger=PropertyChanged}"
                                                  ToolTip="Enter the context key name" />
                                         <TextBox Grid.Row="1"
                                                  Grid.Column="1"
                                                  Style="{StaticResource TextBoxWithPlaceholder}"
-                                                 Tag="Enter Context value"
+                                                 Tag="Context value"
                                                  Text="{Binding NewContextValue, UpdateSourceTrigger=PropertyChanged}"
                                                  ToolTip="Enter the context value" />
                                         <Button Grid.Row="1"
