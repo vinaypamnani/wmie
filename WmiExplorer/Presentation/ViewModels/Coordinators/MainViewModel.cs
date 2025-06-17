@@ -82,7 +82,6 @@ public partial class MainViewModel : MessagingViewModelBase
 
         // Test logging
         Log.Information("MainViewModel initialized successfully");
-        Log.Debug("Current theme: {ThemeName}", _themeService.CurrentTheme?.ThemeName ?? "Unknown");
 
         // Demonstrate different log levels for testing
         DemonstrateLogging();
@@ -193,6 +192,7 @@ public partial class MainViewModel : MessagingViewModelBase
     private void ToggleTheme()
     {
         _themeService.ToggleTheme(); // Theme change message will trigger UpdateThemeProperties via subscription
+        Log.Debug("Changed Current theme to: {ThemeName}", _themeService.CurrentTheme?.ThemeName ?? "Unknown");
     }
 
     /// <summary>

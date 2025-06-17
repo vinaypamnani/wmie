@@ -41,14 +41,14 @@ public class ThemeService : IThemeService
     }
 
     /// <summary>
-    /// Gets the current theme name
-    /// </summary>
-    public string CurrentThemeName => _currentThemeName;
-
-    /// <summary>
     /// Gets the current Theme object instance
     /// </summary>
     public Theme? CurrentTheme => ThemeCollection.GetTheme(_currentThemeName);
+
+    /// <summary>
+    /// Gets the current theme name
+    /// </summary>
+    public string CurrentThemeName => _currentThemeName;
 
     /// <summary>
     /// Applies the specified theme to the application
