@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.Themes;
@@ -25,13 +26,16 @@ public partial class MainViewModel : MessagingViewModelBase
     private string _elapsedTimeMessage = string.Empty;
 
     [ObservableProperty]
-    private Coordinators.NamespacesViewModel _namespacesViewModel = null!;
+    private LogTabViewModel _logTabViewModel = null!;
 
     [ObservableProperty]
-    private Coordinators.OptionsViewModel _optionsViewModel = null!;
+    private NamespacesViewModel _namespacesViewModel = null!;
 
     [ObservableProperty]
-    private Coordinators.PropertyGridViewModel _propertyGridViewModel = null!;
+    private OptionsViewModel _optionsViewModel = null!;
+
+    [ObservableProperty]
+    private PropertyGridViewModel _propertyGridViewModel = null!;
 
     [ObservableProperty]
     private int _selectedTabIndex;
@@ -47,13 +51,14 @@ public partial class MainViewModel : MessagingViewModelBase
     private MainWindowPosition _windowPosition;
 
     public MainViewModel(
-                 IMessengerService messengerService,
-                 ISettingsService settingsService,
-                 ISelectionService selectionService,
-                 IThemeService themeService,
-                 Coordinators.NamespacesViewModel namespacesViewModel,
-                 Coordinators.OptionsViewModel optionsViewModel,
-                 Coordinators.PropertyGridViewModel propertyGridViewModel) : base(messengerService)
+                       IMessengerService messengerService,
+                       ISettingsService settingsService,
+                       ISelectionService selectionService,
+                       IThemeService themeService,
+                       NamespacesViewModel namespacesViewModel,
+                       OptionsViewModel optionsViewModel,
+                       PropertyGridViewModel propertyGridViewModel,
+                       LogTabViewModel logTabViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
@@ -61,6 +66,7 @@ public partial class MainViewModel : MessagingViewModelBase
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _propertyGridViewModel = propertyGridViewModel ?? throw new ArgumentNullException(nameof(propertyGridViewModel));
+        _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -73,6 +79,13 @@ public partial class MainViewModel : MessagingViewModelBase
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
         StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
+
+        // Test logging
+        Log.Information("MainViewModel initialized successfully");
+        Log.Debug("Current theme: {ThemeName}", _themeService.CurrentTheme?.ThemeName ?? "Unknown");
+
+        // Demonstrate different log levels for testing
+        DemonstrateLogging();
     }
 
     /// <summary>
@@ -93,6 +106,28 @@ public partial class MainViewModel : MessagingViewModelBase
         }
 
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Demonstrates logging at different levels for testing purposes
+    /// </summary>
+    private void DemonstrateLogging()
+    {
+        Log.Information("Application started successfully");
+        Log.Debug("Demonstrating debug logging - usually filtered out in production");
+        Log.Warning("This is a sample warning message - for demonstration purposes");
+
+        // Simulate an exception for testing
+        try
+        {
+            throw new InvalidOperationException("This is a test exception to show error logging");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Caught test exception in DemonstrateLogging method");
+        }
+
+        Log.Information("Logging demonstration completed");
     }
 
     /// <summary>

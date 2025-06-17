@@ -5,9 +5,6 @@
         <ResourceDictionary Source="ColorPickerStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <!--  Converters  -->
-    <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-
     <!--  Default Style for ColorPicker Control  -->
     <Style TargetType="{x:Type local:ColorPicker}">
         <Setter Property="Template">
@@ -286,8 +283,8 @@
                                                        VerticalAlignment="Center"
                                                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                        Text="H:" />
-                                            <TextBox MinWidth="40"
-                                                     Width="100"
+                                            <TextBox Width="100"
+                                                     MinWidth="40"
                                                      Margin="4,2,0,2"
                                                      VerticalAlignment="Center"
                                                      Text="{Binding Hue, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" />
@@ -336,7 +333,8 @@
                                                        VerticalAlignment="Center"
                                                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                        Text="S:" />
-                                            <TextBox MinWidth="40" Width="100"
+                                            <TextBox Width="100"
+                                                     MinWidth="40"
                                                      Margin="4,2,0,2"
                                                      VerticalAlignment="Center"
                                                      Text="{Binding Saturation, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" />
@@ -366,7 +364,8 @@
                                                        VerticalAlignment="Center"
                                                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                        Text="V:" />
-                                            <TextBox MinWidth="40" Width="100"
+                                            <TextBox Width="100"
+                                                     MinWidth="40"
                                                      Margin="4,2,0,2"
                                                      VerticalAlignment="Center"
                                                      Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" />

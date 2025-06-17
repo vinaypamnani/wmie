@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Integration.AvalonEdit.Behaviors;
 using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -58,6 +59,11 @@ public partial class App : Application
         }
 
         base.OnStartup(e);
+
+        // Initialize logging first
+        Log.ConfigureLogging();
+
+        // Then configure services
         ConfigureServices();
 
         if (ServiceProvider == null)
@@ -92,17 +98,17 @@ public partial class App : Application
         // Register the CommunityToolkit messenger as a singleton
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
-        // Register core services first
+        // Register core services first (LogService removed - using global logging)
         services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<ISettingsService, SettingsService>(provider =>
-            new SettingsService(provider.GetRequiredService<IMessengerService>()));
-        services.AddSingleton<IThemeService>(provider =>
+            new SettingsService(provider.GetRequiredService<IMessengerService>())); services.AddSingleton<IThemeService>(provider =>
             new ThemeService(
                 provider.GetRequiredService<IMessengerService>(),
                 provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<ICacheService, CacheService>();
         services.AddSingleton<IWmiService, WmiService>(provider =>
-            new WmiService(provider.GetRequiredService<ICacheService>()));
+            new WmiService(
+                provider.GetRequiredService<ICacheService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
         services.AddSingleton<ISelectionService, SelectionService>();
 
@@ -115,11 +121,10 @@ public partial class App : Application
         services.AddSingleton<NamespacesViewModel>();
         services.AddSingleton<OptionsViewModel>();
         services.AddSingleton<PropertyGridViewModel>();
-        services.AddSingleton<MainViewModel>();
-
-        services.AddSingleton<WatcherTabViewModel>();
+        services.AddSingleton<MainViewModel>(); services.AddSingleton<WatcherTabViewModel>();
         services.AddSingleton<MethodsTabViewModel>();
         services.AddSingleton<PropertiesTabViewModel>();
+        services.AddSingleton<LogTabViewModel>();
 
         // Register additional ViewModels that have multiple instances
         services.AddTransient<QueryTabViewModel>();

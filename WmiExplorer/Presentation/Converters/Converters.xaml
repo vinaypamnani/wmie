@@ -3,7 +3,9 @@
     <conv:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter" />
     <conv:EnumFlagsToBooleanConverter x:Key="EnumFlagsToBooleanConverter" />
     <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <conv:BoolToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <conv:BoolToVisibilityConverter x:Key="InverseBooleanConverter" Invert="True" />
+    <conv:BoolToVisibilityConverter x:Key="NotBooleanToVisibilityConverter" Invert="True" />
     <conv:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" FalseValue="0" TrueValue="NaN" />
     <conv:NullToBoolConverter x:Key="NullToBoolConverter" />
     <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />

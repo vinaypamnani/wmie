@@ -84,7 +84,6 @@
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
                                   Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-
                     <!--  TabControl  -->
                     <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="Classes">
@@ -101,6 +100,10 @@
                         <TabItem Header="Watcher">
                             <!--  Event Watcher View  -->
                             <tabs:WatcherTabView DataContext="{Binding NamespacesViewModel.WatcherTabViewModel}" />
+                        </TabItem>
+                        <TabItem Header="Log">
+                            <!--  Log View  -->
+                            <tabs:LogTabView DataContext="{Binding LogTabViewModel}" />
                         </TabItem>
                     </TabControl>
 

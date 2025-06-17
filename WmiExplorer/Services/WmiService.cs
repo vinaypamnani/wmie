@@ -1,6 +1,7 @@
 using System.Management;
 using System.Windows.Threading;
 using WmiExplorer.Common.Enums;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Cache;
 
 namespace WmiExplorer.Services;
@@ -22,6 +23,8 @@ public class WmiService : IWmiService, IDisposable
     public WmiService(ICacheService cacheService)
     {
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+
+        Log.Information("WmiService initialized with operation mode: {OperationMode}", OperationMode);
     }
 
     public WmiOperationMode OperationMode { get; set; } = WmiOperationMode.Asynchronous;
@@ -98,24 +101,39 @@ public class WmiService : IWmiService, IDisposable
     public async Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(
         ManagementScope scope,
         string queryString,
-        bool directRead,
-        bool useAmendedQualifiers,
+        bool directRead, bool useAmendedQualifiers,
         CancellationToken cancellationToken = default)
     {
-        EnsureScopeConnected(scope);
-        var userProvidedEnumOptions = new EnumerationOptions
-        {
-            DirectRead = directRead,
-            UseAmendedQualifiers = useAmendedQualifiers
+        Log.Information("Executing WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
 
-        };
-        if (OperationMode == WmiOperationMode.Synchronous)
+        try
         {
-            return await ExecuteSyncWithTimeout(() => ExecuteWmiQuerySync(scope, queryString, userProvidedEnumOptions, cancellationToken), cancellationToken, 60000);
+            EnsureScopeConnected(scope);
+            var userProvidedEnumOptions = new EnumerationOptions
+            {
+                DirectRead = directRead,
+                UseAmendedQualifiers = useAmendedQualifiers
+
+            };
+
+            IEnumerable<ManagementObject> results;
+            if (OperationMode == WmiOperationMode.Synchronous)
+            {
+                results = await ExecuteSyncWithTimeout(() => ExecuteWmiQuerySync(scope, queryString, userProvidedEnumOptions, cancellationToken), cancellationToken, 60000);
+            }
+            else
+            {
+                results = await ExecuteWmiQueryInternal(scope, queryString, userProvidedEnumOptions, cancellationToken);
+            }
+
+            var resultCount = results.Count();
+            Log.Information("WMI query completed successfully. Returned {ResultCount} objects", resultCount);
+            return results;
         }
-        else
+        catch (Exception ex)
         {
-            return await ExecuteWmiQueryInternal(scope, queryString, userProvidedEnumOptions, cancellationToken);
+            Log.Error(ex, "Failed to execute WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
+            throw;
         }
     }
 
@@ -124,15 +142,32 @@ public class WmiService : IWmiService, IDisposable
     /// </summary>
     public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
     {
-        EnsureScopeConnected(scope);
+        var namespacePath = scope.Path?.Path ?? "Unknown";
+        Log.Debug("Getting child namespaces for: {NamespacePath}", namespacePath);
 
-        // Always use sync for child namespaces, even in async mode
-        // return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+        try
+        {
+            EnsureScopeConnected(scope);
 
-        if (OperationMode == WmiOperationMode.Synchronous)
-            return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
-        else
-            return await GetChildNamespacesAsyncInternal(scope, cancellationToken);
+            // Always use sync for child namespaces, even in async mode
+            // return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+
+            IEnumerable<ManagementObject> results;
+            if (OperationMode == WmiOperationMode.Synchronous)
+                results = await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
+            else
+                results = await GetChildNamespacesAsyncInternal(scope, cancellationToken);
+
+            var childCount = results.Count();
+            Log.Debug("Found {ChildCount} child namespaces for: {NamespacePath}", childCount, namespacePath);
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error getting child namespaces for: {NamespacePath}", namespacePath);
+            throw;
+        }
     }
 
     /// <summary>
@@ -211,8 +246,29 @@ public class WmiService : IWmiService, IDisposable
     /// </summary>
     public async Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken = default)
     {
-        // Always use sync for root namespace, even in async mode
-        return await Task.Run(() => GetRootNamespaceSync(namespacePath, connectionOptions, cancellationToken), cancellationToken);
+        Log.Information("Connecting to WMI namespace: {NamespacePath}", namespacePath);
+
+        try
+        {
+            // Always use sync for root namespace, even in async mode
+            var result = await Task.Run(() => GetRootNamespaceSync(namespacePath, connectionOptions, cancellationToken), cancellationToken);
+
+            if (result != null)
+            {
+                Log.Information("Successfully connected to WMI namespace: {NamespacePath}", namespacePath);
+            }
+            else
+            {
+                Log.Warning("Failed to connect to WMI namespace: {NamespacePath} - returned null", namespacePath);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error connecting to WMI namespace: {NamespacePath}", namespacePath);
+            throw;
+        }
     }
 
     /// <summary>
