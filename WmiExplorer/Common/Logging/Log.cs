@@ -33,10 +33,9 @@ public static class Log
     public static void ConfigureLogging()
     {
         var logDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "WmiExplorer", "logs");
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WmiExplorer");
 
-        var logFilePath = Path.Combine(logDirectory, "wmi-explorer.log");
+        var logFilePath = Path.Combine(logDirectory, "WmiExplorer.log");
 
         // Create the logging level switch for dynamic level control
         _levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);

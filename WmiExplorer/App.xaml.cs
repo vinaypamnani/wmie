@@ -161,24 +161,11 @@ public partial class App : Application
         };
     }
 
-    private string GetErrorLogPath()
-    {
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WmiExplorer");
-        if (!Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
-        return Path.Combine(dir, "error.log");
-    }
-
     private void HandleUnhandledException(Exception exception, string title)
     {
-        string message = $"An unexpected error occurred: {exception?.Message}\n\n{exception?.StackTrace}";
-        Debug.WriteLine($"[Unhandled Exception] {title}: {message}");
-        try
-        {
-            var logPath = GetErrorLogPath();
-            File.AppendAllText(logPath, $"[{DateTime.Now}] {title}: {exception}\n");
-        }
-        catch { /* Ignore logging errors */ }
+        string message = $"{title}: {exception?.Message}\n\n{exception?.StackTrace}";
+        Debug.WriteLine($"[Unhandled Exception] {message}");
+        Log.Error(exception!, message);
 
         // Ensure the application exits after showing the error
         Application.Current?.Shutdown();
