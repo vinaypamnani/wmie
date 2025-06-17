@@ -22,19 +22,17 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-
                     <!--  Query Options  -->
                     <WrapPanel Grid.Column="0" VerticalAlignment="Center">
                         <CheckBox Margin="0,0,12,0"
                                   Content="DirectRead"
                                   IsChecked="{Binding DirectRead}"
-                                  ToolTip="Gets or sets a value indicating whether direct access to the WMI provider is requested for the specified class, without any regard to its super class or derived classes." />
+                                  ToolTip="{StaticResource Tooltip.Query.DirectAccess}" />
                         <CheckBox Margin="0,0,12,0"
                                   Content="UseAmendedQualifiers"
                                   IsChecked="{Binding UseAmendedQualifiers}"
-                                  ToolTip="Gets or sets a value indicating whether the objects returned from WMI should contain amended information. Typically, amended information is localizable information attached to the WMI object, such as object and property descriptions." />
+                                  ToolTip="{StaticResource Tooltip.Query.UseAmendedQualifiers}" />
                     </WrapPanel>
-
                     <!--  Action Buttons  -->
                     <Button Grid.Column="1"
                             Width="90"
@@ -43,14 +41,16 @@
                             Command="{Binding ExecuteQueryCommand}"
                             Content="Execute"
                             IsDefault="True"
-                            IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}" />
+                            IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}"
+                            ToolTip="{StaticResource Tooltip.Query.Execute}" />
                     <Button Grid.Column="2"
                             Width="90"
                             Height="30"
                             Margin="0,0,0,0"
                             Command="{Binding CancelQueryCommand}"
                             Content="Cancel"
-                            IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}" />
+                            IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}"
+                            ToolTip="{StaticResource Tooltip.Query.Cancel}" />
                 </Grid>
 
                 <!--  Query Editor  -->
@@ -75,6 +75,7 @@
                                            HorizontalScrollBarVisibility="Auto"
                                            LineNumbersForeground="{DynamicResource SecondaryForegroundBrush}"
                                            ShowLineNumbers="True"
+                                           ToolTip="{StaticResource Tooltip.Query.QueryEditor}"
                                            VerticalScrollBarVisibility="Auto" />
                 </Border>
             </DockPanel>
@@ -98,19 +99,20 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-
                     <TextBox Grid.Column="0"
                              Height="26"
                              Margin="0,0,8,0"
                              Style="{StaticResource TextBoxWithClearButton}"
                              Tag="Filter results..."
-                             Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{StaticResource Tooltip.Query.FilterResults}" />
 
                     <Button Grid.Column="1"
                             Width="80"
                             Height="26"
                             Command="{Binding ClearResultsCommand}"
-                            Content="Clear Results" />
+                            Content="Clear Results"
+                            ToolTip="{StaticResource Tooltip.Query.ClearResults}" />
                 </Grid>
                 <!--  Results DataGrid  -->
                 <DataGrid x:Name="ResultsDataGrid"

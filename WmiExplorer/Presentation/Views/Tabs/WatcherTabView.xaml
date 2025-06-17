@@ -40,7 +40,8 @@
                                           IsEditable="True"
                                           IsTextSearchEnabled="True"
                                           ItemsSource="{Binding EventClassList}"
-                                          SelectedItem="{Binding EventQueryBuilder.EventClass, UpdateSourceTrigger=PropertyChanged}" />
+                                          SelectedItem="{Binding EventQueryBuilder.EventClass, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTip="{StaticResource Tooltip.Watcher.EventType}" />
                             </GroupBox>
                             <!--  Within (sec)  -->
                             <GroupBox Margin="0" Header="Within (sec)">
@@ -48,7 +49,8 @@
                                          Height="26"
                                          HorizontalContentAlignment="Center"
                                          IsEnabled="{Binding EventQueryBuilder.IsWithinEnabled}"
-                                         Text="{Binding EventQueryBuilder.EventWithin, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding EventQueryBuilder.EventWithin, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="{StaticResource Tooltip.Watcher.Within}" />
                             </GroupBox>
                             <!--  Event Property  -->
                             <GroupBox Margin="0" Header="Event Property">
@@ -59,7 +61,8 @@
                                           IsEnabled="{Binding EventQueryBuilder.IsEventPropertyEnabled}"
                                           IsTextSearchEnabled="True"
                                           ItemsSource="{Binding EventPropertyList}"
-                                          SelectedItem="{Binding EventQueryBuilder.EventProperty, UpdateSourceTrigger=PropertyChanged}" />
+                                          SelectedItem="{Binding EventQueryBuilder.EventProperty, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTip="{StaticResource Tooltip.Watcher.EventProperty}" />
                             </GroupBox>
                             <!--  Event Property Value  -->
                             <GroupBox Margin="0" Header="Event Property Value [optional]">
@@ -67,7 +70,8 @@
                                          Height="26"
                                          HorizontalContentAlignment="Left"
                                          IsEnabled="{Binding EventQueryBuilder.IsEventPropertyValueEnabled}"
-                                         Text="{Binding EventQueryBuilder.EventPropertyValue, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding EventQueryBuilder.EventPropertyValue, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="{StaticResource Tooltip.Watcher.EventPropertyValue}" />
                             </GroupBox>
                         </StackPanel>
                         <DockPanel LastChildFill="False">
@@ -80,7 +84,8 @@
                                           IsEnabled="{Binding EventQueryBuilder.IsTargetClassEnabled}"
                                           ItemsSource="{Binding EventTargetClassListView}"
                                           SelectedItem="{Binding EventQueryBuilder.EventTargetClass, UpdateSourceTrigger=PropertyChanged}"
-                                          Text="{Binding EventTargetClassFilter, UpdateSourceTrigger=PropertyChanged}" />
+                                          Text="{Binding EventTargetClassFilter, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTip="{StaticResource Tooltip.Watcher.TargetClass}" />
                             </GroupBox>
                             <!--  Target Class Property  -->
                             <GroupBox Margin="0" Header="Target Class Property [optional]">
@@ -91,7 +96,8 @@
                                           IsEditable="True"
                                           IsEnabled="{Binding EventQueryBuilder.IsTargetClassPropertyEnabled}"
                                           ItemsSource="{Binding EventTargetClassPropertyList}"
-                                          SelectedItem="{Binding EventQueryBuilder.EventTargetClassProperty, UpdateSourceTrigger=PropertyChanged}" />
+                                          SelectedItem="{Binding EventQueryBuilder.EventTargetClassProperty, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTip="{StaticResource Tooltip.Watcher.TargetClassProperty}" />
                             </GroupBox>
                             <!--  Target Class Property Value  -->
                             <GroupBox Margin="0" Header="Target Class Property Value [optional]">
@@ -99,7 +105,8 @@
                                          Height="26"
                                          HorizontalContentAlignment="Left"
                                          IsEnabled="{Binding EventQueryBuilder.IsEventTargetClassPropertyValueEnabled}"
-                                         Text="{Binding EventQueryBuilder.EventTargetClassPropertyValue, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding EventQueryBuilder.EventTargetClassPropertyValue, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="{StaticResource Tooltip.Watcher.TargetClassPropertyValue}" />
                             </GroupBox>
                             <!--  EventDisplayProperty  -->
                             <GroupBox Margin="0" DockPanel.Dock="Right" Header="Event Display Property [optional]">
@@ -108,7 +115,8 @@
                                           HorizontalContentAlignment="Left"
                                           IsEditable="True"
                                           ItemsSource="{Binding EventDisplayPropertyList}"
-                                          SelectedItem="{Binding DisplayProperty, UpdateSourceTrigger=PropertyChanged}" />
+                                          SelectedItem="{Binding DisplayProperty, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTip="{StaticResource Tooltip.Watcher.EventDisplayProperty}" />
                             </GroupBox>
                         </DockPanel>
 
@@ -133,7 +141,8 @@
                                       Margin="4,4,4,4"
                                       VerticalAlignment="Center"
                                       Content="Custom"
-                                      IsChecked="{Binding IsCustomQuery}" />
+                                      IsChecked="{Binding IsCustomQuery}"
+                                      ToolTip="{StaticResource Tooltip.Watcher.CustomQuery}" />
                             <!--  Custom Event Query TextBox  -->
                             <TextBox Grid.Column="1"
                                      Height="28"
@@ -141,14 +150,15 @@
                                      AcceptsReturn="True"
                                      IsReadOnly="{Binding IsQueryReadOnly}"
                                      Text="{Binding EventQueryBuilder.EventQuery, UpdateSourceTrigger=PropertyChanged}"
-                                     TextWrapping="Wrap" />
+                                     TextWrapping="Wrap"
+                                     ToolTip="{StaticResource Tooltip.Watcher.EventQuery}" />
                             <!--  Add Watcher Button  -->
                             <Button Grid.Column="2"
                                     Width="100"
                                     Height="28"
                                     Command="{Binding AddWatcherCommand}"
                                     Content="Add Watcher"
-                                    ToolTip="{Binding EventQueryBuilder.ValidationError}"
+                                    ToolTip="{StaticResource Tooltip.Watcher.AddWatcher}"
                                     Visibility="Visible" />
 
                         </Grid>
@@ -182,19 +192,21 @@
                             <Button Width="80"
                                     Height="28"
                                     Command="{Binding StartAllWatchersCommand}"
-                                    Content="Start All" />
+                                    Content="Start All"
+                                    ToolTip="{StaticResource Tooltip.Watcher.StartAll}" />
                             <Button Width="80"
                                     Height="28"
                                     Command="{Binding StopAllWatchersCommand}"
-                                    Content="Stop All" />
+                                    Content="Stop All"
+                                    ToolTip="{StaticResource Tooltip.Watcher.StopAll}" />
                             <Button Width="80"
                                     Height="28"
                                     Command="{Binding RemoveAllWatchersCommand}"
                                     Content="Remove All"
-                                    DockPanel.Dock="Right" />
+                                    DockPanel.Dock="Right"
+                                    ToolTip="{StaticResource Tooltip.Watcher.RemoveAll}" />
 
                         </StackPanel>
-
                         <ListView Height="Auto"
                                   Margin="{StaticResource MarginTiny}"
                                   BorderThickness="0"
@@ -346,13 +358,15 @@
                                     Height="28"
                                     Command="{Binding ClearEventsCommand}"
                                     Content="Clear Events"
-                                    DockPanel.Dock="Right" />
+                                    DockPanel.Dock="Right"
+                                    ToolTip="{StaticResource Tooltip.Watcher.ClearEvents}" />
                             <ComboBox Height="26"
                                       MinWidth="150"
                                       Margin="4"
                                       IsEditable="True"
                                       ItemsSource="{Binding WatcherNames}"
-                                      SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                      SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      ToolTip="{StaticResource Tooltip.Watcher.WatcherFilter}" />
                         </DockPanel>
                         <!--  Filter TextBox for Events  -->
                         <TextBox Grid.Row="1"
@@ -361,7 +375,8 @@
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"
                                  Tag="Filter Events..."
-                                 Text="{Binding EventFilterText, UpdateSourceTrigger=PropertyChanged}" />
+                                 Text="{Binding EventFilterText, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="{StaticResource Tooltip.Watcher.FilterEvents}" />
                         <ListView Grid.Row="2"
                                   Margin="0"
                                   BorderThickness="0"
