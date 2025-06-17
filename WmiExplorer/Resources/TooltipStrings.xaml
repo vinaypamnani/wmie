@@ -58,8 +58,8 @@
     <sys:String x:Key="Tooltip.Options.ComputerName">Enter the computer name, IP address, or namespace path (e.g., \\remotepc\root\default) to connect to. Leave empty for the local machine.</sys:String>
     <sys:String x:Key="Tooltip.Options.Connect">Connect to the specified computer using the current connection settings.</sys:String>
     <sys:String x:Key="Tooltip.Options.ConnectionOptions">Open advanced connection options dialog to configure authentication, timeouts, and other connection parameters.</sys:String>
-    <sys:String x:Key="Tooltip.Options.AsynchronousMode">Use asynchronous operations for better responsiveness. Operations will run in the background and can be cancelled.</sys:String>
-    <sys:String x:Key="Tooltip.Options.SynchronousMode">Use synchronous operations. Operations will block the UI until completed but may be faster for simple queries.</sys:String>
+    <sys:String x:Key="Tooltip.Options.AsynchronousMode">Use asynchronous WMI operations with ManagementOperationObserver. Provides real-time progress updates and immediate cancellation support through the WMI API.</sys:String>
+    <sys:String x:Key="Tooltip.Options.SynchronousMode">Use synchronous WMI operations with timeout-based cancellation (30s by default, 60s for queries/instances). Operations are wrapped in tasks to prevent UI blocking and can be cancelled via timeout or cancellation token.</sys:String>
     <sys:String x:Key="Tooltip.Options.IncludeCimClasses">Include Common Information Model (CIM) classes in the class enumeration. These are standard WMI classes.</sys:String>
     <sys:String x:Key="Tooltip.Options.IncludeMsftClasses">Include Microsoft-specific (MSFT) classes in the class enumeration. These are vendor-specific WMI classes.</sys:String>
     <sys:String x:Key="Tooltip.Options.IncludePerfClasses">Include Performance Counter (Perf) classes in the class enumeration. These classes provide system performance data.</sys:String>
