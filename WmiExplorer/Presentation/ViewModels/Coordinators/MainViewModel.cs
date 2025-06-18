@@ -81,10 +81,10 @@ public partial class MainViewModel : MessagingViewModelBase
         StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
 
         // Test logging
-        Log.Information("MainViewModel initialized successfully");
+        Log.Information("Application started successfully");
 
         // Demonstrate different log levels for testing
-        DemonstrateLogging();
+        // DemonstrateLogging();
     }
 
     /// <summary>
@@ -112,7 +112,6 @@ public partial class MainViewModel : MessagingViewModelBase
     /// </summary>
     private void DemonstrateLogging()
     {
-        Log.Information("Application started successfully");
         Log.Debug("Demonstrating debug logging - usually filtered out in production");
         Log.Warning("This is a sample warning message - for demonstration purposes");
 
