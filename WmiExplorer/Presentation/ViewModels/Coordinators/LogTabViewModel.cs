@@ -22,13 +22,13 @@ public partial class LogTabViewModel : MessagingViewModelBase
     private ICollectionView? _filteredLogsView;
 
     [ObservableProperty]
-    private LogLevel _filterLogLevel = LogLevel.Debug;
+    private LogLevel _filterLogLevel;
 
     private readonly ObservableCollection<LogEntry> _logEntries = new();
     private readonly object _logEntriesLock = new();
 
     [ObservableProperty]
-    private LogLevel _minimumLogLevel = LogLevel.Debug;
+    private LogLevel _minimumLogLevel;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -36,13 +36,22 @@ public partial class LogTabViewModel : MessagingViewModelBase
     [ObservableProperty]
     private LogEntry? _selectedLogEntry;
 
+    private readonly ISettingsService _settingsService;
+
     /// <summary>
     /// Initializes a new instance of the LogTabViewModel class
     /// </summary>
     /// <param name="messengerService">The messenger service</param>
-    public LogTabViewModel(IMessengerService messengerService)
+    /// <param name="settingsService">The settings service</param>
+    public LogTabViewModel(IMessengerService messengerService, ISettingsService settingsService)
         : base(messengerService)
     {
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+
+        // Initialize minimum log level from settings
+        _minimumLogLevel = _settingsService.LogLevel;
+        _filterLogLevel = _minimumLogLevel;
+
         LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
 
         // Subscribe to global logging events
@@ -191,6 +200,9 @@ public partial class LogTabViewModel : MessagingViewModelBase
     {
         // Update Serilog's global minimum level
         Log.SetMinimumLevel(value);
+
+        // Update the setting value
+        _settingsService.LogLevel = value;
     }
 
     /// <summary>

@@ -79,6 +79,13 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         }
     }
 
+    [Setting(LogLevel.Information)]
+    public LogLevel LogLevel
+    {
+        get => GetValue<LogLevel>();
+        set => SetValue(value);
+    }
+
     [Setting]
     public MainWindowPosition MainWindowPosition
     {

@@ -7,6 +7,7 @@ public interface ISettingsService
 {
     WmiClassEnumerationFlags ClassEnumerationFilter { get; set; }
     string CurrentTheme { get; set; }
+    LogLevel LogLevel { get; set; }
     MainWindowPosition MainWindowPosition { get; set; }
     bool ShowSystemClasses { get; set; }
 
