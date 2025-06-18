@@ -67,6 +67,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
+
+    [ObservableProperty]
+    private bool _showSystemClasses;
+
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
 
@@ -95,18 +99,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         );
 
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
-        Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
-
-        // StrongSubscribe ensures message handlers are not garbage collected.
+        Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);        // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
-        // Subscribe to ShowSystemClassesChanged to refresh filter
-        _settingsService.ShowSystemClassesChanged += (s, show) =>
-        {
-            _classFilterHelper.CollectionView.Refresh();
-            if (IsSelected)
-                PublishMessage(new ClassesFilteredMessage(this));
-        };
+        // Initialize ShowSystemClasses from settings
+        _showSystemClasses = _settingsService.ShowSystemClasses;
 
         // Set parent namespace if provided
         ParentNamespaceViewModel = parentNamespaceViewModel;
@@ -392,7 +389,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private bool ClassFilterPredicate(WmiClassViewModel classVm, string filter)
     {
         bool isSystemClass = classVm.ClassName.StartsWith("__");
-        if (isSystemClass && !_settingsService.ShowSystemClasses)
+        if (isSystemClass && !ShowSystemClasses)
             return false;
         if (!string.IsNullOrWhiteSpace(filter))
             return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
@@ -471,6 +468,17 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _isUpdatingSelection = false;
             }
         }
+    }
+
+    partial void OnShowSystemClassesChanged(bool value)
+    {
+        // Update the settings service
+        _settingsService.ShowSystemClasses = value;
+
+        // Refresh the filter view
+        _classFilterHelper.CollectionView.Refresh();
+        if (IsSelected)
+            PublishMessage(new ClassesFilteredMessage(this));
     }
 }
 

@@ -1,231 +1,283 @@
-using System.Diagnostics;
+using System.ComponentModel;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Enums;
+using WmiExplorer.Common.Logging;
+using WmiExplorer.Common.Messages;
+using WmiExplorer.Common.Models;
 
 namespace WmiExplorer.Services;
 
-public class SettingsService : ISettingsService
+/// <summary>
+/// Attribute to mark properties as settings that should be persisted
+/// </summary>
+[AttributeUsage(AttributeTargets.Property)]
+public class SettingAttribute : Attribute
 {
-    // Events
-    public event EventHandler<bool>? ShowSystemClassesChanged;
+    public SettingAttribute(object? defaultValue = null)
+    {
+        DefaultValue = defaultValue;
+    }
 
-    public event EventHandler<string>? ThemeChanged;
+    public object? DefaultValue { get; set; }
+    public string? Key { get; set; }
+}
 
-    // Settings properties
+/// <summary>
+/// Advanced settings service with attribute-based configuration and validation
+/// </summary>
+public class SettingsService : ISettingsService, INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    private WmiClassTypeFlags _classTypeFilter = WmiClassTypeFlags.None;
-
-    private string _currentTheme = "Dark";
     private readonly string _filePath;
-    private MainWindowPosition _mainWindowPosition = new MainWindowPosition();
     private readonly IMessengerService _messengerService;
-    private bool _showSystemClasses = false;
+    private readonly Dictionary<string, PropertyInfo> _settingsProperties;
+    private readonly Dictionary<string, object?> _values = new();
 
     public SettingsService(IMessengerService messengerService)
     {
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
 
-        // Set up file path for settings
         _filePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "WmiExplorer", "settings.json");
 
-        // Load settings from file
+        _settingsProperties = GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.GetCustomAttribute<SettingAttribute>() != null)
+            .ToDictionary(p => GetSettingKey(p), p => p);
+
+        InitializeDefaults();
         LoadSettings();
 
-        Debug.WriteLine($"[SettingsService] Settings initialized with file path: {_filePath}");
+        Log.Information("Settings initialized with {SettingCount} settings at {FilePath}",
+            _settingsProperties.Count, _filePath);
     }
 
-    // ClassTypeFilter property with change notification
+    [Setting(WmiClassTypeFlags.None)]
     public WmiClassTypeFlags ClassTypeFilter
     {
-        get => _classTypeFilter;
-        set
-        {
-            if (_classTypeFilter != value)
-            {
-                _classTypeFilter = value;
-            }
-        }
+        get => GetValue<WmiClassTypeFlags>();
+        set => SetValue(value);
     }
 
-    // CurrentTheme property with change notification
+    [Setting("Dark")]
     public string CurrentTheme
     {
-        get => _currentTheme;
+        get => GetValue<string>();
         set
         {
-            if (_currentTheme != value)
+            // Simple validation - only allow Dark or Light themes
+            if (value != "Dark" && value != "Light")
             {
-                _currentTheme = value;
-                ThemeChanged?.Invoke(this, value);
-                Debug.WriteLine($"[SettingsService] CurrentTheme changed to: {value}");
+                Log.Warning("Invalid theme '{Theme}' - using default 'Dark'", value);
+                value = "Dark";
             }
+            SetValue(value);
         }
     }
 
-    // Main window position property
+    [Setting]
     public MainWindowPosition MainWindowPosition
     {
-        get => _mainWindowPosition;
-        set
-        {
-            _mainWindowPosition = value;
-            // Note: We do not automatically save settings here anymore
-            // Settings will be saved explicitly on app exit
-        }
+        get => GetValue<MainWindowPosition>() ?? new MainWindowPosition();
+        set => SetValue(value);
     }
 
-    // ShowSystemClasses property with change notification
+    [Setting(false)]
     public bool ShowSystemClasses
     {
-        get => _showSystemClasses;
-        set
+        get => GetValue<bool>();
+        set => SetValue(value);
+    }
+
+    public void ReloadSettings()
+    {
+        var oldValues = new Dictionary<string, object?>(_values);
+        LoadSettings();
+
+        // Check for changes and send messages
+        foreach (var kvp in _settingsProperties)
         {
-            if (_showSystemClasses != value)
+            var key = kvp.Key;
+            var oldValue = oldValues.GetValueOrDefault(key);
+            var newValue = _values.GetValueOrDefault(key);
+
+            if (!Equals(oldValue, newValue))
             {
-                _showSystemClasses = value;
-                ShowSystemClassesChanged?.Invoke(this, value);
-                // Optionally publish a message if needed for decoupled updates
+                _messengerService.Send(new SettingChangedMessage(key, oldValue, newValue));
             }
         }
     }
 
-    // Method to reload settings from file
-    public void ReloadSettings()
+    public void ResetToDefaults()
     {
-        // Store old values to detect changes
-        var oldTheme = _currentTheme;
-
-        // Load settings from file
-        LoadSettings();
-
-        if (oldTheme != _currentTheme)
-        {
-            ThemeChanged?.Invoke(this, _currentTheme);
-        }
+        InitializeDefaults();
+        SaveSettings();
+        Log.Information("All settings reset to defaults");
     }
 
-    // Method to save settings to file
     public void SaveSettings()
     {
         try
         {
-            var settingsData = new
-            {
-                ClassTypeFilter = _classTypeFilter,
-                CurrentTheme = _currentTheme,
-                ShowSystemClasses = _showSystemClasses,
-                MainWindowPosition = _mainWindowPosition
-            };
+            var settingsData = new Dictionary<string, object?>();
 
-            // Create directory if it doesn't exist
+            foreach (var kvp in _settingsProperties)
+            {
+                var key = kvp.Key;
+                if (_values.TryGetValue(key, out var value))
+                {
+                    settingsData[key] = value;
+                }
+            }
+
             var dir = Path.GetDirectoryName(_filePath);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
-                Debug.WriteLine($"[SettingsService] Created settings directory: {dir}");
+                Log.Information("Created settings directory: {Directory}", dir);
             }
 
-            // Serialize and save settings
             var options = new JsonSerializerOptions { WriteIndented = true };
             var json = JsonSerializer.Serialize(settingsData, options);
             File.WriteAllText(_filePath, json);
 
-            Debug.WriteLine($"[SettingsService] Saved settings to: {_filePath}");
+            Log.Information("Saved {SettingCount} settings to {FilePath}", settingsData.Count, _filePath);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[SettingsService] Error saving settings: {ex.Message}");
+            Log.Error(ex, "Error saving settings");
         }
     }
 
-    // Method to load settings from file
+    private static object? DeserializeValue(JsonElement jsonValue, Type targetType)
+    {
+        try
+        {
+            if (targetType == typeof(string))
+                return jsonValue.GetString();
+            if (targetType == typeof(bool))
+                return jsonValue.GetBoolean();
+            if (targetType == typeof(int))
+                return jsonValue.GetInt32();
+            if (targetType == typeof(double))
+                return jsonValue.GetDouble();
+            if (targetType.IsEnum)
+                return Enum.ToObject(targetType, jsonValue.GetInt32());
+
+            return JsonSerializer.Deserialize(jsonValue.GetRawText(), targetType);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string GetSettingKey(PropertyInfo property)
+    {
+        var attribute = property.GetCustomAttribute<SettingAttribute>();
+        return attribute?.Key ?? property.Name;
+    }
+
+    private T GetValue<T>([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    {
+        if (propertyName == null) return default(T)!;
+
+        if (_values.TryGetValue(propertyName, out var value))
+        {
+            if (value is T typedValue)
+                return typedValue;
+
+            // Try to convert if types don't match exactly
+            try
+            {
+                return (T)Convert.ChangeType(value, typeof(T))!;
+            }
+            catch
+            {
+                // Fall back to default
+            }
+        }
+
+        return default(T)!;
+    }
+
+    private void InitializeDefaults()
+    {
+        foreach (var kvp in _settingsProperties)
+        {
+            var attribute = kvp.Value.GetCustomAttribute<SettingAttribute>();
+            if (attribute?.DefaultValue != null)
+            {
+                _values[kvp.Key] = attribute.DefaultValue;
+            }
+        }
+    }
+
     private void LoadSettings()
     {
         try
         {
-            if (File.Exists(_filePath))
+            if (!File.Exists(_filePath))
             {
-                var json = File.ReadAllText(_filePath);
-                Debug.WriteLine($"[SettingsService] Loaded settings from: {_filePath}");
+                Log.Information("Settings file not found, using defaults");
+                return;
+            }
 
-                var settings = JsonSerializer.Deserialize<JsonElement>(json);
+            var json = File.ReadAllText(_filePath);
+            var settings = JsonSerializer.Deserialize<JsonElement>(json);
 
-                // Parse values from JSON with type safety
-                if (settings.TryGetProperty("ClassTypeFilter", out var classTypeFilter))
-                {
-                    _classTypeFilter = (WmiClassTypeFlags)classTypeFilter.GetInt32();
-                }
+            foreach (var kvp in _settingsProperties)
+            {
+                var key = kvp.Key;
+                var propInfo = kvp.Value;
 
-                if (settings.TryGetProperty("CurrentTheme", out var currentTheme))
-                {
-                    _currentTheme = currentTheme.GetString() ?? "Dark";
-                }
-
-                // Parse ShowSystemClasses
-                if (settings.TryGetProperty("ShowSystemClasses", out var showSystemClasses))
-                {
-                    _showSystemClasses = showSystemClasses.GetBoolean();
-                }
-
-                // Parse MainWindowPosition
-                if (settings.TryGetProperty("MainWindowPosition", out var mainWindowPosition))
+                if (settings.TryGetProperty(key, out var jsonValue))
                 {
                     try
                     {
-                        _mainWindowPosition = JsonSerializer.Deserialize<MainWindowPosition>(mainWindowPosition.GetRawText())
-                            ?? new MainWindowPosition();
+                        var value = DeserializeValue(jsonValue, propInfo.PropertyType);
+                        _values[key] = value;
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"[SettingsService] Error deserializing MainWindowPosition: {ex.Message}");
-                        // Use default values on error
-                    }
-                }
-                else
-                {
-                    // Try to migrate from old window position settings for compatibility with existing settings files
-                    try
-                    {
-                        if (settings.TryGetProperty("WindowTop", out var windowTop) &&
-                            settings.TryGetProperty("WindowLeft", out var windowLeft) &&
-                            settings.TryGetProperty("WindowWidth", out var windowWidth) &&
-                            settings.TryGetProperty("WindowHeight", out var windowHeight))
-                        {
-                            _mainWindowPosition = new MainWindowPosition
-                            {
-                                Top = windowTop.GetDouble(),
-                                Left = windowLeft.GetDouble(),
-                                Width = windowWidth.GetDouble(),
-                                Height = windowHeight.GetDouble(),
-                                IsWindowMaximized = false // Default to false for backward compatibility
-                            };
-
-                            Debug.WriteLine("[SettingsService] Migrated from old window position settings");
-
-                            // Save settings to update the format
-                            SaveSettings();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"[SettingsService] Error migrating window position settings: {ex.Message}");
+                        Log.Warning("Error deserializing setting {Key}: {ErrorMessage}", key, ex.Message);
                     }
                 }
             }
-            else
-            {
-                // Use default values if file doesn't exist
-                Debug.WriteLine("[SettingsService] Settings file not found, using defaults");
-            }
+
+            Log.Information("Loaded settings from {FilePath}", _filePath);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[SettingsService] Error loading settings: {ex.Message}");
-            // Keep default values on error
+            Log.Error(ex, "Error loading settings");
         }
+    }
+
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private void SetValue<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    {
+        if (propertyName == null) return;
+
+        var currentValue = GetValue<T>(propertyName);
+        if (EqualityComparer<T>.Default.Equals(currentValue, value))
+            return;
+
+        // Store old value for message
+        var oldValue = currentValue;
+        _values[propertyName] = value;
+
+        // Notify UI binding system
+        OnPropertyChanged(propertyName);
+
+        // Send generic setting change message
+        _messengerService.Send(new SettingChangedMessage<T>(propertyName, oldValue, value)); Log.Information("Setting {PropertyName} changed to {Value}", propertyName, value?.ToString() ?? "null");
     }
 }

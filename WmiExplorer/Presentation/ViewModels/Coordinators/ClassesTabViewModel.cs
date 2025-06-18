@@ -34,9 +34,6 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
-    private bool _showSystemClasses;
-
-    [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
     private readonly IWmiService _wmiService;
@@ -63,15 +60,6 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
-
-        // Initialize properties from settings
-        _showSystemClasses = _settingsService.ShowSystemClasses;
-
-        // Subscribe to ShowSystemClassesChanged event
-        _settingsService.ShowSystemClassesChanged += (s, v) =>
-        {
-            ShowSystemClasses = v;
-        };
     }
 
     /// <summary>
@@ -149,11 +137,6 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
             _selectionService.ClearSelections();
         else
             _selectionService.SetSelectedObject(_selectionService.PreviousObject);
-    }
-
-    partial void OnShowSystemClassesChanged(bool value)
-    {
-        _settingsService.ShowSystemClasses = value;
     }
 
     /// <summary>

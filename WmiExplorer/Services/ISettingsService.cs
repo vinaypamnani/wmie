@@ -5,9 +5,6 @@ namespace WmiExplorer.Services;
 
 public interface ISettingsService
 {
-    event EventHandler<bool> ShowSystemClassesChanged;
-    event EventHandler<string> ThemeChanged;
-
     WmiClassTypeFlags ClassTypeFilter { get; set; }
     string CurrentTheme { get; set; }
     MainWindowPosition MainWindowPosition { get; set; }

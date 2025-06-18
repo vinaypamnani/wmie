@@ -48,7 +48,7 @@
                                   Margin="{StaticResource MarginSmall}"
                                   HorizontalAlignment="Right"
                                   Content="Show System Classes"
-                                  IsChecked="{Binding ShowSystemClasses, Mode=TwoWay}" />
+                                  IsChecked="{Binding SelectedNamespace.ShowSystemClasses, Mode=TwoWay}" />
                         <TextBox Grid.Row="1"
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"

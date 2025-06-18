@@ -3,6 +3,8 @@ using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Messages;
 
+#region classes
+
 /// <summary>
 /// Message sent when application state changes
 /// </summary>
@@ -40,6 +42,41 @@ public class SelectionChangedMessage : MessageBase
 }
 
 /// <summary>
+/// Non-generic version for cases where type isn't known at compile time
+/// </summary>
+public class SettingChangedMessage : MessageBase
+{
+    public SettingChangedMessage(string settingName, object? oldValue, object? newValue)
+    {
+        SettingName = settingName;
+        OldValue = oldValue;
+        NewValue = newValue;
+    }
+
+    public object? NewValue { get; }
+    public object? OldValue { get; }
+    public string SettingName { get; }
+}
+
+/// <summary>
+/// Generic message sent when any setting changes
+/// </summary>
+/// <typeparam name="T">The type of the setting value</typeparam>
+public class SettingChangedMessage<T> : MessageBase
+{
+    public T NewValue { get; }
+    public T OldValue { get; }
+    public string SettingName { get; }
+
+    public SettingChangedMessage(string settingName, T oldValue, T newValue)
+    {
+        SettingName = settingName;
+        OldValue = oldValue;
+        NewValue = newValue;
+    }
+}
+
+/// <summary>
 /// Message sent when theme changes
 /// </summary>
 public class ThemeChangedMessage : MessageBase
@@ -51,3 +88,5 @@ public class ThemeChangedMessage : MessageBase
 
     public string Theme { get; }
 }
+
+#endregion
