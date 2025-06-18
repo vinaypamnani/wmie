@@ -71,13 +71,14 @@ public static class Log
                 .MinimumLevel.ControlledBy(_levelSwitch)
                 .Enrich.FromLogContext()
                 .Enrich.WithCaller()
+                .Enrich.With<LogLevelEnricher>() // Add our custom enricher to include numeric log level
                 .WriteTo.File(
                     path: _logFilePath,
                     fileSizeLimitBytes: 5 * 1024 * 1024, // 5MB
                     rollOnFileSizeLimit: true,
                     retainedFileCountLimit: 1,
                     shared: true,
-                    outputTemplate: "{Timestamp:HH:mm:ss.fff} [{Level:u3}] {Message:lj} (at {Caller}){NewLine}{Exception}")
+                    outputTemplate: "<![LOG[{Message:lj}{Exception}]LOG]!><time=\"{Timestamp:HH:mm:ss.fff}\" date=\"{Timestamp:MM-dd-yyyy}\" component=\"{Caller}\" context=\"\" type=\"{NumericLevel}\" thread=\"\" file=\"\">{NewLine}")
                 .WriteTo.Sink(inMemoryLogSink)
                 .CreateLogger();
 
@@ -94,6 +95,7 @@ public static class Log
                 .MinimumLevel.ControlledBy(_levelSwitch)
                 .Enrich.FromLogContext()
                 .Enrich.WithCaller()
+                .Enrich.With<LogLevelEnricher>() // Add our custom enricher for consistency
                 .WriteTo.Sink(inMemoryLogSink)
                 .CreateLogger();
 
