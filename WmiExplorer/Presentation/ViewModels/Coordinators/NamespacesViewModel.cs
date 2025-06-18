@@ -125,10 +125,6 @@ public partial class NamespacesViewModel : MessagingViewModelBase
                 return;
             }
 
-            // Force garbage collection to release any existing WMI resources
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
             // Create the root namespace view model using the async method
             var rootViewModel = await WmiNamespaceViewModel.CreateRootAsync(
                 effectivePath,
