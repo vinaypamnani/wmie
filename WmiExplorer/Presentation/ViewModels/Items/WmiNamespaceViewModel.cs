@@ -51,7 +51,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private bool _isSelected;
 
     private bool _isUpdatingSelection = false;
-
     private ManagementScope? _managementScope;
 
     [ObservableProperty]
@@ -203,6 +202,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 cacheService,
                 selectionService,
                 parentNamespaceViewModel);
+
             if (mo.Scope?.Path != null)
                 vm.ComputerName = mo.Scope.Path.Server;
 
@@ -239,6 +239,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
         if (rootMbo?.Scope?.Path != null)
             rootViewModel.ComputerName = rootMbo.Scope.Path.Server;
+
         return rootViewModel;
     }
 
@@ -451,25 +452,28 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     {
         if (value)
         {
-            ExpandAsync().ConfigureAwait(false);
+            // Fire and forget - don't block the UI thread
+            _ = Task.Run(async () =>
+            {
+                await ExpandAsync();
+            });
         }
     }
 
     // Property change notification methods
     partial void OnIsSelectedChanged(bool value)
     {
-        if (_isUpdatingSelection) return;
-
-        if (value)
+        if (_isUpdatingSelection) return; if (value)
         {
             try
             {
                 _isUpdatingSelection = true;
 
-                // Expand the namespace if it is not already expanded
+                // Set expanded state immediately - the async expansion will happen in OnIsExpandedChanged
                 if (!IsExpanded)
                     IsExpanded = true;
 
+                // Force selection
                 ForceSelection();
             }
             finally
