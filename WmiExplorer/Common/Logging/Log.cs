@@ -24,8 +24,20 @@ public static class Log
     /// </summary>
     public static event Action<LogEntry>? LogEntryAdded;
 
+    /// <summary>
+    /// Maximum number of log entries to keep in memory for UI display
+    /// </summary>
+    public const int MaxInMemoryLogEntries = 1000;
+
+    private static InMemoryLogSink _inMemoryLogSink = null!;
     private static LoggingLevelSwitch _levelSwitch = null!;
+    private static string? _logFilePath;
     private static ILogger _logger = null!;
+
+    /// <summary>
+    /// Gets the current log file path
+    /// </summary>
+    public static string LogFilePath => _logFilePath ?? "Unknown";
 
     /// <summary>
     /// Configure and initialize the logging system
@@ -35,13 +47,14 @@ public static class Log
         var logDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WmiExplorer");
 
-        var logFilePath = Path.Combine(logDirectory, "WmiExplorer.log");
+        _logFilePath = Path.Combine(logDirectory, "WmiExplorer.log");
 
         // Create the logging level switch for dynamic level control
         _levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
 
         // Create the in-memory sink for UI integration
-        var inMemoryLogSink = new InMemoryLogSink(OnLogEntryAdded, maxEntries: 1000);
+        var inMemoryLogSink = new InMemoryLogSink(OnLogEntryAdded, maxEntries: MaxInMemoryLogEntries);
+        _inMemoryLogSink = inMemoryLogSink;
 
         try
         {
@@ -59,7 +72,7 @@ public static class Log
                 .Enrich.FromLogContext()
                 .Enrich.WithCaller()
                 .WriteTo.File(
-                    path: logFilePath,
+                    path: _logFilePath,
                     fileSizeLimitBytes: 5 * 1024 * 1024, // 5MB
                     rollOnFileSizeLimit: true,
                     retainedFileCountLimit: 1,
@@ -72,7 +85,7 @@ public static class Log
             Initialize(logger);
 
             // Log successful initialization
-            Information("Logging system initialized. Log file: {LogFilePath}", logFilePath);
+            Information("Logging system initialized. Log file: {LogFilePath}", _logFilePath);
         }
         catch (Exception ex)
         {
@@ -113,6 +126,15 @@ public static class Log
     /// <param name="propertyValues">Values for the message template</param>
     public static void Error(Exception exception, string messageTemplate, params object[] propertyValues)
         => _logger.Error(exception, messageTemplate, propertyValues);
+
+    /// <summary>
+    /// Gets all currently stored log entries from the in-memory sink
+    /// </summary>
+    /// <returns>A collection of stored log entries</returns>
+    public static IEnumerable<LogEntry> GetStoredLogEntries()
+    {
+        return _inMemoryLogSink?.GetStoredEntries() ?? Enumerable.Empty<LogEntry>();
+    }
 
     /// <summary>
     /// Log general information

@@ -54,7 +54,10 @@ public partial class LogTabViewModel : MessagingViewModelBase
 
         LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
 
-        // Subscribe to global logging events
+        // Load existing log entries that were created before this ViewModel was initialized
+        LoadExistingLogEntries();
+
+        // Subscribe to global logging events for new entries
         Log.LogEntryAdded += OnLogEntryAdded;
 
         // Set up filtered view
@@ -92,17 +95,16 @@ public partial class LogTabViewModel : MessagingViewModelBase
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
 
     /// <summary>
-    /// Gets the current log file path
+    /// Disposes the LogTabViewModel and cleans up resources
     /// </summary>
-    public string LogFilePath
+    protected override void Dispose(bool disposing)
     {
-        get
+        if (disposing)
         {
-            var logDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "WmiExplorer", "logs");
-            return Path.Combine(logDirectory, "wmi-explorer.log");
+            // Unsubscribe from the global logging event
+            Log.LogEntryAdded -= OnLogEntryAdded;
         }
+        base.Dispose(disposing);
     }
 
     /// <summary>
@@ -116,7 +118,7 @@ public partial class LogTabViewModel : MessagingViewModelBase
             _logEntries.Add(logEntry);
 
             // Remove old entries if we exceed the limit
-            while (_logEntries.Count > 1000)
+            while (_logEntries.Count > Log.MaxInMemoryLogEntries)
             {
                 _logEntries.RemoveAt(0);
             }
@@ -134,9 +136,27 @@ public partial class LogTabViewModel : MessagingViewModelBase
         {
             _logEntries.Clear();
         }
-        
+
         Log.Information("Cleared {Count} log entries", count);
         OnPropertyChanged(nameof(HasLogEntries));
+    }
+
+    /// <summary>
+    /// Loads existing log entries from the in-memory sink that were created before this ViewModel was initialized
+    /// </summary>
+    private void LoadExistingLogEntries()
+    {
+        var existingEntries = Log.GetStoredLogEntries();
+        if (existingEntries?.Any() == true)
+        {
+            lock (_logEntriesLock)
+            {
+                foreach (var entry in existingEntries)
+                {
+                    _logEntries.Add(entry);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -222,7 +242,7 @@ public partial class LogTabViewModel : MessagingViewModelBase
     {
         try
         {
-            var logDirectory = Path.GetDirectoryName(LogFilePath);
+            var logDirectory = Path.GetDirectoryName(Log.LogFilePath);
             if (!string.IsNullOrEmpty(logDirectory) && Directory.Exists(logDirectory))
             {
                 System.Diagnostics.Process.Start("explorer.exe", logDirectory);
