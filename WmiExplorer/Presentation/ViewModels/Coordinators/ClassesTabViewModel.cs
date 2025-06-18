@@ -22,6 +22,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
     private readonly InstancesTabViewModel _instancesTabViewModel;
+    private readonly MethodsTabViewModel _methodsTabViewModel;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
@@ -45,7 +46,8 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
            IApplicationService applicationService,
            ICacheService cacheService,
            ISelectionService selectionService,
-           InstancesTabViewModel instancesTabViewModel) : base(messengerService)
+           InstancesTabViewModel instancesTabViewModel,
+           MethodsTabViewModel methodsTabViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
@@ -53,6 +55,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
+        _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
 
         // Subscribe to messages
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
@@ -66,6 +69,11 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     /// Gets the InstancesTabViewModel
     /// </summary>
     public InstancesTabViewModel InstancesTabViewModel => _instancesTabViewModel;
+
+    /// <summary>
+    /// Gets the MethodsTabViewModel
+    /// </summary>
+    public MethodsTabViewModel MethodsTabViewModel => _methodsTabViewModel;
 
     /// <summary>
     /// Command to execute the auto-generated query

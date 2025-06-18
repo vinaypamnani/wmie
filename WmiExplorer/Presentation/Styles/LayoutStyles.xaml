@@ -16,25 +16,22 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Border
-                            Grid.Row="0"
-                            Grid.RowSpan="2"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="3" />
-                        <ContentPresenter
-                            Grid.Row="0"
-                            Margin="8,4,4,2"
-                            ContentSource="Header"
-                            RecognizesAccessKey="True"
-                            TextElement.FontWeight="DemiBold"
-                            TextElement.Foreground="{TemplateBinding Foreground}" />
-                        <ContentPresenter
-                            Grid.Row="1"
-                            Margin="8,0,4,4"
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        <Border Grid.Row="0"
+                                Grid.RowSpan="2"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3" />
+                        <ContentPresenter Grid.Row="0"
+                                          Margin="8,4,4,2"
+                                          ContentSource="Header"
+                                          RecognizesAccessKey="True"
+                                          TextElement.FontWeight="DemiBold"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                        <ContentPresenter Grid.Row="1"
+                                          Margin="8,0,4,4"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -52,6 +49,8 @@
         <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
         <Setter Property="Width" Value="{StaticResource SpacingMedium}" />
         <Setter Property="Height" Value="100" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="Margin" Value="{StaticResource MarginHorizontalSmall}" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="ShowsPreview" Value="True" />
@@ -79,6 +78,47 @@
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                 <Setter Property="Height" Value="Auto" />
+            </Trigger>
+            <Trigger Property="IsDragging" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--  Horizontal GridSplitter  -->
+    <Style x:Key="HorizontalGridSplitterStyle" TargetType="GridSplitter">
+        <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+        <Setter Property="Height" Value="{StaticResource SpacingMedium}" />
+        <Setter Property="Width" Value="100" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="{StaticResource MarginVerticalSmall}" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="ShowsPreview" Value="True" />
+        <Setter Property="PreviewStyle">
+            <Setter.Value>
+                <Style TargetType="{x:Type Control}">
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle Fill="{DynamicResource PrimaryAccentBrush}" />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GridSplitter">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="3" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                <Setter Property="Width" Value="Auto" />
             </Trigger>
             <Trigger Property="IsDragging" Value="True">
                 <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />

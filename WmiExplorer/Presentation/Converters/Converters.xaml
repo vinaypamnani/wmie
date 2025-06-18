@@ -9,6 +9,7 @@
     <conv:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" FalseValue="0" TrueValue="NaN" />
     <conv:NullToBoolConverter x:Key="NullToBoolConverter" />
     <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    <conv:NullToVisibilityConverter x:Key="NotNullToVisibilityConverter" Invert="True" />
     <conv:NewLineToSpaceConverter x:Key="NewLineToSpaceConverter" />
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
     <conv:DebugConverter x:Key="DebugConverter" />

@@ -19,7 +19,6 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 public partial class WmiClassViewModel : MessagingViewModelBase
 {
     private readonly IApplicationService _applicationService;
-    private ObservableCollection<WmiMethod>? _classMethods;
     private readonly object _collectionLock = new();
     private CancellationTokenSource _cts = new();
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
@@ -38,12 +37,14 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     [NotifyCanExecuteChangedFor(nameof(CancelInstanceLoadCommand))]
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
 
+    private ObservableCollection<WmiMethod>? _methods;
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
 
     [ObservableProperty]
     private WmiInstanceViewModel? _selectedInstance;
 
     private readonly ISelectionService _selectionService;
+    private ObservableCollection<WmiMethod>? _staticMethods;
     private readonly WmiClass _wmiClass;
     private readonly IWmiService _wmiService;
 
@@ -73,13 +74,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
 
         // Load methods for this class
-        LoadClassMethods();
+        LoadMethods();
     }
-
-    /// <summary>
-    /// Collection of methods available for this class.
-    /// </summary>
-    public ObservableCollection<WmiMethod> ClassMethods => _classMethods!;
 
     public string ClassName => _wmiClass.ClassName;
     public string Description => _wmiClass.Description;
@@ -92,7 +88,19 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     public ICollectionView InstancesView => _instanceFilterHelper.CollectionView;
     public bool IsEventClass => WmiClass.Derivation.Contains("__Event") || WmiClass.ClassName == "__Event";
     public ManagementScope ManagementScope => _parentNamespaceViewModel.ManagementScope;
+
+    /// <summary>
+    /// Collection of all methods available for this class.
+    /// </summary>
+    public ObservableCollection<WmiMethod> Methods => _methods!;
+
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
+
+    /// <summary>
+    /// Collection of static methods available for this class.
+    /// </summary>
+    public ObservableCollection<WmiMethod> StaticMethods => _staticMethods!;
+
     public WmiClass WmiClass => _wmiClass;
 
     public static ObservableCollection<WmiClassViewModel> CreateFromCollection(
@@ -174,7 +182,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// Executes a WMI method from the context menu.
     /// </summary>
     /// <param name="parameter">The WmiMethod to execute.</param>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(ExecuteMethodCanExecute))]
     private void ExecuteMethod(object? parameter)
     {
         if (parameter is WmiMethod method)
@@ -202,6 +210,16 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 PublishErrorState($"Error showing executing method dialog: {ex.Message}", ex);
             }
         }
+    }
+
+    /// <summary>
+    /// Determines whether a method can be executed. Only static methods can be executed.
+    /// </summary>
+    /// <param name="parameter">The WmiMethod to check.</param>
+    /// <returns>True if the method is static and can be executed, false otherwise.</returns>
+    private bool ExecuteMethodCanExecute(object? parameter)
+    {
+        return parameter is WmiMethod method && method.IsStatic;
     }
 
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
@@ -232,37 +250,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     {
         return string.IsNullOrWhiteSpace(filter) ||
                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-    }
-
-    /// <summary>
-    /// Loads the methods available for this class.
-    /// </summary>
-    private void LoadClassMethods()
-    {
-        _classMethods = new ObservableCollection<WmiMethod>();
-
-        try
-        {
-            // Get methods from the WmiClass
-            var methods = _wmiClass.Methods;
-
-            if (methods != null && methods.Count > 0)
-            {
-                foreach (var method in methods)
-                {
-                    // Only add static methods to the class methods collection
-                    if (method.IsStatic)
-                    {
-                        // Add each method to the collection
-                        _classMethods.Add(method);
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Error loading methods for class: {ClassName}", ClassName);
-        }
     }
 
     [RelayCommand]
@@ -354,6 +341,40 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             Log.Error(ex, "Error loading instances for class: {ClassName}", ClassName);
             LoadState = InstanceLoadState.Failed;
             PublishErrorState($"Error loading instances for {ClassName}: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Loads the methods available for this class.
+    /// </summary>
+    private void LoadMethods()
+    {
+        _methods = new ObservableCollection<WmiMethod>();
+        _staticMethods = new ObservableCollection<WmiMethod>();
+
+        try
+        {
+            // Get methods from the WmiClass
+            var methods = _wmiClass.Methods;
+
+            if (methods != null && methods.Count > 0)
+            {
+                foreach (var method in methods)
+                {
+                    // Add all methods to the methods collection
+                    _methods.Add(method);
+
+                    // Only add static methods to the static methods collection
+                    if (method.IsStatic)
+                    {
+                        _staticMethods.Add(method);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error loading methods for class: {ClassName}", ClassName);
         }
     }
 

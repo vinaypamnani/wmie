@@ -1,15 +1,130 @@
 <UserControl x:Class="WmiExplorer.Presentation.Views.Tabs.MethodsTabView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             d:DesignHeight="450"
+             d:DesignHeight="600"
              d:DesignWidth="800"
              mc:Ignorable="d">
     <Grid>
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="16"
-                   Text="Methods View - To Be Implemented" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  Methods Filter  -->
+        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
+            <TextBox VerticalAlignment="Center"
+                     Style="{StaticResource TextBoxWithClearButton}"
+                     Tag="Filter Methods..."
+                     Text="{Binding MethodFilterText, UpdateSourceTrigger=PropertyChanged}" />
+        </DockPanel>
+
+        <!--  Methods List with Status Area  -->
+        <GroupBox Grid.Row="1"
+                  Margin="{StaticResource MarginSmall}"
+                  HorizontalContentAlignment="Stretch"
+                  VerticalContentAlignment="Stretch"
+                  Header="Methods">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  Methods DataGrid  -->
+                <DataGrid x:Name="MethodsDataGrid"
+                          Grid.Row="0"
+                          behaviors:ForceItemSelectionBehavior.EnableForceSelection="True"
+                          CellStyle="{StaticResource ModernDataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
+                          ItemsSource="{Binding SelectedClass.Methods}"
+                          RowStyle="{StaticResource ModernDataGridRowStyle}"
+                          SelectedItem="{Binding SelectedMethod}"
+                          Style="{StaticResource ModernDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
+                        <DataGridTextColumn Width="Auto" Binding="{Binding IsStatic, Mode=OneWay}" Header="Is Static" />
+                        <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{Binding SelectedClass.ExecuteMethodCommand}" CommandParameter="{Binding SelectedMethod}" Header="Execute Method..." />
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+
+                <!--  Status Messages Area  -->
+                <Border Grid.Row="1"
+                        Margin="{StaticResource MarginSmall}"
+                        Background="{DynamicResource PrimaryBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="3">
+                    <StackPanel Margin="{StaticResource MarginSmall}" Orientation="Vertical">
+                        <!--  Dynamic Help Text  -->
+                        <TextBlock HorizontalAlignment="Center"
+                                   FontSize="14"
+                                   Opacity="0.7"
+                                   Text="{Binding HelpText}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </GroupBox>
+
+        <!--  GridSplitter between Methods and Parameters  -->
+        <GridSplitter Grid.Row="2" Style="{StaticResource HorizontalGridSplitterStyle}" />
+
+        <!--  Parameters Pane  -->
+        <Grid Grid.Row="3" Margin="{StaticResource MarginSmall}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--  Input Parameters  -->
+            <GroupBox Grid.Column="0"
+                      HorizontalContentAlignment="Stretch"
+                      VerticalContentAlignment="Stretch"
+                      Header="Input Parameters">
+                <DataGrid CellStyle="{StaticResource ModernDataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
+                          ItemsSource="{Binding SelectedMethod.InParameters}"
+                          RowStyle="{StaticResource ModernDataGridRowStyle}"
+                          Style="{StaticResource ModernDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
+                        <DataGridTextColumn Width="Auto" Binding="{Binding CimType}" Header="Type" />
+                        <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+
+            <!--  GridSplitter between Input and Output Parameters  -->
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+
+            <!--  Output Parameters  -->
+            <GroupBox Grid.Column="2"
+                      HorizontalContentAlignment="Stretch"
+                      VerticalContentAlignment="Stretch"
+                      Header="Output Parameters">
+                <DataGrid CellStyle="{StaticResource ModernDataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
+                          ItemsSource="{Binding SelectedMethod.OutParameters}"
+                          RowStyle="{StaticResource ModernDataGridRowStyle}"
+                          Style="{StaticResource ModernDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
+                        <DataGridTextColumn Width="Auto" Binding="{Binding CimType}" Header="Type" />
+                        <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
     </Grid>
 </UserControl>

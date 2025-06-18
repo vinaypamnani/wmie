@@ -119,17 +119,17 @@
                                             <ContextMenu>
                                                 <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path" />
                                                 <MenuItem Command="{Binding CancelInstanceLoadCommand}" CommandParameter="{Binding}" Header="Cancel loading" />
-                                                <MenuItem ItemsSource="{Binding ClassMethods}">
+                                                <MenuItem ItemsSource="{Binding StaticMethods}">
                                                     <MenuItem.Header>
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="Execute Static Methods" />
-                                                            <TextBlock Margin="4,0,0,0" Text="{Binding ClassMethods.Count, StringFormat='[{0}]'}" />
+                                                            <TextBlock Margin="4,0,0,0" Text="{Binding StaticMethods.Count, StringFormat='[{0}]'}" />
                                                         </StackPanel>
                                                     </MenuItem.Header>
                                                     <MenuItem.Style>
                                                         <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding ClassMethods.Count}" Value="0">
+                                                                <DataTrigger Binding="{Binding StaticMethods.Count}" Value="0">
                                                                     <Setter Property="IsEnabled" Value="False" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
@@ -171,7 +171,7 @@
             </TabItem>
             <TabItem Header="Methods">
                 <!--  Methods View  -->
-                <tabs:MethodsTabView />
+                <tabs:MethodsTabView DataContext="{Binding MethodsTabViewModel}" />
             </TabItem>
         </TabControl>
 
