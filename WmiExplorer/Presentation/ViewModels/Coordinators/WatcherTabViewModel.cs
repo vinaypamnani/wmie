@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -184,22 +185,35 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
             return;
         }
 
-        var success = _watcherManager.AddWatcher(
-            EventQueryBuilder.EventQuery ?? string.Empty,
-            SelectedNamespace.ManagementScope,
-            EventQueryBuilder.EventClass ?? "Unknown",
-            EventQueryBuilder.EventTargetClass,
-            DisplayProperty?.Name ?? string.Empty,
-            OnEventReceived
-        );
+        try
+        {
+            var success = _watcherManager.AddWatcher(
+                EventQueryBuilder.EventQuery ?? string.Empty,
+                SelectedNamespace.ManagementScope,
+                EventQueryBuilder.EventClass ?? "Unknown",
+                EventQueryBuilder.EventTargetClass,
+                DisplayProperty?.Name ?? string.Empty,
+                OnEventReceived
+            );
 
-        if (success)
-        {
-            PublishSuccessState("Watcher added successfully.");
+            if (success)
+            {
+                Log.Information("Watcher added successfully: EventClass={EventClass}, EventQuery={EventQuery}",
+                    EventQueryBuilder.EventClass ?? "Unknown", EventQueryBuilder.EventQuery ?? "Empty");
+                PublishSuccessState("Watcher added successfully.");
+            }
+            else
+            {
+                Log.Warning("Failed to add watcher: EventClass={EventClass}, EventQuery={EventQuery}",
+                    EventQueryBuilder.EventClass ?? "Unknown", EventQueryBuilder.EventQuery ?? "Empty");
+                PublishErrorState("Failed to add watcher.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            PublishErrorState("Failed to add watcher.");
+            Log.Error(ex, "Exception occurred while adding watcher: EventClass={EventClass}, EventQuery={EventQuery}",
+                EventQueryBuilder.EventClass ?? "Unknown", EventQueryBuilder.EventQuery ?? "Empty");
+            PublishErrorState($"Error adding watcher: {ex.Message}");
         }
     }
 
@@ -392,18 +406,26 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     private async Task UpdateClassListsAndPropertiesAsync()
     {
-        await _classListManager.UpdateClassListsAsync(SelectedNamespace);
-
-        // Set default event class if available
-        var defaultClass = _classListManager.GetDefaultOrFirstEventClass();
-        if (defaultClass != null && EventQueryBuilder.EventClass != defaultClass)
+        try
         {
-            EventQueryBuilder.EventClass = defaultClass;
-        }
+            await _classListManager.UpdateClassListsAsync(SelectedNamespace);
 
-        await UpdateEventPropertiesAsync();
-        await UpdateTargetClassPropertiesAsync();
-        UpdateDisplayPropertyList();
+            // Set default event class if available
+            var defaultClass = _classListManager.GetDefaultOrFirstEventClass();
+            if (defaultClass != null && EventQueryBuilder.EventClass != defaultClass)
+            {
+                EventQueryBuilder.EventClass = defaultClass;
+            }
+
+            await UpdateEventPropertiesAsync();
+            await UpdateTargetClassPropertiesAsync();
+            UpdateDisplayPropertyList();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to update class lists and properties for namespace: {NamespacePath}",
+                SelectedNamespace?.NamespacePath ?? "Unknown");
+        }
     }
 
     /// <summary>
@@ -426,20 +448,28 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     private async Task UpdateEventPropertiesAsync()
     {
-        await _eventPropertyManager.UpdatePropertiesAsync(SelectedNamespace, EventQueryBuilder.EventClass);
-
-        if (_eventPropertyManager.Properties.Count > 0)
+        try
         {
-            // Set preferred event property
-            var preferredProperty = _eventPropertyManager.GetPreferredProperty(new Func<PropertyDisplayInfo, bool>[]
-            {
-                p => p.Name.StartsWith("Target", StringComparison.OrdinalIgnoreCase)
-            });
+            await _eventPropertyManager.UpdatePropertiesAsync(SelectedNamespace, EventQueryBuilder.EventClass);
 
-            if (preferredProperty != null)
+            if (_eventPropertyManager.Properties.Count > 0)
             {
-                EventQueryBuilder.EventProperty = preferredProperty;
+                // Set preferred event property
+                var preferredProperty = _eventPropertyManager.GetPreferredProperty(new Func<PropertyDisplayInfo, bool>[]
+                {
+                    p => p.Name.StartsWith("Target", StringComparison.OrdinalIgnoreCase)
+                });
+
+                if (preferredProperty != null)
+                {
+                    EventQueryBuilder.EventProperty = preferredProperty;
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to update event properties for class: {EventClass}",
+                EventQueryBuilder.EventClass ?? "Unknown");
         }
     }
 
@@ -448,21 +478,30 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     private async Task UpdateTargetClassPropertiesAsync()
     {
-        await _targetPropertyManager.UpdatePropertiesAsync(SelectedNamespace, EventQueryBuilder.EventTargetClass);
+        try
+        {
+            await _targetPropertyManager.UpdatePropertiesAsync(SelectedNamespace, EventQueryBuilder.EventTargetClass);
 
-        if (_targetPropertyManager.Properties.Count > 0)
-        {            // Set preferred target class property
-            var preferredProperty = _targetPropertyManager.GetPreferredProperty(new Func<PropertyDisplayInfo, bool>[]
+            if (_targetPropertyManager.Properties.Count > 0)
             {
-                p => p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase),
-                p => p.Name.EndsWith("Name", StringComparison.OrdinalIgnoreCase),
-                p => p.Name.Contains("Display", StringComparison.OrdinalIgnoreCase)
-            });
+                // Set preferred target class property
+                var preferredProperty = _targetPropertyManager.GetPreferredProperty(new Func<PropertyDisplayInfo, bool>[]
+                {
+                    p => p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase),
+                    p => p.Name.EndsWith("Name", StringComparison.OrdinalIgnoreCase),
+                    p => p.Name.Contains("Display", StringComparison.OrdinalIgnoreCase)
+                });
 
-            if (preferredProperty != null)
-            {
-                EventQueryBuilder.EventTargetClassProperty = preferredProperty;
+                if (preferredProperty != null)
+                {
+                    EventQueryBuilder.EventTargetClassProperty = preferredProperty;
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to update target class properties for class: {EventTargetClass}",
+                EventQueryBuilder.EventTargetClass ?? "Unknown");
         }
     }
 }

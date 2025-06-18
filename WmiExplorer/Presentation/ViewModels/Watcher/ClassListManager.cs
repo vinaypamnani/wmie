@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Data;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
@@ -202,7 +203,7 @@ public class ClassListManager : DisposableObservableObject
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ClassListManager] Cache error: {ex.Message}");
+                    Log.Warning(ex, "Cache error while loading classes for namespace {Namespace}", selectedNamespace.NamespacePath);
                 }
             }
         }

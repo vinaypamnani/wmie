@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Windows.Data;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
 
 namespace WmiExplorer.Presentation.ViewModels.Watcher;
@@ -81,7 +82,7 @@ public partial class EventManager : DisposableObservableObject
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EventManager] Error disposing WmiEvent: {ex.Message}");
+                Log.Warning(ex, "Error disposing WmiEvent during cleanup");
             }
         }
 
@@ -103,7 +104,7 @@ public partial class EventManager : DisposableObservableObject
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EventManager] Error disposing WmiEvent: {ex.Message}");
+                Log.Warning(ex, "Error disposing WmiEvent during clear operation");
             }
         }
         _events.Clear();

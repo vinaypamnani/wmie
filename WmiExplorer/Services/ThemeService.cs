@@ -5,6 +5,7 @@ using Application = System.Windows.Application;
 using System.Windows.Media;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.Themes;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Services;
 
@@ -146,12 +147,12 @@ public class ThemeService : IThemeService
             ApplyTheme(_currentThemeName);
 
             // Log initialization
-            System.Diagnostics.Debug.WriteLine($"[ThemeService] Theme initialized: {_currentThemeName}");
+            Log.Debug("Theme initialized: {ThemeName}", _currentThemeName);
         }
         catch (Exception ex)
         {
             // Fallback to Dark theme if there's an error
-            System.Diagnostics.Debug.WriteLine($"[ThemeService] Error initializing theme: {ex.Message}");
+            Log.Error(ex, "Error initializing theme {ThemeName}, falling back to Dark theme", _currentThemeName);
             ApplyTheme(ThemeCollection.DarkTheme.ThemeName);
         }
     }

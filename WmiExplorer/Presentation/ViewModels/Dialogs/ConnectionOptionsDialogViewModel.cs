@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using WmiExplorer.Common.Logging;
 using System.Collections.ObjectModel;
 using System.Management;
 using System.Security;
@@ -203,7 +204,7 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ConnectionOptionsDialog] Error creating connection options: {ex.Message}");
+            Log.Error(ex, "Error creating connection options in ConnectionOptionsDialogViewModel");
             MessageBox.Show($"Error creating connection options: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }

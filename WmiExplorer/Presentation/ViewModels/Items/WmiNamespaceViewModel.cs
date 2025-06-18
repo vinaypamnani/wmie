@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -298,11 +299,13 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
         catch (OperationCanceledException)
         {
+            Log.Warning("Loading child namespaces for {NamespacePath} was canceled", NamespacePath);
             NamespaceLoadState = NamespaceLoadState.Failed;
             PublishErrorState($"Loading {NamespacePath} was canceled");
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Error loading child namespaces for {NamespacePath}", NamespacePath);
             NamespaceLoadState = NamespaceLoadState.Failed;
             PublishErrorState($"Error loading {NamespacePath}: {ex.Message}", ex);
         }
@@ -366,11 +369,13 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
         catch (OperationCanceledException)
         {
+            Log.Warning("Loading classes for {NamespacePath} was canceled", NamespacePath);
             ClassLoadState = ClassLoadState.Failed;
             PublishErrorState($"Loading classes for {NamespacePath} was canceled");
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Error loading classes for {NamespacePath}", NamespacePath);
             ClassLoadState = ClassLoadState.Failed;
             PublishErrorState($"Error loading classes for {NamespacePath}: {ex.Message}", ex);
         }

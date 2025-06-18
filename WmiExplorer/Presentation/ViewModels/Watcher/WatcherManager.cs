@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
 
@@ -86,7 +87,7 @@ public class WatcherManager : DisposableObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WatcherManager] Failed to add watcher: {ex.Message}");
+            Log.Error(ex, "Failed to add watcher for event class {EventClass} with query {Query}", eventClass, query);
             return false;
         }
     }

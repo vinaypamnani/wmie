@@ -1,4 +1,6 @@
 using System.Management;
+using SQLitePCL;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Presentation.ViewModels.Helpers;
 
@@ -21,7 +23,7 @@ public static class WmiObjectFactory
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Cleaning parameter object");
+            Log.Debug("Cleaning parameter object properties for: {ClassName}", source.ClassPath?.ClassName ?? "Unknown");
 
             // Process properties: convert "<null>" back to null and identify meaningful values
             int meaningfulPropertyCount = 0;
@@ -35,22 +37,22 @@ public static class WmiObjectFactory
                     // Check if this property has a meaningful value (this handles null conversion internally)
                     if (HasMeaningfulValue(prop))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Meaningful parameter property: {prop.Name} = {prop.Value}");
+                        Log.Debug("Meaningful value found for property {PropertyName}: {Value}", prop.Name, prop.Value);
                         meaningfulPropertyCount++;
                     }
                 }
                 catch (Exception propEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Error processing property {prop.Name}: {propEx.Message}");
+                    Log.Error(propEx, "Error processing property {PropertyName} in WMI object {ClassName}", prop.Name, source.ClassPath?.ClassName ?? "Unknown");
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Parameter object has {meaningfulPropertyCount} meaningful properties");
+            Log.Debug("Parameter object {ClassName} has {Count} meaningful properties after cleaning.", source.ClassPath?.ClassName ?? "Unknown", meaningfulPropertyCount);
             return source;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Error cleaning parameter object: {ex.Message}");
+            Log.Error(ex, "Failed to clean parameter object for class: {ClassName}", source.ClassPath?.ClassName ?? "Unknown");
             return source; // Return as-is if cleaning fails
         }
     }
@@ -66,7 +68,7 @@ public static class WmiObjectFactory
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Creating template object for {className}");
+            Log.Debug("Creating template object for WMI class: {ClassName}", className);
 
             var classPath = new ManagementPath($"{scope.Path.Path}:{className}");
             var managementClass = new ManagementClass(scope, classPath, null);
@@ -75,20 +77,18 @@ public static class WmiObjectFactory
             try
             {
                 var instance = managementClass.CreateInstance();
-                System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Created actual instance for {className}");
+                Log.Debug("Created actual instance for WMI class: {ClassName}", className);
                 return instance;
             }
             catch (Exception createEx)
             {
-                System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] CreateInstance failed for {className}: {createEx.Message}");
-
-                // Fallback: create a manual template object
+                Log.Warning(createEx, "CreateInstance failed for WMI class: {ClassName}. Falling back to manual template creation.", className);
                 return CreateManualTemplateObject(className, managementClass);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Error creating template object for {className}: {ex.Message}");
+            Log.Error(ex, "Failed to create template object for WMI class: {ClassName}", className);
             throw new InvalidOperationException($"Failed to create template object for class '{className}': {ex.Message}", ex);
         }
     }
@@ -114,11 +114,11 @@ public static class WmiObjectFactory
             }
             catch (Exception propEx)
             {
-                System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Error copying property '{classProperty.Name}': {propEx.Message}");
+                Log.Warning(propEx, "Error copying property '{PropertyName}' for WMI class '{ClassName}'", classProperty.Name, className);
             }
         }
 
-        System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Created manual template object for {className} with {templateObject.Properties.Count} properties");
+        Log.Debug("Created manual template object for WMI class: {ClassName} with {PropertyCount} properties", className, templateObject.Properties.Count);
         return templateObject;
     }
 
@@ -138,7 +138,7 @@ public static class WmiObjectFactory
             if (strValue.Trim() == "<null>" || strValue.Trim() == "null")
             {
                 prop.Value = null;
-                System.Diagnostics.Debug.WriteLine($"[WmiObjectFactory] Converted '<null>' back to null for property {prop.Name}");
+                Log.Debug("Converted '<null>' back to null for property {PropertyName}", prop.Name);
                 return false; // null values are not meaningful for parameters
             }
 

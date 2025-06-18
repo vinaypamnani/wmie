@@ -77,6 +77,15 @@ public partial class OptionsViewModel : MessagingViewModelBase
     public Theme CurrentTheme => _themeService.CurrentTheme!;
 
     /// <summary>
+    /// Command to connect to a WMI namespace
+    /// </summary>
+    [RelayCommand]
+    private async Task ConnectAsync()
+    {
+        await _namespacesViewModel.ConnectAsync(ComputerName.Trim(), ConnectionOptions);
+    }
+
+    /// <summary>
     /// Command to connect to a WMI namespace with custom connection options
     /// </summary>
     [RelayCommand]
@@ -101,15 +110,6 @@ public partial class OptionsViewModel : MessagingViewModelBase
             // Connect using the new connection options and computer name
             await _namespacesViewModel.ConnectAsync(ComputerName.Trim(), ConnectionOptions);
         }
-    }
-
-    /// <summary>
-    /// Command to connect to a WMI namespace
-    /// </summary>
-    [RelayCommand]
-    private async Task ConnectAsync()
-    {
-        await _namespacesViewModel.ConnectAsync(ComputerName.Trim(), ConnectionOptions);
     }
 
     /// <summary>
@@ -148,7 +148,6 @@ public partial class OptionsViewModel : MessagingViewModelBase
             // Publish the message to notify other components
             PublishMessage(new ClassEnumFilterChangedMessage(newValue));
 
-            System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter flag cleared, new value: {newValue}");
             return;
         }
         else if ((int)value > 0 && (int)value <= (int)WmiClassEnumerationFlags.All)
@@ -168,7 +167,6 @@ public partial class OptionsViewModel : MessagingViewModelBase
                 // Publish the message to notify other components
                 PublishMessage(new ClassEnumFilterChangedMessage(newValue));
 
-                System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter flag set, new value: {newValue}");
                 return;
             }
         }        // Only update the service if the value is different
@@ -179,8 +177,6 @@ public partial class OptionsViewModel : MessagingViewModelBase
 
             // Publish the message ourselves to notify other components
             PublishMessage(new ClassEnumFilterChangedMessage(newValue));
-
-            System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter updated to: {newValue}");
         }
     }
 

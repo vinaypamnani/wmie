@@ -166,6 +166,15 @@ public static class Log
         => _logger.Warning(messageTemplate, propertyValues);
 
     /// <summary>
+    /// Log warnings with exception
+    /// </summary>
+    /// <param name="exception">The exception that occurred</param>
+    /// <param name="messageTemplate">Message template</param>
+    /// <param name="propertyValues">Values for the message template</param>
+    public static void Warning(Exception exception, string messageTemplate, params object[] propertyValues)
+        => _logger.Warning(exception, messageTemplate, propertyValues);
+
+    /// <summary>
     /// Internal method called by the InMemoryLogSink to raise the LogEntryAdded event
     /// </summary>
     /// <param name="entry">The log entry that was added</param>

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
@@ -124,7 +125,7 @@ public class PropertyListManager : DisposableObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[PropertyListManager] Cache error: {ex.Message}");
+            Log.Warning(ex, "Cache error while loading properties for class {Class} in namespace {Namespace}", className, selectedNamespace.NamespacePath);
             return Enumerable.Empty<PropertyDisplayInfo>();
         }
     }

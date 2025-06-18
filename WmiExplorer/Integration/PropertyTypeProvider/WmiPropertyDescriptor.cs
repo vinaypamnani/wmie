@@ -1,4 +1,5 @@
 using System.Management;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.PropertyGrid.Abstractions;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
@@ -87,7 +88,6 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     {
         if (_isReadOnly || _source == null)
         {
-            // System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] SetValue rejected for {Name}: IsReadOnly={_isReadOnly}, Source=null={_source == null}");
             return false;
         }
 
@@ -96,18 +96,14 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             // Convert value to appropriate type if needed
             var convertedValue = ConvertValueToPropertyType(value, _propertyData.Type, _propertyData.IsArray);
 
-            //System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Setting property {Name} from {_propertyData.Value} to {convertedValue}");
-
             // Set the value on the property
             _propertyData.Value = convertedValue;
-
-            // System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {Name} successfully set to: {_propertyData.Value}");
 
             return true;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error setting property value: {ex.Message}");
+            Log.Warning($"Failed to set value for property '{_propertyData.Name}' on {_source.ClassPath?.ClassName}: {ex.Message}");
             return false;
         }
     }
@@ -164,7 +160,6 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         var writeQualifier = GetQualifierFromClassOrInstance("write");
         if (writeQualifier is bool writeBool)
         {
-            //System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {_propertyData.Name} write qualifier: {writeBool}");
             return !writeBool; // If write=true, then not read-only
         }
 
@@ -172,12 +167,10 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         var readOnlyQualifier = GetQualifierFromClassOrInstance("read");
         if (readOnlyQualifier is bool readBool && readBool)
         {
-            //System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {_propertyData.Name} is read-only due to read=true qualifier");
             return true;
         }
 
         // Default: For regular WMI instances without explicit qualifiers, properties are generally read-only
-        // System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Property {_propertyData.Name} is read-only (no write qualifier found)");
         return true;
     }
 
@@ -267,7 +260,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         catch (Exception ex)
         {
             // Log any errors but don't let them propagate
-            System.Diagnostics.Debug.WriteLine($"[WmiPropertyDescriptor] Error getting qualifier '{qualifierName}' from class: {ex.Message}");
+            Log.Warning(ex, $"Error getting qualifier '{qualifierName}' from class definition for property '{_propertyData.Name}' in class '{_source.ClassPath?.ClassName ?? "Unknown"}'");
         }
 
         return null;

@@ -251,7 +251,7 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning("Error deserializing setting {Key}: {ErrorMessage}", key, ex.Message);
+                        Log.Warning(ex, "Error deserializing setting {Key}", key);
                     }
                 }
             }

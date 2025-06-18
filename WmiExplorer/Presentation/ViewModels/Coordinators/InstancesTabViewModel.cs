@@ -81,6 +81,5 @@ public partial class InstancesTabViewModel : MessagingViewModelBase
                 }
                 break;
         }
-
     }
 }

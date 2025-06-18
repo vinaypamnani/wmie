@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Management;
 using WmiExplorer.PropertyGrid;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Core.Models;
 
@@ -35,7 +36,7 @@ public class WmiEvent : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiEvent] Embedded instance access error: {ex.Message}");
+            Log.Error(ex, "Error accessing embedded instances in WMI event data");
         }
 
         // Try to use the requested display property, fallback to __RELPATH

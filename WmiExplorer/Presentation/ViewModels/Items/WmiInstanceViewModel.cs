@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Services;
 
@@ -197,6 +198,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Error editing properties for instance: {InstanceName}", InstanceName);
             PublishErrorState($"Error editing instance properties: {ex.Message}", ex);
         }
     }
@@ -232,6 +234,8 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Error showing method execution dialog for instance: {InstanceName}, method: {MethodName}",
+                    InstanceName, method.Name);
                 // Report error
                 PublishErrorState($"Error showing executing method dialog: {ex.Message}", ex);
             }
@@ -274,7 +278,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiInstanceViewModel] Error loading methods for instance {InstanceName}: {ex.Message}");
+            Log.Warning(ex, "Error loading methods for instance: {InstanceName}", InstanceName);
         }
     }
 
@@ -320,8 +324,9 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
             WmiInstance.ActualObject?.Get();
             LoadState = InstanceState.Success;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to load instance data for: {InstanceName}", InstanceName);
             LoadState = InstanceState.Failed;
         }
     }

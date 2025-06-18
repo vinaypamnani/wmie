@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Navigation;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Presentation.Behaviors;
 
@@ -56,8 +57,8 @@ public static class HyperlinkNavigationBehavior
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[HyperlinkNavigationBehavior] Error opening URL: {ex.Message}");
-            // Silently fail - don't show error to user for link clicks
+            // Silently fail - don't show error to user for link clicks but log the error
+            Log.Warning(ex, "Failed to open hyperlink: {Uri}", e.Uri.AbsoluteUri);
         }
     }
 

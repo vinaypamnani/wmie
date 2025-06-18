@@ -134,6 +134,7 @@ public partial class LogTabViewModel : MessagingViewModelBase
         {
             _logEntries.Clear();
         }
+        
         Log.Information("Cleared {Count} log entries", count);
         OnPropertyChanged(nameof(HasLogEntries));
     }

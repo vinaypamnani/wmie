@@ -23,7 +23,6 @@ public class WmiService : IWmiService, IDisposable
     public WmiService(ICacheService cacheService)
     {
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-
         Log.Information("WmiService initialized with operation mode: {OperationMode}", OperationMode);
     }
 
@@ -104,7 +103,7 @@ public class WmiService : IWmiService, IDisposable
         bool directRead, bool useAmendedQualifiers,
         CancellationToken cancellationToken = default)
     {
-        Log.Information("Executing WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
+        Log.Debug("Executing WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
 
         try
         {
@@ -237,6 +236,7 @@ public class WmiService : IWmiService, IDisposable
         catch
         {
             // Ignore errors, return null
+            Log.Debug("Error retrieving WMI provider CLSID for: {ProviderName}", providerName);
         }
         return null;
     }
@@ -389,17 +389,17 @@ public class WmiService : IWmiService, IDisposable
             }
             catch (ManagementException mex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WmiService] WMI ManagementException connecting scope: {mex.Message}");
+                Log.Error(mex, "WMI ManagementException while connecting to scope: {ScopePath}", scope?.Path?.Path ?? "Unknown");
                 throw;
             }
             catch (UnauthorizedAccessException uex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WmiService] WMI UnauthorizedAccessException connecting scope: {uex.Message}");
+                Log.Error(uex, "WMI UnauthorizedAccessException while connecting to scope: {ScopePath}", scope?.Path?.Path ?? "Unknown");
                 throw;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WmiService] WMI Exception connecting scope: {ex.Message}");
+                Log.Error(ex, "WMI Exception while connecting to scope: {ScopePath}", scope?.Path?.Path ?? "Unknown");
                 throw;
             }
         }
@@ -458,7 +458,7 @@ public class WmiService : IWmiService, IDisposable
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI method observer: {ex.Message}");
+                        Log.Warning(ex, "Error canceling WMI method observer");
                     }
                 });
             }
@@ -488,7 +488,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiService] Error executing instance method '{methodName}': {ex.Message}");
+            Log.Error(ex, "Error executing WMI instance method '{MethodName}' on instance", methodName);
             throw;
         }
     }
@@ -546,7 +546,7 @@ public class WmiService : IWmiService, IDisposable
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI static method observer: {ex.Message}");
+                        Log.Warning(ex, "Error canceling WMI static method observer");
                     }
                 });
             }
@@ -576,7 +576,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiService] Error executing static method '{methodName}': {ex.Message}");
+            Log.Error(ex, "Error executing WMI static method '{MethodName}' on class", methodName);
             throw;
         }
     }
@@ -714,7 +714,8 @@ public class WmiService : IWmiService, IDisposable
         _disposables.Add(searcher);
         var result = await PerformWmiOperationAsync(obs => searcher.Get(obs), cancellationToken);
         // Fire-and-forget cache update
-        try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); } catch { /* Ignore cache errors */ }
+        try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); }
+        catch { Log.Warning("Error updating class metadata cache for namespace: {NamespacePath}", scope.Path?.Path ?? "Unknown"); }
         return result;
     }
 
@@ -748,7 +749,8 @@ public class WmiService : IWmiService, IDisposable
         }
 
         // Fire-and-forget cache update
-        try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); } catch { /* Ignore cache errors */ }
+        try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); }
+        catch { Log.Warning("Error updating class metadata cache for namespace: {NamespacePath}", scope.Path?.Path ?? "Unknown"); }
         return result;
     }
 
@@ -805,7 +807,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[WmiService] Error getting the root namespace {namespacePath}: {ex.Message}");
+            Log.Error(ex, "Error getting root namespace: {NamespacePath}", namespacePath);
             throw;
         }
     }
@@ -860,7 +862,7 @@ public class WmiService : IWmiService, IDisposable
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI observer: {ex.Message}");
+                        Log.Warning(ex, "Error canceling WMI observer during initial cancellation check");
                     }
                 });
                 // Don't set as cancelled here - let the Completed event handle it and return partial results
@@ -881,7 +883,7 @@ public class WmiService : IWmiService, IDisposable
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WmiService] Error canceling WMI observer: {ex.Message}");
+                        Log.Warning(ex, "Error canceling WMI observer during cancellation token registration");
                     }
                 });
                 // Don't set as cancelled here - let the Completed event handle it and return partial results
@@ -941,15 +943,14 @@ public class WmiService : IWmiService, IDisposable
                 catch (Exception ex)
                 {
                     // Log the error but continue with other namespaces
-                    System.Diagnostics.Debug.WriteLine($"[WmiService] Error searching in child namespace: {ex.Message}");
-                    // Continue processing other child namespaces
+                    Log.Warning(ex, "Error searching in child namespace during recursive search");
                 }
             }
         }
         catch (Exception ex)
         {
             // Log the error but don't propagate to avoid breaking the entire search
-            System.Diagnostics.Debug.WriteLine($"[WmiService] Error getting child namespaces for recursive search: {ex.Message}");
+            Log.Warning(ex, "Error getting child namespaces for recursive search");
         }
     }
 

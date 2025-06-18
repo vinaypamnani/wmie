@@ -4,6 +4,7 @@ using ICSharpCode.AvalonEdit.Editing;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Integration.AvalonEdit.WqlManager;
 
@@ -246,8 +247,7 @@ public class WqlCompletionData : ICompletionData
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WqlCompletionData] Error initializing icons: {ex.Message}");
-                // Create fallback icons
+                Log.Warning(ex, "Error initializing WQL completion icons");
                 CreateFallbackIcons();
             }
 

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Management;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
 
 namespace WmiExplorer.Presentation.ViewModels.Watcher;
@@ -13,14 +14,15 @@ public partial class WmiEventWatcherViewModel : DisposableObservableObject
 {
     private readonly string _eventDisplayPropertyName;
     private readonly string _eventType;
-    private readonly Action<WmiEvent> _onEventReceived;
-    private readonly Action<WmiEventWatcherViewModel> _onRemove;
-    private readonly WmiEventWatcher _watcher;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopCommand))]
     private bool _isRunning;
+
+    private readonly Action<WmiEvent> _onEventReceived;
+    private readonly Action<WmiEventWatcherViewModel> _onRemove;
+    private readonly WmiEventWatcher _watcher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiEventWatcherViewModel"/> class.
@@ -114,10 +116,11 @@ public partial class WmiEventWatcherViewModel : DisposableObservableObject
         {
             _watcher.Start();
             IsRunning = true;
+            Log.Debug("Watcher started successfully: {WatcherName} with query: {Query}", Name, Query);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Optionally log or handle error
+            Log.Error(ex, "Failed to start watcher: {WatcherName} with query: {Query}", Name, Query);
         }
     }
 
@@ -136,10 +139,11 @@ public partial class WmiEventWatcherViewModel : DisposableObservableObject
         {
             _watcher.Stop();
             IsRunning = false;
+            Log.Debug("Watcher stopped successfully: {WatcherName} with query: {Query}", Name, Query);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Optionally log or handle error
+            Log.Error(ex, "Failed to stop watcher: {WatcherName} with query: {Query}", Name, Query);
         }
     }
 

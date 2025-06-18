@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
@@ -95,12 +96,11 @@ public partial class WmiParameterViewModel : DisposableObservableObject
             var window = System.Windows.Application.Current.MainWindow;
 
             // Show the PropertyEditorDialog
-            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, _parameterObject, $"Edit {TargetClassName}");
-            if (result != null)
+            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, _parameterObject, $"Edit {TargetClassName}"); if (result != null)
             {
                 // Clean the object using the factory and update the parameter value
                 Value = WmiObjectFactory.CleanParameterObject((ManagementObject)result);
-                System.Diagnostics.Debug.WriteLine($"[WmiParameterViewModel] Updated parameter {Name} with edited (clean) object");
+                Log.Debug("Updated parameter {ParameterName} with edited (clean) object", Name ?? "Unknown");
             }
         }
     }
@@ -188,20 +188,18 @@ public partial class WmiParameterViewModel : DisposableObservableObject
         try
         {
             var className = TargetClassName;
-            _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
-
-            // Update the parameter value to reference the created object
+            _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);            // Update the parameter value to reference the created object
             if (_parameterObject != null)
             {
                 Value = _parameterObject;
                 UpdateObjectDisplayText(); // Update display text to show "configured"
-                System.Diagnostics.Debug.WriteLine($"[WmiParameterViewModel] Parameter object initialized for {className} with {_parameterObject.Properties.Count} properties");
+                Log.Debug("Parameter object initialized for {ClassName} with {PropertyCount} properties", className, _parameterObject.Properties.Count);
             }
         }
         catch (Exception ex)
         {
             ObjectDisplayText = $"Error initializing {TargetClassName} object: {ex.Message}";
-            System.Diagnostics.Debug.WriteLine($"[WmiParameterViewModel] Error initializing parameter object: {ex.Message}");
+            Log.Error(ex, "Error initializing parameter object for {ClassName}", TargetClassName ?? "Unknown");
         }
     }
 
@@ -252,7 +250,7 @@ public partial class WmiParameterViewModel : DisposableObservableObject
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WmiParameterViewModel] Error processing reference instance: {ex.Message}");
+                    Log.Warning(ex, "Error processing reference instance for parameter {ParameterName}", Name ?? "Unknown");
                 }
             }
 
@@ -271,12 +269,12 @@ public partial class WmiParameterViewModel : DisposableObservableObject
         catch (OperationCanceledException)
         {
             ReferenceLoadState = ReferenceValueLoadState.Cancelled;
-            System.Diagnostics.Debug.WriteLine("[WmiParameterViewModel] Reference value loading cancelled.");
+            Log.Warning("Reference value loading cancelled for parameter {ParameterName}", Name ?? "Unknown");
         }
         catch (Exception ex)
         {
             ReferenceLoadState = ReferenceValueLoadState.Error;
-            System.Diagnostics.Debug.WriteLine($"[WmiParameterViewModel] Error loading reference values: {ex.Message}");
+            Log.Error(ex, "Error loading reference values for parameter {ParameterName}", Name ?? "Unknown");
         }
     }
 

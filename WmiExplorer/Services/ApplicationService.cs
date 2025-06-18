@@ -1,4 +1,5 @@
 using System.Windows;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Services;
 
@@ -22,7 +23,7 @@ public class ApplicationService : IApplicationService
         catch (Exception ex)
         {
             // Log or handle the exception as needed
-            System.Diagnostics.Debug.WriteLine($"[ApplicationService] Error copying to clipboard: {ex.Message}");
+            Log.Warning(ex, "Error copying text '{Text}' to clipboard", text.Length > 50 ? text.Substring(0, 50) + "..." : text);
         }
     }
 }

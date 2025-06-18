@@ -140,7 +140,7 @@ public class CallerEnricher : ILogEventEnricher
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CallerEnricher] Error getting caller from stack trace: {ex.Message}");
+            Debug.WriteLine($"[CallerEnricher] Error getting caller from stack trace: {ex.Message}");
             return "Unknown";
         }
     }

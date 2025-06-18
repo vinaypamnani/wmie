@@ -38,12 +38,12 @@ public partial class App : Application
                 field?.SetValue(null, false);
 
                 ifLeft = SystemParameters.MenuDropAlignment;
-                Debug.WriteLine($"[SetMenuDropAlignment] MenuDropAlignment set to {ifLeft}");
+                Log.Debug($"MenuDropAlignment set to {ifLeft}");
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[SetMenuDropAlignment] Error setting MenuDropAlignment: {ex.Message}");
+            Log.Error(ex, "Error setting MenuDropAlignment");
         }
     }
 

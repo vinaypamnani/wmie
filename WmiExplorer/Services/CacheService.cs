@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using System.IO;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Cache;
 
 namespace WmiExplorer.Services;
@@ -63,7 +64,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CacheService] Error getting namespace cache for '{namespacePath}': {ex}");
+            Log.Error(ex, "CacheService error getting namespace cache for {NamespacePath}", namespacePath);
             return null;
         }
     }
@@ -179,7 +180,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CacheService] Error loading cache: {ex}");
+            Log.Error(ex, "Error loading cache from {CacheFilePath}", CacheFilePath);
             lock (_lock) { _memoryCache = new Dictionary<string, WmiNamespaceCache>(StringComparer.OrdinalIgnoreCase); }
             return _memoryCache.Values.ToList();
         }
@@ -228,7 +229,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CacheService] Error updating namespace cache for '{namespaceCache.NamespacePath}': {ex}");
+            Log.Error(ex, "Error updating namespace cache for {NamespacePath}", namespaceCache.NamespacePath);
         }
     }
 
@@ -305,11 +306,11 @@ public class CacheService : ICacheService
             if (!exists || dbVersion != CurrentSchemaVersion)
             {
                 recreate = true;
-                System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version mismatch: expected {CurrentSchemaVersion}, found {dbVersion}. Recreating database.");
+                Log.Debug("Schema version mismatch: expected {ExpectedVersion}, found {FoundVersion}. Recreating database.", CurrentSchemaVersion, dbVersion);
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[CacheService] Schema version is up-to-date: {dbVersion}.");
+                Log.Debug("Schema version is up-to-date: {Version}.", dbVersion);
             }
         }
         catch
@@ -342,18 +343,18 @@ public class CacheService : ICacheService
                     try
                     {
                         File.Delete(CacheFilePath);
-                        System.Diagnostics.Debug.WriteLine("[CacheService] Cache.db deleted successfully.");
+                        Log.Debug("Cache.db deleted successfully.");
                         deleted = true;
                         break;
                     }
                     catch (IOException ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[CacheService] Attempt {i + 1}/5 to delete Cache.db failed (file in use): {ex.Message}");
+                        Log.Warning(ex, "Cache.db could not be deleted, retry attempt [{Attempt}/5]...", i + 1);
                         System.Threading.Thread.Sleep(500); // Increased wait time
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[CacheService] Attempt {i + 1}/5 to delete Cache.db failed: {ex.Message}");
+                        Log.Warning(ex, "Cache.db could not be deleted, retry attempt [{Attempt}/5]...", i + 1);
                         System.Threading.Thread.Sleep(300); // Increased wait time
                     }
                 }
@@ -362,7 +363,7 @@ public class CacheService : ICacheService
                 {
                     // If we couldn't delete after retries, log the warning but continue
                     // We'll overwrite the file when creating the new database
-                    System.Diagnostics.Debug.WriteLine("[CacheService] Warning: Could not delete Cache.db after multiple attempts.");
+                    Log.Warning("Cache.db could not be deleted after multiple attempts. It may be in use by another process.");
                 }
                 else
                 {
@@ -467,13 +468,13 @@ public class CacheService : ICacheService
                 }
                 catch (Exception exVacuum)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CacheService] Error running VACUUM: {exVacuum}");
+                    Log.Error(exVacuum, "Error running VACUUM after pruning expired cache");
                 }
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CacheService] Error pruning expired cache: {ex}");
+            Log.Error(ex, "Error pruning expired cache");
         }
     }
 
@@ -491,7 +492,7 @@ public class CacheService : ICacheService
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CacheService] Error in background pruning: {ex}");
+                Log.Error(ex, "Error in background pruning of expired cache entries");
             }
         });
     }

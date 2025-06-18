@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Management;
 using System.Windows;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 
@@ -68,7 +69,7 @@ public partial class PropertyEditorDialogViewModel : ObservableObject
         catch (Exception ex)
         {
             // Could show error message to user
-            System.Diagnostics.Debug.WriteLine($"[PropertyEditorDialog] Error getting result: {ex.Message}");
+            Log.Error(ex, "Error processing properties in PropertyEditorDialog");
             MessageBox.Show($"Error processing properties: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }

@@ -4,6 +4,7 @@ using System.Windows.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Helpers;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -150,11 +151,15 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         // Only clear the stored state for the current search type
         if (!_searchTypeStates.ContainsKey(SearchType))
             _searchTypeStates[SearchType] = new SearchTypeState();
+
         _searchTypeStates[SearchType].Results.Clear();
         _searchTypeStates[SearchType].SearchQuery = string.Empty;
+
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
+
         using var timer = OperationTimer.Start($"Searching for {SearchType.ToString().ToLower()}s: {SearchQuery}", _messengerService);
+
         try
         {
             if (SelectedNamespace == null)
@@ -189,10 +194,12 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         }
         catch (OperationCanceledException)
         {
+            Log.Warning("WMI search cancelled: SearchType={SearchType}, SearchQuery={SearchQuery}", SearchType, SearchQuery);
             PublishWarningState("Search cancelled.");
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "WMI search execution failed: SearchType={SearchType}, SearchQuery={SearchQuery}", SearchType, SearchQuery);
             PublishErrorState($"Search failed: {ex.Message}");
         }
         finally

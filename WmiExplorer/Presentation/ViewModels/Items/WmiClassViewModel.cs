@@ -2,10 +2,10 @@
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
@@ -155,6 +155,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Error requesting cancellation for class: {ClassName}", ClassName);
             PublishErrorState($"Error requesting cancellation for {ClassName}: {ex.Message}", ex);
         }
     }
@@ -195,6 +196,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Error showing method execution dialog for class: {ClassName}, method: {MethodName}",
+                    ClassName, method.Name);
                 // Report error
                 PublishErrorState($"Error showing executing method dialog: {ex.Message}", ex);
             }
@@ -258,7 +261,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[WmiClassViewModel] Error loading methods for class {ClassName}: {ex.Message}");
+            Log.Warning(ex, "Error loading methods for class: {ClassName}", ClassName);
         }
     }
 
@@ -325,23 +328,30 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             LoadState = InstanceLoadState.Warning;
             if (ex.Message.Contains("timed out"))
             {
+                Log.Warning(ex, "Loading instances for class {ClassName} timed out, showing {PartialCount} partial results",
+                    ClassName, _instances.Count);
                 // Synchronous operation timed out
                 PublishWarningState($"Loading instances for {ClassName} timed out - this may indicate a very large result set. Consider switching to asynchronous mode for better cancellation support. Showing {_instances.Count} partial results");
             }
             else
             {
+                Log.Warning(ex, "Loading instances for class {ClassName} was cancelled, showing {PartialCount} partial results",
+                    ClassName, _instances.Count);
                 // Regular cancellation
                 PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
             }
         }
         catch (ManagementException ex) when (ex.ErrorCode == ManagementStatus.CallCanceled || ex.ErrorCode == ManagementStatus.OperationCanceled)
         {
+            Log.Warning(ex, "WMI loading instances for class {ClassName} was cancelled (ErrorCode: {ErrorCode}), showing {PartialCount} partial results",
+                ClassName, ex.ErrorCode, _instances.Count);
             // Handle WMI cancellation errors - show partial results that we already loaded
             LoadState = InstanceLoadState.Warning;
             PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Error loading instances for class: {ClassName}", ClassName);
             LoadState = InstanceLoadState.Failed;
             PublishErrorState($"Error loading instances for {ClassName}: {ex.Message}", ex);
         }

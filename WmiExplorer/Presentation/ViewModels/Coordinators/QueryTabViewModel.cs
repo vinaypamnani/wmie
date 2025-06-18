@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -171,7 +172,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
                 catch (Exception ex)
                 {
                     // Log and skip invalid objects
-                    System.Diagnostics.Debug.WriteLine($"[QueryTabViewModel] Error converting ManagementObject to WmiInstance: {ex.Message}");
+                    Log.Warning(ex, "Error converting ManagementObject to WmiInstance, skipping object");
                 }
             }
 
@@ -196,10 +197,12 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         }
         catch (OperationCanceledException)
         {
+            Log.Warning("Query cancelled. Found {Count} results before cancellation.", _results.Count);
             PublishWarningState($"Query cancelled. Found {_results.Count} results before cancellation.");
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "WMI query execution failed: {QueryText}", QueryText);
             PublishErrorState($"Query failed: {ex.Message}");
         }
         finally

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -155,6 +156,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Error connecting to WMI namespace: {ComputerOrNamespacePath}", computerOrNamespacePath);
             PublishErrorState($"Error connecting to {computerOrNamespacePath}: {ex.Message}", ex);
         }
     }
@@ -246,12 +248,11 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     private async Task JumpToClass(JumpToClassMessage message)
     {
         if (message == null)
-            return;
-
-        try
+            return; try
         {
             // Debug logging for incoming message
-            System.Diagnostics.Debug.WriteLine($"[NamespacesViewModel] Received JumpToClassMessage: NamespacePath='{message.NamespacePath}', ClassName='{message.ClassName}'");
+            Log.Debug("Received JumpToClassMessage: NamespacePath='{NamespacePath}', ClassName='{ClassName}'",
+                message.NamespacePath, message.ClassName);
 
             // Find or expand the namespace path recursively
             var nsVm = await FindOrExpandNamespaceAsync(message.NamespacePath);
@@ -287,6 +288,8 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Jump to class failed: NamespacePath='{NamespacePath}', ClassName='{ClassName}'",
+                message.NamespacePath, message.ClassName);
             PublishErrorState($"Jump to class failed: {ex.Message}", ex);
         }
     }
