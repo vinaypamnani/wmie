@@ -365,21 +365,23 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             });
 
             ClassLoadState = ClassLoadState.Success;
-            PublishSuccessState($"Loaded {ClassesView.Cast<object>().Count()} classes for {NamespacePath}");
 
             // Publish message that classes are loaded
             PublishMessage(new ClassesLoadedMessage(this));
+
+            // Publish message that classes are filtered to update status bar
+            PublishMessage(new ClassesFilteredMessage(this));
         }
         catch (OperationCanceledException)
         {
+            ClassLoadState = ClassLoadState.Warning;
             Log.Warning("Loading classes for {NamespacePath} was canceled", NamespacePath);
-            ClassLoadState = ClassLoadState.Failed;
             PublishErrorState($"Loading classes for {NamespacePath} was canceled");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error loading classes for {NamespacePath}", NamespacePath);
             ClassLoadState = ClassLoadState.Failed;
+            Log.Error(ex, "Error loading classes for {NamespacePath}", NamespacePath);
             PublishErrorState($"Error loading classes for {NamespacePath}: {ex.Message}", ex);
         }
     }

@@ -73,7 +73,9 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         StrongSubscribe<ClassesLoadedMessage>(HandleClassesLoadedMessage);
 
         // Wire up cross-manager dependencies
-        SetupManagerInteractions();        // Subscribe to builder property changes for UI sync and command state updates
+        SetupManagerInteractions();
+
+        // Subscribe to builder property changes for UI sync and command state updates
         _eventQueryBuilder.PropertyChanged += EventQueryBuilder_PropertyChanged;
 
         // Subscribe to events collection changes to update HasEvents property
