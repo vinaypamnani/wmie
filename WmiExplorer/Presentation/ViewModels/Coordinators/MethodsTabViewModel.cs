@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
@@ -18,6 +20,8 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
 
     [ObservableProperty]
     private string _helpText = "Select a class to view methods";
+
+    private FilterHelper<WmiMethod>? _methodFilterHelper;
 
     [ObservableProperty]
     private string _methodFilterText = string.Empty;
@@ -54,6 +58,11 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Gets the filtered view of methods for the selected class.
+    /// </summary>
+    public ICollectionView? FilteredMethodsView => _methodFilterHelper?.CollectionView;
+
+    /// <summary>
     /// Cleanup resources on disposal
     /// </summary>
     protected override void Dispose(bool disposing)
@@ -62,6 +71,7 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
         {
             _cts.Cancel();
             _cts.Dispose();
+            _methodFilterHelper?.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -105,12 +115,57 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Filter predicate for methods based on name and description
+    /// </summary>
+    private bool MethodFilterPredicate(WmiMethod method, string filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter))
+            return true;
+
+        return method.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
+               method.Description.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    /// <summary>
+    /// Called when the MethodFilterText changes
+    /// </summary>
+    partial void OnMethodFilterTextChanged(string value)
+    {
+        if (_methodFilterHelper != null)
+        {
+            _methodFilterHelper.FilterText = value;
+        }
+    }
+
+    /// <summary>
     /// Called when the selected class changes to reset the selected method
     /// </summary>
     partial void OnSelectedClassChanged(WmiClassViewModel? oldValue, WmiClassViewModel? newValue)
     {
         // Reset selected method when class changes
         SelectedMethod = null;
+
+        // Dispose of the old filter helper
+        _methodFilterHelper?.Dispose();
+        _methodFilterHelper = null;
+
+        // Create new filter helper if we have methods
+        if (newValue?.Methods != null)
+        {
+            _methodFilterHelper = new FilterHelper<WmiMethod>(
+                newValue.Methods,
+                MethodFilterPredicate
+            );
+
+            // Apply current filter text if any
+            if (!string.IsNullOrWhiteSpace(MethodFilterText))
+            {
+                _methodFilterHelper.FilterText = MethodFilterText;
+            }
+        }
+
+        // Notify UI that FilteredMethodsView has changed
+        OnPropertyChanged(nameof(FilteredMethodsView));
 
         // Update help text based on class selection
         UpdateHelpText();

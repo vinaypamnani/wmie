@@ -34,14 +34,13 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-
                 <!--  Methods DataGrid  -->
                 <DataGrid x:Name="MethodsDataGrid"
                           Grid.Row="0"
                           behaviors:ForceItemSelectionBehavior.EnableForceSelection="True"
                           CellStyle="{StaticResource ModernDataGridCellStyle}"
                           ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
-                          ItemsSource="{Binding SelectedClass.Methods}"
+                          ItemsSource="{Binding FilteredMethodsView}"
                           RowStyle="{StaticResource ModernDataGridRowStyle}"
                           SelectedItem="{Binding SelectedMethod}"
                           Style="{StaticResource ModernDataGridStyle}">
