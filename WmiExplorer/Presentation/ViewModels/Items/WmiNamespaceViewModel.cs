@@ -51,6 +51,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private bool _isSelected;
 
     private bool _isUpdatingSelection = false;
+
     private ManagementScope? _managementScope;
 
     [ObservableProperty]
@@ -158,6 +159,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 var options = _wmiNamespace.ConnectionOptions;
                 var scopePath = _wmiNamespace.NamespacePath;
                 _managementScope = _wmiService.CreateManagementScope(scopePath, options);
+                _wmiNamespace.IsConnected = true;
             }
             return _managementScope;
         }

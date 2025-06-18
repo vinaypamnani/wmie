@@ -41,6 +41,9 @@ public class WmiNamespace
     [Category("Namespace")]
     public ConnectionOptions ConnectionOptions { get; }
 
+    [Category("Scope")]
+    public bool IsConnected { get; set; } = false;
+
     /// <summary>
     /// Indicates whether this namespace is the root namespace (if ConnectionOptions is specified)
     /// </summary>
@@ -52,8 +55,8 @@ public class WmiNamespace
     /// </summary>
     [Category("Namespace")]
     public string NamespaceName =>
-                    string.IsNullOrEmpty(NamespacePath) ? string.Empty :
-                    NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
+                                string.IsNullOrEmpty(NamespacePath) ? string.Empty :
+                                NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
 
     /// <summary>
     /// The path of the namespace (e.g., "root\\cimv2")
