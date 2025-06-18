@@ -56,10 +56,10 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
             _settingsProperties.Count, _filePath);
     }
 
-    [Setting(WmiClassTypeFlags.None)]
-    public WmiClassTypeFlags ClassTypeFilter
+    [Setting(WmiClassEnumerationFlags.None)]
+    public WmiClassEnumerationFlags ClassEnumerationFilter
     {
-        get => GetValue<WmiClassTypeFlags>();
+        get => GetValue<WmiClassEnumerationFlags>();
         set => SetValue(value);
     }
 

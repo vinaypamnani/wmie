@@ -173,7 +173,7 @@ public class WmiService : IWmiService, IDisposable
     /// <summary>
     /// Asynchronously gets classes for a given WMI namespace
     /// </summary>
-    public async Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassTypeFlags classTypeFilter = WmiClassTypeFlags.All, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter = WmiClassEnumerationFlags.All, CancellationToken cancellationToken = default)
     {
         EnsureScopeConnected(scope);
         if (OperationMode == WmiOperationMode.Synchronous)
@@ -282,10 +282,10 @@ public class WmiService : IWmiService, IDisposable
     /// <summary>
     /// Builds a WQL query string based on the class type filter
     /// </summary>
-    private string BuildClassQueryFromFilter(WmiClassTypeFlags classTypeFilter)
+    private string BuildClassQueryFromFilter(WmiClassEnumerationFlags classTypeFilter)
     {
         // For All filter, use the simplest possible query
-        if (classTypeFilter == WmiClassTypeFlags.All)
+        if (classTypeFilter == WmiClassEnumerationFlags.All)
             return "SELECT * FROM meta_class";
 
         // Start with a simple base query without the problematic LIKE '%'
@@ -293,13 +293,13 @@ public class WmiService : IWmiService, IDisposable
 
         // Remove System class filtering here; always return system classes
         // Only filter CIM, MSFT, Perf
-        if ((classTypeFilter & WmiClassTypeFlags.CIM) != WmiClassTypeFlags.CIM)
+        if ((classTypeFilter & WmiClassEnumerationFlags.CIM) != WmiClassEnumerationFlags.CIM)
             query += " AND NOT __Class LIKE \"CIM[_]%\"";
 
-        if ((classTypeFilter & WmiClassTypeFlags.MSFT) != WmiClassTypeFlags.MSFT)
+        if ((classTypeFilter & WmiClassEnumerationFlags.MSFT) != WmiClassEnumerationFlags.MSFT)
             query += " AND NOT __Class LIKE \"MSFT[_]%\"";
 
-        if ((classTypeFilter & WmiClassTypeFlags.Perf) != WmiClassTypeFlags.Perf)
+        if ((classTypeFilter & WmiClassEnumerationFlags.Perf) != WmiClassEnumerationFlags.Perf)
             query += " AND NOT __Class LIKE \"Win32_Perf%\"";
 
         return query;
@@ -706,7 +706,7 @@ public class WmiService : IWmiService, IDisposable
         return result;
     }
 
-    private async Task<IEnumerable<ManagementObject>> GetClassesAsyncInternal(ManagementScope scope, WmiClassTypeFlags classTypeFilter, CancellationToken cancellationToken)
+    private async Task<IEnumerable<ManagementObject>> GetClassesAsyncInternal(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter, CancellationToken cancellationToken)
     {
         string queryString = BuildClassQueryFromFilter(classTypeFilter);
         var query = new ObjectQuery(queryString);
@@ -718,7 +718,7 @@ public class WmiService : IWmiService, IDisposable
         return result;
     }
 
-    private IEnumerable<ManagementObject> GetClassesSync(ManagementScope scope, WmiClassTypeFlags classTypeFilter, CancellationToken cancellationToken)
+    private IEnumerable<ManagementObject> GetClassesSync(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var result = new List<ManagementObject>();

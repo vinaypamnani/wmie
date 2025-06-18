@@ -60,7 +60,7 @@ public interface IWmiService
     /// <param name="classTypeFilter">Filter to specify which types of classes to include</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject representing WMI classes</returns>
-    Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassTypeFlags classTypeFilter = WmiClassTypeFlags.All, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter = WmiClassEnumerationFlags.All, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets instances for a given WMI class

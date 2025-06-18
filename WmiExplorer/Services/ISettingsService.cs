@@ -5,7 +5,7 @@ namespace WmiExplorer.Services;
 
 public interface ISettingsService
 {
-    WmiClassTypeFlags ClassTypeFilter { get; set; }
+    WmiClassEnumerationFlags ClassEnumerationFilter { get; set; }
     string CurrentTheme { get; set; }
     MainWindowPosition MainWindowPosition { get; set; }
     bool ShowSystemClasses { get; set; }

@@ -32,14 +32,14 @@ public class ClassesLoadedMessage : MessageBase
 /// <summary>
 /// Message sent when class type filter changes
 /// </summary>
-public class ClassTypeFilterChangedMessage : MessageBase
+public class ClassEnumFilterChangedMessage : MessageBase
 {
-    public ClassTypeFilterChangedMessage(WmiClassTypeFlags classTypeFilter)
+    public ClassEnumFilterChangedMessage(WmiClassEnumerationFlags classTypeFilter)
     {
         ClassTypeFilter = classTypeFilter;
     }
 
-    public WmiClassTypeFlags ClassTypeFilter { get; }
+    public WmiClassEnumerationFlags ClassTypeFilter { get; }
 }
 
 /// <summary>

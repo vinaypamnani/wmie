@@ -4,7 +4,7 @@ namespace WmiExplorer.Common.Enums;
 /// Flags enum to represent different types of WMI classes to include in enumeration
 /// </summary>
 [Flags]
-public enum WmiClassTypeFlags
+public enum WmiClassEnumerationFlags
 {
     None = 0,
     CIM = 2,

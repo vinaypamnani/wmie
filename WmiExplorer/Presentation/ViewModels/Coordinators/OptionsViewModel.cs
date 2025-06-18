@@ -19,7 +19,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
 {
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
-    private WmiClassTypeFlags _classTypeFilter;
+    private WmiClassEnumerationFlags _classTypeFilter;
 
     [ObservableProperty]
     private string _computerName = Environment.MachineName;
@@ -62,7 +62,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
         _operationMode = _wmiService.OperationMode;
 
         // Initialize the class type filter from the settings
-        _classTypeFilter = _settingsService.ClassTypeFilter;
+        _classTypeFilter = _settingsService.ClassEnumerationFilter;
 
         // Subscribe to messages
         StrongSubscribe<ThemeChangedMessage>(HandleThemeChangedMessage);
@@ -122,10 +122,10 @@ public partial class OptionsViewModel : MessagingViewModelBase
     }
 
     // Partial method that will be called when ClassTypeFilter changes
-    partial void OnClassTypeFilterChanged(WmiClassTypeFlags value)
+    partial void OnClassTypeFilterChanged(WmiClassEnumerationFlags value)
     {
         // Process the value for flag operations
-        var currentValue = _settingsService.ClassTypeFilter;
+        var currentValue = _settingsService.ClassEnumerationFilter;
         var newValue = value;
 
         // Check if the incoming value is actually a negative flag value from our converter
@@ -134,7 +134,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
         {
             // This is a signal from our converter that we need to clear a flag
             // Convert the negative value back to a positive flag by taking its complement again
-            var flagToClear = (WmiClassTypeFlags)(~(int)value);
+            var flagToClear = (WmiClassEnumerationFlags)(~(int)value);
 
             // Clear the specific flag while preserving all other flags
             newValue = currentValue & ~flagToClear;
@@ -143,15 +143,15 @@ public partial class OptionsViewModel : MessagingViewModelBase
             _classTypeFilter = newValue;
 
             // Also update the service immediately
-            _settingsService.ClassTypeFilter = newValue;
+            _settingsService.ClassEnumerationFilter = newValue;
 
             // Publish the message to notify other components
-            PublishMessage(new ClassTypeFilterChangedMessage(newValue));
+            PublishMessage(new ClassEnumFilterChangedMessage(newValue));
 
             System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter flag cleared, new value: {newValue}");
             return;
         }
-        else if ((int)value > 0 && (int)value <= (int)WmiClassTypeFlags.All)
+        else if ((int)value > 0 && (int)value <= (int)WmiClassEnumerationFlags.All)
         {
             // This is a positive flag value coming from the converter when a checkbox is checked
             // Set this flag while preserving all other flags
@@ -163,22 +163,22 @@ public partial class OptionsViewModel : MessagingViewModelBase
                 _classTypeFilter = newValue;
 
                 // Also update the service immediately
-                _settingsService.ClassTypeFilter = newValue;
+                _settingsService.ClassEnumerationFilter = newValue;
 
                 // Publish the message to notify other components
-                PublishMessage(new ClassTypeFilterChangedMessage(newValue));
+                PublishMessage(new ClassEnumFilterChangedMessage(newValue));
 
                 System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter flag set, new value: {newValue}");
                 return;
             }
         }        // Only update the service if the value is different
-        if (_settingsService.ClassTypeFilter != newValue)
+        if (_settingsService.ClassEnumerationFilter != newValue)
         {
             // Update the setting without triggering notifications from the service
-            _settingsService.ClassTypeFilter = newValue;
+            _settingsService.ClassEnumerationFilter = newValue;
 
             // Publish the message ourselves to notify other components
-            PublishMessage(new ClassTypeFilterChangedMessage(newValue));
+            PublishMessage(new ClassEnumFilterChangedMessage(newValue));
 
             System.Diagnostics.Debug.WriteLine($"[OptionsViewModel] ClassTypeFilter updated to: {newValue}");
         }

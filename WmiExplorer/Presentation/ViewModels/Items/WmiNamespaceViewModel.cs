@@ -320,7 +320,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             ClassLoadState = ClassLoadState.Loading;
             PublishBusyState($"Loading classes for {NamespacePath}...");
 
-            var classTypeFilter = _settingsService.ClassTypeFilter;
+            var classTypeFilter = _settingsService.ClassEnumerationFilter;
 
             // Use the ViewModel's ManagementScope for the service call.
             var wmiClasses = await _wmiService.GetClassesAsync(
