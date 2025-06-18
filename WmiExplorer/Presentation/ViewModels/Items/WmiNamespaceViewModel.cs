@@ -99,7 +99,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         );
 
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
-        Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);        // StrongSubscribe ensures message handlers are not garbage collected.
+        Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
+
+        // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Initialize ShowSystemClasses from settings
