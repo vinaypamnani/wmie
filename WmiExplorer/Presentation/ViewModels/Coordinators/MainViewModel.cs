@@ -5,6 +5,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.Themes;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -80,11 +81,30 @@ public partial class MainViewModel : MessagingViewModelBase
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
         StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
 
+        StrongSubscribe<ClassesLoadedMessage>(_ => OnPropertyChanged(nameof(ClassesTabHeader)));
+        StrongSubscribe<SelectionChangedMessage>(_ => OnPropertyChanged(nameof(ClassesTabHeader)));
+
         // Test logging
         Log.Information("Application started successfully");
 
         // Demonstrate different log levels for testing
         // DemonstrateLogging();
+    }
+
+    /// <summary>
+    /// Gets the header text for the Classes tab, including class count when available
+    /// </summary>
+    public string ClassesTabHeader
+    {
+        get
+        {
+            var selectedNamespace = NamespacesViewModel?.SelectedNamespace;
+            if (selectedNamespace?.ClassLoadState == ClassLoadState.Success && selectedNamespace.Classes != null)
+            {
+                return $"Classes [{selectedNamespace.Classes.Count}]";
+            }
+            return "Classes";
+        }
     }
 
     /// <summary>

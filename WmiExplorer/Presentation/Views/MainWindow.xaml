@@ -83,10 +83,8 @@
                                   Width="{StaticResource SpacingMedium}"
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
-                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-                    <!--  TabControl  -->
-                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-                        <TabItem Header="Classes">
+                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                        <TabItem Header="{Binding ClassesTabHeader}">
                             <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
                         </TabItem>
                         <TabItem Header="Search">
