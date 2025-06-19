@@ -101,7 +101,9 @@ public partial class PropertyHierarchyItem : ObservableObject
     /// </summary>
     public PropertyHierarchyItem(IPropertyDescriptor descriptor, int level = 0, PropertyFilterOptions? filterOptions = null)
     {
-        PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));        // Use provided filter options or create default
+        PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
+
+        // Use provided filter options or create default
         filterOptions ??= PropertyFilterOptions.DefaultObjectOptions;
         _filterOptions = filterOptions;
 
