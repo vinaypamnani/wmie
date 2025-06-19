@@ -180,22 +180,6 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
 
         // Update help text based on class selection
         UpdateHelpText();
-
-        // Update status bar
-        if (newValue != null)
-        {
-            var totalMethodCount = newValue.Methods?.Count ?? 0;
-            var staticMethodCount = newValue.StaticMethods?.Count ?? 0;
-
-            if (totalMethodCount > 0)
-            {
-                PublishSuccessState($"Found {totalMethodCount} methods ({staticMethodCount} static) for class {newValue.ClassName}");
-            }
-            else
-            {
-                PublishWarningState($"No methods available for class {newValue.ClassName}");
-            }
-        }
     }
 
     /// <summary>
