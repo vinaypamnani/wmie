@@ -369,6 +369,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             // Publish message that classes are loaded
             PublishMessage(new ClassesLoadedMessage(this));
 
+            // Publish message that tab count changed
+            PublishMessage(new TabCountChangedMessage());
+
             // Publish message that classes are filtered to update status bar
             PublishMessage(new ClassesFilteredMessage(this));
         }

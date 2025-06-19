@@ -294,7 +294,9 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     {
                         _instances.Add(vm);
                     }
-                }                // No need to reapply filter or refresh, FilterHelper handles it.
+                }
+
+                // No need to reapply filter or refresh, FilterHelper handles it.
                 OnPropertyChanged(nameof(InstanceFilterText));
             });
 

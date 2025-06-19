@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Data;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Services;
 
@@ -270,6 +271,9 @@ public partial class LogTabViewModel : MessagingViewModelBase
         _logEntries.CollectionChanged += (s, e) =>
         {
             OnPropertyChanged(nameof(HasLogEntries));
+
+            // Send message that tab count changed
+            PublishMessage(new TabCountChangedMessage());
 
             // Auto-scroll to the latest entry if enabled
             if (AutoScroll && _logEntries.Count > 0)

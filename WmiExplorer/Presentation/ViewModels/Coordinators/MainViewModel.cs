@@ -5,7 +5,6 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.Themes;
-using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -81,8 +80,8 @@ public partial class MainViewModel : MessagingViewModelBase
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
         StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
 
-        StrongSubscribe<ClassesLoadedMessage>(_ => OnPropertyChanged(nameof(ClassesTabHeader)));
-        StrongSubscribe<SelectionChangedMessage>(_ => OnPropertyChanged(nameof(ClassesTabHeader)));
+        // Subscribe to events that affect tab headers
+        StrongSubscribe<TabCountChangedMessage>(_ => UpdateTabHeaders());
 
         // Test logging
         Log.Information("Application started successfully");
@@ -92,18 +91,62 @@ public partial class MainViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Gets the header text for the Classes tab, including class count when available
+    /// Gets the header text for the Classes tab with count
     /// </summary>
     public string ClassesTabHeader
     {
         get
         {
-            var selectedNamespace = NamespacesViewModel?.SelectedNamespace;
-            if (selectedNamespace?.ClassLoadState == ClassLoadState.Success && selectedNamespace.Classes != null)
-            {
-                return $"Classes [{selectedNamespace.Classes.Count}]";
-            }
-            return "Classes";
+            var count = NamespacesViewModel?.SelectedNamespace?.Classes?.Count ?? 0;
+            return count > 0 ? $"Classes [{count}]" : "Classes";
+        }
+    }
+
+    /// <summary>
+    /// Gets the header text for the Log tab with entries count
+    /// </summary>
+    public string LogTabHeader
+    {
+        get
+        {
+            var count = LogTabViewModel?.LogEntries?.Count ?? 0;
+            return count > 0 ? $"Log [{count}]" : "Log";
+        }
+    }
+
+    /// <summary>
+    /// Gets the header text for the Query tab with results count
+    /// </summary>
+    public string QueryTabHeader
+    {
+        get
+        {
+            var count = NamespacesViewModel?.SelectedNamespace?.QueryTabViewModel?.Results?.Count ?? 0;
+            return count > 0 ? $"Query [{count}]" : "Query";
+        }
+    }
+
+    /// <summary>
+    /// Gets the header text for the Search tab with count
+    /// </summary>
+    public string SearchTabHeader
+    {
+        get
+        {
+            var count = NamespacesViewModel?.SelectedNamespace?.SearchTabViewModel?.Results?.Count ?? 0;
+            return count > 0 ? $"Search [{count}]" : "Search";
+        }
+    }
+
+    /// <summary>
+    /// Gets the header text for the Watcher tab with events count
+    /// </summary>
+    public string WatcherTabHeader
+    {
+        get
+        {
+            var count = NamespacesViewModel?.WatcherTabViewModel?.Events?.Count ?? 0;
+            return count > 0 ? $"Watcher [{count}]" : "Watcher";
         }
     }
 
@@ -212,6 +255,18 @@ public partial class MainViewModel : MessagingViewModelBase
     {
         _themeService.ToggleTheme(); // Theme change message will trigger UpdateThemeProperties via subscription
         Log.Debug("Changed Current theme to: {ThemeName}", _themeService.CurrentTheme?.ThemeName ?? "Unknown");
+    }
+
+    /// <summary>
+    /// Updates tab header property change notifications
+    /// </summary>
+    private void UpdateTabHeaders()
+    {
+        OnPropertyChanged(nameof(ClassesTabHeader));
+        OnPropertyChanged(nameof(SearchTabHeader));
+        OnPropertyChanged(nameof(QueryTabHeader));
+        OnPropertyChanged(nameof(WatcherTabHeader));
+        OnPropertyChanged(nameof(LogTabHeader));
     }
 
     /// <summary>

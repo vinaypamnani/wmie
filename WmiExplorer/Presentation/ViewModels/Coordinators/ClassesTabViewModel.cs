@@ -69,14 +69,50 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Gets the header text for the Instances tab with count
+    /// </summary>
+    public string InstancesTabHeader
+    {
+        get
+        {
+            var count = SelectedNamespace?.SelectedClass?.Instances?.Count ?? 0;
+            return count > 0 ? $"Instances [{count}]" : "Instances";
+        }
+    }
+
+    /// <summary>
     /// Gets the InstancesTabViewModel
     /// </summary>
     public InstancesTabViewModel InstancesTabViewModel => _instancesTabViewModel;
 
     /// <summary>
+    /// Gets the header text for the Methods tab with count
+    /// </summary>
+    public string MethodsTabHeader
+    {
+        get
+        {
+            var count = SelectedNamespace?.SelectedClass?.WmiClass?.Methods?.Count ?? 0;
+            return count > 0 ? $"Methods [{count}]" : "Methods";
+        }
+    }
+
+    /// <summary>
     /// Gets the MethodsTabViewModel
     /// </summary>
     public MethodsTabViewModel MethodsTabViewModel => _methodsTabViewModel;
+
+    /// <summary>
+    /// Gets the header text for the Properties tab with count
+    /// </summary>
+    public string PropertiesTabHeader
+    {
+        get
+        {
+            var count = SelectedNamespace?.SelectedClass?.WmiClass?.Properties?.Count ?? 0;
+            return count > 0 ? $"Properties [{count}]" : "Properties";
+        }
+    }
 
     /// <summary>
     /// Gets the PropertiesTabViewModel
@@ -125,11 +161,12 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
             case WmiNamespaceViewModel namespaceVm:
                 if (namespaceVm != SelectedNamespace)
                     SelectedNamespace = namespaceVm;
+                UpdateTabHeaders();
                 break;
-
             case WmiClassViewModel classVm:
                 UpdateStatusBar();
                 UpdateAutoQueryText(classVm);
+                UpdateTabHeaders();
                 break;
 
             case WmiInstanceViewModel instanceVm:
@@ -248,5 +285,15 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
             }
             return;
         }
+    }
+
+    /// <summary>
+    /// Updates tab header properties to trigger UI refresh
+    /// </summary>
+    private void UpdateTabHeaders()
+    {
+        OnPropertyChanged(nameof(InstancesTabHeader));
+        OnPropertyChanged(nameof(PropertiesTabHeader));
+        OnPropertyChanged(nameof(MethodsTabHeader));
     }
 }

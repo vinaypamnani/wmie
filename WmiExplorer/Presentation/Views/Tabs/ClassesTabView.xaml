@@ -161,15 +161,15 @@
                       VerticalAlignment="Stretch"
                       Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
         <TabControl Grid.Row="0" Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-            <TabItem Header="Instances">
+            <TabItem Header="{Binding InstancesTabHeader}">
                 <!--  Instances View  -->
                 <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />
             </TabItem>
-            <TabItem Header="Properties">
+            <TabItem Header="{Binding PropertiesTabHeader}">
                 <!--  Properties View  -->
                 <tabs:PropertiesTabView DataContext="{Binding PropertiesTabViewModel}" />
             </TabItem>
-            <TabItem Header="Methods">
+            <TabItem Header="{Binding MethodsTabHeader}">
                 <!--  Methods View  -->
                 <tabs:MethodsTabView DataContext="{Binding MethodsTabViewModel}" />
             </TabItem>

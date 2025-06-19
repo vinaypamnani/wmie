@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using WmiExplorer.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Helpers;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Base;
 
@@ -48,9 +49,14 @@ public abstract partial class ResultsViewModelBase<T> : MessagingViewModelBase
         _filterHelper = new FilterHelper<T>(_results, ResultsFilterPredicate);
         _resultsView = _filterHelper.CollectionView;
         _filterHelper.FilterText = FilterText;
+
+        // Ensure the view is refreshed after results update
         OnPropertyChanged(nameof(Results));
         OnPropertyChanged(nameof(ResultsView));
-        _resultsView?.Refresh(); // Ensure the view is refreshed after results update
+        _resultsView?.Refresh();
+
+        // Send message that tab count changed
+        PublishMessage(new TabCountChangedMessage());
     }
 
     /// <summary>

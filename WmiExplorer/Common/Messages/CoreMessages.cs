@@ -77,6 +77,16 @@ public class SettingChangedMessage<T> : MessageBase
 }
 
 /// <summary>
+/// Message sent when any collection count changes that affects tab headers
+/// </summary>
+public class TabCountChangedMessage : MessageBase
+{
+    public TabCountChangedMessage()
+    {
+    }
+}
+
+/// <summary>
 /// Message sent when theme changes
 /// </summary>
 public class ThemeChangedMessage : MessageBase

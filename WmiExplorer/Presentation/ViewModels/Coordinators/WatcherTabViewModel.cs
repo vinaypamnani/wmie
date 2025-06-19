@@ -259,8 +259,12 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     private void EventManager_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Events))
+        if (e.PropertyName == nameof(_eventManager.Events))
         {
+            // Send message that tab count changed
+            PublishMessage(new TabCountChangedMessage());
+
+            // Update HasEvents property for UI binding
             OnPropertyChanged(nameof(HasEvents));
             ClearEventsCommand.NotifyCanExecuteChanged();
         }

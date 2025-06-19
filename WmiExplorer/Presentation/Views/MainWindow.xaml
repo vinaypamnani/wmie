@@ -83,23 +83,24 @@
                                   Width="{StaticResource SpacingMedium}"
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
-                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="{Binding ClassesTabHeader}">
                             <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
                         </TabItem>
-                        <TabItem Header="Search">
+                        <TabItem Header="{Binding SearchTabHeader}">
                             <!--  Search View  -->
                             <tabs:SearchTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.SearchTabViewModel}" />
                         </TabItem>
-                        <TabItem Header="Query">
+                        <TabItem Header="{Binding QueryTabHeader}">
                             <!--  Query View  -->
                             <tabs:QueryTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.QueryTabViewModel}" />
                         </TabItem>
-                        <TabItem Header="Watcher">
+                        <TabItem Header="{Binding WatcherTabHeader}">
                             <!--  Event Watcher View  -->
                             <tabs:WatcherTabView DataContext="{Binding NamespacesViewModel.WatcherTabViewModel}" />
                         </TabItem>
-                        <TabItem Header="Log">
+                        <TabItem Header="{Binding LogTabHeader}">
                             <!--  Log View  -->
                             <tabs:LogTabView DataContext="{Binding LogTabViewModel}" />
                         </TabItem>
