@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Management;
+using WmiExplorer.PropertyGrid;
 
 namespace WmiExplorer.Core.Models;
 
@@ -23,6 +24,7 @@ public class WmiProperty
     public string ClassName => _parentClass?["__Class"]?.ToString() ?? string.Empty;
     public string ClassPath => _parentClass?.Path?.Path ?? string.Empty;
 
+    [Browsable(false)]
     public string Description
     {
         get
@@ -40,11 +42,13 @@ public class WmiProperty
         }
     }
 
+    [Category("Property")]
     public bool IsArray => _propertyData.IsArray;
 
     /// <summary>
     /// Determines if this property is a key property based on the 'key' qualifier
     /// </summary>
+    [Category("Property")]
     public bool IsKey
     {
         get
@@ -64,6 +68,7 @@ public class WmiProperty
     /// <summary>
     /// Determines if this property is lazy-loaded based on the 'lazy' qualifier
     /// </summary>
+    [Category("Property")]
     public bool IsLazy
     {
         get
@@ -80,10 +85,21 @@ public class WmiProperty
         }
     }
 
+    [Category("Property")]
     public string Name => _propertyData.Name;
+
+    [Category("Property")]
+    public string Origin => _propertyData.Origin;
+
+    [Category("Qualifiers")]
+    [ShowChildrenAsParent]
     public QualifierDataCollection Qualifiers => _propertyData.Qualifiers;
+
+    [Category("Property")]
     public string Type => _propertyData.Type.ToString();
+
+    [Category("Property")]
     public object Value => _propertyData.Value;
 
-    public override string ToString() => $"{Name} ({Type})";
+    public override string ToString() => $"Property: {Name} ({Type})";
 }

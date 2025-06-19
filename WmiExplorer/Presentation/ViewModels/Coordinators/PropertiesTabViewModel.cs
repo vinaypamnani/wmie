@@ -136,7 +136,9 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
 
         // Dispose of the old filter helper
         _propertyFilterHelper?.Dispose();
-        _propertyFilterHelper = null;        // Create new filter helper if we have properties
+        _propertyFilterHelper = null;
+
+        // Create new filter helper if we have properties
         if (newValue?.WmiClass?.Properties != null)
         {
             // Convert PropertyDataCollection to WmiProperty collection
@@ -163,30 +165,6 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
 
         // Update help text based on class selection
         UpdateHelpText();
-
-        // Update status bar
-        if (newValue != null)
-        {
-            var totalPropertyCount = newValue.WmiClass?.Properties?.Count ?? 0;
-            var keyPropertyCount = 0; if (newValue.WmiClass?.Properties != null)
-            {
-                foreach (System.Management.PropertyData propData in newValue.WmiClass.Properties)
-                {
-                    var wmiProp = new WmiProperty(propData, newValue.WmiClass.ActualClass);
-                    if (wmiProp.IsKey)
-                        keyPropertyCount++;
-                }
-            }
-
-            if (totalPropertyCount > 0)
-            {
-                PublishSuccessState($"Found {totalPropertyCount} properties ({keyPropertyCount} key properties) for class {newValue.ClassName}");
-            }
-            else
-            {
-                PublishWarningState($"No properties available for class {newValue.ClassName}");
-            }
-        }
     }
 
     /// <summary>
@@ -194,6 +172,7 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     /// </summary>
     partial void OnSelectedPropertyChanged(WmiProperty? oldValue, WmiProperty? newValue)
     {
+        _selectionService.SetSelectedObject(newValue);
         UpdateHelpText();
     }
 
