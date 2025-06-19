@@ -23,6 +23,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private readonly CancellationTokenSource _cts = new();
     private readonly InstancesTabViewModel _instancesTabViewModel;
     private readonly MethodsTabViewModel _methodsTabViewModel;
+    private readonly PropertiesTabViewModel _propertiesTabViewModel;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
@@ -40,14 +41,15 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private readonly IWmiService _wmiService;
 
     public ClassesTabViewModel(
-           IMessengerService messengerService,
-           ISettingsService settingsService,
-           IWmiService wmiService,
-           IApplicationService applicationService,
-           ICacheService cacheService,
-           ISelectionService selectionService,
-           InstancesTabViewModel instancesTabViewModel,
-           MethodsTabViewModel methodsTabViewModel) : base(messengerService)
+              IMessengerService messengerService,
+              ISettingsService settingsService,
+              IWmiService wmiService,
+              IApplicationService applicationService,
+              ICacheService cacheService,
+              ISelectionService selectionService,
+              InstancesTabViewModel instancesTabViewModel,
+              MethodsTabViewModel methodsTabViewModel,
+              PropertiesTabViewModel propertiesTabViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
@@ -56,6 +58,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
         _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
         _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
+        _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
 
         // Subscribe to messages
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
@@ -74,6 +77,11 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     /// Gets the MethodsTabViewModel
     /// </summary>
     public MethodsTabViewModel MethodsTabViewModel => _methodsTabViewModel;
+
+    /// <summary>
+    /// Gets the PropertiesTabViewModel
+    /// </summary>
+    public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
 
     /// <summary>
     /// Command to execute the auto-generated query

@@ -41,6 +41,45 @@ public class WmiProperty
     }
 
     public bool IsArray => _propertyData.IsArray;
+
+    /// <summary>
+    /// Determines if this property is a key property based on the 'key' qualifier
+    /// </summary>
+    public bool IsKey
+    {
+        get
+        {
+            try
+            {
+                return _propertyData.Qualifiers?.Cast<QualifierData>()
+                    .Any(q => q.Name.Equals("key", StringComparison.OrdinalIgnoreCase)) ?? false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines if this property is lazy-loaded based on the 'lazy' qualifier
+    /// </summary>
+    public bool IsLazy
+    {
+        get
+        {
+            try
+            {
+                return _propertyData.Qualifiers?.Cast<QualifierData>()
+                    .Any(q => q.Name.Equals("lazy", StringComparison.OrdinalIgnoreCase)) ?? false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
     public string Name => _propertyData.Name;
     public QualifierDataCollection Qualifiers => _propertyData.Qualifiers;
     public string Type => _propertyData.Type.ToString();

@@ -167,7 +167,7 @@
             </TabItem>
             <TabItem Header="Properties">
                 <!--  Properties View  -->
-                <tabs:PropertiesTabView />
+                <tabs:PropertiesTabView DataContext="{Binding PropertiesTabViewModel}" />
             </TabItem>
             <TabItem Header="Methods">
                 <!--  Methods View  -->
