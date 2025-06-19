@@ -1,9 +1,49 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using System.Windows;
 using WmiExplorer.PropertyGrid.Abstractions;
 
 namespace WmiExplorer.PropertyGrid;
+
+/// <summary>
+/// Custom comparer for array indices that handles numeric sorting properly.
+/// Sorts array indices like [0], [1], [2], ..., [10], [11] in the correct numerical order
+/// instead of alphabetical order where [10] would come before [2].
+/// </summary>
+public class ArrayIndexComparer : IComparer<string>
+{
+    private static readonly Regex ArrayIndexPattern = new(@"^\[(\d+)\]$", RegexOptions.Compiled);
+
+    public int Compare(string? x, string? y)
+    {
+        // Handle null cases
+        if (x == null && y == null) return 0;
+        if (x == null) return -1;
+        if (y == null) return 1;
+
+        // Check if both strings are array indices
+        var matchX = ArrayIndexPattern.Match(x);
+        var matchY = ArrayIndexPattern.Match(y);
+
+        // If both are array indices, compare numerically
+        if (matchX.Success && matchY.Success)
+        {
+            if (int.TryParse(matchX.Groups[1].Value, out int indexX) &&
+                int.TryParse(matchY.Groups[1].Value, out int indexY))
+            {
+                return indexX.CompareTo(indexY);
+            }
+        }
+
+        // If only one is an array index, array indices come first
+        if (matchX.Success && !matchY.Success) return -1;
+        if (!matchX.Success && matchY.Success) return 1;
+
+        // For non-array indices, use regular string comparison
+        return string.Compare(x, y, StringComparison.OrdinalIgnoreCase);
+    }
+}
 
 /// <summary>
 /// Represents a property item in the hierarchical property grid.
@@ -154,12 +194,10 @@ public partial class PropertyHierarchyItem : ObservableObject
     {
         if (Value == null || !HasItems)
             return;        // Use provided filter options or current filter options
-        filterOptions ??= _filterOptions;
-
-        try
+        filterOptions ??= _filterOptions; try
         {
             var registry = PropertyTypeProviderRegistry.Instance;
-            var childDescriptors = registry.GetChildItems(Value, Name, Category).OrderBy(cd => cd.DisplayName).ToList();
+            var childDescriptors = registry.GetChildItems(Value, Name, Category).OrderBy(cd => cd.DisplayName, new ArrayIndexComparer()).ToList();
 
             // Filter child descriptors based on filter options
             childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly)).ToList();
