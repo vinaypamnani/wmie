@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.Management;
+using WmiExplorer.PropertyGrid;
 
 namespace WmiExplorer.Core.Models;
 
@@ -21,6 +23,7 @@ public class WmiMethod
     public string ClassName => _parentClass?["__Class"]?.ToString() ?? string.Empty;
     public string ClassPath => _parentClass?.Path?.Path ?? string.Empty;
 
+    [Browsable(false)]
     public string Description
     {
         get
@@ -37,8 +40,11 @@ public class WmiMethod
         }
     }
 
+    [Category("Parameters")]
     public WmiParameterCollection InParameters { get; }
 
+    [Category("Method")]
+    [Description("Indicates whether the method is static or whether it needs an instance for execution.")]
     public bool IsStatic
     {
         get
@@ -52,9 +58,17 @@ public class WmiMethod
         }
     }
 
+    [Category("Method")]
     public string Name => _methodData.Name;
+
+    [Category("Method")]
     public string Origin => _methodData.Origin;
+
+    [Category("Parameters")]
     public WmiParameterCollection OutParameters { get; }
+
+    [Category("Qualifiers")]
+    [ShowChildrenAsParent]
     public QualifierDataCollection Qualifiers => _methodData.Qualifiers;
 
     public override string ToString() => $"Static: {IsStatic}, InParameters: {InParameters.Count}, OutParameters: {OutParameters.Count}";

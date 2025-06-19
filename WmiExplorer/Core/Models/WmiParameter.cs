@@ -1,21 +1,43 @@
 using System.Collections;
+using System.ComponentModel;
+using WmiExplorer.PropertyGrid;
 
 namespace WmiExplorer.Core.Models;
 
 public class WmiParameter
 {
+    [Category("Parameter")]
     public string? CimType => GetQualifierValue("CIMTYPE") as string;
+
+    [Browsable(false)]
     public string? Description => GetQualifierValue("Description") as string;
+
+    [Category("Parameter")]
     public int Id => GetQualifierValue("Id") is int id ? id : -1;
+
+    [Category("Parameter")]
     public bool IsArray { get; set; }
+
+    [Category("Parameter")]
     public bool IsLocal { get; set; }
+
+    [Category("Parameter")]
     public string? Name { get; set; }
+
+    [Category("Parameter")]
     public string? Origin { get; set; }
+
+    [Category("Qualifiers")]
+    [ShowChildrenAsParent]
     public System.Management.QualifierDataCollection? Qualifiers { get; set; }
+
+    [Category("Parameter")]
     public string? Type { get; set; }
+
+    [Category("Parameter")]
     public object? Value { get; set; }
 
-    public override string ToString() => Name ?? string.Empty;
+    public override string ToString() => $"Method Parameter: {Name}" ?? string.Empty;
 
     private object? GetQualifierValue(string qualifierName)
     {

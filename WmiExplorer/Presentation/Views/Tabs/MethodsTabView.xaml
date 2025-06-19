@@ -85,7 +85,6 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
             <!--  Input Parameters  -->
             <GroupBox Grid.Column="0"
                       HorizontalContentAlignment="Stretch"
@@ -95,6 +94,7 @@
                           ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
                           ItemsSource="{Binding SelectedMethod.InParameters}"
                           RowStyle="{StaticResource ModernDataGridRowStyle}"
+                          SelectedItem="{Binding SelectedMethodParameter}"
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
@@ -106,7 +106,6 @@
 
             <!--  GridSplitter between Input and Output Parameters  -->
             <GridSplitter Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
-
             <!--  Output Parameters  -->
             <GroupBox Grid.Column="2"
                       HorizontalContentAlignment="Stretch"
@@ -116,6 +115,7 @@
                           ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
                           ItemsSource="{Binding SelectedMethod.OutParameters}"
                           RowStyle="{StaticResource ModernDataGridRowStyle}"
+                          SelectedItem="{Binding SelectedMethodParameter}"
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />

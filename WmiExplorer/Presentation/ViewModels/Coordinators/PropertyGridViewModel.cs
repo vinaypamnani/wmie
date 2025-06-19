@@ -98,6 +98,10 @@ public partial class PropertyGridViewModel : MessagingViewModelBase
                 selectedObject = instanceViewModel.WmiInstance;
                 displayName = selectedObject?.ToString();
                 break;
+            case WmiMethod wmiMethod:
+                selectedObject = wmiMethod;
+                displayName = $"Method: {wmiMethod.Name} ({selectedObject.ToString()})";
+                break;
             case WmiSearchResult wmiSearchResult:
                 displayName = wmiSearchResult?.ToString();
                 if (wmiSearchResult?.Class is WmiClass wmiClass)

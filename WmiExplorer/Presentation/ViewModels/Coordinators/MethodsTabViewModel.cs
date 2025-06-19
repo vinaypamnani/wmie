@@ -32,6 +32,9 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiMethod? _selectedMethod;
 
+    [ObservableProperty]
+    private WmiParameter? _selectedMethodParameter;
+
     private readonly ISelectionService _selectionService;
     private readonly ISettingsService _settingsService;
 
@@ -104,13 +107,21 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
                 }
                 break;
 
-            // If a method is selected, update the selected method
-            case WmiMethod methodVm:
-                if (methodVm != SelectedMethod)
-                {
-                    SelectedMethod = methodVm;
-                }
-                break;
+                // If a method is selected, update the selected method
+                // case WmiMethod methodVm:
+                //     if (methodVm != SelectedMethod)
+                //     {
+                //         SelectedMethod = methodVm;
+                //     }
+                //     break;
+
+                // If a method parameter is selected, update the selected method parameter
+                // case WmiParameter parameterVm:
+                //     if (parameterVm != SelectedMethodParameter)
+                //     {
+                //         SelectedMethodParameter = parameterVm;
+                //     }
+                //     break;
         }
     }
 
@@ -192,7 +203,19 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     /// </summary>
     partial void OnSelectedMethodChanged(WmiMethod? oldValue, WmiMethod? newValue)
     {
+        // Clear selected parameter when method changes since parameters are method-specific
+        SelectedMethodParameter = null;
+
+        _selectionService.SetSelectedObject(newValue);
         UpdateHelpText();
+    }
+
+    /// <summary>
+    /// Called when the selected method parameter changes
+    /// </summary>
+    partial void OnSelectedMethodParameterChanged(WmiParameter? oldValue, WmiParameter? newValue)
+    {
+        _selectionService.SetSelectedObject(newValue);
     }
 
     /// <summary>
