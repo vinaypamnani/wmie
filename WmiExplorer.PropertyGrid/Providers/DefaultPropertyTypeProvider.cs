@@ -51,6 +51,26 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
         if (valueType.IsArray)
         {
             Array array = (Array)value;
+
+            // Special handling for string arrays with pipe-separated values
+            if (array.GetType().GetElementType() == typeof(string) && array.Length == 1)
+            {
+                var singleValue = array.GetValue(0) as string;
+                if (!string.IsNullOrEmpty(singleValue) && singleValue.Contains('|'))
+                {
+                    // Split pipe-separated values into individual items
+                    var splitValues = singleValue.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(v => v.Trim()).ToArray();
+
+                    for (int i = 0; i < splitValues.Length; i++)
+                    {
+                        yield return new PipeSeparatedValueDescriptor(splitValues, i, $"[{i}]", $"[{i}]", parentCategory);
+                    }
+                    yield break;
+                }
+            }
+
+            // Default array handling
             for (int i = 0; i < array.Length; i++)
             {
                 yield return new IndexedPropertyDescriptor(array, i, $"[{i}]", $"[{i}]", parentCategory);
@@ -405,6 +425,43 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
             {
                 // Setting failed
             }
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Property descriptor for pipe-separated values within a single string array element
+    /// </summary>
+    private class PipeSeparatedValueDescriptor : IPropertyDescriptor
+    {
+        private readonly int _index;
+        private readonly string[] _values;
+
+        public PipeSeparatedValueDescriptor(string[] values, int index, string name, string displayName, string category)
+        {
+            _values = values;
+            _index = index;
+            Name = name;
+            DisplayName = displayName;
+            Category = category;
+        }
+
+        public string Category { get; }
+        public string Description => $"Pipe-separated value at index {_index}";
+        public string DisplayName { get; }
+        public bool IsKey => false;
+        public bool IsReadOnly => true;
+
+        // Pipe-separated values are typically read-only
+        public string Name { get; }
+
+        public Type? PropertyType => typeof(string);
+        public object Source => _values;
+        public object? Value => _index < _values.Length ? _values[_index] : null;
+
+        public bool SetValue(object? value)
+        {
+            // Pipe-separated values are typically read-only in WMI contexts
             return false;
         }
     }

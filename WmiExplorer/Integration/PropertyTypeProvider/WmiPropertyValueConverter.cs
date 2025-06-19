@@ -92,7 +92,16 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
         if (value is QualifierData qualifierData)
         {
             if (qualifierData.Value != null)
+            {
+                // Handle array values in qualifiers properly
+                if (qualifierData.Value is Array qualArray && !(qualifierData.Value is string))
+                {
+                    // For array qualifiers, join the elements with a suitable separator
+                    var elements = qualArray.Cast<object>().Select(elem => elem?.ToString() ?? "<null>");
+                    return string.Join(", ", elements);
+                }
                 return qualifierData.Value?.ToString() ?? "<null value>";
+            }
 
             return "QualifierData";
         }
