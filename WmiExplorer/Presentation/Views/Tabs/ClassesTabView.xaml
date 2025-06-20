@@ -43,24 +43,23 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <CheckBox Grid.Row="0"
+                        </Grid.RowDefinitions>                        <CheckBox Grid.Row="0"
                                   Margin="{StaticResource MarginSmall}"
                                   HorizontalAlignment="Right"
                                   Content="Show System Classes"
-                                  IsChecked="{Binding SelectedNamespace.ShowSystemClasses, Mode=TwoWay}" />
+                                  IsChecked="{Binding SelectionManager.SelectedNamespace.ShowSystemClasses, Mode=TwoWay}" />
                         <TextBox Grid.Row="1"
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"
                                  Tag="Filter Classes..."
-                                 Text="{Binding SelectedNamespace.ClassFilterText, UpdateSourceTrigger=PropertyChanged}" />
+                                 Text="{Binding SelectionManager.SelectedNamespace.ClassFilterText, UpdateSourceTrigger=PropertyChanged}" />
                         <ListView Grid.Row="2"
                                   behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
-                                  behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectedNamespace.SelectedClass}"
+                                  behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass}"
                                   behaviors:ListViewSortBehavior.DefaultSortProperty="ClassName"
                                   behaviors:ListViewSortBehavior.EnableSorting="True"
                                   BorderThickness="0"
-                                  ItemsSource="{Binding SelectedNamespace.ClassesView}"
+                                  ItemsSource="{Binding SelectionManager.SelectedNamespace.ClassesView}"
                                   SelectionMode="Single"
                                   Style="{StaticResource ModernGridListViewStyle}">
                             <ListView.View>

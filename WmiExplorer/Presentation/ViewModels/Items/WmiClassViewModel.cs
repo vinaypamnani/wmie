@@ -39,6 +39,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
 
     private ObservableCollection<WmiMethod>? _methods;
+    private ObservableCollection<WmiProperty>? _properties;
+
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
 
     [ObservableProperty]
@@ -76,6 +78,9 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
         // Load methods for this class
         LoadMethods();
+
+        // Load properties for this class
+        LoadProperties();
     }
 
     public string ClassName => _wmiClass.ClassName;
@@ -94,6 +99,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// Collection of all methods available for this class.
     /// </summary>
     public ObservableCollection<WmiMethod> Methods => _methods!;
+
+    /// <summary>
+    /// Collection of properties available for this class.
+    /// </summary>
+    public ObservableCollection<WmiProperty> Properties => _properties!;
 
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
 
@@ -372,6 +382,33 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         catch (Exception ex)
         {
             Log.Warning(ex, "Error loading methods for class: {ClassName}", ClassName);
+        }
+    }
+
+    /// <summary>
+    /// Loads the properties available for this class.
+    /// </summary>
+    private void LoadProperties()
+    {
+        _properties = new ObservableCollection<WmiProperty>();
+
+        try
+        {
+            // Get properties from the WmiClass
+            var properties = _wmiClass.Properties;
+
+            if (properties != null && properties.Count > 0)
+            {
+                foreach (var property in properties)
+                {
+                    // Add all properties to the properties collection
+                    _properties.Add(new WmiProperty(property, _wmiClass.ActualClass));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error loading properties for class: {ClassName}", ClassName);
         }
     }
 

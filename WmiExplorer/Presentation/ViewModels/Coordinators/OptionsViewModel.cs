@@ -206,9 +206,9 @@ public partial class OptionsViewModel : MessagingViewModelBase
     /// </summary>
     private void SubscribeToCommandStateChanges()
     {
-        _namespacesViewModel.PropertyChanged += (s, e) =>
+        _namespacesViewModel.SelectionManager.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName == nameof(_namespacesViewModel.SelectedNamespace))
+            if (e.PropertyName == nameof(_namespacesViewModel.SelectionManager.SelectedNamespace))
             {
                 // Notify that the command's CanExecute state may have changed
                 ReloadClassesCommand.NotifyCanExecuteChanged();

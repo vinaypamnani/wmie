@@ -50,7 +50,7 @@
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{Binding SelectedClass.ExecuteMethodCommand}" CommandParameter="{Binding SelectedMethod}" Header="Execute Method..." />
+                            <MenuItem Command="{Binding SelectionManager.SelectedClass.ExecuteMethodCommand}" CommandParameter="{Binding SelectedMethod}" Header="Execute Method..." />
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>

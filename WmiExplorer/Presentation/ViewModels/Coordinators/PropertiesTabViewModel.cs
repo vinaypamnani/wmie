@@ -2,12 +2,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
-using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -16,7 +15,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Properties tab. Manages property-related functionality
 /// and UI operations for the properties list view.
 /// </summary>
-public partial class PropertiesTabViewModel : MessagingViewModelBase
+public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
 {
     private readonly CancellationTokenSource _cts = new();
 
@@ -29,31 +28,19 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     private string _propertyFilterText = string.Empty;
 
     [ObservableProperty]
-    private WmiClassViewModel? _selectedClass;
-
-    [ObservableProperty]
     private WmiProperty? _selectedProperty;
 
-    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
-    private readonly IWmiService _wmiService;
-
     public PropertiesTabViewModel(
-           IMessengerService messengerService,
-           ISettingsService settingsService,
-           SelectionManager selectionManager,
-           IWmiService wmiService) : base(messengerService)
+                 IMessengerService messengerService,
+                 ISettingsService settingsService,
+                 SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
-        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-
-        // Subscribe to unified selection changes
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -79,33 +66,12 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Handles the unified selection changed message
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
     /// </summary>
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
+    protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
     {
-        if (message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        switch (selectedObject)
-        {
-            // If a namespace is selected, update class selection
-            case WmiNamespaceViewModel namespaceVm:
-                if (namespaceVm.SelectedClass != SelectedClass)
-                {
-                    SelectedClass = namespaceVm.SelectedClass;
-                }
-                break;
-
-            // If a class is selected, update the selected class
-            case WmiClassViewModel classVm:
-                if (classVm != SelectedClass)
-                {
-                    SelectedClass = classVm;
-                }
-                break;
-        }
+        // Only update filtered properties when class selection changes
+        UpdateFilteredProperties();
     }
 
     /// <summary>
@@ -120,10 +86,36 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Called when the selected class changes to reset the selected property
+    /// Called when the selected property changes
     /// </summary>
-    partial void OnSelectedClassChanged(WmiClassViewModel? oldValue, WmiClassViewModel? newValue)
+    partial void OnSelectedPropertyChanged(WmiProperty? oldValue, WmiProperty? newValue)
     {
+        SelectionManager.SetPropertyGridObject(newValue);
+        UpdateHelpText();
+    }
+
+    /// <summary>
+    /// Filter predicate for properties based on name and description
+    /// </summary>
+    private bool PropertyFilterPredicate(WmiProperty property, string filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter))
+            return true;
+
+        return property.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
+               property.Description.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
+               property.Type.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    /// <summary>
+    /// Called when the selected class changes to reset the selected property
+    /// </summary>    /// <summary>
+    /// Update the filtered properties based on the current class selection
+    /// </summary>
+    private void UpdateFilteredProperties()
+    {
+        var selectedClass = SelectionManager.SelectedClass;
+
         // Reset selected property when class changes
         SelectedProperty = null;
 
@@ -132,17 +124,11 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
         _propertyFilterHelper = null;
 
         // Create new filter helper if we have properties
-        if (newValue?.WmiClass?.Properties != null)
-        {
-            // Convert PropertyDataCollection to WmiProperty collection
-            var wmiProperties = new ObservableCollection<WmiProperty>();
-            foreach (System.Management.PropertyData propData in newValue.WmiClass.Properties)
-            {
-                wmiProperties.Add(new WmiProperty(propData, newValue.WmiClass.ActualClass));
-            }
+        if (selectedClass?.Properties != null)
+        {            
 
             _propertyFilterHelper = new FilterHelper<WmiProperty>(
-                wmiProperties,
+                selectedClass.Properties,
                 PropertyFilterPredicate
             );
 
@@ -161,37 +147,15 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
-    /// Called when the selected property changes
-    /// </summary>
-    partial void OnSelectedPropertyChanged(WmiProperty? oldValue, WmiProperty? newValue)
-    {
-        _selectionManager.SetPropertyGridObject(newValue);
-        UpdateHelpText();
-    }
-
-    /// <summary>
-    /// Filter predicate for properties based on name and description
-    /// </summary>
-    private bool PropertyFilterPredicate(WmiProperty property, string filter)
-    {
-        if (string.IsNullOrWhiteSpace(filter))
-            return true;
-
-        return property.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
-               property.Description.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
-               property.Type.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-    }
-
-    /// <summary>
     /// Updates the help text based on current selection state
     /// </summary>
     private void UpdateHelpText()
     {
-        if (SelectedClass == null)
+        if (SelectionManager.SelectedClass == null)
         {
             HelpText = "Select a class to view properties";
         }
-        else if (SelectedClass.WmiClass?.Properties?.Count == 0)
+        else if (SelectionManager.SelectedClass.WmiClass?.Properties?.Count == 0)
         {
             HelpText = "No properties available for the selected class";
         }

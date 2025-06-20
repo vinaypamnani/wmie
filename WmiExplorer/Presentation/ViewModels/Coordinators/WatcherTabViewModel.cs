@@ -16,7 +16,7 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// <summary>
 /// View model for WMI Event Watcher tab - refactored to use manager classes for better separation of concerns
 /// </summary>
-public partial class WatcherTabViewModel : MessagingViewModelBase
+public partial class WatcherTabViewModel : SelectionAwareViewModelBase
 {
     private readonly ClassListManager _classListManager;
 
@@ -36,12 +36,6 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     [NotifyPropertyChangedFor(nameof(HasSelectedEvent))]
     private WmiEvent? _selectedEvent;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasActiveNamespace))]
-    [NotifyCanExecuteChangedFor(nameof(AddWatcherCommand))]
-    private WmiNamespaceViewModel? _selectedNamespace;
-
-    private readonly SelectionManager _selectionManager;
     private readonly PropertyListManager _targetPropertyManager;
     private readonly WatcherManager _watcherManager;
 
@@ -54,10 +48,8 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     public WatcherTabViewModel(
         IMessengerService messengerService,
         ICacheService cacheService,
-        SelectionManager selectionManager) : base(messengerService)
+        SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
-
         // Initialize managers
         _eventPropertyManager = TrackDisposable(new PropertyListManager(cacheService));
         _targetPropertyManager = TrackDisposable(new PropertyListManager(cacheService));
@@ -69,7 +61,6 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         _eventQueryBuilder = new WatcherQueryBuilder();
 
         // Subscribe to essential messages only
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
         StrongSubscribe<ClassesLoadedMessage>(HandleClassesLoadedMessage);
 
         // Wire up cross-manager dependencies
@@ -127,7 +118,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// <summary>
     /// Gets whether there is an active namespace selected
     /// </summary>
-    public bool HasActiveNamespace => SelectedNamespace != null;
+    public bool HasActiveNamespace => SelectionManager.SelectedNamespace != null;
 
     /// <summary>
     /// Gets whether there are any events in the collection
@@ -162,12 +153,29 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     public ReadOnlyObservableCollection<WmiEventWatcherViewModel> Watchers => _watcherManager.Watchers;
 
     /// <summary>
+    /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
+    {
+        // Notify UI updates - no local property to notify
+        OnPropertyChanged(nameof(HasActiveNamespace));
+        AddWatcherCommand.NotifyCanExecuteChanged();
+
+        // Handle namespace change logic
+        EventQueryBuilder.EventTargetClass = string.Empty;
+        if (selectedNamespace != null)
+        {
+            _ = UpdateClassListsAndPropertiesAsync();
+        }
+    }
+
+    /// <summary>
     /// Command to add a new watcher
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanAddWatcher))]
     private void AddWatcher()
     {
-        if (SelectedNamespace == null)
+        if (SelectionManager.SelectedNamespace == null)
         {
             PublishErrorState("No namespace selected.");
             return;
@@ -177,7 +185,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         {
             var success = _watcherManager.AddWatcher(
                 EventQueryBuilder.EventQuery ?? string.Empty,
-                SelectedNamespace.ManagementScope,
+                SelectionManager.SelectedNamespace.ManagementScope,
                 EventQueryBuilder.EventClass ?? "Unknown",
                 EventQueryBuilder.EventTargetClass,
                 DisplayProperty?.Name ?? string.Empty,
@@ -287,26 +295,9 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
             return;
 
         // Only update if this is our selected namespace
-        if (SelectedNamespace == message.NamespaceViewModel)
+        if (SelectionManager.SelectedNamespace == message.NamespaceViewModel)
         {
             _ = UpdateClassListsAndPropertiesAsync();
-        }
-    }
-
-    /// <summary>
-    /// Handles the unified selection changed message
-    /// </summary>
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
-    {
-        if (message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        // Only respond to namespace selections
-        if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
-        {
-            SelectedNamespace = namespaceVm;
         }
     }
 
@@ -327,19 +318,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     partial void OnSelectedEventChanged(WmiEvent? value)
     {
         // Update selectionManager with the new selection
-        _selectionManager.SetPropertyGridObject(value);
-    }
-
-    /// <summary>
-    /// Property change handler for SelectedNamespace
-    /// </summary>
-    partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? value)
-    {
-        EventQueryBuilder.EventTargetClass = string.Empty;
-        if (value != null)
-        {
-            _ = UpdateClassListsAndPropertiesAsync();
-        }
+        SelectionManager.SetPropertyGridObject(value);
     }
 
     /// <summary>
@@ -400,7 +379,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     {
         try
         {
-            await _classListManager.UpdateClassListsAsync(SelectedNamespace);
+            await _classListManager.UpdateClassListsAsync(SelectionManager.SelectedNamespace);
 
             // Set default event class if available
             var defaultClass = _classListManager.GetDefaultOrFirstEventClass();
@@ -416,7 +395,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to update class lists and properties for namespace: {NamespacePath}",
-                SelectedNamespace?.NamespacePath ?? "Unknown");
+                SelectionManager.SelectedNamespace?.NamespacePath ?? "Unknown");
         }
     }
 
@@ -442,7 +421,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     {
         try
         {
-            await _eventPropertyManager.UpdatePropertiesAsync(SelectedNamespace, EventQueryBuilder.EventClass);
+            await _eventPropertyManager.UpdatePropertiesAsync(SelectionManager.SelectedNamespace, EventQueryBuilder.EventClass);
 
             if (_eventPropertyManager.Properties.Count > 0)
             {
@@ -472,7 +451,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     {
         try
         {
-            await _targetPropertyManager.UpdatePropertiesAsync(SelectedNamespace, EventQueryBuilder.EventTargetClass);
+            await _targetPropertyManager.UpdatePropertiesAsync(SelectionManager.SelectedNamespace, EventQueryBuilder.EventTargetClass);
 
             if (_targetPropertyManager.Properties.Count > 0)
             {

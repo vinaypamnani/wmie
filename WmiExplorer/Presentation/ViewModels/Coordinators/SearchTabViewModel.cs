@@ -7,7 +7,6 @@ using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
@@ -35,25 +34,17 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     private readonly Dictionary<WmiSearchType, SearchTypeState> _searchTypeStates = new();
 
     [ObservableProperty]
-    private WmiNamespaceViewModel? _selectedNamespace;
-
-    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(JumpToClassCommand))]
     private WmiSearchResult? _selectedResult;
 
-    private readonly SelectionManager _selectionManager;
     private readonly IWmiService _wmiService;
 
     public SearchTabViewModel(
-        IMessengerService messengerService,
-        IWmiService wmiService,
-        SelectionManager selectionManager) : base(messengerService)
+           IMessengerService messengerService,
+           IWmiService wmiService,
+           SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
-
-        // Subscribe to unified selection changes
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
     }
 
     // Clear results for the current search type only
@@ -165,12 +156,12 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
         try
         {
-            if (SelectedNamespace == null)
+            if (SelectionManager.SelectedNamespace == null)
             {
                 PublishErrorState("No namespace selected.");
                 return;
             }
-            var scope = SelectedNamespace.ManagementScope;
+            var scope = SelectionManager.SelectedNamespace.ManagementScope;
             var searchResults = await _wmiService.ExecuteSearchAsync(scope, SearchType, SearchQuery, Recursive, _cts.Token);
             var tempResults = new List<WmiSearchResult>();
             foreach (var (match, parent) in searchResults)
@@ -214,20 +205,6 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private bool ExecuteSearchCanExecute() => !string.IsNullOrWhiteSpace(SearchQuery) && !IsSearching;
 
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
-    {
-        if (message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        // Only respond to namespace selections
-        if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
-        {
-            SelectedNamespace = namespaceVm;
-        }
-    }
-
     [RelayCommand(CanExecute = nameof(JumpToClassCanExecute))]
     private void JumpToClass()
     {
@@ -257,7 +234,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
         // Clear current results and query
         _results.Clear();
-        _selectionManager.ClearPropertyGrid();
+        SelectionManager.ClearPropertyGrid();
 
         SearchQuery = string.Empty;
 
@@ -277,7 +254,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     partial void OnSelectedResultChanged(WmiSearchResult? value)
     {
         // Update selectionManager with the new selection
-        _selectionManager.SetPropertyGridObject(value);
+        SelectionManager.SetPropertyGridObject(value);
     }
 
     private class SearchTypeState

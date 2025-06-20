@@ -22,6 +22,16 @@ public partial class SelectionManager : ObservableObject
     private readonly IMessengerService _messengerService;
 
     [ObservableProperty]
+    private WmiClassViewModel? _selectedClass;
+
+    [ObservableProperty]
+    private WmiInstanceViewModel? _selectedInstance;
+
+    // Centralized selection properties that can be bound to directly
+    [ObservableProperty]
+    private WmiNamespaceViewModel? _selectedNamespace;
+
+    [ObservableProperty]
     private string _selectedObjectDisplayName = NoSelectionDisplayName;
 
     // PropertyGrid binding properties
@@ -65,6 +75,11 @@ public partial class SelectionManager : ObservableObject
         SelectedObjectForPropertyGrid = null;
         SelectedObjectDisplayName = NoSelectionDisplayName;
         LastUpdateTime = DateTime.Now;
+
+        // Clear centralized selection properties
+        SelectedInstance = null;
+        SelectedClass = null;
+        SelectedNamespace = null;
 
         PublishSelectionChanged();
     }
@@ -134,6 +149,9 @@ public partial class SelectionManager : ObservableObject
         // Always update selection state for coordination
         PreviousObject = SelectedObject;
         SelectedObject = ProcessSelectionObject(selectedObject);
+
+        // Update centralized selection properties
+        UpdateCentralizedSelectionProperties(selectedObject);
 
         // Send SelectionChangedMessage for ViewModels that need it
         PublishSelectionChanged();
@@ -225,5 +243,50 @@ public partial class SelectionManager : ObservableObject
     private void PublishSelectionChanged()
     {
         _messengerService.Send(new SelectionChangedMessage(this));
+    }
+
+    /// <summary>
+    /// Updates the centralized selection properties based on the selected object
+    /// </summary>
+    private void UpdateCentralizedSelectionProperties(object? selectedObject)
+    {
+        switch (selectedObject)
+        {
+            case WmiNamespaceViewModel namespaceVm:
+                if (SelectedNamespace != namespaceVm)
+                    SelectedNamespace = namespaceVm;
+                // When a namespace is selected, use its selected class
+                if (SelectedClass != namespaceVm?.SelectedClass)
+                    SelectedClass = namespaceVm?.SelectedClass;
+                // When a class changes, use its selected instance
+                if (SelectedInstance != SelectedClass?.SelectedInstance)
+                    SelectedInstance = SelectedClass?.SelectedInstance;
+                break;
+
+            case WmiClassViewModel classVm:
+                if (SelectedClass != classVm)
+                    SelectedClass = classVm;
+                // Update namespace to match the class's parent
+                // if (SelectedNamespace != classVm.ParentNamespaceViewModel)
+                //     SelectedNamespace = classVm.ParentNamespaceViewModel;
+                // When a class is selected, use its selected instance
+                if (SelectedInstance != classVm?.SelectedInstance)
+                    SelectedInstance = classVm?.SelectedInstance;
+                break;
+
+            case WmiInstanceViewModel instanceVm:
+                if (SelectedInstance != instanceVm)
+                    SelectedInstance = instanceVm;
+                // Update class to match the instance's parent
+                // if (SelectedClass != instanceVm.ParentClass)
+                //     SelectedClass = instanceVm.ParentClass;
+                // Update namespace to match the class's parent
+                // if (SelectedNamespace != instanceVm.ParentClass.ParentNamespaceViewModel)
+                //     SelectedNamespace = instanceVm.ParentClass.ParentNamespaceViewModel;
+                break;
+
+            default:
+                break;
+        }
     }
 }

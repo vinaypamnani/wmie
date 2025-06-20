@@ -8,7 +8,6 @@ using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
@@ -38,12 +37,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     private string _queryText = string.Empty;
 
     [ObservableProperty]
-    private WmiNamespaceViewModel? _selectedNamespace;
-
-    [ObservableProperty]
     private WmiInstance? _selectedResult;
-
-    private readonly SelectionManager _selectionManager;
 
     [ObservableProperty]
     private bool _useAmendedQualifiers = true;
@@ -51,17 +45,13 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     private readonly IWmiService _wmiService;
 
     public QueryTabViewModel(
-        IMessengerService messengerService,
-        IWmiService wmiService,
-        ICacheService cacheService,
-        SelectionManager selectionManager) : base(messengerService)
+              IMessengerService messengerService,
+              IWmiService wmiService,
+              ICacheService cacheService,
+              SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
-
-        // Subscribe to unified selection changes
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Update columns when results change
         _results.CollectionChanged += (s, e) => UpdateResultColumns();
@@ -148,7 +138,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
 
         try
         {
-            if (SelectedNamespace == null)
+            if (SelectionManager.SelectedNamespace == null)
             {
                 PublishErrorState("No namespace selected.");
                 return;
@@ -160,7 +150,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
                 return;
             }
 
-            var scope = SelectedNamespace.ManagementScope;
+            var scope = SelectionManager.SelectedNamespace.ManagementScope;
             var queryString = QueryText.Trim();
             var managementObjects = await _wmiService.ExecuteWmiQueryAsync(
                 scope,
@@ -225,27 +215,13 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         return !string.IsNullOrWhiteSpace(QueryText) && !IsQuerying;
     }
 
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
-    {
-        if (message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        // Only respond to namespace selections
-        if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
-        {
-            SelectedNamespace = namespaceVm;
-        }
-    }
-
     /// <summary>
     /// Handles property change for SelectedResult to publish messaging updates
     /// </summary>
     partial void OnSelectedResultChanged(WmiInstance? value)
     {
         // Update selectionManager with the new selection
-        _selectionManager.SetPropertyGridObject(value);
+        SelectionManager.SetPropertyGridObject(value);
     }
 
     private void RefreshResultsView()

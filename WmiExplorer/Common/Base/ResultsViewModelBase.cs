@@ -3,14 +3,16 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Helpers;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Base;
 
 /// <summary>
 /// Base class for view models that manage a results collection, filter helper, and collection view.
+/// Also provides SelectionManager functionality for all results-based ViewModels.
 /// </summary>
-public abstract partial class ResultsViewModelBase<T> : MessagingViewModelBase
+public abstract partial class ResultsViewModelBase<T> : SelectionAwareViewModelBase
 {
     protected FilterHelper<T> _filterHelper;
     protected ObservableCollection<T> _results = new();
@@ -34,7 +36,7 @@ public abstract partial class ResultsViewModelBase<T> : MessagingViewModelBase
     /// </summary>
     protected abstract bool ResultsFilterPredicate(T instance, string filter);
 
-    protected ResultsViewModelBase(IMessengerService messengerService) : base(messengerService)
+    protected ResultsViewModelBase(IMessengerService messengerService, SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _filterHelper = new FilterHelper<T>(_results, ResultsFilterPredicate);
         _resultsView = _filterHelper.CollectionView;

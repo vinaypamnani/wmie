@@ -87,14 +87,13 @@
                     <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="{Binding ClassesTabHeader}">
                             <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
-                        </TabItem>
-                        <TabItem Header="{Binding SearchTabHeader}">
+                        </TabItem>                        <TabItem Header="{Binding SearchTabHeader}">
                             <!--  Search View  -->
-                            <tabs:SearchTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.SearchTabViewModel}" />
+                            <tabs:SearchTabView DataContext="{Binding NamespacesViewModel.SelectionManager.SelectedNamespace.SearchTabViewModel}" />
                         </TabItem>
                         <TabItem Header="{Binding QueryTabHeader}">
                             <!--  Query View  -->
-                            <tabs:QueryTabView DataContext="{Binding NamespacesViewModel.SelectedNamespace.QueryTabViewModel}" />
+                            <tabs:QueryTabView DataContext="{Binding NamespacesViewModel.SelectionManager.SelectedNamespace.QueryTabViewModel}" />
                         </TabItem>
                         <TabItem Header="{Binding WatcherTabHeader}">
                             <!--  Event Watcher View  -->

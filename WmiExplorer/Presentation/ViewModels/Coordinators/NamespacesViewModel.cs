@@ -16,17 +16,12 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Namespaces pane. Manages the collection of namespaces
 /// and related UI operations for the namespace tree view.
 /// </summary>
-public partial class NamespacesViewModel : MessagingViewModelBase
+public partial class NamespacesViewModel : SelectionAwareViewModelBase
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
     private readonly ClassesTabViewModel _classesTabViewModel;
     private readonly CancellationTokenSource _cts = new();
-
-    [ObservableProperty]
-    private WmiNamespaceViewModel? _selectedNamespace;
-
-    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
     private readonly WatcherTabViewModel _watcherTabViewModel;
 
@@ -43,19 +38,18 @@ public partial class NamespacesViewModel : MessagingViewModelBase
               ICacheService cacheService,
               ClassesTabViewModel classesTabViewModel,
               WatcherTabViewModel watcherTabViewModel,
-              SelectionManager selectionManager) : base(messengerService)
+              SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
-        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel)); _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel));
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -116,12 +110,10 @@ public partial class NamespacesViewModel : MessagingViewModelBase
 
             // Check if we're already connected to this path
             var existingRoot = Namespaces.FirstOrDefault(n =>
-                n.NamespacePath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase));
-
-            if (existingRoot != null)
+                n.NamespacePath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase)); if (existingRoot != null)
             {
-                // Just select the existing root namespace
-                SelectedNamespace = existingRoot;
+                // Just select the existing root namespace using SelectionManager
+                SelectionManager.SetSelectedObject(existingRoot);
                 PublishSuccessState($"Connected to {effectivePath}");
                 return;
             }
@@ -135,7 +127,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
                 _applicationService,
                 _settingsService,
                 _cacheService,
-                _selectionManager,
+                SelectionManager,
                 _cts.Token);
 
             // Load initial children
@@ -169,6 +161,18 @@ public partial class NamespacesViewModel : MessagingViewModelBase
             _cts.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
+    {
+        // Notify command state changes
+        ReloadClassesCommand.NotifyCanExecuteChanged();
+
+        // Update the status bar based on the selected namespace - this is updated by binding via TreeViewSelectedItemBehavior
+        UpdateStatusBar();
     }
 
     /// <summary>
@@ -215,26 +219,9 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
     {
-        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectedNamespace)
+        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectionManager.SelectedNamespace)
         {
             UpdateStatusBar();
-        }
-    }
-
-    /// <summary>
-    /// Handles the unified selection changed message to update SelectedNamespace
-    /// </summary>
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
-    {
-        if (message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        // Only respond to namespace selections
-        if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
-        {
-            SelectedNamespace = namespaceVm;
         }
     }
 
@@ -257,10 +244,8 @@ public partial class NamespacesViewModel : MessagingViewModelBase
             {
                 PublishErrorState($"Namespace '{message.NamespacePath}' not found.");
                 return;
-            }
-
-            // Select the namespace
-            SelectedNamespace = nsVm;
+            }            // Select the namespace using SelectionManager
+            SelectionManager.SetSelectedObject(nsVm);
             nsVm.IsSelected = true;
             nsVm.IsExpanded = true;
 
@@ -291,24 +276,18 @@ public partial class NamespacesViewModel : MessagingViewModelBase
         }
     }
 
-    partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? value)
-    {
-        // Update the status bar based on the selected namespace - this is updated by binding via TreeViewSelectedItemBehavior
-        UpdateStatusBar();
-    }
-
     /// <summary>
     /// Command to reload the classes of the selected namespace
     /// </summary>
     [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
     private void ReloadClasses()
     {
-        SelectedNamespace?.LoadClassesCommand.Execute(null);
+        SelectionManager.SelectedNamespace?.LoadClassesCommand.Execute(null);
     }
 
     private bool ReloadClassesCanExecute()
     {
-        return SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null);
+        return SelectionManager.SelectedNamespace != null && SelectionManager.SelectedNamespace.LoadClassesCommand.CanExecute(null);
     }
 
     /// <summary>
@@ -317,11 +296,11 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     private void UpdateStatusBar()
     {
         // If no namespace is selected, do nothing
-        if (SelectedNamespace == null || SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
+        if (SelectionManager.SelectedNamespace == null || SelectionManager.SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
             return;
 
         // Otherwise, show status based on namespace class load state
-        var ns = SelectedNamespace;
+        var ns = SelectionManager.SelectedNamespace;
         switch (ns.ClassLoadState)
         {
             case ClassLoadState.Unknown:

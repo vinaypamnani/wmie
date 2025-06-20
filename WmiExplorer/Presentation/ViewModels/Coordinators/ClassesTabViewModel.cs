@@ -13,50 +13,36 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Classes tab. Manages the collection of classes
 /// and related UI operations for the classes list view.
 /// </summary>
-public partial class ClassesTabViewModel : MessagingViewModelBase
+public partial class ClassesTabViewModel : SelectionAwareViewModelBase
 {
     private readonly IApplicationService _applicationService;
 
     [ObservableProperty]
     private string _autoQueryText = string.Empty;
 
-    private readonly ICacheService _cacheService;
-    private readonly CancellationTokenSource _cts = new();
     private readonly InstancesTabViewModel _instancesTabViewModel;
     private readonly MethodsTabViewModel _methodsTabViewModel;
     private readonly PropertiesTabViewModel _propertiesTabViewModel;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
-    private WmiNamespaceViewModel? _selectedNamespace;
-
-    [ObservableProperty]
     private int _selectedTabIndex;
 
-    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
-    private readonly IWmiService _wmiService;
-
     public ClassesTabViewModel(
-              IMessengerService messengerService,
-              ISettingsService settingsService,
-              IWmiService wmiService,
-              IApplicationService applicationService,
-              ICacheService cacheService,
-              SelectionManager selectionManager,
-              InstancesTabViewModel instancesTabViewModel,
-              MethodsTabViewModel methodsTabViewModel,
-              PropertiesTabViewModel propertiesTabViewModel) : base(messengerService)
+                 IMessengerService messengerService,
+                 ISettingsService settingsService,
+                 IApplicationService applicationService,
+                 SelectionManager selectionManager,
+                 InstancesTabViewModel instancesTabViewModel,
+                 MethodsTabViewModel methodsTabViewModel,
+                 PropertiesTabViewModel propertiesTabViewModel) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
         _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
         _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
@@ -76,7 +62,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         get
         {
-            var count = SelectedNamespace?.SelectedClass?.Instances?.Count ?? 0;
+            var count = SelectionManager.SelectedNamespace?.SelectedClass?.Instances?.Count ?? 0;
             return count > 0 ? $"Instances [{count}]" : "Instances";
         }
     }
@@ -93,7 +79,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         get
         {
-            var count = SelectedNamespace?.SelectedClass?.WmiClass?.Methods?.Count ?? 0;
+            var count = SelectionManager.SelectedNamespace?.SelectedClass?.WmiClass?.Methods?.Count ?? 0;
             return count > 0 ? $"Methods [{count}]" : "Methods";
         }
     }
@@ -104,21 +90,21 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     public MethodsTabViewModel MethodsTabViewModel => _methodsTabViewModel;
 
     /// <summary>
+    /// Gets the PropertiesTabViewModel
+    /// </summary>
+    public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
+
+    /// <summary>
     /// Gets the header text for the Properties tab with count
     /// </summary>
     public string PropertiesTabHeader
     {
         get
         {
-            var count = SelectedNamespace?.SelectedClass?.WmiClass?.Properties?.Count ?? 0;
+            var count = SelectionManager.SelectedNamespace?.SelectedClass?.WmiClass?.Properties?.Count ?? 0;
             return count > 0 ? $"Properties [{count}]" : "Properties";
         }
     }
-
-    /// <summary>
-    /// Gets the PropertiesTabViewModel
-    /// </summary>
-    public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
 
     /// <summary>
     /// Command to execute the auto-generated query
@@ -143,7 +129,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleInstancesFilteredMessage(InstancesFilteredMessage message)
     {
-        if (message?.ClassViewModel != null && message.ClassViewModel == SelectedNamespace?.SelectedClass)
+        if (message?.ClassViewModel != null && message.ClassViewModel == SelectionManager.SelectedNamespace?.SelectedClass)
             UpdateStatusBar();
     }
 
@@ -159,9 +145,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
 
         switch (selectedObject)
         {
-            case WmiNamespaceViewModel namespaceVm:
-                if (namespaceVm != SelectedNamespace)
-                    SelectedNamespace = namespaceVm;
+            case WmiNamespaceViewModel:
                 UpdateTabHeaders();
                 break;
             case WmiClassViewModel classVm:
@@ -188,20 +172,20 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
     private void ReloadClasses()
     {
-        SelectedNamespace?.LoadClassesCommand.Execute(null);
+        SelectionManager.SelectedNamespace?.LoadClassesCommand.Execute(null);
     }
 
     /// <summary>
     /// Determines if the reload classes command can execute
     /// </summary>
-    private bool ReloadClassesCanExecute() => SelectedNamespace != null && SelectedNamespace.LoadClassesCommand.CanExecute(null);
+    private bool ReloadClassesCanExecute() => SelectionManager.SelectedNamespace != null && SelectionManager.SelectedNamespace.LoadClassesCommand.CanExecute(null);
 
     /// <summary>
     /// Updates the auto-generated WQL query text based on the selected class or instance
     /// </summary>
     private void UpdateAutoQueryText(object selectedObject)
     {
-        var selectedClassName = SelectedNamespace?.SelectedClass?.ClassName ?? string.Empty;
+        var selectedClassName = SelectionManager.SelectedNamespace?.SelectedClass?.ClassName ?? string.Empty;
 
         if (selectedObject is WmiInstanceViewModel selectedInstance)
         {
@@ -243,14 +227,14 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     private void UpdateStatusBar()
     {
         // If no namespace is selected, do nothing
-        if (SelectedNamespace == null || SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
+        if (SelectionManager.SelectedNamespace == null || SelectionManager.SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
             return;
 
         // If a class is selected, show status based on class load state
-        if (SelectedNamespace.SelectedClass != null)
+        if (SelectionManager.SelectedNamespace?.SelectedClass != null)
         {
-            var selectedClass = SelectedNamespace.SelectedClass;
-            switch (selectedClass.LoadState)
+            var selectedClass = SelectionManager.SelectedNamespace.SelectedClass;
+            switch (selectedClass!.LoadState)
             {
                 case InstanceLoadState.Unknown:
                     PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click the class to load instances.");

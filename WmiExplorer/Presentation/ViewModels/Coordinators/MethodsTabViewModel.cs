@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
@@ -15,10 +14,8 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// Coordinator ViewModel for the WMI Methods tab. Manages method-related functionality
 /// and UI operations for the methods list view and parameter display.
 /// </summary>
-public partial class MethodsTabViewModel : MessagingViewModelBase
+public partial class MethodsTabViewModel : SelectionAwareViewModelBase
 {
-    private readonly CancellationTokenSource _cts = new();
-
     [ObservableProperty]
     private string _helpText = "Select a class to view methods";
 
@@ -28,35 +25,22 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     private string _methodFilterText = string.Empty;
 
     [ObservableProperty]
-    private WmiClassViewModel? _selectedClass;
-
-    [ObservableProperty]
     private WmiMethod? _selectedMethod;
 
     [ObservableProperty]
     private WmiParameter? _selectedMethodParameter;
-
-    private readonly SelectionManager _selectionManager;
 
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
-    private readonly IWmiService _wmiService;
-
     public MethodsTabViewModel(
            IMessengerService messengerService,
            ISettingsService settingsService,
-           SelectionManager selectionManager,
-           IWmiService wmiService) : base(messengerService)
+           SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
-        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-
-        // Subscribe to unified selection changes
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -74,70 +58,24 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     {
         if (disposing)
         {
-            _cts.Cancel();
-            _cts.Dispose();
             _methodFilterHelper?.Dispose();
         }
         base.Dispose(disposing);
     }
 
     /// <summary>
-    /// Handles the unified selection changed message
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
     /// </summary>
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
+    protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
     {
-        if (message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        switch (selectedObject)
-        {
-            // If a namespace is selected, update class selection
-            case WmiNamespaceViewModel namespaceVm:
-                if (namespaceVm.SelectedClass != SelectedClass)
-                {
-                    SelectedClass = namespaceVm.SelectedClass;
-                }
-                break;
-
-            // If a class is selected, update the selected class
-            case WmiClassViewModel classVm:
-                if (classVm != SelectedClass)
-                {
-                    SelectedClass = classVm;
-                }
-                break;
-        }
+        // Handle class change logic
+        HandleSelectedClassChanged(null, selectedClass);
     }
 
     /// <summary>
-    /// Filter predicate for methods based on name and description
+    /// Handles class selection changes to reset the selected method
     /// </summary>
-    private bool MethodFilterPredicate(WmiMethod method, string filter)
-    {
-        if (string.IsNullOrWhiteSpace(filter))
-            return true;
-
-        return method.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
-               method.Description.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-    }
-
-    /// <summary>
-    /// Called when the MethodFilterText changes
-    /// </summary>
-    partial void OnMethodFilterTextChanged(string value)
-    {
-        if (_methodFilterHelper != null)
-        {
-            _methodFilterHelper.FilterText = value;
-        }
-    }
-
-    /// <summary>
-    /// Called when the selected class changes to reset the selected method
-    /// </summary>
-    partial void OnSelectedClassChanged(WmiClassViewModel? oldValue, WmiClassViewModel? newValue)
+    private void HandleSelectedClassChanged(WmiClassViewModel? oldValue, WmiClassViewModel? newValue)
     {
         // Reset selected method when class changes
         SelectedMethod = null;
@@ -169,6 +107,29 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Filter predicate for methods based on name and description
+    /// </summary>
+    private bool MethodFilterPredicate(WmiMethod method, string filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter))
+            return true;
+
+        return method.Name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 ||
+               method.Description.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    /// <summary>
+    /// Called when the MethodFilterText changes
+    /// </summary>
+    partial void OnMethodFilterTextChanged(string value)
+    {
+        if (_methodFilterHelper != null)
+        {
+            _methodFilterHelper.FilterText = value;
+        }
+    }
+
+    /// <summary>
     /// Called when the selected method changes
     /// </summary>
     partial void OnSelectedMethodChanged(WmiMethod? oldValue, WmiMethod? newValue)
@@ -176,7 +137,7 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
         // Clear selected parameter when method changes since parameters are method-specific
         SelectedMethodParameter = null;
 
-        _selectionManager.SetPropertyGridObject(newValue);
+        SelectionManager.SetPropertyGridObject(newValue);
         UpdateHelpText();
     }
 
@@ -185,7 +146,7 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     /// </summary>
     partial void OnSelectedMethodParameterChanged(WmiParameter? oldValue, WmiParameter? newValue)
     {
-        _selectionManager.SetPropertyGridObject(newValue);
+        SelectionManager.SetPropertyGridObject(newValue);
     }
 
     /// <summary>
@@ -193,11 +154,11 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     /// </summary>
     private void UpdateHelpText()
     {
-        if (SelectedClass == null)
+        if (SelectionManager.SelectedClass == null)
         {
             HelpText = "Select a class to view methods";
         }
-        else if (SelectedClass.Methods?.Count == 0)
+        else if (SelectionManager.SelectedClass.Methods?.Count == 0)
         {
             HelpText = "No methods available for the selected class";
         }

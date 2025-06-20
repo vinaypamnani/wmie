@@ -63,7 +63,7 @@
                                            Padding="4"
                                            avalonbehaviors:AvalonEditCompletionBehavior.CacheService="{Binding CacheService}"
                                            avalonbehaviors:AvalonEditCompletionBehavior.EnableCompletion="True"
-                                           avalonbehaviors:AvalonEditCompletionBehavior.Namespace="{Binding SelectedNamespace.NamespacePath}"
+                                           avalonbehaviors:AvalonEditCompletionBehavior.Namespace="{Binding SelectionManager.SelectedNamespace.NamespacePath}"
                                            avalonbehaviors:AvalonEditTextBindingBehavior.BoundText="{Binding QueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                            avalonbehaviors:AvalonEditThemingBehavior.EnableTheming="True"
                                            avalonbehaviors:AvalonEditWqlHighlightingBehavior.EnableWqlHighlighting="True"

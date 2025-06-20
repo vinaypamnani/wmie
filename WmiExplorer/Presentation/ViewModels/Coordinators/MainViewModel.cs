@@ -13,10 +13,8 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// <summary>
 /// Main ViewModel for the application
 /// </summary>
-public partial class MainViewModel : MessagingViewModelBase
+public partial class MainViewModel : SelectionAwareViewModelBase
 {
-    private readonly CancellationTokenSource _cts = new();
-
     [ObservableProperty]
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
 
@@ -38,9 +36,6 @@ public partial class MainViewModel : MessagingViewModelBase
     [ObservableProperty]
     private int _selectedTabIndex;
 
-    [ObservableProperty]
-    private SelectionManager _selectionManager = null!;
-
     private readonly ISettingsService _settingsService;
     private readonly IThemeService _themeService;
 
@@ -51,19 +46,18 @@ public partial class MainViewModel : MessagingViewModelBase
     private MainWindowPosition _windowPosition;
 
     public MainViewModel(
-                             IMessengerService messengerService,
-                             ISettingsService settingsService,
-                             IThemeService themeService,
-                             NamespacesViewModel namespacesViewModel,
-                             OptionsViewModel optionsViewModel,
-                             SelectionManager selectionManager,
-                             LogTabViewModel logTabViewModel) : base(messengerService)
+        IMessengerService messengerService,
+        ISettingsService settingsService,
+        IThemeService themeService,
+        NamespacesViewModel namespacesViewModel,
+        OptionsViewModel optionsViewModel,
+        SelectionManager selectionManager,
+        LogTabViewModel logTabViewModel) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
 
         // Initialize window position from settings
@@ -95,7 +89,7 @@ public partial class MainViewModel : MessagingViewModelBase
     {
         get
         {
-            var count = NamespacesViewModel?.SelectedNamespace?.Classes?.Count ?? 0;
+            var count = NamespacesViewModel?.SelectionManager?.SelectedNamespace?.Classes?.Count ?? 0;
             return count > 0 ? $"Classes [{count}]" : "Classes";
         }
     }
@@ -119,7 +113,7 @@ public partial class MainViewModel : MessagingViewModelBase
     {
         get
         {
-            var count = NamespacesViewModel?.SelectedNamespace?.QueryTabViewModel?.Results?.Count ?? 0;
+            var count = NamespacesViewModel?.SelectionManager?.SelectedNamespace?.QueryTabViewModel?.Results?.Count ?? 0;
             return count > 0 ? $"Query [{count}]" : "Query";
         }
     }
@@ -131,7 +125,7 @@ public partial class MainViewModel : MessagingViewModelBase
     {
         get
         {
-            var count = NamespacesViewModel?.SelectedNamespace?.SearchTabViewModel?.Results?.Count ?? 0;
+            var count = NamespacesViewModel?.SelectionManager?.SelectedNamespace?.SearchTabViewModel?.Results?.Count ?? 0;
             return count > 0 ? $"Search [{count}]" : "Search";
         }
     }
@@ -146,26 +140,6 @@ public partial class MainViewModel : MessagingViewModelBase
             var count = NamespacesViewModel?.WatcherTabViewModel?.Events?.Count ?? 0;
             return count > 0 ? $"Watcher [{count}]" : "Watcher";
         }
-    }
-
-    /// <summary>
-    /// Override to clean up additional resources
-    /// </summary>
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            // Cancel any pending operations
-            if (!_cts.IsCancellationRequested)
-            {
-                _cts.Cancel();
-            }
-
-            // Dispose the cancellation token source
-            _cts.Dispose();
-        }
-
-        base.Dispose(disposing);
     }
 
     /// <summary>
@@ -240,9 +214,9 @@ public partial class MainViewModel : MessagingViewModelBase
     partial void OnSelectedTabIndexChanged(int value)
     {
         if (value != 0) // Assuming 0 is the index for Classes tab
-            _selectionManager.ClearSelections();
+            SelectionManager.ClearPropertyGrid();
         else
-            _selectionManager.SetSelectedObject(_selectionManager.PreviousObject, updatePropertyGrid: true);
+            SelectionManager.SetSelectedObject(SelectionManager.PreviousObject, updatePropertyGrid: true);
     }
 
     /// <summary>
