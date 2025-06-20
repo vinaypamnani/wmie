@@ -1,8 +1,10 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
+using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -62,8 +64,12 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = SelectionManager.SelectedNamespace?.SelectedClass?.Instances?.Count ?? 0;
-            return count > 0 ? $"Instances [{count}]" : "Instances";
+            if (SelectionManager.SelectedNamespace?.SelectedClass?.LoadState == InstanceLoadState.Success)
+            {
+                var count = SelectionManager.SelectedNamespace?.SelectedClass?.Instances?.Count ?? 0;
+                return $"Instances [{count}]";
+            }
+            return "Instances";
         }
     }
 
@@ -79,8 +85,12 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = SelectionManager.SelectedNamespace?.SelectedClass?.WmiClass?.Methods?.Count ?? 0;
-            return count > 0 ? $"Methods [{count}]" : "Methods";
+            if (SelectionManager.SelectedClass?.Methods is not null)
+            {
+                var count = SelectionManager.SelectedNamespace?.SelectedClass?.Methods?.Count ?? 0;
+                return $"Methods [{count}]";
+            }
+            return "Methods";
         }
     }
 
@@ -101,8 +111,13 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = SelectionManager.SelectedNamespace?.SelectedClass?.WmiClass?.Properties?.Count ?? 0;
-            return count > 0 ? $"Properties [{count}]" : "Properties";
+            if (SelectionManager.SelectedNamespace?.SelectedClass?.Properties is not null)
+            {
+                // Count the properties in the selected class
+                var count = SelectionManager.SelectedNamespace?.SelectedClass?.Properties?.Count ?? 0;
+                return $"Properties [{count}]";
+            }
+            return "Properties";
         }
     }
 
@@ -130,7 +145,10 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     private void HandleInstancesFilteredMessage(InstancesFilteredMessage message)
     {
         if (message?.ClassViewModel != null && message.ClassViewModel == SelectionManager.SelectedNamespace?.SelectedClass)
+        {
             UpdateStatusBar();
+            UpdateTabHeaders();
+        }
     }
 
     /// <summary>

@@ -39,9 +39,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private InstanceLoadState _loadState = InstanceLoadState.Unknown;
 
     private ObservableCollection<WmiMethod>? _methods;
-    private ObservableCollection<WmiProperty>? _properties;
-
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
+    private ObservableCollection<WmiProperty>? _properties;
 
     [ObservableProperty]
     private WmiInstanceViewModel? _selectedInstance;
@@ -75,12 +74,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         );
 
         Instances = new ReadOnlyObservableCollection<WmiInstanceViewModel>(_instances);
-
-        // Load methods for this class
-        LoadMethods();
-
-        // Load properties for this class
-        LoadProperties();
     }
 
     public string ClassName => _wmiClass.ClassName;
@@ -100,12 +93,12 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     public ObservableCollection<WmiMethod> Methods => _methods!;
 
+    public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
+
     /// <summary>
     /// Collection of properties available for this class.
     /// </summary>
     public ObservableCollection<WmiProperty> Properties => _properties!;
-
-    public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
 
     /// <summary>
     /// Collection of static methods available for this class.
@@ -431,6 +424,12 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             try
             {
                 _isUpdatingSelection = true;
+
+                // Load methods for this class
+                LoadMethods();
+
+                // Load properties for this class
+                LoadProperties();
 
                 // Update parent namespace selection to keep them in sync
                 if (ParentNamespaceViewModel.SelectedClass != this)
