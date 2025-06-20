@@ -5,6 +5,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.Themes;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
@@ -140,6 +141,14 @@ public partial class MainViewModel : SelectionAwareViewModelBase
             var count = NamespacesViewModel?.WatcherTabViewModel?.Events?.Count ?? 0;
             return count > 0 ? $"Watcher [{count}]" : "Watcher";
         }
+    }
+
+    /// <summary>
+    /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
+    {
+        UpdateTabHeaders();
     }
 
     /// <summary>
