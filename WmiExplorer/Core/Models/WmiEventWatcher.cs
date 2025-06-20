@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Management;
 
 namespace WmiExplorer.Core.Models;
@@ -14,7 +15,6 @@ public class WmiEventWatcher : IDisposable
 
     private bool _isRunning;
     private ManagementEventWatcher? _managementEventWatcher;
-    private readonly string _query;
     private readonly ManagementScope _scope;
 
     /// <summary>
@@ -23,38 +23,59 @@ public class WmiEventWatcher : IDisposable
     /// <param name="name">The name of the watcher</param>
     /// <param name="query">The WQL query for events</param>
     /// <param name="scope">The WMI scope to watch</param>
-    public WmiEventWatcher(string name, string query, ManagementScope scope)
+    public WmiEventWatcher(string name, string query, ManagementScope scope, string eventClass, string displayPropertyName)
     {
-        _query = query ?? throw new ArgumentNullException(nameof(query));
         _scope = scope ?? throw new ArgumentNullException(nameof(scope));
-        Name = name;
+
         CreatedAt = DateTime.Now;
+        Name = name;
+        Query = query ?? throw new ArgumentNullException(nameof(query));
+        EventClass = eventClass ?? throw new ArgumentNullException(nameof(eventClass));
+        DisplayPropertyName = displayPropertyName ?? string.Empty;
+        Namespace = scope.Path.NamespacePath;
     }
 
     /// <summary>
     /// Gets when this watcher was created
     /// </summary>
+    [Category("Event Watcher")]
     public DateTime CreatedAt { get; }
+
+    /// <summary>
+    /// Gets the display property name for events
+    /// </summary>
+    [Category("Event Watcher")]
+    public string DisplayPropertyName { get; }
+
+    /// <summary>
+    /// Gets the event class name this watcher is monitoring
+    /// </summary>
+    [Category("Event Watcher")]
+    public string EventClass { get; }
 
     /// <summary>
     /// Gets whether the watcher is currently running
     /// </summary>
+    [Category("Event Watcher")]
     public bool IsRunning => _isRunning;
 
     /// <summary>
     /// Gets the name of the watcher
     /// </summary>
+    [Category("Event Watcher")]
     public string Name { get; }
 
     /// <summary>
     /// Gets the namespace path this watcher is monitoring
     /// </summary>
-    public string Namespace => _scope.Path.NamespacePath;
+    [Category("Event Watcher")]
+    public string Namespace { get; }
 
     /// <summary>
     /// Gets the WQL query used by this watcher
     /// </summary>
-    public string Query => _query;
+    [Category("Event Watcher")]
+    public string Query { get; }
 
     /// <summary>
     /// Starts watching for WMI events
@@ -69,7 +90,7 @@ public class WmiEventWatcher : IDisposable
 
         try
         {
-            _managementEventWatcher = new ManagementEventWatcher(_scope, new EventQuery(_query));
+            _managementEventWatcher = new ManagementEventWatcher(_scope, new EventQuery(Query));
             _managementEventWatcher.EventArrived += OnEventArrived;
             _managementEventWatcher.Start();
             _isRunning = true;

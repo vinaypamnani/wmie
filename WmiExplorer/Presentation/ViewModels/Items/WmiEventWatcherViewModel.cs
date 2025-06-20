@@ -12,9 +12,6 @@ namespace WmiExplorer.Presentation.ViewModels.Watcher;
 /// </summary>
 public partial class WmiEventWatcherViewModel : DisposableObservableObject
 {
-    private readonly string _eventDisplayPropertyName;
-    private readonly string _eventType;
-
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopCommand))]
@@ -30,17 +27,11 @@ public partial class WmiEventWatcherViewModel : DisposableObservableObject
     public WmiEventWatcherViewModel(
         WmiEventWatcher watcher,
         Action<WmiEventWatcherViewModel> onRemove,
-        Action<WmiEvent> onEventReceived,
-        string eventType,
-        string eventDisplayPropertyName = ""
-    )
+        Action<WmiEvent> onEventReceived)
     {
         _watcher = watcher ?? throw new ArgumentNullException(nameof(watcher));
         _onRemove = onRemove ?? throw new ArgumentNullException(nameof(onRemove));
         _onEventReceived = onEventReceived ?? throw new ArgumentNullException(nameof(onEventReceived));
-        _eventType = eventType ?? throw new ArgumentNullException(nameof(eventType));
-        _eventDisplayPropertyName = eventDisplayPropertyName ?? string.Empty;
-
         _watcher.EventArrived += OnEventArrived;
 
         // Initialize IsRunning from the watcher's current state
@@ -52,7 +43,7 @@ public partial class WmiEventWatcherViewModel : DisposableObservableObject
     /// </summary>
     public DateTime CreatedAt => _watcher.CreatedAt;
 
-    public string EventDisplayPropertyName => _eventDisplayPropertyName;
+    public string EventDisplayPropertyName => _watcher.DisplayPropertyName;
 
     /// <summary>
     /// Gets the name of the watcher
@@ -68,6 +59,11 @@ public partial class WmiEventWatcherViewModel : DisposableObservableObject
     /// Gets the WQL query used by this watcher
     /// </summary>
     public string Query => _watcher.Query;
+
+    /// <summary>
+    /// Gets the underlying WmiEventWatcher for PropertyGrid display
+    /// </summary>
+    public WmiEventWatcher Watcher => _watcher;
 
     /// <summary>
     /// Disposes the watcher and cleans up resources
@@ -88,12 +84,12 @@ public partial class WmiEventWatcherViewModel : DisposableObservableObject
     private void OnEventArrived(object? sender, ManagementBaseObject e)
     {
         var actualEventType = e.ClassPath?.ClassName;
-        if (!string.IsNullOrEmpty(_eventType) && !string.IsNullOrEmpty(actualEventType) && !string.Equals(_eventType, actualEventType, StringComparison.Ordinal))
+        if (!string.IsNullOrEmpty(_watcher.EventClass) && !string.IsNullOrEmpty(actualEventType) && !string.Equals(_watcher.EventClass, actualEventType, StringComparison.Ordinal))
         {
             // Ignore events that do not match the expected type
             return;
         }
-        var wmiEvent = new WmiEvent(Name, e, _eventDisplayPropertyName);
+        var wmiEvent = new WmiEvent(Name, e, _watcher.DisplayPropertyName);
         _onEventReceived(wmiEvent);
     }
 

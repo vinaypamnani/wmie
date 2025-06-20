@@ -328,6 +328,12 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     private void RemoveAllWatchers()
     {
         var count = _watcherManager.RemoveAllWatchers();
+        if (SelectionManager.SelectedObjectForPropertyGrid is WmiEventWatcher)
+        {
+            // If the property grid is showing a watcher, clear it
+            SelectionManager.ClearPropertyGrid();
+        }
+
         PublishSuccessState($"Removed {count} watchers.");
     }
 
@@ -359,6 +365,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     private void StartAllWatchers()
     {
         var count = _watcherManager.StartAllWatchers();
+        SelectionManager.RefreshPropertyGrid();
         PublishSuccessState($"Started {count} watchers.");
     }
 
@@ -369,6 +376,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     private void StopAllWatchers()
     {
         var count = _watcherManager.StopAllWatchers();
+        SelectionManager.RefreshPropertyGrid();
         PublishSuccessState($"Stopped {count} watchers.");
     }
 

@@ -3,6 +3,7 @@ using System.Windows;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Watcher;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Shared;
@@ -172,9 +173,7 @@ public partial class SelectionManager : ObservableObject
     private (object? processedObject, string displayName) ProcessPropertyGridObject(object? selectedObject)
     {
         object? processedObject;
-        string displayName;
-
-        switch (selectedObject)
+        string displayName; switch (selectedObject)
         {
             case WmiNamespaceViewModel namespaceViewModel:
                 processedObject = namespaceViewModel.WmiNamespace;
@@ -189,6 +188,11 @@ public partial class SelectionManager : ObservableObject
             case WmiInstanceViewModel instanceViewModel:
                 processedObject = instanceViewModel.WmiInstance;
                 displayName = processedObject?.ToString() ?? NoSelectionDisplayName;
+                break;
+
+            case WmiEventWatcherViewModel eventWatcherViewModel:
+                processedObject = eventWatcherViewModel.Watcher;
+                displayName = $"Event Watcher: {eventWatcherViewModel.Name}";
                 break;
 
             case WmiMethod wmiMethod:

@@ -69,15 +69,13 @@ public class WatcherManager : DisposableObservableObject
                 watcherName += "_" + targetClass;
             watcherName += $"_{_watcherId}";
 
-            var watcher = new WmiEventWatcher(watcherName, query, scope);
+            var watcher = new WmiEventWatcher(watcherName, query, scope, eventClass, displayProperty);
 
             // Start the watcher before adding to the collection
             watcher.Start(); var watcherItem = new WmiEventWatcherViewModel(
                 watcher,
                 w => RemoveWatcher(w),
-                onEventReceived,
-                eventClass,
-                displayProperty
+                onEventReceived
             );
 
             _watchers.Add(watcherItem);
