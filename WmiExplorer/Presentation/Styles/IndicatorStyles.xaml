@@ -33,7 +33,7 @@
             <TextBlock Text="{TemplateBinding Content}"
                        FontFamily="Segoe UI"
                        FontSize="11"
-                       FontWeight="Bold"
+                       FontWeight="SemiBold"
                        Foreground="{TemplateBinding Foreground}"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>

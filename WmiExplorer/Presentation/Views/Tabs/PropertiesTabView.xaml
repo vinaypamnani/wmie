@@ -68,7 +68,7 @@
                                     <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
-                                                <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="Foreground" Value="Black" />
                                                 <Setter Property="Background" Value="{DynamicResource KeyIconFillBrush}" />
                                                 <Setter Property="Content" Value="K" />
                                                 <Setter Property="ToolTip" Value="Key Property" />

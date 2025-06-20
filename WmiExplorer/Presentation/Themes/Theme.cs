@@ -79,7 +79,7 @@ public partial class Theme : DisposableObservableObject
             ["ScrollBarThumbHoverBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.7 },
             ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.9 },
             // Icon Fill brushes - common for dark/light themes for now
-            ["KeyIconFillBrush"] = new SolidColorBrush(Colors.OrangeRed),
+            ["KeyIconFillBrush"] = new SolidColorBrush(Colors.Gold),
             ["StaticMethodIconFillBrush"] = new SolidColorBrush(Colors.RoyalBlue),
             ["InstanceMethodIconFillBrush"] = new SolidColorBrush(Colors.ForestGreen)
         };
