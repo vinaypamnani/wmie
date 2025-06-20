@@ -37,7 +37,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     private int _selectedTabIndex;
 
     private readonly ISettingsService _settingsService;
-    private readonly IThemeService _themeService;
+    private readonly ThemeManager _themeManager;
 
     [ObservableProperty]
     private string _themeToggleText = string.Empty;
@@ -48,14 +48,14 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     public MainViewModel(
         IMessengerService messengerService,
         ISettingsService settingsService,
-        IThemeService themeService,
+        ThemeManager themeManager,
+        SelectionManager selectionManager,
         NamespacesViewModel namespacesViewModel,
         OptionsViewModel optionsViewModel,
-        SelectionManager selectionManager,
         LogTabViewModel logTabViewModel) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
+        _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
@@ -225,8 +225,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     [RelayCommand]
     private void ToggleTheme()
     {
-        _themeService.ToggleTheme(); // Theme change message will trigger UpdateThemeProperties via subscription
-        Log.Debug("Changed Current theme to: {ThemeName}", _themeService.CurrentTheme?.ThemeName ?? "Unknown");
+        _themeManager.ToggleTheme(); // Theme change message will trigger UpdateThemeProperties via subscription
+        Log.Debug("Changed Current theme to: {ThemeName}", _themeManager.CurrentTheme?.ThemeName ?? "Unknown");
     }
 
     /// <summary>
@@ -246,7 +246,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void UpdateThemeProperties()
     {
-        CurrentTheme = _themeService.CurrentTheme!;
-        ThemeToggleText = _themeService.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
+        CurrentTheme = _themeManager.CurrentTheme!;
+        ThemeToggleText = _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
     }
 }

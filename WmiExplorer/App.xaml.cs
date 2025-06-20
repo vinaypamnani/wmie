@@ -65,14 +65,12 @@ public partial class App : Application
         Log.ConfigureLogging();
 
         // Then configure services
-        ConfigureServices();
-
-        if (ServiceProvider == null)
+        ConfigureServices(); if (ServiceProvider == null)
             throw new InvalidOperationException("ServiceProvider is not initialized.");
 
         // Initialize theme
-        var themeService = ServiceProvider.GetRequiredService<IThemeService>();
-        themeService.InitializeTheme();
+        var themeManager = ServiceProvider.GetRequiredService<ThemeManager>();
+        themeManager.InitializeTheme();
 
         // Register Base WMI providers for PropertyGrid using the new generic method
         var wmiService = ServiceProvider.GetRequiredService<IWmiService>();
@@ -99,18 +97,15 @@ public partial class App : Application
         // Register the CommunityToolkit messenger as a singleton
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 
-        // Register core services first (LogService removed - using global logging)
+        // Register core services first
         services.AddSingleton<IMessengerService, MessengerService>();
-        services.AddSingleton<ISettingsService, SettingsService>(provider =>
-            new SettingsService(provider.GetRequiredService<IMessengerService>())); services.AddSingleton<IThemeService>(provider =>
-            new ThemeService(
-                provider.GetRequiredService<IMessengerService>(),
-                provider.GetRequiredService<ISettingsService>()));
+        services.AddSingleton<ISettingsService, SettingsService>(provider => new SettingsService(provider.GetRequiredService<IMessengerService>()));
         services.AddSingleton<ICacheService, CacheService>();
-        services.AddSingleton<IWmiService, WmiService>(provider =>
-            new WmiService(
-                provider.GetRequiredService<ICacheService>()));
+        services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
+
+        // Register managers
+        services.AddSingleton<ThemeManager>();
         services.AddSingleton<SelectionManager>();
 
         // Register MainWindow for DI
@@ -131,7 +126,6 @@ public partial class App : Application
         services.AddTransient<QueryTabViewModel>();
         services.AddTransient<SearchTabViewModel>();
 
-
         // Build the service provider
         ServiceProvider = services.BuildServiceProvider();
 
@@ -140,9 +134,12 @@ public partial class App : Application
         var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
         var selectionManager = ServiceProvider.GetRequiredService<SelectionManager>();
 
+        // Set up AvalonEdit behaviors with DI
         AvalonEditThemingBehavior.SetMessengerService(messengerService);
         AvalonEditWqlHighlightingBehavior.SetMessengerService(messengerService);
-        AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);        // Set up PropertyGridUpdateBehavior with DI
+        AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
+
+        // Set up PropertyGridUpdateBehavior with DI
         PropertyGridUpdateBehavior.SetSelectionManager(selectionManager);
 
         // Configure unhandled exception handling

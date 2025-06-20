@@ -1,18 +1,20 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using Application = System.Windows.Application;
 using System.Windows.Media;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.Themes;
-using WmiExplorer.Common.Logging;
+using WmiExplorer.Services;
 
-namespace WmiExplorer.Services;
+namespace WmiExplorer.Presentation.ViewModels.Shared;
 
 /// <summary>
-/// Service for managing application themes
+/// Manages application themes and theme-related state
 /// </summary>
-public class ThemeService : IThemeService
+public partial class ThemeManager : ObservableObject
 {
     // Windows API enums and methods
     private enum DWMWINDOWATTRIBUTE
@@ -21,11 +23,13 @@ public class ThemeService : IThemeService
         DWMWA_CAPTION_COLOR = 35 // Added in Windows 11
     }
 
+    [ObservableProperty]
     private string _currentThemeName;
+
     private readonly IMessengerService _messengerService;
     private readonly ISettingsService _settingsService;
 
-    public ThemeService(IMessengerService messengerService, ISettingsService settingsService)
+    public ThemeManager(IMessengerService messengerService, ISettingsService settingsService)
     {
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
@@ -44,12 +48,7 @@ public class ThemeService : IThemeService
     /// <summary>
     /// Gets the current Theme object instance
     /// </summary>
-    public Theme? CurrentTheme => ThemeCollection.GetTheme(_currentThemeName);
-
-    /// <summary>
-    /// Gets the current theme name
-    /// </summary>
-    public string CurrentThemeName => _currentThemeName;
+    public Theme? CurrentTheme => ThemeCollection.GetTheme(CurrentThemeName);
 
     /// <summary>
     /// Applies the specified theme to the application
@@ -63,7 +62,7 @@ public class ThemeService : IThemeService
         if (CurrentTheme != null)
             CurrentTheme.PropertyChanged -= OnThemeColorChanged;
 
-        _currentThemeName = themeName;
+        CurrentThemeName = themeName;
         _settingsService.CurrentTheme = themeName;
 
         var appResources = Application.Current.Resources;
@@ -133,7 +132,7 @@ public class ThemeService : IThemeService
     /// </summary>
     public string GetCurrentThemeFromResources()
     {
-        return _currentThemeName;
+        return CurrentThemeName;
     }
 
     /// <summary>
@@ -144,15 +143,15 @@ public class ThemeService : IThemeService
         try
         {
             // Apply the theme from settings
-            ApplyTheme(_currentThemeName);
+            ApplyTheme(CurrentThemeName);
 
             // Log initialization
-            Log.Debug("Theme initialized: {ThemeName}", _currentThemeName);
+            Log.Debug("Theme initialized: {ThemeName}", CurrentThemeName);
         }
         catch (Exception ex)
         {
             // Fallback to Dark theme if there's an error
-            Log.Error(ex, "Error initializing theme {ThemeName}, falling back to Dark theme", _currentThemeName);
+            Log.Error(ex, "Error initializing theme {ThemeName}, falling back to Dark theme", CurrentThemeName);
             ApplyTheme(ThemeCollection.DarkTheme.ThemeName);
         }
     }
@@ -235,7 +234,7 @@ public class ThemeService : IThemeService
     /// </summary>
     public void ToggleTheme()
     {
-        ApplyTheme(_currentThemeName == ThemeCollection.DarkTheme.ThemeName ? ThemeCollection.LightTheme.ThemeName : ThemeCollection.DarkTheme.ThemeName);
+        ApplyTheme(CurrentThemeName == ThemeCollection.DarkTheme.ThemeName ? ThemeCollection.LightTheme.ThemeName : ThemeCollection.DarkTheme.ThemeName);
     }
 
     [DllImport("dwmapi.dll")]
@@ -255,7 +254,7 @@ public class ThemeService : IThemeService
         if (e.PropertyName != null && e.PropertyName.StartsWith("Item["))
         {
             SaveThemesToFile();
-            ApplyTheme(_currentThemeName); // Refresh theme
+            ApplyTheme(CurrentThemeName); // Refresh theme
         }
     }
 }
