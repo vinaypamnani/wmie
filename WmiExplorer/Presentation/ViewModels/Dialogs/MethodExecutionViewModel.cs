@@ -109,20 +109,24 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     public bool IsStaticMethod => _method!.IsStatic;
 
     /// <summary>
-    /// Gets the description of the method being executed.
+    /// Gets the display text for the learn more hyperlink.
     /// </summary>
-    public string MethodDescription => _method!.Description;    /// <summary>
-    /// Gets the name of the method being executed.
-    /// </summary>
-    public string MethodName => _method!.Name;    /// <summary>
+    public string LearnMoreText => $"Learn more about {MethodName} method of the {ClassName} class";
+
+    /// <summary>
     /// Gets the URL for learning more about this method.
     /// </summary>
     public string LearnMoreUrl => $"http://www.bing.com/search?q={MethodName}+Method+of+the+{ClassName}+Class";
 
     /// <summary>
-    /// Gets the display text for the learn more hyperlink.
+    /// Gets the description of the method being executed.
     /// </summary>
-    public string LearnMoreText => $"Learn more about {MethodName} method of the {ClassName} class";
+    public string MethodDescription => _method!.Description;
+
+    /// <summary>
+    /// Gets the name of the method being executed.
+    /// </summary>
+    public string MethodName => _method!.Name;
 
     /// <summary>
     /// Gets the collection of parameters for the method.

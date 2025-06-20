@@ -37,7 +37,6 @@
                 <!--  Properties DataGrid  -->
                 <DataGrid x:Name="PropertiesDataGrid"
                           Grid.Row="0"
-                          behaviors:ForceItemSelectionBehavior.EnableForceSelection="True"
                           CellStyle="{StaticResource ModernDataGridCellStyle}"
                           ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
                           ItemsSource="{Binding FilteredPropertiesView}"

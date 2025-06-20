@@ -7,6 +7,7 @@ using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -33,7 +34,7 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiProperty? _selectedProperty;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
@@ -44,11 +45,11 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     public PropertiesTabViewModel(
            IMessengerService messengerService,
            ISettingsService settingsService,
-           ISelectionService selectionService,
+           SelectionManager selectionManager,
            IWmiService wmiService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
 
         // Subscribe to unified selection changes
@@ -82,10 +83,10 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         switch (selectedObject)
         {
@@ -102,14 +103,6 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
                 if (classVm != SelectedClass)
                 {
                     SelectedClass = classVm;
-                }
-                break;
-
-            // If a property is selected, update the selected property
-            case WmiProperty propertyVm:
-                if (propertyVm != SelectedProperty)
-                {
-                    SelectedProperty = propertyVm;
                 }
                 break;
         }
@@ -172,7 +165,7 @@ public partial class PropertiesTabViewModel : MessagingViewModelBase
     /// </summary>
     partial void OnSelectedPropertyChanged(WmiProperty? oldValue, WmiProperty? newValue)
     {
-        _selectionService.SetSelectedObject(newValue);
+        _selectionManager.SetPropertyGridObject(newValue);
         UpdateHelpText();
     }
 

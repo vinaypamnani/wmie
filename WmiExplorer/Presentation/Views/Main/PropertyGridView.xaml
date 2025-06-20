@@ -34,7 +34,6 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
-
                             <!--  Header for selected object  -->
                             <Border Grid.Row="0"
                                     Margin="{StaticResource MarginRightSmall}"
@@ -44,7 +43,7 @@
                                 <TextBlock Background="{DynamicResource PrimaryAccentBrush}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                           Text="{Binding SelectedObjectDisplayName}"
+                                           Text="{Binding SelectionManager.SelectedObjectDisplayName}"
                                            TextTrimming="CharacterEllipsis" />
                             </Border>
                             <pg:PropertyGrid x:Name="PropertyGrid"
@@ -54,7 +53,7 @@
                                              EnableVirtualization="True"
                                              IsPropertyGridReadOnly="True"
                                              NameColumnWidth="150"
-                                             SelectedObject="{Binding SelectedObject, Mode=OneWay}"
+                                             SelectedObject="{Binding SelectionManager.SelectedObjectForPropertyGrid, Mode=OneWay}"
                                              ShowSearchBox="True" />
                         </Grid>
                     </Border>

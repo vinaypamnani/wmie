@@ -7,6 +7,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -25,7 +26,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiNamespaceViewModel? _selectedNamespace;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
     private readonly WatcherTabViewModel _watcherTabViewModel;
 
@@ -42,14 +43,14 @@ public partial class NamespacesViewModel : MessagingViewModelBase
               ICacheService cacheService,
               ClassesTabViewModel classesTabViewModel,
               WatcherTabViewModel watcherTabViewModel,
-              ISelectionService selectionService) : base(messengerService)
+              SelectionManager selectionManager) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
-        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel)); _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel)); _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
@@ -134,7 +135,7 @@ public partial class NamespacesViewModel : MessagingViewModelBase
                 _applicationService,
                 _settingsService,
                 _cacheService,
-                _selectionService,
+                _selectionManager,
                 _cts.Token);
 
             // Load initial children
@@ -225,10 +226,10 @@ public partial class NamespacesViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         // Only respond to namespace selections
         if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)

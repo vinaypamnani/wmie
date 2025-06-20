@@ -7,6 +7,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Presentation.ViewModels.Watcher;
 using WmiExplorer.Services;
 
@@ -40,7 +41,7 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     [NotifyCanExecuteChangedFor(nameof(AddWatcherCommand))]
     private WmiNamespaceViewModel? _selectedNamespace;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly PropertyListManager _targetPropertyManager;
     private readonly WatcherManager _watcherManager;
 
@@ -49,14 +50,13 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     /// <param name="messengerService">The messenger service to use</param>
     /// <param name="cacheService">The cache service to use</param>
-    /// <param name="selectionService">The selection service to use</param>
+    /// <param name="selectionManager">The selection service to use</param>
     public WatcherTabViewModel(
         IMessengerService messengerService,
         ICacheService cacheService,
-        ISelectionService selectionService
-    ) : base(messengerService)
+        SelectionManager selectionManager) : base(messengerService)
     {
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // Initialize managers
         _eventPropertyManager = TrackDisposable(new PropertyListManager(cacheService));
@@ -160,20 +160,6 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
 
     public ObservableCollection<string> WatcherNames => _watcherManager.WatcherNames;
     public ReadOnlyObservableCollection<WmiEventWatcherViewModel> Watchers => _watcherManager.Watchers;
-
-    /// <summary>
-    /// Forces the selection logic for the currently selected event.
-    /// Used by ForceItemSelectionBehavior to re-publish the selection
-    /// even if the same event is clicked again.
-    /// </summary>
-    public void ForceSelection()
-    {
-        if (SelectedEvent != null)
-        {
-            // Update SelectionService with the current selection
-            _selectionService.SetSelectedObject(SelectedEvent);
-        }
-    }
 
     /// <summary>
     /// Command to add a new watcher
@@ -312,10 +298,10 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         // Only respond to namespace selections
         if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
@@ -340,8 +326,8 @@ public partial class WatcherTabViewModel : MessagingViewModelBase
     /// </summary>
     partial void OnSelectedEventChanged(WmiEvent? value)
     {
-        // Update SelectionService with the new selection
-        ForceSelection();
+        // Update selectionManager with the new selection
+        _selectionManager.SetPropertyGridObject(value);
     }
 
     /// <summary>

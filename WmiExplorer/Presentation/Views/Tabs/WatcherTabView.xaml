@@ -421,9 +421,7 @@
                                 </GridView>
                             </ListView.View>
                             <ListView.ItemContainerStyle>
-                                <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
-                                    <Setter Property="behaviors:ForceItemSelectionBehavior.EnableForceSelection" Value="True" />
-                                </Style>
+                                <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="ListViewItem" />
                             </ListView.ItemContainerStyle>
                         </ListView>
                     </Grid>

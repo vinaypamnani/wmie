@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
@@ -11,6 +11,7 @@ using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.ViewModels.Helpers;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
@@ -66,7 +67,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
@@ -82,7 +83,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
            IApplicationService applicationService,
            ISettingsService settingsService,
            ICacheService cacheService,
-           ISelectionService selectionService,
+           SelectionManager selectionManager,
            WmiNamespaceViewModel? parentNamespaceViewModel = null) : base(messengerService)
     {
         // All dependencies are required for correct operation and messaging.
@@ -91,7 +92,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // The collection view is used for filtering and sorting classes in the UI.
         _classFilterHelper = new FilterHelper<WmiClassViewModel>(
@@ -178,7 +179,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
            IApplicationService applicationService,
            ISettingsService settingsService,
            ICacheService cacheService,
-           ISelectionService selectionService,
+           SelectionManager selectionManager,
            WmiNamespaceViewModel? parentNamespaceViewModel = null)
     {
         if (mboCollection == null)
@@ -200,7 +201,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 applicationService,
                 settingsService,
                 cacheService,
-                selectionService,
+                selectionManager,
                 parentNamespaceViewModel);
 
             if (mo.Scope?.Path != null)
@@ -220,7 +221,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         IApplicationService applicationService,
         ISettingsService settingsService,
         ICacheService cacheService,
-        ISelectionService selectionService,
+        SelectionManager selectionManager,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(namespacePath))
@@ -235,7 +236,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             applicationService,
             settingsService,
             cacheService,
-            selectionService);
+            selectionManager);
 
         if (rootMbo?.Scope?.Path != null)
             rootViewModel.ComputerName = rootMbo.Scope.Path.Server;
@@ -275,7 +276,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _applicationService,
                 _settingsService,
                 _cacheService,
-                _selectionService,
+                _selectionManager,
                 this);
 
             var sortedChildViewModels = new ObservableCollection<WmiNamespaceViewModel>(
@@ -316,7 +317,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     public void ForceSelection()
     {
-        _selectionService.SetSelectedObject(this);
+        _selectionManager.SetSelectedObject(this);
     }
 
     [RelayCommand]
@@ -347,7 +348,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _wmiService,
                 _messengerService,
                 _applicationService,
-                _selectionService);
+                _selectionManager);
 
             await RunOnUIThreadAsync(() =>
             {
@@ -424,10 +425,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (_isUpdatingSelection || message?.SelectionService == null)
+        if (_isUpdatingSelection || message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         // Only respond to class selections that belong to this namespace
         if (selectedObject is WmiClassViewModel classVm &&

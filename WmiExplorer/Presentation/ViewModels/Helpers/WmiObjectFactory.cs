@@ -1,5 +1,4 @@
 using System.Management;
-using SQLitePCL;
 using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Presentation.ViewModels.Helpers;

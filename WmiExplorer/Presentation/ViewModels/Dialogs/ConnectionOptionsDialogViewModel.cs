@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using WmiExplorer.Common.Logging;
 using System.Collections.ObjectModel;
 using System.Management;
 using System.Security;
 using System.Windows;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 

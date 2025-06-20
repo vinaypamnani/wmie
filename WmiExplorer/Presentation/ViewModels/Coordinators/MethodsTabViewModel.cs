@@ -6,6 +6,7 @@ using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -35,7 +36,8 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiParameter? _selectedMethodParameter;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
+
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
@@ -46,11 +48,11 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     public MethodsTabViewModel(
            IMessengerService messengerService,
            ISettingsService settingsService,
-           ISelectionService selectionService,
+           SelectionManager selectionManager,
            IWmiService wmiService) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
 
         // Subscribe to unified selection changes
@@ -84,10 +86,10 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         switch (selectedObject)
         {
@@ -106,22 +108,6 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
                     SelectedClass = classVm;
                 }
                 break;
-
-                // If a method is selected, update the selected method
-                // case WmiMethod methodVm:
-                //     if (methodVm != SelectedMethod)
-                //     {
-                //         SelectedMethod = methodVm;
-                //     }
-                //     break;
-
-                // If a method parameter is selected, update the selected method parameter
-                // case WmiParameter parameterVm:
-                //     if (parameterVm != SelectedMethodParameter)
-                //     {
-                //         SelectedMethodParameter = parameterVm;
-                //     }
-                //     break;
         }
     }
 
@@ -190,7 +176,7 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
         // Clear selected parameter when method changes since parameters are method-specific
         SelectedMethodParameter = null;
 
-        _selectionService.SetSelectedObject(newValue);
+        _selectionManager.SetPropertyGridObject(newValue);
         UpdateHelpText();
     }
 
@@ -199,7 +185,7 @@ public partial class MethodsTabViewModel : MessagingViewModelBase
     /// </summary>
     partial void OnSelectedMethodParameterChanged(WmiParameter? oldValue, WmiParameter? newValue)
     {
-        _selectionService.SetSelectedObject(newValue);
+        _selectionManager.SetPropertyGridObject(newValue);
     }
 
     /// <summary>

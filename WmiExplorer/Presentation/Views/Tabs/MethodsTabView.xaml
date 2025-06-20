@@ -37,7 +37,6 @@
                 <!--  Methods DataGrid  -->
                 <DataGrid x:Name="MethodsDataGrid"
                           Grid.Row="0"
-                          behaviors:ForceItemSelectionBehavior.EnableForceSelection="True"
                           CellStyle="{StaticResource ModernDataGridCellStyle}"
                           ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
                           ItemsSource="{Binding FilteredMethodsView}"

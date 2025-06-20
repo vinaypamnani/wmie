@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,6 +9,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
@@ -43,7 +44,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiInstanceViewModel? _selectedInstance;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private ObservableCollection<WmiMethod>? _staticMethods;
     private readonly WmiClass _wmiClass;
     private readonly IWmiService _wmiService;
@@ -54,13 +55,13 @@ public partial class WmiClassViewModel : MessagingViewModelBase
               IWmiService wmiService,
               IMessengerService messengerService,
               IApplicationService applicationService,
-              ISelectionService selectionService) : base(messengerService)
+              SelectionManager selectionManager) : base(messengerService)
     {
         _wmiClass = wmiClass;
         _wmiService = wmiService;
         _applicationService = applicationService;
         _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // StrongSubscribe ensures message handlers are not garbage collected.
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
@@ -109,7 +110,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
            IWmiService wmiService,
            IMessengerService messengerService,
            IApplicationService applicationService,
-           ISelectionService selectionService)
+           SelectionManager selectionManager)
     {
         var viewModels = new ObservableCollection<WmiClassViewModel>();
 
@@ -121,16 +122,10 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 wmiService,
                 messengerService,
                 applicationService,
-                selectionService));
+                selectionManager));
         }
 
         return viewModels;
-    }
-
-    public void ForceSelection()
-    {
-        // Update SelectionService with the current selection
-        _selectionService.SetSelectedObject(this);
     }
 
     public override string ToString() => _wmiClass.ClassName;
@@ -224,10 +219,10 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (_isUpdatingSelection || message?.SelectionService == null)
+        if (_isUpdatingSelection || message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         // Only respond to instance selections that belong to this class
         if (selectedObject is WmiInstanceViewModel instanceVm &&
@@ -281,7 +276,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 _wmiService,
                 _messengerService,
                 _applicationService,
-                _selectionService,
+                _selectionManager,
                 this);
 
             // Use RunOnUIThread for synchronous UI updates to avoid hanging
@@ -406,8 +401,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     ParentNamespaceViewModel.SelectedClass = this;
                 }
 
-                // Notify selection service
-                ForceSelection();
+                // Notify selection
+                _selectionManager.SetSelectedObject(this);
             }
             finally
             {

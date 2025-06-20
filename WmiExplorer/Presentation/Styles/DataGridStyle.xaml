@@ -26,6 +26,7 @@
     <Style x:Key="ModernDataGridRowStyle" TargetType="DataGridRow">
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="behaviors:PropertyGridUpdateBehavior.EnablePropertyGridUpdate" Value="True" />
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource SelectedItemBackgroundBrush}" />

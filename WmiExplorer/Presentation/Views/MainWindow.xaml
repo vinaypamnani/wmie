@@ -111,9 +111,8 @@
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
                                   Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-
                     <!--  Property Grid View  -->
-                    <main:PropertyGridView Grid.Column="4" DataContext="{Binding PropertyGridViewModel}" />
+                    <main:PropertyGridView Grid.Column="4" DataContext="{Binding}" />
                 </Grid>
             </DockPanel>
         </Grid>

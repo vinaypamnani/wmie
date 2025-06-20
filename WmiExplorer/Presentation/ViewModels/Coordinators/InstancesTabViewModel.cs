@@ -3,6 +3,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -18,19 +19,19 @@ public partial class InstancesTabViewModel : MessagingViewModelBase
     [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
     public InstancesTabViewModel(
-           IMessengerService messengerService,
-           ISettingsService settingsService,
-           ISelectionService selectionService) : base(messengerService)
+              IMessengerService messengerService,
+              ISettingsService settingsService,
+              SelectionManager selectionManager) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // Subscribe to unified selection changes instead of individual messages
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
@@ -57,10 +58,10 @@ public partial class InstancesTabViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         switch (selectedObject)
         {

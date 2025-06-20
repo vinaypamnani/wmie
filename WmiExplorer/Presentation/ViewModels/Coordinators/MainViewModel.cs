@@ -1,10 +1,11 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.Themes;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -35,12 +36,11 @@ public partial class MainViewModel : MessagingViewModelBase
     private OptionsViewModel _optionsViewModel = null!;
 
     [ObservableProperty]
-    private PropertyGridViewModel _propertyGridViewModel = null!;
-
-    [ObservableProperty]
     private int _selectedTabIndex;
 
-    private readonly ISelectionService _selectionService;
+    [ObservableProperty]
+    private SelectionManager _selectionManager = null!;
+
     private readonly ISettingsService _settingsService;
     private readonly IThemeService _themeService;
 
@@ -51,21 +51,19 @@ public partial class MainViewModel : MessagingViewModelBase
     private MainWindowPosition _windowPosition;
 
     public MainViewModel(
-                       IMessengerService messengerService,
-                       ISettingsService settingsService,
-                       ISelectionService selectionService,
-                       IThemeService themeService,
-                       NamespacesViewModel namespacesViewModel,
-                       OptionsViewModel optionsViewModel,
-                       PropertyGridViewModel propertyGridViewModel,
-                       LogTabViewModel logTabViewModel) : base(messengerService)
+                             IMessengerService messengerService,
+                             ISettingsService settingsService,
+                             IThemeService themeService,
+                             NamespacesViewModel namespacesViewModel,
+                             OptionsViewModel optionsViewModel,
+                             SelectionManager selectionManager,
+                             LogTabViewModel logTabViewModel) : base(messengerService)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
-        _propertyGridViewModel = propertyGridViewModel ?? throw new ArgumentNullException(nameof(propertyGridViewModel));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
 
         // Initialize window position from settings
@@ -242,9 +240,9 @@ public partial class MainViewModel : MessagingViewModelBase
     partial void OnSelectedTabIndexChanged(int value)
     {
         if (value != 0) // Assuming 0 is the index for Classes tab
-            _selectionService.ClearSelections();
+            _selectionManager.ClearSelections();
         else
-            _selectionService.SetSelectedObject(_selectionService.PreviousObject);
+            _selectionManager.SetSelectedObject(_selectionManager.PreviousObject, updatePropertyGrid: true);
     }
 
     /// <summary>

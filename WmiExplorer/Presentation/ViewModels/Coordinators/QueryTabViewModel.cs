@@ -9,6 +9,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -42,19 +43,24 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     [ObservableProperty]
     private WmiInstance? _selectedResult;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
 
     [ObservableProperty]
     private bool _useAmendedQualifiers = true;
 
     private readonly IWmiService _wmiService;
 
-    public QueryTabViewModel(IMessengerService messengerService, IWmiService wmiService, ICacheService cacheService, ISelectionService selectionService)
-                    : base(messengerService)
+    public QueryTabViewModel(
+        IMessengerService messengerService,
+        IWmiService wmiService,
+        ICacheService cacheService,
+        SelectionManager selectionManager) : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));        // Subscribe to unified selection changes
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+
+        // Subscribe to unified selection changes
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
 
         // Update columns when results change
@@ -221,10 +227,10 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
 
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         // Only respond to namespace selections
         if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
@@ -238,8 +244,8 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     /// </summary>
     partial void OnSelectedResultChanged(WmiInstance? value)
     {
-        // Update SelectionService with the new selection
-        _selectionService.SetSelectedObject(value);
+        // Update selectionManager with the new selection
+        _selectionManager.SetPropertyGridObject(value);
     }
 
     private void RefreshResultsView()

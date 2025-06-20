@@ -1,9 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
@@ -34,7 +35,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     private InstanceState _loadState = InstanceState.Unknown;
 
     private readonly WmiClassViewModel _parentClass;
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly WmiInstance _wmiInstance;
     private readonly IWmiService _wmiService;
 
@@ -46,27 +47,27 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     /// <param name="wmiService">The WMI service.</param>
     /// <param name="messenger">The messenger.</param>
     /// <param name="applicationService">The application service.</param>
-    /// <param name="selectionService">The selection service.</param>
+    /// <param name="selectionManager">The selection service.</param>
     public WmiInstanceViewModel(
         WmiInstance wmiInstance,
         WmiClassViewModel parentClass,
         IWmiService wmiService,
         IMessengerService messengerService,
         IApplicationService applicationService,
-        ISelectionService selectionService) : base(messengerService)
+        SelectionManager selectionManager) : base(messengerService)
     {
         if (wmiInstance == null) throw new ArgumentNullException(nameof(wmiInstance));
         if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
         if (wmiService == null) throw new ArgumentNullException(nameof(wmiService));
         if (messengerService == null) throw new ArgumentNullException(nameof(messengerService));
         if (applicationService == null) throw new ArgumentNullException(nameof(applicationService));
-        if (selectionService == null) throw new ArgumentNullException(nameof(selectionService));
+        if (selectionManager == null) throw new ArgumentNullException(nameof(selectionManager));
 
         _wmiInstance = wmiInstance;
         _wmiService = wmiService;
         _applicationService = applicationService;
         _parentClass = parentClass;
-        _selectionService = selectionService;
+        _selectionManager = selectionManager;
 
         // Load instance methods
         LoadInstanceMethods();
@@ -105,14 +106,14 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     /// <param name="messenger">The messenger.</param>
     /// <param name="applicationService">The application service.</param>
     /// <param name="parentClass">The parent class ViewModel.</param>
-    /// <param name="selectionService">The selection service.</param>
+    /// <param name="selectionManager">The selection service.</param>
     /// <returns>A collection of WmiInstanceViewModel.</returns>
     public static ObservableCollection<WmiInstanceViewModel> CreateFromCollection(
         IEnumerable<WmiInstance> wmiInstances,
         IWmiService wmiService,
         IMessengerService messengerService,
         IApplicationService applicationService,
-        ISelectionService selectionService,
+        SelectionManager selectionManager,
         WmiClassViewModel parentClass)
     {
         if (wmiInstances == null)
@@ -128,19 +129,10 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
                 wmiService,
                 messengerService,
                 applicationService,
-                selectionService));
+                selectionManager));
         }
 
         return viewModels;
-    }
-
-    /// <summary>
-    /// Forces selection of this instance and publishes a selection message.
-    /// </summary>
-    public void ForceSelection()
-    {
-        // Update SelectionService with the current selection
-        _selectionService.SetSelectedObject(this);
     }
 
     /// <summary>
@@ -306,8 +298,8 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
                 // Ensure instance data is loaded
                 TryGetInstance();
 
-                // Notify selection service
-                ForceSelection();
+                // Notify selection
+                _selectionManager.SetSelectedObject(this);
             }
             finally
             {

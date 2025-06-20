@@ -1,14 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Integration.AvalonEdit.Behaviors;
 using WmiExplorer.Integration.PropertyTypeProvider;
+using WmiExplorer.Presentation.Behaviors;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Presentation.Views;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
@@ -110,7 +111,7 @@ public partial class App : Application
             new WmiService(
                 provider.GetRequiredService<ICacheService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
-        services.AddSingleton<ISelectionService, SelectionService>();
+        services.AddSingleton<SelectionManager>();
 
         // Register MainWindow for DI
         services.AddSingleton<MainWindow>();
@@ -120,8 +121,8 @@ public partial class App : Application
         services.AddSingleton<ClassesTabViewModel>();
         services.AddSingleton<NamespacesViewModel>();
         services.AddSingleton<OptionsViewModel>();
-        services.AddSingleton<PropertyGridViewModel>();
-        services.AddSingleton<MainViewModel>(); services.AddSingleton<WatcherTabViewModel>();
+        services.AddSingleton<MainViewModel>();
+        services.AddSingleton<WatcherTabViewModel>();
         services.AddSingleton<MethodsTabViewModel>();
         services.AddSingleton<PropertiesTabViewModel>();
         services.AddSingleton<LogTabViewModel>();
@@ -137,9 +138,12 @@ public partial class App : Application
         // Set up DI for AvalonEdit behaviors using static method
         var messengerService = ServiceProvider.GetRequiredService<IMessengerService>();
         var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
+        var selectionManager = ServiceProvider.GetRequiredService<SelectionManager>();
+
         AvalonEditThemingBehavior.SetMessengerService(messengerService);
         AvalonEditWqlHighlightingBehavior.SetMessengerService(messengerService);
-        AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
+        AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);        // Set up PropertyGridUpdateBehavior with DI
+        PropertyGridUpdateBehavior.SetSelectionManager(selectionManager);
 
         // Configure unhandled exception handling
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>

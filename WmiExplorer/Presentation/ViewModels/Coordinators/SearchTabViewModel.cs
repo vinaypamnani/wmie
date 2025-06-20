@@ -8,6 +8,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -40,14 +41,16 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     [NotifyCanExecuteChangedFor(nameof(JumpToClassCommand))]
     private WmiSearchResult? _selectedResult;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly IWmiService _wmiService;
 
-    public SearchTabViewModel(IMessengerService messengerService, IWmiService wmiService, ISelectionService selectionService)
-                    : base(messengerService)
+    public SearchTabViewModel(
+        IMessengerService messengerService,
+        IWmiService wmiService,
+        SelectionManager selectionManager) : base(messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // Subscribe to unified selection changes
         StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
@@ -213,10 +216,10 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         // Only respond to namespace selections
         if (selectedObject is WmiNamespaceViewModel namespaceVm && namespaceVm != SelectedNamespace)
@@ -254,7 +257,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
         // Clear current results and query
         _results.Clear();
-        _selectionService.ClearSelections();
+        _selectionManager.ClearPropertyGrid();
 
         SearchQuery = string.Empty;
 
@@ -273,8 +276,8 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     /// </summary>
     partial void OnSelectedResultChanged(WmiSearchResult? value)
     {
-        // Update SelectionService with the new selection
-        _selectionService.SetSelectedObject(value);
+        // Update selectionManager with the new selection
+        _selectionManager.SetPropertyGridObject(value);
     }
 
     private class SearchTypeState

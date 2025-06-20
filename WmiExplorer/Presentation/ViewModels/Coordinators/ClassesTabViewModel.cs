@@ -4,6 +4,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -32,7 +33,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     [ObservableProperty]
     private int _selectedTabIndex;
 
-    private readonly ISelectionService _selectionService;
+    private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
 
     [ObservableProperty]
@@ -46,7 +47,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
               IWmiService wmiService,
               IApplicationService applicationService,
               ICacheService cacheService,
-              ISelectionService selectionService,
+              SelectionManager selectionManager,
               InstancesTabViewModel instancesTabViewModel,
               MethodsTabViewModel methodsTabViewModel,
               PropertiesTabViewModel propertiesTabViewModel) : base(messengerService)
@@ -55,7 +56,7 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
         _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
         _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
@@ -151,10 +152,10 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     /// </summary>
     private void HandleSelectionChangedMessage(SelectionChangedMessage message)
     {
-        if (message?.SelectionService == null)
+        if (message?.SelectionManager == null)
             return;
 
-        var selectedObject = message.SelectionService.SelectedObject;
+        var selectedObject = message.SelectionManager.SelectedObject;
 
         switch (selectedObject)
         {
@@ -179,17 +180,6 @@ public partial class ClassesTabViewModel : MessagingViewModelBase
     {
         // Notify that the CanExecute state of ExecuteAutoQueryCommand may have changed
         ExecuteAutoQueryCommand.NotifyCanExecuteChanged();
-    }
-
-    /// <summary>
-    /// Clear selections when the selected tab index changes
-    /// </summary>
-    partial void OnSelectedTabIndexChanged(int value)
-    {
-        if (value != 0) // Assuming 0 is the index for Classes tab
-            _selectionService.ClearSelections();
-        else
-            _selectionService.SetSelectedObject(_selectionService.PreviousObject);
     }
 
     /// <summary>

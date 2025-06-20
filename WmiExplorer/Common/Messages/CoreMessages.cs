@@ -1,5 +1,5 @@
 using WmiExplorer.Common.Models;
-using WmiExplorer.Services;
+using WmiExplorer.Presentation.ViewModels.Shared;
 
 namespace WmiExplorer.Common.Messages;
 
@@ -33,12 +33,12 @@ public class PropertyGridRefreshMessage : MessageBase
 /// </summary>
 public class SelectionChangedMessage : MessageBase
 {
-    public SelectionChangedMessage(ISelectionService selectionService)
+    public SelectionChangedMessage(SelectionManager selectionManager)
     {
-        SelectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
+        SelectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
     }
 
-    public ISelectionService SelectionService { get; }
+    public SelectionManager SelectionManager { get; }
 }
 
 /// <summary>
