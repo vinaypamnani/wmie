@@ -78,8 +78,10 @@ public partial class Theme : DisposableObservableObject
             ["ScrollBarThumbBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)) { Opacity = 0.8 },
             ["ScrollBarThumbHoverBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.7 },
             ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.9 },
-            // Highlight brushes
-            ["KeyIconFillBrush"] = new SolidColorBrush(GetColor("WarningColor", fallbackColor: Colors.Orange))
+            // Icon Fill brushes - common for dark/light themes for now
+            ["KeyIconFillBrush"] = new SolidColorBrush(Colors.OrangeRed),
+            ["StaticMethodIconFillBrush"] = new SolidColorBrush(Colors.RoyalBlue),
+            ["InstanceMethodIconFillBrush"] = new SolidColorBrush(Colors.ForestGreen)
         };
 
         // PropertyGrid* brushes are aliases to existing brushes

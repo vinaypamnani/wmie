@@ -42,9 +42,9 @@
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
                         <!--  Key Property Indicator Column  -->
-                        <DataGridTemplateColumn Width="30" CanUserResize="False" Header="">
+                        <DataGridTemplateColumn Width="Auto" CanUserResize="False" Header="">
                             <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
+                                <!-- <DataTemplate>
                                     <Path Width="12"
                                           Height="12"
                                           HorizontalAlignment="Center"
@@ -63,6 +63,23 @@
                                             </Style>
                                         </Path.Style>
                                     </Path>
+                                </DataTemplate>-->
+                                <DataTemplate>
+                                    <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
+                                        <ContentControl.Style>
+                                            <Style TargetType="ContentControl">
+                                                <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="Background" Value="{DynamicResource KeyIconFillBrush}" />
+                                                <Setter Property="Content" Value="K" />
+                                                <Setter Property="ToolTip" Value="Key Property" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsKey}" Value="False">
+                                                        <Setter Property="Visibility" Value="Hidden" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ContentControl.Style>
+                                    </ContentControl>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

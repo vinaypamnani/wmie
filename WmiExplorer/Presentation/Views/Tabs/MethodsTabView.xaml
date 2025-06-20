@@ -41,6 +41,30 @@
                           SelectedItem="{Binding SelectedMethod}"
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
+                        <!--  Method Type Indicator Column  -->
+                        <DataGridTemplateColumn Width="30" CanUserResize="False" Header="">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
+                                        <ContentControl.Style>
+                                            <Style TargetType="ContentControl">
+                                                <Setter Property="Foreground" Value="White" />
+                                                <Setter Property="Background" Value="{DynamicResource InstanceMethodIconFillBrush}" />
+                                                <Setter Property="Content" Value="I" />
+                                                <Setter Property="ToolTip" Value="Instance Method" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsStatic}" Value="True">
+                                                        <Setter Property="Content" Value="C" />
+                                                        <Setter Property="Background" Value="{DynamicResource StaticMethodIconFillBrush}" />
+                                                        <Setter Property="ToolTip" Value="Class Method" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ContentControl.Style>
+                                    </ContentControl>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
                         <DataGridTextColumn Width="Auto" Binding="{Binding IsStatic, Mode=OneWay}" Header="Is Static" />
                         <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />

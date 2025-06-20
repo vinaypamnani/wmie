@@ -20,4 +20,23 @@
             </DataTrigger>
         </Style.Triggers>
     </Style>
+
+    <!--  Letter Icon Template for reusable icon indicators  -->
+    <ControlTemplate x:Key="LetterIconTemplate" TargetType="ContentControl">
+        <Grid Width="16" Height="16">
+            <Rectangle Fill="{TemplateBinding Background}"
+                       Stroke="Transparent"
+                       StrokeThickness="0.5"
+                       RadiusX="2"
+                       RadiusY="2"/>
+
+            <TextBlock Text="{TemplateBinding Content}"
+                       FontFamily="Segoe UI"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{TemplateBinding Foreground}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+        </Grid>
+    </ControlTemplate>
 </ResourceDictionary>
