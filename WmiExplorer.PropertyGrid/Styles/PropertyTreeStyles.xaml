@@ -163,8 +163,8 @@
             </Grid.ContextMenu>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding NameColumnWidth, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" />
-                <ColumnDefinition Width="16" />
-                <!--  Key icon column - fixed 16px width  -->
+                <ColumnDefinition Width="18" />
+                <!--  Key icon column - fixed 18px width  -->
                 <ColumnDefinition Width="*" />
                 <!--  Value column  -->
             </Grid.ColumnDefinitions>
@@ -189,14 +189,14 @@
 
             <!--  Key icon - directly in column 1  -->
             <Path Grid.Column="1"
-                  Width="16"
-                  Height="16"
-                  Margin="4,0,4,0"
-                  HorizontalAlignment="Center"
+                  Width="14"
+                  Height="14"
+                  HorizontalAlignment="Left"
                   VerticalAlignment="Center"
-                  Data="M8,2 L9.5,6 L14,6 L10.5,9 L12,13 L8,10.5 L4,13 L5.5,9 L2,6 L6.5,6 Z"
-                  Fill="{DynamicResource PropertyGridForegroundBrush}"
-                  ToolTip="Primary Key"
+                  Data="M6,0 L7.5,4.5 L12,4.5 L8.5,7.5 L10,12 L6,9 L2,12 L3.5,7.5 L0,4.5 L4.5,4.5 Z"
+                  Fill="{DynamicResource PropertyGridKeyIconFillBrush}"
+                  Stretch="Uniform"
+                  ToolTip="Key Property"
                   Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />
 
             <!--  Property Value - directly in column 2  -->

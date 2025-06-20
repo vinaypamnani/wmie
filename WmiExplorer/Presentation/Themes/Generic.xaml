@@ -48,6 +48,9 @@
     <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Opacity="0.7" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Opacity="0.9" Color="{StaticResource PrimaryAccentColor}" />
 
+    <!--  Icon highlight brushes  -->
+    <SolidColorBrush x:Key="KeyIconFillBrush" Color="{StaticResource WarningColor}" />
+
     <!--  PropertyGrid Colors (Consolidated, only used brushes)  -->
     <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
     <SolidColorBrush x:Key="PropertyGridForegroundBrush" Color="{StaticResource PrimaryForegroundColor}" />
@@ -58,5 +61,6 @@
     <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="PropertyGridDisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
+    <SolidColorBrush x:Key="PropertyGridKeyIconFillBrush" Color="{StaticResource WarningColor}" />
 
 </ResourceDictionary>

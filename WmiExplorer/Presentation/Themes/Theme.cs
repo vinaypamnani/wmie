@@ -77,7 +77,9 @@ public partial class Theme : DisposableObservableObject
             ["ScrollBarTrackBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
             ["ScrollBarThumbBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)) { Opacity = 0.8 },
             ["ScrollBarThumbHoverBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.7 },
-            ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.9 }
+            ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.9 },
+            // Highlight brushes
+            ["KeyIconFillBrush"] = new SolidColorBrush(GetColor("WarningColor", fallbackColor: Colors.Orange))
         };
 
         // PropertyGrid* brushes are aliases to existing brushes
@@ -90,6 +92,7 @@ public partial class Theme : DisposableObservableObject
         brushes["PropertyGridSelectedBackgroundBrush"] = brushes["SelectedItemBackgroundBrush"];
         brushes["PropertyGridDisabledForegroundBrush"] = brushes["DisabledForegroundBrush"];
         brushes["PropertyGridHoverBackgroundBrush"] = brushes["HoverBackgroundBrush"];
+        brushes["PropertyGridKeyIconFillBrush"] = brushes["KeyIconFillBrush"];
 
         return brushes;
     }

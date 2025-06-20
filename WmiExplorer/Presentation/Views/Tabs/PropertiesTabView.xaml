@@ -50,7 +50,7 @@
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
                                           Data="M6,0 L7.5,4.5 L12,4.5 L8.5,7.5 L10,12 L6,9 L2,12 L3.5,7.5 L0,4.5 L4.5,4.5 Z"
-                                          Fill="{DynamicResource WarningBrush}"
+                                          Fill="{DynamicResource KeyIconFillBrush}"
                                           Stretch="Uniform"
                                           ToolTip="Key Property">
                                         <Path.Style>
