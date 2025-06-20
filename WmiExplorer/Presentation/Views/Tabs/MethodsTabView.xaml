@@ -37,10 +37,7 @@
                 <!--  Methods DataGrid  -->
                 <DataGrid x:Name="MethodsDataGrid"
                           Grid.Row="0"
-                          CellStyle="{StaticResource ModernDataGridCellStyle}"
-                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
                           ItemsSource="{Binding FilteredMethodsView}"
-                          RowStyle="{StaticResource ModernDataGridRowStyle}"
                           SelectedItem="{Binding SelectedMethod}"
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
@@ -89,12 +86,7 @@
                       HorizontalContentAlignment="Stretch"
                       VerticalContentAlignment="Stretch"
                       Header="Input Parameters">
-                <DataGrid CellStyle="{StaticResource ModernDataGridCellStyle}"
-                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
-                          ItemsSource="{Binding SelectedMethod.InParameters}"
-                          RowStyle="{StaticResource ModernDataGridRowStyle}"
-                          SelectedItem="{Binding SelectedMethodParameter}"
-                          Style="{StaticResource ModernDataGridStyle}">
+                <DataGrid ItemsSource="{Binding SelectedMethod.InParameters}" SelectedItem="{Binding SelectedMethodParameter}" Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
                         <DataGridTextColumn Width="Auto" Binding="{Binding CimType}" Header="Type" />
@@ -110,12 +102,7 @@
                       HorizontalContentAlignment="Stretch"
                       VerticalContentAlignment="Stretch"
                       Header="Output Parameters">
-                <DataGrid CellStyle="{StaticResource ModernDataGridCellStyle}"
-                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
-                          ItemsSource="{Binding SelectedMethod.OutParameters}"
-                          RowStyle="{StaticResource ModernDataGridRowStyle}"
-                          SelectedItem="{Binding SelectedMethodParameter}"
-                          Style="{StaticResource ModernDataGridStyle}">
+                <DataGrid ItemsSource="{Binding SelectedMethod.OutParameters}" SelectedItem="{Binding SelectedMethodParameter}" Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
                         <DataGridTextColumn Width="Auto" Binding="{Binding CimType}" Header="Type" />

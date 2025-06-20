@@ -118,30 +118,9 @@
                 <DataGrid x:Name="ResultsDataGrid"
                           Grid.Row="1"
                           Margin="0"
-                          AutoGenerateColumns="False"
-                          Background="Transparent"
-                          BorderThickness="0"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          CanUserReorderColumns="True"
-                          CanUserResizeColumns="True"
-                          CanUserResizeRows="False"
-                          CanUserSortColumns="True"
-                          CellStyle="{StaticResource ModernDataGridCellStyle}"
-                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
-                          EnableColumnVirtualization="True"
-                          EnableRowVirtualization="True"
-                          GridLinesVisibility="Horizontal"
-                          HorizontalGridLinesBrush="{DynamicResource BorderBrush}"
-                          IsReadOnly="True"
                           ItemsSource="{Binding ResultsView}"
-                          RowHeaderWidth="0"
-                          RowStyle="{StaticResource ModernDataGridRowStyle}"
                           SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
-                          SelectionMode="Extended"
-                          SelectionUnit="FullRow"
-                          Style="{StaticResource ModernDataGridStyle}"
-                          VerticalScrollBarVisibility="Auto">
+                          Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Resources>
                         <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
                     </DataGrid.Resources>

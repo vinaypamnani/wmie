@@ -37,10 +37,7 @@
                 <!--  Properties DataGrid  -->
                 <DataGrid x:Name="PropertiesDataGrid"
                           Grid.Row="0"
-                          CellStyle="{StaticResource ModernDataGridCellStyle}"
-                          ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
                           ItemsSource="{Binding FilteredPropertiesView}"
-                          RowStyle="{StaticResource ModernDataGridRowStyle}"
                           SelectedItem="{Binding SelectedProperty}"
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
