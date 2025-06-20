@@ -42,7 +42,7 @@
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
                         <!--  Key Property Indicator Column  -->
-                        <DataGridTemplateColumn Width="30" Header="">
+                        <DataGridTemplateColumn Width="30" CanUserResize="False" Header="">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Path Width="12"
