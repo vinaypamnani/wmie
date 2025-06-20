@@ -1,10 +1,8 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
-using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -17,8 +15,6 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// </summary>
 public partial class ClassesTabViewModel : SelectionAwareViewModelBase
 {
-    private readonly IApplicationService _applicationService;
-
     [ObservableProperty]
     private string _autoQueryText = string.Empty;
 
@@ -37,20 +33,17 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     public ClassesTabViewModel(
                  IMessengerService messengerService,
                  ISettingsService settingsService,
-                 IApplicationService applicationService,
                  SelectionManager selectionManager,
                  InstancesTabViewModel instancesTabViewModel,
                  MethodsTabViewModel methodsTabViewModel,
                  PropertiesTabViewModel propertiesTabViewModel) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-        _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
         _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
         _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
 
         // Subscribe to messages
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
         StrongSubscribe<InstancesFilteredMessage>(HandleInstancesFilteredMessage);
 
         // Initialize window position from settings
@@ -100,11 +93,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     public MethodsTabViewModel MethodsTabViewModel => _methodsTabViewModel;
 
     /// <summary>
-    /// Gets the PropertiesTabViewModel
-    /// </summary>
-    public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
-
-    /// <summary>
     /// Gets the header text for the Properties tab with count
     /// </summary>
     public string PropertiesTabHeader
@@ -119,6 +107,37 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
             }
             return "Properties";
         }
+    }
+
+    /// <summary>
+    /// Gets the PropertiesTabViewModel
+    /// </summary>
+    public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
+
+    /// <summary>
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
+    {
+        UpdateTabHeaders();
+        UpdateStatusBar();
+        UpdateAutoQueryText(selectedClass!);
+    }
+
+    /// <summary>
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedInstanceChanged(WmiInstanceViewModel? selectedInstance)
+    {
+        UpdateAutoQueryText(selectedInstance!);
+    }
+
+    /// <summary>
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
+    {
+        UpdateTabHeaders();
     }
 
     /// <summary>
@@ -148,33 +167,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         {
             UpdateStatusBar();
             UpdateTabHeaders();
-        }
-    }
-
-    /// <summary>
-    /// Handles the unified selection changed message
-    /// </summary>
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
-    {
-        if (message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        switch (selectedObject)
-        {
-            case WmiNamespaceViewModel:
-                UpdateTabHeaders();
-                break;
-            case WmiClassViewModel classVm:
-                UpdateStatusBar();
-                UpdateAutoQueryText(classVm);
-                UpdateTabHeaders();
-                break;
-
-            case WmiInstanceViewModel instanceVm:
-                UpdateAutoQueryText(instanceVm);
-                break;
         }
     }
 
@@ -228,7 +220,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
                 AutoQueryText = string.Empty;
             }
         }
-        else if (selectedObject is WmiClassViewModel selectedClass)
+        else if (selectedObject is WmiClassViewModel)
         {
             // Create query based on just the class
             AutoQueryText = $"SELECT * FROM {selectedClassName}";

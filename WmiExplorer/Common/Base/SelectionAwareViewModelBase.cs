@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
@@ -28,8 +29,11 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
     {
         SelectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
-        // Subscribe to SelectionManager property changes
+        // Subscribe to SelectionManager property changes for value changes
         SelectionManager.PropertyChanged += OnSelectionManagerPropertyChanged;
+
+        // Subscribe to SelectionChangedMessage for force refresh scenarios (re-selection of same item)
+        StrongSubscribe<SelectionChangedMessage>(OnSelectionChangedMessage);
     }
 
     protected override void Dispose(bool disposing)
@@ -67,6 +71,40 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
     protected virtual void OnSelectedNamespaceChanged(WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel? selectedNamespace)
     {
         // Default implementation does nothing - override in derived classes as needed
+    }
+
+    /// <summary>
+    /// Handles SelectionChangedMessage to force refresh scenarios (re-selection of same item).
+    /// This ensures that selection handlers are called even when the same item is selected again.
+    /// </summary>
+    private void OnSelectionChangedMessage(SelectionChangedMessage message)
+    {
+        if (message?.SelectionManager == null) return;
+
+        // Force call the handlers even if the property values haven't changed
+        // This handles re-selection of the same item
+        var selectedObject = message.SelectionManager.SelectedObject;
+
+        switch (selectedObject)
+        {
+            case WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel namespaceVm:
+                // Only call if this is actually a re-selection of the current namespace
+                if (SelectionManager.SelectedNamespace == namespaceVm)
+                    OnSelectedNamespaceChanged(namespaceVm);
+                break;
+
+            case WmiExplorer.Presentation.ViewModels.Items.WmiClassViewModel classVm:
+                // Only call if this is actually a re-selection of the current class
+                if (SelectionManager.SelectedClass == classVm)
+                    OnSelectedClassChanged(classVm);
+                break;
+
+            case WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel instanceVm:
+                // Only call if this is actually a re-selection of the current instance
+                if (SelectionManager.SelectedInstance == instanceVm)
+                    OnSelectedInstanceChanged(instanceVm);
+                break;
+        }
     }
 
     /// <summary>

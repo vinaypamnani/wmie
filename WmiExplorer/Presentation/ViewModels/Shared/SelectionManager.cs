@@ -271,8 +271,8 @@ public partial class SelectionManager : ObservableObject
                 if (SelectedClass != classVm)
                     SelectedClass = classVm;
                 // Update namespace to match the class's parent
-                // if (SelectedNamespace != classVm.ParentNamespaceViewModel)
-                //     SelectedNamespace = classVm.ParentNamespaceViewModel;
+                if (SelectedNamespace != classVm.ParentNamespaceViewModel)
+                    SelectedNamespace = classVm.ParentNamespaceViewModel;
                 // When a class is selected, use its selected instance
                 if (SelectedInstance != classVm?.SelectedInstance)
                     SelectedInstance = classVm?.SelectedInstance;
@@ -280,13 +280,17 @@ public partial class SelectionManager : ObservableObject
 
             case WmiInstanceViewModel instanceVm:
                 if (SelectedInstance != instanceVm)
+                {
                     SelectedInstance = instanceVm;
+                    // Force the instance to try to get its data - do it here so it's done before PropertyGrid updates
+                    SelectedInstance.TryGetInstance();
+                }
                 // Update class to match the instance's parent
-                // if (SelectedClass != instanceVm.ParentClass)
-                //     SelectedClass = instanceVm.ParentClass;
+                if (SelectedClass != instanceVm.ParentClass)
+                    SelectedClass = instanceVm.ParentClass;
                 // Update namespace to match the class's parent
-                // if (SelectedNamespace != instanceVm.ParentClass.ParentNamespaceViewModel)
-                //     SelectedNamespace = instanceVm.ParentClass.ParentNamespaceViewModel;
+                if (SelectedNamespace != instanceVm.ParentClass.ParentNamespaceViewModel)
+                    SelectedNamespace = instanceVm.ParentClass.ParentNamespaceViewModel;
                 break;
 
             default:

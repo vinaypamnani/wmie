@@ -103,9 +103,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
         Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
 
-        // StrongSubscribe ensures message handlers are not garbage collected.
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
-
         // Initialize ShowSystemClasses from settings
         _showSystemClasses = _settingsService.ShowSystemClasses;
 
@@ -315,11 +312,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
     }
 
-    public void ForceSelection()
-    {
-        _selectionManager.SetSelectedObject(this);
-    }
-
     [RelayCommand]
     public async Task LoadClassesAsync()
     {
@@ -423,30 +415,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         PublishSuccessState($"Copied path: {NamespacePath}");
     }
 
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
-    {
-        if (_isUpdatingSelection || message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        // Only respond to class selections that belong to this namespace
-        if (selectedObject is WmiClassViewModel classVm &&
-            Classes.Contains(classVm) &&
-            SelectedClass != classVm)
-        {
-            try
-            {
-                _isUpdatingSelection = true;
-                SelectedClass = classVm;
-            }
-            finally
-            {
-                _isUpdatingSelection = false;
-            }
-        }
-    }
-
     partial void OnClassFilterTextChanged(string value)
     {
         _classFilterHelper.FilterText = value;
@@ -469,7 +437,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     // Property change notification methods
     partial void OnIsSelectedChanged(bool value)
     {
-        if (_isUpdatingSelection) return; if (value)
+        if (_isUpdatingSelection) return;
+
+        if (value)
         {
             try
             {
@@ -478,9 +448,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 // Set expanded state immediately - the async expansion will happen in OnIsExpandedChanged
                 if (!IsExpanded)
                     IsExpanded = true;
-
-                // Force selection
-                ForceSelection();
             }
             finally
             {

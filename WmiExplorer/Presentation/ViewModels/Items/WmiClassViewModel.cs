@@ -64,9 +64,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
         _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
-        // StrongSubscribe ensures message handlers are not garbage collected.
-        StrongSubscribe<SelectionChangedMessage>(HandleSelectionChangedMessage);
-
         // The collection view is used for filtering and sorting instances in the UI.
         _instanceFilterHelper = new FilterHelper<WmiInstanceViewModel>(
             _instances,
@@ -220,30 +217,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         return parameter is WmiMethod method && method.IsStatic;
     }
 
-    private void HandleSelectionChangedMessage(SelectionChangedMessage message)
-    {
-        if (_isUpdatingSelection || message?.SelectionManager == null)
-            return;
-
-        var selectedObject = message.SelectionManager.SelectedObject;
-
-        // Only respond to instance selections that belong to this class
-        if (selectedObject is WmiInstanceViewModel instanceVm &&
-            _instances.Contains(instanceVm) &&
-            SelectedInstance != instanceVm)
-        {
-            try
-            {
-                _isUpdatingSelection = true;
-                SelectedInstance = instanceVm;
-            }
-            finally
-            {
-                _isUpdatingSelection = false;
-            }
-        }
-    }
-
     private bool InstanceFilterPredicate(WmiInstanceViewModel instance, string filter)
     {
         return string.IsNullOrWhiteSpace(filter) ||
@@ -295,6 +268,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 }
 
                 // No need to reapply filter or refresh, FilterHelper handles it.
+                PublishMessage(new InstancesFilteredMessage(this));
                 OnPropertyChanged(nameof(InstanceFilterText));
             });
 
@@ -436,9 +410,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 {
                     ParentNamespaceViewModel.SelectedClass = this;
                 }
-
-                // Notify selection
-                _selectionManager.SetSelectedObject(this);
             }
             finally
             {

@@ -68,9 +68,6 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
         _applicationService = applicationService;
         _parentClass = parentClass;
         _selectionManager = selectionManager;
-
-        // Load instance methods
-        LoadInstanceMethods();
     }
 
     /// <summary>
@@ -141,6 +138,25 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     /// <returns>A string representation of the instance.</returns>
     public override string ToString() => _wmiInstance.ToString();
 
+    public void TryGetInstance()
+    {
+        try
+        {
+
+            if (LoadState == InstanceState.Unknown)
+            {
+                // Attempt to load the instance data if not already loaded (useful for lazy props)
+                WmiInstance.ActualObject?.Get();
+                LoadState = InstanceState.Success;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load instance data for: {InstanceName}", InstanceName);
+            LoadState = InstanceState.Failed;
+        }
+    }
+
     /// <summary>
     /// Command to copy the instance path to clipboard.
     /// </summary>
@@ -176,13 +192,14 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
                     managementObject,
                     $"Edit {InstanceName}"); if (result != null)
                 {
-                    _wmiInstance.ActualObject.Put(); // Save changes to the instance
+                    // Save changes to the instance
+                    _wmiInstance.ActualObject.Put();
 
                     // Refresh the instance data
                     TryGetInstance();
 
-                    // Request PropertyGrid refresh
-                    PublishMessage(new Common.Messages.PropertyGridRefreshMessage());
+                    // Refresh propertygrid
+                    _selectionManager.RefreshPropertyGrid();
 
                     PublishSuccessState($"Properties updated for instance: {InstanceName}");
                 }
@@ -289,37 +306,19 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
             {
                 _isUpdatingSelection = true;
 
+                // Load Instance Methods
+                LoadInstanceMethods();
+
                 // Update parent class selection to keep them in sync
                 if (ParentClass.SelectedInstance != this)
                 {
                     ParentClass.SelectedInstance = this;
                 }
-
-                // Ensure instance data is loaded
-                TryGetInstance();
-
-                // Notify selection
-                _selectionManager.SetSelectedObject(this);
             }
             finally
             {
                 _isUpdatingSelection = false;
             }
-        }
-    }
-
-    private void TryGetInstance()
-    {
-        try
-        {
-            // Attempt to load the instance data if not already loaded (useful for lazy props)
-            WmiInstance.ActualObject?.Get();
-            LoadState = InstanceState.Success;
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to load instance data for: {InstanceName}", InstanceName);
-            LoadState = InstanceState.Failed;
         }
     }
 }

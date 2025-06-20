@@ -19,16 +19,6 @@ public class ApplicationStateMessage : MessageBase
 }
 
 /// <summary>
-/// Message to request PropertyGrid refresh
-/// </summary>
-public class PropertyGridRefreshMessage : MessageBase
-{
-    public PropertyGridRefreshMessage()
-    {
-    }
-}
-
-/// <summary>
 /// Unified message sent when any selection changes in the application
 /// </summary>
 public class SelectionChangedMessage : MessageBase
