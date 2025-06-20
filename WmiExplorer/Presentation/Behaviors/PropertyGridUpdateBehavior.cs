@@ -54,13 +54,13 @@ public static class PropertyGridUpdateBehavior
             else
             {
                 control.MouseUp -= OnItemMouseUp;
-            }
-        }
+            }        }
     }
 
     private static void OnItemMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (e.LeftButton != MouseButtonState.Released || e.ClickCount != 1)
+        // Only process left-click events - ignore right-clicks and other buttons
+        if (e.ChangedButton != MouseButton.Left || e.ClickCount != 1)
             return;
 
         var control = (FrameworkElement)sender;
@@ -70,9 +70,11 @@ public static class PropertyGridUpdateBehavior
         if (_selectionManager != null)
         {
             _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid: true);
-        }
 
-        // Mark as handled to prevent event bubbling to parent TreeViewItems
-        e.Handled = true;
+            // Only mark as handled after we've actually processed a left-click
+            // This prevents event bubbling to parent TreeViewItems for left-clicks
+            // while allowing right-click context menus to work properly
+            e.Handled = true;
+        }
     }
 }
