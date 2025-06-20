@@ -404,12 +404,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
                 // Load properties for this class
                 LoadProperties();
-
-                // Update parent namespace selection to keep them in sync
-                if (ParentNamespaceViewModel.SelectedClass != this)
-                {
-                    ParentNamespaceViewModel.SelectedClass = this;
-                }
             }
             finally
             {

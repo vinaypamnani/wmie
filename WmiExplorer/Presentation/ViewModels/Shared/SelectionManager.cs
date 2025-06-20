@@ -257,43 +257,65 @@ public partial class SelectionManager : ObservableObject
         switch (selectedObject)
         {
             case WmiNamespaceViewModel namespaceVm:
+                // Update namespace selection
                 if (SelectedNamespace != namespaceVm)
                     SelectedNamespace = namespaceVm;
+
                 // When a namespace is selected, use its selected class
                 if (SelectedClass != namespaceVm?.SelectedClass)
                     SelectedClass = namespaceVm?.SelectedClass;
+
                 // When a class changes, use its selected instance
                 if (SelectedInstance != SelectedClass?.SelectedInstance)
                     SelectedInstance = SelectedClass?.SelectedInstance;
                 break;
 
             case WmiClassViewModel classVm:
+                // Update class selection
                 if (SelectedClass != classVm)
                     SelectedClass = classVm;
+
+                // Update the namespace's selected class property (bidirectional sync)
+                if (SelectedNamespace != null && SelectedNamespace.SelectedClass != classVm)
+                {
+                    SelectedNamespace.SelectedClass = classVm;
+                }
+
                 // Update namespace to match the class's parent
                 if (SelectedNamespace != classVm.ParentNamespaceViewModel)
                     SelectedNamespace = classVm.ParentNamespaceViewModel;
+
                 // When a class is selected, use its selected instance
                 if (SelectedInstance != classVm?.SelectedInstance)
                     SelectedInstance = classVm?.SelectedInstance;
                 break;
 
             case WmiInstanceViewModel instanceVm:
+                // Update instance selection and try to get its data
                 if (SelectedInstance != instanceVm)
                 {
                     SelectedInstance = instanceVm;
                     // Force the instance to try to get its data - do it here so it's done before PropertyGrid updates
-                    SelectedInstance.TryGetInstance();
+                    SelectedInstance?.TryGetInstance();
                 }
+
+                // Update the class's selected instance property (bidirectional sync)
+                if (SelectedClass != null && SelectedClass.SelectedInstance != instanceVm)
+                {
+                    SelectedClass.SelectedInstance = instanceVm;
+                }
+
                 // Update class to match the instance's parent
-                if (SelectedClass != instanceVm.ParentClass)
-                    SelectedClass = instanceVm.ParentClass;
-                // Update namespace to match the class's parent
-                if (SelectedNamespace != instanceVm.ParentClass.ParentNamespaceViewModel)
-                    SelectedNamespace = instanceVm.ParentClass.ParentNamespaceViewModel;
+                if (SelectedClass != instanceVm?.ParentClass)
+                    SelectedClass = instanceVm?.ParentClass;
+
+                // Update namespace to match the class's parent namespace
+                if (SelectedNamespace != instanceVm?.ParentClass?.ParentNamespaceViewModel)
+                    SelectedNamespace = instanceVm?.ParentClass?.ParentNamespaceViewModel;
                 break;
 
             default:
+                // For non-WMI objects, we don't need to update the centralized selection properties
                 break;
         }
     }

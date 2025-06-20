@@ -308,12 +308,6 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
 
                 // Load Instance Methods
                 LoadInstanceMethods();
-
-                // Update parent class selection to keep them in sync
-                if (ParentClass.SelectedInstance != this)
-                {
-                    ParentClass.SelectedInstance = this;
-                }
             }
             finally
             {
