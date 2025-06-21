@@ -8,9 +8,12 @@ namespace WmiExplorer.Presentation.Behaviors;
 /// <summary>
 /// Behavior that updates the PropertyGrid whenever an item is clicked,
 /// regardless of its current selection state.
-/// This eliminates the need for force-selection workarounds.
+/// This eliminates the need for force-selection workarounds and IsSelected XAML bindings.
 /// Uses dependency injection pattern similar to AvalonEdit behaviors.
 /// Supports: TreeViewItem, ListViewItem, and DataGridRow.
+///
+/// Note: IsSelected property management is now handled by SelectionManager to ensure
+/// proper order of operations (local OnIsSelectedChanged actions before PropertyGrid updates).
 /// </summary>
 public static class PropertyGridUpdateBehavior
 {
@@ -67,9 +70,10 @@ public static class PropertyGridUpdateBehavior
         var control = (FrameworkElement)sender;
         var dataContext = control.DataContext;
 
-        // Update the PropertyGrid via SelectionManager
+        // Update the PropertyGrid via SelectionManager (which now handles IsSelected management)
         if (_selectionManager != null)
         {
+            // SelectionManager will handle IsSelected properties first, then PropertyGrid update
             _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid: true);
 
             // Only mark as handled after we've actually processed a left-click

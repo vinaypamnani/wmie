@@ -23,11 +23,11 @@
                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance}"
                   BorderThickness="0"
                   ItemsSource="{Binding SelectionManager.SelectedNamespace.SelectedClass.InstancesView}"
+                  SelectedItem="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance}"
                   SelectionMode="Single"
                   Style="{StaticResource ModernListViewStyle}">
             <ListView.ItemContainerStyle>
                 <Style BasedOn="{StaticResource ModernListViewItemStyle}" TargetType="{x:Type ListViewItem}">
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>

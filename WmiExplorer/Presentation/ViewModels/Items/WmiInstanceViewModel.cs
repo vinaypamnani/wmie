@@ -308,6 +308,9 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
 
                 // Load Instance Methods
                 LoadInstanceMethods();
+
+                // Force the instance to try to get its data
+                TryGetInstance();
             }
             finally
             {

@@ -25,6 +25,9 @@ public partial class SelectionManager : ObservableObject
 
     private readonly IMessengerService _messengerService;
 
+    // Track previous selections per ViewModel type to enable proper IsSelected clearing
+    private readonly Dictionary<Type, object?> _previousSelectionsByType = new();
+
     // Primary selection property that the UI binds to
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedClass), nameof(SelectedInstance))]
@@ -126,10 +129,12 @@ public partial class SelectionManager : ObservableObject
     /// This method can handle the same object being selected multiple times
     /// when updatePropertyGrid is true.
     /// </summary>
-    /// <param name="selectedObject">The object to select</param>
-    /// <param name="updatePropertyGrid">Whether to update the PropertyGrid (with force refresh)</param>
+    /// <param name="selectedObject">The object to select</param>    /// <param name="updatePropertyGrid">Whether to update the PropertyGrid (with force refresh)</param>
     public void SetSelectedObject(object? selectedObject, bool updatePropertyGrid = true)
     {
+        // Manage IsSelected properties first (before PropertyGrid update)
+        ManageIsSelectedProperties(selectedObject);
+
         // Always update selection state for coordination
         PreviousObject = SelectedObject;
         SelectedObject = ProcessSelectionObject(selectedObject);
@@ -148,6 +153,29 @@ public partial class SelectionManager : ObservableObject
             SelectedObjectDisplayName = displayName;
             LastUpdateTime = DateTime.Now;
         }
+    }
+
+    /// <summary>
+    /// Manages IsSelected properties by clearing previous selection and setting new selection.
+    /// This ensures local OnIsSelectedChanged actions execute before PropertyGrid updates.
+    /// </summary>
+    private void ManageIsSelectedProperties(object? selectedObject)
+    {
+        if (selectedObject == null) return;
+
+        var selectedType = selectedObject.GetType();
+
+        // Clear previous selection of the same type
+        if (_previousSelectionsByType.TryGetValue(selectedType, out var previousSelection))
+        {
+            SetIsSelectedOnViewModel(previousSelection, false);
+        }
+
+        // Set new selection
+        SetIsSelectedOnViewModel(selectedObject, true);
+
+        // Track this selection for future clearing
+        _previousSelectionsByType[selectedType] = selectedObject;
     }
 
     private (object? processedObject, string displayName) ProcessPropertyGridObject(object? selectedObject)
@@ -230,6 +258,32 @@ public partial class SelectionManager : ObservableObject
     }
 
     /// <summary>
+    /// Sets the IsSelected property on any ViewModel that has this property using reflection.
+    /// This makes the behavior extensible to any ViewModel without hardcoding specific types.
+    /// </summary>
+    private static void SetIsSelectedOnViewModel(object? viewModel, bool isSelected)
+    {
+        if (viewModel == null) return;
+
+        try
+        {
+            var viewModelType = viewModel.GetType();
+            var isSelectedProperty = viewModelType.GetProperty("IsSelected");
+
+            // Only set the property if it exists and is writable
+            if (isSelectedProperty != null && isSelectedProperty.CanWrite && isSelectedProperty.PropertyType == typeof(bool))
+            {
+                isSelectedProperty.SetValue(viewModel, isSelected);
+            }
+        }
+        catch (Exception)
+        {
+            // Silently ignore reflection errors - not all ViewModels may have IsSelected
+            // or may not be accessible, which is fine
+        }
+    }
+
+    /// <summary>
     /// Updates the selected namespace based on the selected object.
     /// All other selection properties are derived from SelectedNamespace.
     /// </summary>
@@ -252,14 +306,10 @@ public partial class SelectionManager : ObservableObject
 
             case WmiInstanceViewModel instanceVm:
 
-                // Force the instance to try to get its data
-                instanceVm?.TryGetInstance();
-
                 // Update the class's selected instance
                 if (SelectedNamespace?.SelectedClass?.SelectedInstance != instanceVm)
                     SelectedNamespace!.SelectedClass!.SelectedInstance = instanceVm;
                 break;
-
             default:
                 // For non-WMI objects, we don't change the namespace selection
                 break;
