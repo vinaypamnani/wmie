@@ -137,16 +137,7 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
         // Clear selected parameter when method changes since parameters are method-specific
         SelectedMethodParameter = null;
 
-        SelectionManager.SetPropertyGridObject(newValue);
         UpdateHelpText();
-    }
-
-    /// <summary>
-    /// Called when the selected method parameter changes
-    /// </summary>
-    partial void OnSelectedMethodParameterChanged(WmiParameter? oldValue, WmiParameter? newValue)
-    {
-        SelectionManager.SetPropertyGridObject(newValue);
     }
 
     /// <summary>

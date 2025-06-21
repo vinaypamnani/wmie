@@ -104,8 +104,9 @@ public partial class App : Application
         services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
 
-        // Register managers
+        // Register managers - order matters for dependencies
         services.AddSingleton<ThemeManager>();
+        services.AddSingleton<PropertyGridManager>();
         services.AddSingleton<SelectionManager>();
 
         // Register MainWindow for DI

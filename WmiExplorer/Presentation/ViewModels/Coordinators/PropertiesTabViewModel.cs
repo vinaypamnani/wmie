@@ -1,12 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
-using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -90,7 +89,6 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     partial void OnSelectedPropertyChanged(WmiProperty? oldValue, WmiProperty? newValue)
     {
-        SelectionManager.SetPropertyGridObject(newValue);
         UpdateHelpText();
     }
 
@@ -125,7 +123,7 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
 
         // Create new filter helper if we have properties
         if (selectedClass?.Properties != null)
-        {            
+        {
 
             _propertyFilterHelper = new FilterHelper<WmiProperty>(
                 selectedClass.Properties,

@@ -234,7 +234,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
         // Clear current results and query
         _results.Clear();
-        SelectionManager.ClearPropertyGrid();
+        SelectionManager.PropertyGrid.ClearPropertyGrid();
 
         SearchQuery = string.Empty;
 
@@ -246,15 +246,6 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             SearchQuery = state.SearchQuery;
         }
         _resultsView?.Refresh();
-    }
-
-    /// <summary>
-    /// Called when SelectedResult property changes
-    /// </summary>
-    partial void OnSelectedResultChanged(WmiSearchResult? value)
-    {
-        // Update selectionManager with the new selection
-        SelectionManager.SetPropertyGridObject(value);
     }
 
     private class SearchTypeState

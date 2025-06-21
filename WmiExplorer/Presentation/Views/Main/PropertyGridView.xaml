@@ -43,7 +43,7 @@
                                 <TextBlock Background="{DynamicResource PrimaryAccentBrush}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                           Text="{Binding SelectionManager.SelectedObjectDisplayName}"
+                                           Text="{Binding SelectionManager.PropertyGrid.SelectedObjectDisplayName}"
                                            TextTrimming="CharacterEllipsis" />
                             </Border>
                             <pg:PropertyGrid x:Name="PropertyGrid"
@@ -53,7 +53,7 @@
                                              EnableVirtualization="True"
                                              IsPropertyGridReadOnly="True"
                                              NameColumnWidth="150"
-                                             SelectedObject="{Binding SelectionManager.SelectedObjectForPropertyGrid, Mode=OneWay}"
+                                             SelectedObject="{Binding SelectionManager.PropertyGrid.SelectedObjectForPropertyGrid, Mode=OneWay}"
                                              ShowSearchBox="True" />
                         </Grid>
                     </Border>

@@ -313,25 +313,16 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Property change handler for SelectedEvent
-    /// </summary>
-    partial void OnSelectedEventChanged(WmiEvent? value)
-    {
-        // Update selectionManager with the new selection
-        SelectionManager.SetPropertyGridObject(value);
-    }
-
-    /// <summary>
     /// Command to remove all watchers
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanRemoveAllWatchers))]
     private void RemoveAllWatchers()
     {
         var count = _watcherManager.RemoveAllWatchers();
-        if (SelectionManager.SelectedObjectForPropertyGrid is WmiEventWatcher)
+        if (SelectionManager.PropertyGrid.SelectedObjectForPropertyGrid is WmiEventWatcher)
         {
             // If the property grid is showing a watcher, clear it
-            SelectionManager.ClearPropertyGrid();
+            SelectionManager.PropertyGrid.ClearPropertyGrid();
         }
 
         PublishSuccessState($"Removed {count} watchers.");
@@ -365,7 +356,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     private void StartAllWatchers()
     {
         var count = _watcherManager.StartAllWatchers();
-        SelectionManager.RefreshPropertyGrid();
+        SelectionManager.PropertyGrid.RefreshPropertyGrid();
         PublishSuccessState($"Started {count} watchers.");
     }
 
@@ -376,7 +367,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     private void StopAllWatchers()
     {
         var count = _watcherManager.StopAllWatchers();
-        SelectionManager.RefreshPropertyGrid();
+        SelectionManager.PropertyGrid.RefreshPropertyGrid();
         PublishSuccessState($"Stopped {count} watchers.");
     }
 

@@ -223,7 +223,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     partial void OnSelectedTabIndexChanged(int value)
     {
         if (value != 0) // Assuming 0 is the index for Classes tab
-            SelectionManager.ClearPropertyGrid();
+            SelectionManager.PropertyGrid.ClearPropertyGrid();
         else
             SelectionManager.SetSelectedObject(SelectionManager.PreviousObject, updatePropertyGrid: true);
     }

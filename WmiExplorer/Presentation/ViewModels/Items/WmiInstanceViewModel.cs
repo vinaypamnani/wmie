@@ -199,7 +199,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
                     TryGetInstance();
 
                     // Refresh propertygrid
-                    _selectionManager.RefreshPropertyGrid();
+                    _selectionManager.PropertyGrid.RefreshPropertyGrid();
 
                     PublishSuccessState($"Properties updated for instance: {InstanceName}");
                 }

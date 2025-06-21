@@ -6,7 +6,6 @@ using System.Windows.Data;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Common.Messages;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -213,15 +212,6 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     private bool ExecuteQueryCanExecute()
     {
         return !string.IsNullOrWhiteSpace(QueryText) && !IsQuerying;
-    }
-
-    /// <summary>
-    /// Handles property change for SelectedResult to publish messaging updates
-    /// </summary>
-    partial void OnSelectedResultChanged(WmiInstance? value)
-    {
-        // Update selectionManager with the new selection
-        SelectionManager.SetPropertyGridObject(value);
     }
 
     private void RefreshResultsView()
