@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
@@ -66,7 +65,7 @@ public partial class SelectionManager : ObservableObject
 
         // 2. Update selection state for coordination
         PreviousObject = SelectedObject;
-        SelectedObject = ProcessSelectionObject(selectedObject);
+        SelectedObject = selectedObject;
 
         // 3. Update centralized selection properties
         UpdateCentralizedSelectionProperties(selectedObject);
@@ -102,24 +101,6 @@ public partial class SelectionManager : ObservableObject
 
         // Track this selection for future clearing
         _previousSelectionsByType[selectedType] = selectedObject;
-    }
-
-    /// <summary>
-    /// Processes the selected object for selection coordination (maintains original logic)
-    /// </summary>
-    private object? ProcessSelectionObject(object? selectedObject)
-    {
-        return selectedObject switch
-        {
-            WmiNamespaceViewModel namespaceViewModel => namespaceViewModel,
-            WmiClassViewModel classViewModel => classViewModel,
-            WmiInstanceViewModel instanceViewModel => instanceViewModel,
-            WmiEvent wmiEvent => wmiEvent,
-            WmiSearchResult searchResult => searchResult,
-            WmiInstance queryInstance => queryInstance,
-            null => null,
-            _ => selectedObject
-        };
     }
 
     private void PublishSelectionChanged()
