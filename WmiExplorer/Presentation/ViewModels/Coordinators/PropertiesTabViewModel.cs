@@ -69,8 +69,8 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
     {
-        // Only update filtered properties when class selection changes
-        UpdateFilteredProperties();
+        // Update filtered properties when class selection changes
+        UpdateFilteredProperties(selectedClass);
     }
 
     /// <summary>
@@ -106,14 +106,10 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Called when the selected class changes to reset the selected property
-    /// </summary>    /// <summary>
-    /// Update the filtered properties based on the current class selection
+    /// Update the filtered properties based on the provided class selection
     /// </summary>
-    private void UpdateFilteredProperties()
+    private void UpdateFilteredProperties(WmiClassViewModel? selectedClass)
     {
-        var selectedClass = SelectionManager.SelectedClass;
-
         // Reset selected property when class changes
         SelectedProperty = null;
 

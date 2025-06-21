@@ -171,7 +171,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         // Notify command state changes
         ReloadClassesCommand.NotifyCanExecuteChanged();
 
-        // Update the status bar based on the selected namespace - this is updated by binding via TreeViewSelectedItemBehavior
+        // Update the status bar based on the selected namespace
         UpdateStatusBar();
     }
 

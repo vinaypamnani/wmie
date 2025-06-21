@@ -68,42 +68,8 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
     {
-        // Handle class change logic
-        HandleSelectedClassChanged(null, selectedClass);
-    }
-
-    /// <summary>
-    /// Handles class selection changes to reset the selected method
-    /// </summary>
-    private void HandleSelectedClassChanged(WmiClassViewModel? oldValue, WmiClassViewModel? newValue)
-    {
-        // Reset selected method when class changes
-        SelectedMethod = null;
-
-        // Dispose of the old filter helper
-        _methodFilterHelper?.Dispose();
-        _methodFilterHelper = null;
-
-        // Create new filter helper if we have methods
-        if (newValue?.Methods != null)
-        {
-            _methodFilterHelper = new FilterHelper<WmiMethod>(
-                newValue.Methods,
-                MethodFilterPredicate
-            );
-
-            // Apply current filter text if any
-            if (!string.IsNullOrWhiteSpace(MethodFilterText))
-            {
-                _methodFilterHelper.FilterText = MethodFilterText;
-            }
-        }
-
-        // Notify UI that FilteredMethodsView has changed
-        OnPropertyChanged(nameof(FilteredMethodsView));
-
-        // Update help text based on class selection
-        UpdateHelpText();
+        // Update filtered methods when class selection changes
+        UpdateFilteredMethods(selectedClass);
     }
 
     /// <summary>
@@ -137,6 +103,40 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
         // Clear selected parameter when method changes since parameters are method-specific
         SelectedMethodParameter = null;
 
+        UpdateHelpText();
+    }
+
+    /// <summary>
+    /// Update the filtered methods based on the provided class selection
+    /// </summary>
+    private void UpdateFilteredMethods(WmiClassViewModel? selectedClass)
+    {
+        // Reset selected method when class changes
+        SelectedMethod = null;
+
+        // Dispose of the old filter helper
+        _methodFilterHelper?.Dispose();
+        _methodFilterHelper = null;
+
+        // Create new filter helper if we have methods
+        if (selectedClass?.Methods != null)
+        {
+            _methodFilterHelper = new FilterHelper<WmiMethod>(
+                selectedClass.Methods,
+                MethodFilterPredicate
+            );
+
+            // Apply current filter text if any
+            if (!string.IsNullOrWhiteSpace(MethodFilterText))
+            {
+                _methodFilterHelper.FilterText = MethodFilterText;
+            }
+        }
+
+        // Notify UI that FilteredMethodsView has changed
+        OnPropertyChanged(nameof(FilteredMethodsView));
+
+        // Update help text based on class selection
         UpdateHelpText();
     }
 
