@@ -45,9 +45,10 @@ public partial class SelectionManager : ObservableObject
 
     public object? PreviousObject { get; private set; }
 
-    // Convenience properties that delegate to SelectedNamespace
+    // Convenience SelectedClass property that delegate to SelectedNamespace
     public WmiClassViewModel? SelectedClass => SelectedNamespace?.SelectedClass;
 
+    // Convenience SelectedInstance property that delegate to SelectedNamespace
     public WmiInstanceViewModel? SelectedInstance => SelectedNamespace?.SelectedClass?.SelectedInstance;
 
     // Selection state for coordination between ViewModels
@@ -69,24 +70,6 @@ public partial class SelectionManager : ObservableObject
     }
 
     /// <summary>
-    /// Clears both selection state and PropertyGrid
-    /// </summary>
-    public void ClearSelections()
-    {
-        PreviousObject = SelectedObject;
-        SelectedObject = null;
-
-        SelectedObjectForPropertyGrid = null;
-        SelectedObjectDisplayName = NoSelectionDisplayName;
-        LastUpdateTime = DateTime.Now;
-
-        // Clear the primary selection property - other properties are derived
-        SelectedNamespace = null;
-
-        PublishSelectionChanged();
-    }
-
-    /// <summary>
     /// Forces a PropertyGrid refresh by temporarily clearing and resetting the object.
     /// This is useful when the underlying object's properties have been modified.
     /// </summary>
@@ -104,11 +87,10 @@ public partial class SelectionManager : ObservableObject
         // Use a small delay to ensure the PropertyGrid processes the null value
         Task.Run(async () =>
         {
-            await Task.Delay(10);
-
             // Restore the selection on the UI thread
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
+                Task.Delay(10);
                 SelectedObjectForPropertyGrid = currentObject;
                 SelectedObjectDisplayName = currentDisplayName;
                 LastUpdateTime = DateTime.Now;
@@ -168,57 +150,6 @@ public partial class SelectionManager : ObservableObject
         }
     }
 
-    // private void OnClassPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    // {
-    //     if (e.PropertyName == nameof(WmiClassViewModel.SelectedInstance))
-    //     {
-    //         // Notify that SelectedInstance changed
-    //         OnPropertyChanged(nameof(SelectedInstance));
-    //     }
-    // }
-
-    // private void OnNamespacePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    // {
-    //     if (e.PropertyName == nameof(WmiNamespaceViewModel.SelectedClass))
-    //     {
-    //         // Unsubscribe from old class
-    //         var oldClass = SelectedClass;
-    //         if (oldClass != null)
-    //             oldClass.PropertyChanged -= OnClassPropertyChanged;
-
-    //         // Notify that SelectedClass changed
-    //         OnPropertyChanged(nameof(SelectedClass));
-    //         OnPropertyChanged(nameof(SelectedInstance));
-
-    //         // Subscribe to new class
-    //         var newClass = SelectedNamespace?.SelectedClass;
-    //         if (newClass != null)
-    //             newClass.PropertyChanged += OnClassPropertyChanged;
-    //     }
-    // }
-
-    // partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? oldValue, WmiNamespaceViewModel? newValue)
-    // {
-    //     // Unsubscribe from old namespace events
-    //     if (oldValue != null)
-    //     {
-    //         oldValue.PropertyChanged -= OnNamespacePropertyChanged;
-    //         if (oldValue.SelectedClass != null)
-    //             oldValue.SelectedClass.PropertyChanged -= OnClassPropertyChanged;
-    //     }
-
-    //     // Subscribe to new namespace events
-    //     if (newValue != null)
-    //     {
-    //         newValue.PropertyChanged += OnNamespacePropertyChanged;
-    //         if (newValue.SelectedClass != null)
-    //             newValue.SelectedClass.PropertyChanged += OnClassPropertyChanged;
-    //     }
-    // }
-
-    /// <summary>
-    /// Processes the selected object for PropertyGrid display and generates display name
-    /// </summary>
     private (object? processedObject, string displayName) ProcessPropertyGridObject(object? selectedObject)
     {
         object? processedObject;

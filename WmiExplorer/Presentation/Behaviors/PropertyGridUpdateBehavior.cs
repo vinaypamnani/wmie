@@ -54,7 +54,8 @@ public static class PropertyGridUpdateBehavior
             else
             {
                 control.MouseUp -= OnItemMouseUp;
-            }        }
+            }
+        }
     }
 
     private static void OnItemMouseUp(object sender, MouseButtonEventArgs e)

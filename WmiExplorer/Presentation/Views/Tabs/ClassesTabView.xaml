@@ -43,7 +43,8 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>                        <CheckBox Grid.Row="0"
+                        </Grid.RowDefinitions>
+                        <CheckBox Grid.Row="0"
                                   Margin="{StaticResource MarginSmall}"
                                   HorizontalAlignment="Right"
                                   Content="Show System Classes"
@@ -54,7 +55,7 @@
                                  Tag="Filter Classes..."
                                  Text="{Binding SelectionManager.SelectedNamespace.ClassFilterText, UpdateSourceTrigger=PropertyChanged}" />
                         <ListView Grid.Row="2"
-                                  behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
+                                  behaviors:ListViewAutoScrollBehavior.AutoScroll="False"
                                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass}"
                                   behaviors:ListViewSortBehavior.DefaultSortProperty="ClassName"
                                   behaviors:ListViewSortBehavior.EnableSorting="True"
