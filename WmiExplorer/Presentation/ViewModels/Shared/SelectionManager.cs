@@ -10,8 +10,11 @@ namespace WmiExplorer.Presentation.ViewModels.Shared;
 
 /// <summary>
 /// Manages application-wide selection state and PropertyGrid updates.
-/// Combines the functionality of selectionManager and PropertyGridManager
-/// into a single, unified selection management system.
+/// Focuses on maintaining SelectedNamespace as the primary selection state,
+/// with SelectedClass and SelectedInstance as convenience properties that
+/// delegate to the namespace's internal selection properties.
+/// This simplified approach eliminates complex synchronization logic since
+/// the UI is bound to SelectionManager.SelectedNamespace.* properties.
 /// </summary>
 public partial class SelectionManager : ObservableObject
 {
@@ -22,14 +25,9 @@ public partial class SelectionManager : ObservableObject
 
     private readonly IMessengerService _messengerService;
 
+    // Primary selection property that the UI binds to
     [ObservableProperty]
-    private WmiClassViewModel? _selectedClass;
-
-    [ObservableProperty]
-    private WmiInstanceViewModel? _selectedInstance;
-
-    // Centralized selection properties that can be bound to directly
-    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedClass), nameof(SelectedInstance))]
     private WmiNamespaceViewModel? _selectedNamespace;
 
     [ObservableProperty]
@@ -46,6 +44,11 @@ public partial class SelectionManager : ObservableObject
     }
 
     public object? PreviousObject { get; private set; }
+
+    // Convenience properties that delegate to SelectedNamespace
+    public WmiClassViewModel? SelectedClass => SelectedNamespace?.SelectedClass;
+
+    public WmiInstanceViewModel? SelectedInstance => SelectedNamespace?.SelectedClass?.SelectedInstance;
 
     // Selection state for coordination between ViewModels
     public object? SelectedObject { get; private set; }
@@ -77,9 +80,7 @@ public partial class SelectionManager : ObservableObject
         SelectedObjectDisplayName = NoSelectionDisplayName;
         LastUpdateTime = DateTime.Now;
 
-        // Clear centralized selection properties
-        SelectedInstance = null;
-        SelectedClass = null;
+        // Clear the primary selection property - other properties are derived
         SelectedNamespace = null;
 
         PublishSelectionChanged();
@@ -167,6 +168,54 @@ public partial class SelectionManager : ObservableObject
         }
     }
 
+    // private void OnClassPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    // {
+    //     if (e.PropertyName == nameof(WmiClassViewModel.SelectedInstance))
+    //     {
+    //         // Notify that SelectedInstance changed
+    //         OnPropertyChanged(nameof(SelectedInstance));
+    //     }
+    // }
+
+    // private void OnNamespacePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    // {
+    //     if (e.PropertyName == nameof(WmiNamespaceViewModel.SelectedClass))
+    //     {
+    //         // Unsubscribe from old class
+    //         var oldClass = SelectedClass;
+    //         if (oldClass != null)
+    //             oldClass.PropertyChanged -= OnClassPropertyChanged;
+
+    //         // Notify that SelectedClass changed
+    //         OnPropertyChanged(nameof(SelectedClass));
+    //         OnPropertyChanged(nameof(SelectedInstance));
+
+    //         // Subscribe to new class
+    //         var newClass = SelectedNamespace?.SelectedClass;
+    //         if (newClass != null)
+    //             newClass.PropertyChanged += OnClassPropertyChanged;
+    //     }
+    // }
+
+    // partial void OnSelectedNamespaceChanged(WmiNamespaceViewModel? oldValue, WmiNamespaceViewModel? newValue)
+    // {
+    //     // Unsubscribe from old namespace events
+    //     if (oldValue != null)
+    //     {
+    //         oldValue.PropertyChanged -= OnNamespacePropertyChanged;
+    //         if (oldValue.SelectedClass != null)
+    //             oldValue.SelectedClass.PropertyChanged -= OnClassPropertyChanged;
+    //     }
+
+    //     // Subscribe to new namespace events
+    //     if (newValue != null)
+    //     {
+    //         newValue.PropertyChanged += OnNamespacePropertyChanged;
+    //         if (newValue.SelectedClass != null)
+    //             newValue.SelectedClass.PropertyChanged += OnClassPropertyChanged;
+    //     }
+    // }
+
     /// <summary>
     /// Processes the selected object for PropertyGrid display and generates display name
     /// </summary>
@@ -250,72 +299,38 @@ public partial class SelectionManager : ObservableObject
     }
 
     /// <summary>
-    /// Updates the centralized selection properties based on the selected object
+    /// Updates the selected namespace based on the selected object.
+    /// All other selection properties are derived from SelectedNamespace.
     /// </summary>
     private void UpdateCentralizedSelectionProperties(object? selectedObject)
     {
         switch (selectedObject)
         {
             case WmiNamespaceViewModel namespaceVm:
-                // Update namespace selection
+                // Direct namespace selection
                 if (SelectedNamespace != namespaceVm)
                     SelectedNamespace = namespaceVm;
-
-                // When a namespace is selected, use its selected class
-                if (SelectedClass != namespaceVm?.SelectedClass)
-                    SelectedClass = namespaceVm?.SelectedClass;
-
-                // When a class changes, use its selected instance
-                if (SelectedInstance != SelectedClass?.SelectedInstance)
-                    SelectedInstance = SelectedClass?.SelectedInstance;
                 break;
 
             case WmiClassViewModel classVm:
-                // Update class selection
-                if (SelectedClass != classVm)
-                    SelectedClass = classVm;
 
-                // Update the namespace's selected class property (bidirectional sync)
-                if (SelectedNamespace != null && SelectedNamespace.SelectedClass != classVm)
-                {
-                    SelectedNamespace.SelectedClass = classVm;
-                }
-
-                // Update namespace to match the class's parent
-                if (SelectedNamespace != classVm.ParentNamespaceViewModel)
-                    SelectedNamespace = classVm.ParentNamespaceViewModel;
-
-                // When a class is selected, use its selected instance
-                if (SelectedInstance != classVm?.SelectedInstance)
-                    SelectedInstance = classVm?.SelectedInstance;
+                // Update the namespace's selected class
+                if (SelectedNamespace?.SelectedClass != classVm)
+                    SelectedNamespace!.SelectedClass = classVm;
                 break;
 
             case WmiInstanceViewModel instanceVm:
-                // Update instance selection and try to get its data
-                if (SelectedInstance != instanceVm)
-                {
-                    SelectedInstance = instanceVm;
-                    // Force the instance to try to get its data - do it here so it's done before PropertyGrid updates
-                    SelectedInstance?.TryGetInstance();
-                }
 
-                // Update the class's selected instance property (bidirectional sync)
-                if (SelectedClass != null && SelectedClass.SelectedInstance != instanceVm)
-                {
-                    SelectedClass.SelectedInstance = instanceVm;
-                }
+                // Force the instance to try to get its data
+                instanceVm?.TryGetInstance();
 
-                // Update class to match the instance's parent
-                if (SelectedClass != instanceVm?.ParentClass)
-                    SelectedClass = instanceVm?.ParentClass;
-
-                // Update namespace to match the class's parent namespace
-                if (SelectedNamespace != instanceVm?.ParentClass?.ParentNamespaceViewModel)
-                    SelectedNamespace = instanceVm?.ParentClass?.ParentNamespaceViewModel;
+                // Update the class's selected instance
+                if (SelectedNamespace?.SelectedClass?.SelectedInstance != instanceVm)
+                    SelectedNamespace!.SelectedClass!.SelectedInstance = instanceVm;
                 break;
 
             default:
-                // For non-WMI objects, we don't need to update the centralized selection properties
+                // For non-WMI objects, we don't change the namespace selection
                 break;
         }
     }

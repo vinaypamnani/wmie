@@ -15,13 +15,14 @@
         <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
             <TextBox VerticalAlignment="Center"
                      Style="{StaticResource TextBoxWithClearButton}"
-                     Tag="Filter Instances..."                     Text="{Binding SelectionManager.SelectedClass.InstanceFilterText, UpdateSourceTrigger=PropertyChanged}" />
+                     Tag="Filter Instances..."
+                     Text="{Binding SelectionManager.SelectedNamespace.SelectedClass.InstanceFilterText, UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
         <ListView Grid.Row="1"
                   behaviors:ListViewAutoScrollBehavior.AutoScroll="True"
-                  behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedClass.SelectedInstance}"
+                  behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance}"
                   BorderThickness="0"
-                  ItemsSource="{Binding SelectionManager.SelectedClass.InstancesView}"
+                  ItemsSource="{Binding SelectionManager.SelectedNamespace.SelectedClass.InstancesView}"
                   SelectionMode="Single"
                   Style="{StaticResource ModernListViewStyle}">
             <ListView.ItemContainerStyle>
