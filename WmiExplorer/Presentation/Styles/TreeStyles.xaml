@@ -13,7 +13,7 @@
     <!--  TreeViewItem Style  -->
     <Style x:Key="ModernTreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="behaviors:PropertyGridUpdateBehavior.EnablePropertyGridUpdate" Value="True" />
+        <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TreeViewItem}">

@@ -49,7 +49,7 @@
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-        <Setter Property="behaviors:PropertyGridUpdateBehavior.EnablePropertyGridUpdate" Value="True" />
+        <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListViewItem">

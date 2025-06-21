@@ -139,8 +139,8 @@ public partial class App : Application
         AvalonEditWqlHighlightingBehavior.SetMessengerService(messengerService);
         AvalonEditWqlHighlightingBehavior.SetSettingsService(settingsService);
 
-        // Set up PropertyGridUpdateBehavior with DI
-        PropertyGridUpdateBehavior.SetSelectionManager(selectionManager);
+        // Set up ItemSelectionBehavior with DI
+        ItemSelectionBehavior.SetSelectionManager(selectionManager);
 
         // Configure unhandled exception handling
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
