@@ -1,4 +1,5 @@
 using System.Management;
+using System.Windows;
 using System.Windows.Threading;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
@@ -360,7 +361,7 @@ public class WmiService : IWmiService, IDisposable
 
     /// <summary>
     /// Optimized: Ensures scope is connected only if not already connected
-    /// Uses a cooperative non-blocking approach to prevent UI freezes
+    /// Uses a safe approach that works regardless of dispatcher state
     /// </summary>
     private void EnsureScopeConnected(ManagementScope scope)
     {
@@ -368,25 +369,44 @@ public class WmiService : IWmiService, IDisposable
         {
             try
             {
-                // Use a SynchronizationContext-aware technique to prevent UI thread blocking
-                // while still maintaining the synchronous method signature
-                var connectTask = Task.Run(() => scope.Connect());
-
-                // Use a dispatcher frame approach to keep the UI responsive while waiting
-                var frame = new DispatcherFrame();
-
-                connectTask.ContinueWith(t =>
+                // Check if we're on the UI thread and if dispatcher processing is available
+                if (Application.Current?.Dispatcher != null &&
+                    Application.Current.Dispatcher.CheckAccess() &&
+                    !Dispatcher.CurrentDispatcher.HasShutdownStarted)
                 {
-                    // Stop the dispatcher frame when the task completes
-                    frame.Continue = false;
-                }, TaskScheduler.Default);
+                    try
+                    {
+                        // Try to use async approach with dispatcher frame only if safe
+                        var connectTask = Task.Run(() => scope.Connect());
 
-                // This will process UI messages until the frame is stopped
-                Dispatcher.PushFrame(frame);
+                        // Use a dispatcher frame approach to keep the UI responsive while waiting
+                        var frame = new DispatcherFrame();
 
-                // Now get the result (should be immediate as task is complete)
-                // Will propagate exceptions if they occurred
-                connectTask.GetAwaiter().GetResult();
+                        connectTask.ContinueWith(t =>
+                        {
+                            // Stop the dispatcher frame when the task completes
+                            frame.Continue = false;
+                        }, TaskScheduler.Default);
+
+                        // This will process UI messages until the frame is stopped
+                        // Only if dispatcher processing is not suspended
+                        Dispatcher.PushFrame(frame);
+
+                        // Now get the result (should be immediate as task is complete)
+                        // Will propagate exceptions if they occurred
+                        connectTask.GetAwaiter().GetResult();
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Dispatcher processing is suspended, fall back to direct connect
+                        scope.Connect();
+                    }
+                }
+                else
+                {
+                    // Not on UI thread or dispatcher not available, connect directly
+                    scope.Connect();
+                }
             }
             catch (ManagementException mex)
             {
