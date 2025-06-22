@@ -162,13 +162,21 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
                 return;
             }
             var scope = SelectionManager.SelectedNamespace.ManagementScope;
+            var failureCount = 0;
             var searchResults = await _wmiService.ExecuteSearchAsync(
                 scope,
                 SearchType,
                 SearchQuery,
                 Recursive,
                 _cts.Token,
-                progressMessage => PublishBusyState(progressMessage));
+                (progressMessage, currentFailureCount) =>
+                {
+                    failureCount = currentFailureCount; // Track the latest failure count
+                    if (failureCount > 0)
+                        PublishBusyState($"{progressMessage} ({failureCount} namespace access failures)");
+                    else
+                        PublishBusyState(progressMessage);
+                });
             var tempResults = new List<WmiSearchResult>();
             foreach (var (match, parent) in searchResults)
             {
@@ -181,15 +189,19 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
             // Store results and query for this type after search
             _searchTypeStates[SearchType].Results = new List<WmiSearchResult>(_results);
-            _searchTypeStates[SearchType].SearchQuery = SearchQuery;
-
-            if (_cts.IsCancellationRequested)
+            _searchTypeStates[SearchType].SearchQuery = SearchQuery; if (_cts.IsCancellationRequested)
             {
-                PublishWarningState($"Found {_results.Count} results before search was cancelled.");
+                if (failureCount > 0)
+                    PublishWarningState($"Found {_results.Count} results before search was cancelled. {failureCount} namespace access failures occurred. Check the Log tab for details.");
+                else
+                    PublishWarningState($"Found {_results.Count} results before search was cancelled.");
             }
             else
             {
-                PublishSuccessState($"Found {_results.Count} results.");
+                if (failureCount > 0)
+                    PublishWarningState($"Found {_results.Count} results. {failureCount} namespace access failures occurred. Check the Log tab for details.");
+                else
+                    PublishSuccessState($"Found {_results.Count} results.");
             }
         }
         catch (OperationCanceledException)

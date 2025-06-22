@@ -64,23 +64,20 @@ public class WmiService : IWmiService, IDisposable
         string searchText,
         bool recursive,
         CancellationToken cancellationToken = default,
-        Action<string>? progressCallback = null)
+        Action<string, int>? progressCallback = null)
     {
         return Task.Run(async () =>
         {
             EnsureScopeConnected(scope);
-            var results = new List<(object match, ManagementBaseObject parent)>();
-
-            // Search in the current namespace
+            var results = new List<(object match, ManagementBaseObject parent)>();            // Search in the current namespace
             var currentNamespace = scope.Path?.Path ?? "root";
             var friendlyNamespace = FormatNamespaceForDisplay(currentNamespace);
-            progressCallback?.Invoke($"Searching namespace: {friendlyNamespace}");
-            await SearchInNamespaceAsync(scope, searchType, searchText, results, cancellationToken);
-
-            // If recursive search is enabled, search in child namespaces
+            var failureCount = 0;
+            progressCallback?.Invoke($"Searching namespace: {friendlyNamespace}", failureCount);
+            await SearchInNamespaceAsync(scope, searchType, searchText, results, cancellationToken);            // If recursive search is enabled, search in child namespaces
             if (recursive && !cancellationToken.IsCancellationRequested)
             {
-                await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, cancellationToken, progressCallback);
+                failureCount = await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, cancellationToken, progressCallback, failureCount);
             }
 
             return (IEnumerable<(object, ManagementBaseObject)>)results;
@@ -933,14 +930,17 @@ public class WmiService : IWmiService, IDisposable
     /// <summary>
     /// Recursively searches in child namespaces
     /// </summary>
-    private async Task SearchInChildNamespacesRecursivelyAsync(
+    private async Task<int> SearchInChildNamespacesRecursivelyAsync(
         ManagementScope parentScope,
         WmiSearchType searchType,
         string searchText,
         List<(object match, ManagementBaseObject parent)> results,
         CancellationToken cancellationToken,
-        Action<string>? progressCallback = null)
+        Action<string, int>? progressCallback = null,
+        int currentFailureCount = 0)
     {
+        var failureCount = currentFailureCount;
+
         try
         {
             // Get child namespaces for the current scope
@@ -958,31 +958,37 @@ public class WmiService : IWmiService, IDisposable
 
                     // Build the child namespace path
                     var parentPath = parentScope.Path?.Path ?? string.Empty;
-                    var childNamespacePath = $"{parentPath}\\{namespaceName}";                    // Create a new scope for the child namespace
+                    var childNamespacePath = $"{parentPath}\\{namespaceName}";
+
+                    // Create a new scope for the child namespace
                     var childScope = CreateManagementScope(childNamespacePath, parentScope.Options);
 
                     // Report progress for the child namespace being searched
                     var friendlyChildNamespace = FormatNamespaceForDisplay(childNamespacePath);
-                    progressCallback?.Invoke($"Searching namespace: {friendlyChildNamespace}");
+                    progressCallback?.Invoke($"Searching namespace: {friendlyChildNamespace}", failureCount);
 
                     // Search in the child namespace
                     await SearchInNamespaceAsync(childScope, searchType, searchText, results, cancellationToken);
 
                     // Recursively search in grandchild namespaces
-                    await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken, progressCallback);
+                    failureCount = await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken, progressCallback, failureCount);
                 }
                 catch (Exception ex)
                 {
-                    // Log the error but continue with other namespaces
-                    Log.Warning(ex, "Error searching in child namespace during recursive search");
+                    // Log the error and increment failure count
+                    failureCount++;
+                    Log.Warning(ex, "Error searching in child namespace during recursive search (failure #{FailureCount})", failureCount);
                 }
             }
         }
         catch (Exception ex)
         {
-            // Log the error but don't propagate to avoid breaking the entire search
-            Log.Warning(ex, "Error getting child namespaces for recursive search");
+            // Log the error and increment failure count for getting child namespaces
+            failureCount++;
+            Log.Warning(ex, "Error getting child namespaces for recursive search (failure #{FailureCount})", failureCount);
         }
+
+        return failureCount;
     }
 
     /// <summary>
