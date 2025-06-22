@@ -1,9 +1,9 @@
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.CodeCompletion;
 using ICSharpCode.AvalonEdit.Document;
-using WmiExplorer.Services;
 using System.Reflection;
 using WmiExplorer.Integration.AvalonEdit.Behaviors;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Tests.Helpers;
 

@@ -247,7 +247,15 @@ public class WqlCompletionData : ICompletionData
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Error initializing WQL completion icons");
+                try
+                {
+                    Log.Warning(ex, "Error initializing WQL completion icons");
+                }
+                catch
+                {
+                    // Ignore logging errors - the logger might not be initialized in test environments
+                    System.Diagnostics.Debug.WriteLine($"Error initializing WQL completion icons: {ex.Message}");
+                }
                 CreateFallbackIcons();
             }
 
