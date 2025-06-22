@@ -2,7 +2,7 @@ using ICSharpCode.AvalonEdit.Document;
 using NUnit.Framework;
 using WmiExplorer.Integration.AvalonEdit.Context;
 
-namespace WmiExplorer.TestAvalonEdit.Tests;
+namespace WmiExplorer.Tests;
 
 [TestFixture]
 public class WqlTokenizerTests

@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using WmiExplorer.PropertyGrid;
 
-namespace WmiExplorer.TestAvalonEdit.Tests;
+namespace WmiExplorer.Tests;
 
 [TestFixture]
 [Apartment(ApartmentState.STA)]

@@ -10,4 +10,4 @@ using System.Runtime.CompilerServices;
                                                 // app, or any theme specific resource dictionaries)
 )]
 
-[assembly: InternalsVisibleTo("WmiExplorer.TestAvalonEdit")]
+[assembly: InternalsVisibleTo("WmiExplorer.Tests")]

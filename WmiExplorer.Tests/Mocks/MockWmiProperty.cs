@@ -1,6 +1,6 @@
 using WmiExplorer.Core.Cache;
 
-namespace WmiExplorer.TestAvalonEdit.Mocks;
+namespace WmiExplorer.Tests.Mocks;
 
 /// <summary>
 /// Mock implementation of WmiPropertyCache for testing

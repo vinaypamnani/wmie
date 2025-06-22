@@ -5,7 +5,7 @@ using WmiExplorer.Services;
 using System.Reflection;
 using WmiExplorer.Integration.AvalonEdit.Behaviors;
 
-namespace WmiExplorer.TestAvalonEdit.Helpers;
+namespace WmiExplorer.Tests.Helpers;
 
 /// <summary>
 /// Provides helper methods for testing AvalonEdit completions

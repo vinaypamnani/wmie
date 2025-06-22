@@ -1,9 +1,9 @@
 using NUnit.Framework;
 using WmiExplorer.Integration.AvalonEdit.WqlManager;
-using WmiExplorer.TestAvalonEdit.Helpers;
-using WmiExplorer.TestAvalonEdit.Mocks;
+using WmiExplorer.Tests.Helpers;
+using WmiExplorer.Tests.Mocks;
 
-namespace WmiExplorer.TestAvalonEdit.Tests;
+namespace WmiExplorer.Tests;
 
 [TestFixture]
 [Apartment(ApartmentState.STA)]

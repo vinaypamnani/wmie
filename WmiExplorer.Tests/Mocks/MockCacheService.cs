@@ -1,7 +1,7 @@
 using WmiExplorer.Core.Cache;
 using WmiExplorer.Services;
 
-namespace WmiExplorer.TestAvalonEdit.Mocks;
+namespace WmiExplorer.Tests.Mocks;
 
 /// <summary>
 /// Mock implementation of ICacheService for testing completion functionality.
