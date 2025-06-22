@@ -427,10 +427,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         if (value)
         {
             // Fire and forget - don't block the UI thread
-            _ = Task.Run(async () =>
-            {
-                await ExpandAsync();
-            });
+            _ = ExpandAsync();
         }
     }
 
