@@ -162,7 +162,13 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
                 return;
             }
             var scope = SelectionManager.SelectedNamespace.ManagementScope;
-            var searchResults = await _wmiService.ExecuteSearchAsync(scope, SearchType, SearchQuery, Recursive, _cts.Token);
+            var searchResults = await _wmiService.ExecuteSearchAsync(
+                scope,
+                SearchType,
+                SearchQuery,
+                Recursive,
+                _cts.Token,
+                progressMessage => PublishBusyState(progressMessage));
             var tempResults = new List<WmiSearchResult>();
             foreach (var (match, parent) in searchResults)
             {

@@ -63,7 +63,8 @@ public class WmiService : IWmiService, IDisposable
         WmiSearchType searchType,
         string searchText,
         bool recursive,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Action<string>? progressCallback = null)
     {
         return Task.Run(async () =>
         {
@@ -71,12 +72,15 @@ public class WmiService : IWmiService, IDisposable
             var results = new List<(object match, ManagementBaseObject parent)>();
 
             // Search in the current namespace
+            var currentNamespace = scope.Path?.Path ?? "root";
+            var friendlyNamespace = FormatNamespaceForDisplay(currentNamespace);
+            progressCallback?.Invoke($"Searching namespace: {friendlyNamespace}");
             await SearchInNamespaceAsync(scope, searchType, searchText, results, cancellationToken);
 
             // If recursive search is enabled, search in child namespaces
             if (recursive && !cancellationToken.IsCancellationRequested)
             {
-                await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, cancellationToken);
+                await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, cancellationToken, progressCallback);
             }
 
             return (IEnumerable<(object, ManagementBaseObject)>)results;
@@ -669,6 +673,30 @@ public class WmiService : IWmiService, IDisposable
         return result;
     }
 
+    /// <summary>
+    /// Formats a namespace path for user-friendly display
+    /// </summary>
+    /// <param name="namespacePath">The full namespace path (e.g., \\.\root\cimv2)</param>
+    /// <returns>A user-friendly namespace name (e.g., root\cimv2)</returns>
+    private static string FormatNamespaceForDisplay(string namespacePath)
+    {
+        if (string.IsNullOrWhiteSpace(namespacePath))
+            return "root";
+
+        // Remove computer part (\\computer\ or \\.\ for local)
+        if (namespacePath.StartsWith(@"\\"))
+        {
+            var segments = namespacePath.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length >= 2)
+            {
+                // Return everything after the computer name
+                return string.Join("\\", segments.Skip(1));
+            }
+        }
+
+        return namespacePath;
+    }
+
     private async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsyncInternal(ManagementScope scope, CancellationToken cancellationToken)
     {
         var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
@@ -910,7 +938,8 @@ public class WmiService : IWmiService, IDisposable
         WmiSearchType searchType,
         string searchText,
         List<(object match, ManagementBaseObject parent)> results,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<string>? progressCallback = null)
     {
         try
         {
@@ -929,16 +958,18 @@ public class WmiService : IWmiService, IDisposable
 
                     // Build the child namespace path
                     var parentPath = parentScope.Path?.Path ?? string.Empty;
-                    var childNamespacePath = $"{parentPath}\\{namespaceName}";
-
-                    // Create a new scope for the child namespace
+                    var childNamespacePath = $"{parentPath}\\{namespaceName}";                    // Create a new scope for the child namespace
                     var childScope = CreateManagementScope(childNamespacePath, parentScope.Options);
+
+                    // Report progress for the child namespace being searched
+                    var friendlyChildNamespace = FormatNamespaceForDisplay(childNamespacePath);
+                    progressCallback?.Invoke($"Searching namespace: {friendlyChildNamespace}");
 
                     // Search in the child namespace
                     await SearchInNamespaceAsync(childScope, searchType, searchText, results, cancellationToken);
 
                     // Recursively search in grandchild namespaces
-                    await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken);
+                    await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken, progressCallback);
                 }
                 catch (Exception ex)
                 {

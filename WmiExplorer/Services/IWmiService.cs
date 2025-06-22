@@ -17,7 +17,15 @@ public interface IWmiService
     /// <param name="options">The connection options (optional)</param>
     /// <returns>A connected ManagementScope</returns>
     ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions connectionOptions);
-
+    /// <summary>
+    /// Executes a WMI method asynchronously on an instance
+    /// </summary>
+    /// <param name="instance">The ManagementObject instance to execute the method on</param>
+    /// <param name="methodName">The name of the method to execute</param>
+    /// <param name="inputParameters">The input parameters for the method (optional)</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The output parameters from the method execution</returns>
+    Task<ManagementBaseObject?> ExecuteMethodAsync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default);
     /// <summary>
     /// Executes a search for classes, methods, or properties in the given scope.
     /// </summary>
@@ -26,14 +34,24 @@ public interface IWmiService
     /// <param name="searchText">The search text to filter results</param>
     /// <param name="recursive">Whether to search recursively</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="progressCallback">Optional callback to report search progress (namespace being searched)</param>
     /// <returns>A list of tuples where first item is the search match (ManagementClass, MethodData, or PropertyData) and second is the parent class</returns>
     Task<IEnumerable<(object match, ManagementBaseObject parent)>> ExecuteSearchAsync(
         ManagementScope scope,
         WmiSearchType searchType,
         string searchText,
         bool recursive,
-        CancellationToken cancellationToken = default);
-
+        CancellationToken cancellationToken = default,
+        Action<string>? progressCallback = null);
+    /// <summary>
+    /// Executes a static WMI method asynchronously on a class
+    /// </summary>
+    /// <param name="managementClass">The ManagementClass to execute the static method on</param>
+    /// <param name="methodName">The name of the method to execute</param>
+    /// <param name="inputParameters">The input parameters for the method (optional)</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The output parameters from the method execution</returns>
+    Task<ManagementBaseObject?> ExecuteStaticMethodAsync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default);
     /// <summary>
     /// Executes a WMI query asynchronously, using the specified query string and enumeration options.
     /// </summary>
@@ -44,7 +62,6 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject representing the query results</returns>
     Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(ManagementScope scope, string queryString, bool directRead, bool useAmendedQualifiers, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Asynchronously gets child namespaces for a given WMI namespace
     /// </summary>
@@ -52,7 +69,6 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject</returns>
     Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Asynchronously gets classes for a given WMI namespace
     /// </summary>
@@ -61,7 +77,6 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject representing WMI classes</returns>
     Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter = WmiClassEnumerationFlags.All, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Asynchronously gets instances for a given WMI class
     /// </summary>
@@ -70,12 +85,10 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject representing WMI instances</returns>
     Task<IEnumerable<ManagementObject>> GetInstancesAsync(ManagementScope scope, string className, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Gets the CLSID for a WMI provider by name (synchronous, returns null if not found or error)
     /// </summary>
     string? GetProviderClsid(ManagementScope scope, string providerName);
-
     /// <summary>
     /// Gets a root ManagementObject for a given namespace path
     /// </summary>
@@ -84,24 +97,4 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A ManagementObject</returns>
     Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes a WMI method asynchronously on an instance
-    /// </summary>
-    /// <param name="instance">The ManagementObject instance to execute the method on</param>
-    /// <param name="methodName">The name of the method to execute</param>
-    /// <param name="inputParameters">The input parameters for the method (optional)</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
-    /// <returns>The output parameters from the method execution</returns>
-    Task<ManagementBaseObject?> ExecuteMethodAsync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes a static WMI method asynchronously on a class
-    /// </summary>
-    /// <param name="managementClass">The ManagementClass to execute the static method on</param>
-    /// <param name="methodName">The name of the method to execute</param>
-    /// <param name="inputParameters">The input parameters for the method (optional)</param>
-    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
-    /// <returns>The output parameters from the method execution</returns>
-    Task<ManagementBaseObject?> ExecuteStaticMethodAsync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default);
 }
