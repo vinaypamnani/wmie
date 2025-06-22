@@ -93,6 +93,23 @@ public static class WmiObjectFactory
     }
 
     /// <summary>
+    /// Converts a string value to the specified type
+    /// </summary>
+    private static object? ConvertStringToType(string value, Type targetType)
+    {
+        if (targetType == typeof(string))
+            return value;
+
+        var converter = System.ComponentModel.TypeDescriptor.GetConverter(targetType);
+        if (converter != null && converter.CanConvertFrom(typeof(string)))
+        {
+            return converter.ConvertFromString(value);
+        }
+
+        return Convert.ChangeType(value, targetType);
+    }
+
+    /// <summary>
     /// Creates a manual template object by copying properties from the management class.
     /// Used when CreateInstance() fails for abstract or non-instantiable classes.
     /// </summary>
@@ -122,6 +139,29 @@ public static class WmiObjectFactory
     }
 
     /// <summary>
+    /// Gets the .NET element type from a WMI CIM type string for arrays
+    /// </summary>
+    private static Type? GetArrayElementTypeFromCimType(string cimType)
+    {
+        // Remove array indicators and get base type
+        var baseType = cimType.Replace("[]", "").Trim();
+
+        return baseType.ToLowerInvariant() switch
+        {
+            "string" => typeof(string),
+            "sint32" or "int32" or "uint32" => typeof(int),
+            "sint64" or "int64" or "uint64" => typeof(long),
+            "real64" or "double" => typeof(double),
+            "real32" or "single" => typeof(float),
+            "boolean" or "bool" => typeof(bool),
+            "datetime" => typeof(DateTime),
+            "sint16" or "int16" or "uint16" => typeof(short),
+            "sint8" or "int8" or "uint8" => typeof(byte),
+            _ => typeof(string) // Default to string for unknown types
+        };
+    }
+
+    /// <summary>
     /// Determines if a property has a meaningful value for WMI method parameters.
     /// Also handles converting PropertyGrid's "<null>" representation back to actual null.
     /// </summary>
@@ -139,6 +179,23 @@ public static class WmiObjectFactory
                 prop.Value = null;
                 Log.Debug("Converted '<null>' back to null for property {PropertyName}", prop.Name);
                 return false; // null values are not meaningful for parameters
+            }            // Handle comma/semicolon-separated array values if this property is supposed to be an array
+            if (prop.IsArray && !string.IsNullOrWhiteSpace(strValue))
+            {
+                try
+                {
+                    var parsedArrayValue = ParseStringToArray(strValue, prop.Type.ToString());
+                    if (parsedArrayValue != null)
+                    {
+                        prop.Value = parsedArrayValue;
+                        Log.Debug("Converted comma/semicolon-separated string to array for property {PropertyName}", prop.Name);
+                        return parsedArrayValue.Length > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to convert string to array for property {PropertyName}: {Value}", prop.Name, strValue);
+                }
             }
 
             return !string.IsNullOrWhiteSpace(strValue);
@@ -152,5 +209,47 @@ public static class WmiObjectFactory
 
         // For other types, any non-null value is meaningful
         return true;
+    }
+
+    /// <summary>
+    /// Parses a comma/semicolon-separated string into an array based on the property type
+    /// </summary>
+    private static Array? ParseStringToArray(string value, string? cimType)
+    {
+        if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(cimType))
+            return null;
+
+        // Parse the separators (comma or semicolon)
+        var separators = new[] { ',', ';' };
+        var stringValues = value.Split(separators, StringSplitOptions.RemoveEmptyEntries)
+                              .Select(s => s.Trim())
+                              .Where(s => !string.IsNullOrEmpty(s))
+                              .ToArray();
+
+        if (stringValues.Length == 0)
+            return null;
+
+        try
+        {
+            // Determine array type based on CIM type
+            Type? elementType = GetArrayElementTypeFromCimType(cimType);
+            if (elementType == null)
+                return null;
+
+            var array = Array.CreateInstance(elementType, stringValues.Length);
+
+            for (int i = 0; i < stringValues.Length; i++)
+            {
+                object? convertedValue = ConvertStringToType(stringValues[i], elementType);
+                array.SetValue(convertedValue, i);
+            }
+
+            return array;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to parse array from string: {Value}", value);
+            return null;
+        }
     }
 }

@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WmiExplorer\WmiExplorer.csproj" />
+    <ProjectReference Include="..\WmiExplorer.PropertyGrid\WmiExplorer.PropertyGrid.csproj" />
   </ItemGroup>
 
 </Project>

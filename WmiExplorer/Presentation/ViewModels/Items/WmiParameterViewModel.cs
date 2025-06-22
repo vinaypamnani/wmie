@@ -188,11 +188,16 @@ public partial class WmiParameterViewModel : DisposableObservableObject
         try
         {
             var className = TargetClassName;
-            _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);            // Update the parameter value to reference the created object
+            _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
+
+            // Update the parameter value to reference the created object
             if (_parameterObject != null)
             {
                 Value = _parameterObject;
-                UpdateObjectDisplayText(); // Update display text to show "configured"
+
+                // Update display text to show "configured"
+                UpdateObjectDisplayText();
+
                 Log.Debug("Parameter object initialized for {ClassName} with {PropertyCount} properties", className, _parameterObject.Properties.Count);
             }
         }

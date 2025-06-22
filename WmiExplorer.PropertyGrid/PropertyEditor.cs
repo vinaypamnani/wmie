@@ -28,12 +28,153 @@ public class PropertyEditor : ContentControl
         set => SetValue(PropertyItemProperty, value);
     }
 
+    /// <summary>
+    /// Creates an editor for array properties supporting comma/semicolon-separated values
+    /// </summary>
+    private void CreateArrayEditor(PropertyHierarchyItem propertyItem, Type arrayType)
+    {
+        var elementType = arrayType.GetElementType();
+        if (elementType == null) return;
+
+        var stackPanel = new StackPanel();
+
+        // Create a TextBox for comma/semicolon-separated input
+        var textBox = new TextBox
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(3, 0, 0, 0),
+            Text = FormatArrayValueForEditing(propertyItem.Value),
+            Tag = $"Enter {GetFriendlyTypeName(elementType)} values separated by commas or semicolons",
+            Style = (Style)Application.Current.FindResource("PropertyGridTextBoxWithPlaceholder"),
+            ToolTip = $"Enter {GetFriendlyTypeName(elementType)} values separated by commas or semicolons"
+        };
+
+        textBox.LostFocus += (sender, e) =>
+        {
+            if (sender is TextBox tb)
+            {
+                try
+                {
+                    var arrayValue = ParseArrayValueFromText(tb.Text, elementType);
+                    propertyItem.Value = arrayValue;
+                }
+                catch (Exception ex)
+                {
+                    // Reset to original value if parsing fails
+                    tb.Text = FormatArrayValueForEditing(propertyItem.Value);
+                    System.Diagnostics.Debug.WriteLine($"Array parsing error: {ex.Message}");
+                }
+            }
+        };
+
+        stackPanel.Children.Add(textBox);
+
+        // Add a small help text
+        var helpText = new TextBlock
+        {
+            Text = "Tip: Separate values with commas or semicolons",
+            FontSize = 10,
+            Foreground = System.Windows.Media.Brushes.Gray,
+            Margin = new Thickness(3, 2, 0, 0)
+        };
+        stackPanel.Children.Add(helpText);
+
+        Content = stackPanel;
+    }
+
+    /// <summary>
+    /// Formats an array value for text editing
+    /// </summary>
+    private string FormatArrayValueForEditing(object? value)
+    {
+        if (value is Array array)
+        {
+            var values = new List<string>();
+            for (int i = 0; i < array.Length; i++)
+            {
+                var item = array.GetValue(i);
+                values.Add(item?.ToString() ?? "");
+            }
+            return string.Join(", ", values);
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Gets a friendly type name for display purposes
+    /// </summary>
+    private string GetFriendlyTypeName(Type type)
+    {
+        return type.Name switch
+        {
+            "String" => "string",
+            "Int32" => "integer",
+            "Int64" => "long",
+            "Double" => "double",
+            "Single" => "float",
+            "Boolean" => "boolean",
+            "DateTime" => "date/time",
+            _ => type.Name.ToLowerInvariant()
+        };
+    }
+
     private static void OnPropertyItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is PropertyEditor editor && e.NewValue is PropertyHierarchyItem propertyItem)
         {
             editor.UpdateEditor(propertyItem);
         }
+    }
+
+    /// <summary>
+    /// Parses comma/semicolon-separated text into an array of the specified element type
+    /// </summary>
+    private Array ParseArrayValueFromText(string text, Type elementType)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Array.CreateInstance(elementType, 0);
+        }
+
+        // Split by comma or semicolon, remove empty entries
+        var separators = new[] { ',', ';' };
+        var stringValues = text.Split(separators, StringSplitOptions.RemoveEmptyEntries)
+                              .Select(s => s.Trim())
+                              .Where(s => !string.IsNullOrEmpty(s))
+                              .ToArray();
+
+        var array = Array.CreateInstance(elementType, stringValues.Length);
+        var converter = System.ComponentModel.TypeDescriptor.GetConverter(elementType);
+
+        for (int i = 0; i < stringValues.Length; i++)
+        {
+            try
+            {
+                object? convertedValue = null;
+
+                if (elementType == typeof(string))
+                {
+                    convertedValue = stringValues[i];
+                }
+                else if (converter != null && converter.CanConvertFrom(typeof(string)))
+                {
+                    convertedValue = converter.ConvertFromString(stringValues[i]);
+                }
+                else
+                {
+                    // Try direct conversion for common types
+                    convertedValue = Convert.ChangeType(stringValues[i], elementType);
+                }
+
+                array.SetValue(convertedValue, i);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Cannot convert '{stringValues[i]}' to {elementType.Name}: {ex.Message}", ex);
+            }
+        }
+
+        return array;
     }
 
     private void UpdateEditor(PropertyHierarchyItem? propertyItem)
@@ -55,6 +196,12 @@ public class PropertyEditor : ContentControl
         // Handle different property types
         var propertyType = propertyItem.PropertyType;
 
+        // Check for array types first
+        if (propertyType != null && propertyType.IsArray)
+        {
+            CreateArrayEditor(propertyItem, propertyType);
+            return;
+        }
         if (propertyType == typeof(bool) || propertyType == typeof(bool?))
         {
             // Use CheckBox for boolean properties
@@ -74,7 +221,7 @@ public class PropertyEditor : ContentControl
             checkBox.SetBinding(CheckBox.IsCheckedProperty, binding);
             Content = checkBox;
         }
-        else if (propertyType.IsEnum)
+        else if (propertyType != null && propertyType.IsEnum)
         {
             // Use ComboBox for enum properties
             var comboBox = new ComboBox
