@@ -92,16 +92,15 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
                 if (SelectionManager.SelectedNamespace == namespaceVm)
                     OnSelectedNamespaceChanged(namespaceVm);
                 break;
-
             case WmiExplorer.Presentation.ViewModels.Items.WmiClassViewModel classVm:
                 // Only call if this is actually a re-selection of the current class
-                if (SelectionManager.SelectedClass == classVm)
+                if (SelectionManager.GetSelectedClass() == classVm)
                     OnSelectedClassChanged(classVm);
                 break;
 
             case WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel instanceVm:
                 // Only call if this is actually a re-selection of the current instance
-                if (SelectionManager.SelectedInstance == instanceVm)
+                if (SelectionManager.GetSelectedInstance() == instanceVm)
                     OnSelectedInstanceChanged(instanceVm);
                 break;
         }
@@ -119,10 +118,10 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
                 OnSelectedNamespaceChanged(SelectionManager.SelectedNamespace);
                 break;
             case nameof(SelectionManager.SelectedClass):
-                OnSelectedClassChanged(SelectionManager.SelectedClass);
+                OnSelectedClassChanged(SelectionManager.GetSelectedClass());
                 break;
             case nameof(SelectionManager.SelectedInstance):
-                OnSelectedInstanceChanged(SelectionManager.SelectedInstance);
+                OnSelectedInstanceChanged(SelectionManager.GetSelectedInstance());
                 break;
         }
     }

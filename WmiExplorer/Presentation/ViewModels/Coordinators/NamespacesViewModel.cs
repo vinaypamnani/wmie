@@ -261,9 +261,8 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
                 return;
             }
 
-            // Select the class
-            nsVm.SelectedClass = classVm;
-            classVm.IsSelected = true;
+            // Select the class using SelectionManager
+            SelectionManager.SetSelectedObject(classVm);
 
             // Publish success state for user feedback
             PublishSuccessState($"Jumped to class '{message.ClassName}' in namespace '{message.NamespacePath}'.");

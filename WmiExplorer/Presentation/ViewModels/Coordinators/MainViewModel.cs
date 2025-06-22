@@ -90,7 +90,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = NamespacesViewModel?.SelectionManager?.SelectedNamespace?.Classes?.Count ?? 0;
+            var count = SelectionManager.SelectedNamespace?.Classes?.Count ?? 0;
             return count > 0 ? $"Classes [{count}]" : "Classes";
         }
     }
@@ -114,7 +114,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = NamespacesViewModel?.SelectionManager?.SelectedNamespace?.QueryTabViewModel?.Results?.Count ?? 0;
+            var count = SelectionManager.SelectedNamespace?.QueryTabViewModel?.Results?.Count ?? 0;
             return count > 0 ? $"Query [{count}]" : "Query";
         }
     }
@@ -126,7 +126,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = NamespacesViewModel?.SelectionManager?.SelectedNamespace?.SearchTabViewModel?.Results?.Count ?? 0;
+            var count = SelectionManager.SelectedNamespace?.SearchTabViewModel?.Results?.Count ?? 0;
             return count > 0 ? $"Search [{count}]" : "Search";
         }
     }

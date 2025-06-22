@@ -145,11 +145,12 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void UpdateHelpText()
     {
-        if (SelectionManager.SelectedClass == null)
+        var selectedClass = SelectionManager.GetSelectedClass();
+        if (selectedClass == null)
         {
             HelpText = "Select a class to view properties";
         }
-        else if (SelectionManager.SelectedClass.WmiClass?.Properties?.Count == 0)
+        else if (selectedClass?.WmiClass?.Properties?.Count == 0)
         {
             HelpText = "No properties available for the selected class";
         }

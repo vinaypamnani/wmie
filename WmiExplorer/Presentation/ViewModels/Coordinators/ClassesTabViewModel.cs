@@ -57,9 +57,10 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            if (SelectionManager.SelectedNamespace?.SelectedClass?.LoadState == InstanceLoadState.Success)
+            var selectedClass = SelectionManager.GetSelectedClass();
+            if (selectedClass?.LoadState == InstanceLoadState.Success)
             {
-                var count = SelectionManager.SelectedNamespace?.SelectedClass?.Instances?.Count ?? 0;
+                var count = selectedClass?.Instances?.Count ?? 0;
                 return $"Instances [{count}]";
             }
             return "Instances";
@@ -78,9 +79,10 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            if (SelectionManager.SelectedClass?.Methods is not null)
+            var selectedClass = SelectionManager.GetSelectedClass();
+            if (selectedClass?.Methods is not null)
             {
-                var count = SelectionManager.SelectedNamespace?.SelectedClass?.Methods?.Count ?? 0;
+                var count = selectedClass?.Methods?.Count ?? 0;
                 return $"Methods [{count}]";
             }
             return "Methods";
@@ -99,10 +101,11 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            if (SelectionManager.SelectedNamespace?.SelectedClass?.Properties is not null)
+            var selectedClass = SelectionManager.GetSelectedClass();
+            if (selectedClass?.Properties is not null)
             {
                 // Count the properties in the selected class
-                var count = SelectionManager.SelectedNamespace?.SelectedClass?.Properties?.Count ?? 0;
+                var count = selectedClass?.Properties?.Count ?? 0;
                 return $"Properties [{count}]";
             }
             return "Properties";
@@ -163,7 +166,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void HandleInstancesFilteredMessage(InstancesFilteredMessage message)
     {
-        if (message?.ClassViewModel != null && message.ClassViewModel == SelectionManager.SelectedNamespace?.SelectedClass)
+        if (message?.ClassViewModel != null && message.ClassViewModel == SelectionManager.GetSelectedClass())
         {
             UpdateStatusBar();
             UpdateTabHeaders();
@@ -195,7 +198,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void UpdateAutoQueryText(object selectedObject)
     {
-        var selectedClassName = SelectionManager.SelectedNamespace?.SelectedClass?.ClassName ?? string.Empty;
+        var selectedClassName = SelectionManager.GetSelectedClass()?.ClassName ?? string.Empty;
 
         if (selectedObject is WmiInstanceViewModel selectedInstance)
         {
@@ -241,10 +244,10 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
             return;
 
         // If a class is selected, show status based on class load state
-        if (SelectionManager.SelectedNamespace?.SelectedClass != null)
+        var selectedClass = SelectionManager.GetSelectedClass();
+        if (selectedClass != null)
         {
-            var selectedClass = SelectionManager.SelectedNamespace.SelectedClass;
-            switch (selectedClass!.LoadState)
+            switch (selectedClass.LoadState)
             {
                 case InstanceLoadState.Unknown:
                     PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click the class to load instances.");

@@ -40,14 +40,25 @@ public partial class SelectionManager : ObservableObject
     /// </summary>
     public PropertyGridManager PropertyGrid => _propertyGrid;
 
-    // Convenience SelectedClass property that delegate to SelectedNamespace
+    // Convenience properties for PropertyChanged notifications (internal use only)
     public WmiClassViewModel? SelectedClass => SelectedNamespace?.SelectedClass;
 
-    // Convenience SelectedInstance property that delegate to SelectedNamespace
     public WmiInstanceViewModel? SelectedInstance => SelectedNamespace?.SelectedClass?.SelectedInstance;
 
     // Selection state for coordination between ViewModels
     public object? SelectedObject { get; private set; }
+
+    /// <summary>
+    /// Gets the currently selected class from the selected namespace.
+    /// </summary>
+    /// <returns>The selected class or null if no namespace/class selected</returns>
+    public WmiClassViewModel? GetSelectedClass() => SelectedNamespace?.SelectedClass;
+
+    /// <summary>
+    /// Gets the currently selected instance from the selected class.
+    /// </summary>
+    /// <returns>The selected instance or null if no namespace/class/instance selected</returns>
+    public WmiInstanceViewModel? GetSelectedInstance() => SelectedNamespace?.SelectedClass?.SelectedInstance;
 
     /// <summary>
     /// Sets the selected object and optionally updates the PropertyGrid.
@@ -162,7 +173,7 @@ public partial class SelectionManager : ObservableObject
                     SelectedNamespace!.SelectedClass!.SelectedInstance = instanceVm;
                 break;
             default:
-                // For non-WMI objects, we don't change the namespace selection
+                // For non-hierarchy objects, do nothing
                 break;
         }
     }

@@ -145,11 +145,12 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void UpdateHelpText()
     {
-        if (SelectionManager.SelectedClass == null)
+        var selectedClass = SelectionManager.GetSelectedClass();
+        if (selectedClass == null)
         {
             HelpText = "Select a class to view methods";
         }
-        else if (SelectionManager.SelectedClass.Methods?.Count == 0)
+        else if (selectedClass?.Methods?.Count == 0)
         {
             HelpText = "No methods available for the selected class";
         }
