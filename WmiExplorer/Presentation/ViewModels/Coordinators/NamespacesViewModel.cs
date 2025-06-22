@@ -50,6 +50,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
+        StrongSubscribe<DisconnectNamespaceMessage>(HandleDisconnectNamespaceMessage);
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -246,6 +247,34 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         {
             UpdateStatusBar();
         }
+    }
+
+    /// <summary>
+    /// Handles disconnect namespace message to remove root namespace from tree
+    /// </summary>
+    private void HandleDisconnectNamespaceMessage(DisconnectNamespaceMessage message)
+    {
+        if (message?.NamespaceViewModel == null || !message.NamespaceViewModel.IsRoot)
+            return;
+
+        var namespaceToRemove = message.NamespaceViewModel;
+
+        // Clear selection if the namespace being removed is currently selected
+        if (SelectionManager.SelectedNamespace == namespaceToRemove)
+        {
+            SelectionManager.SetSelectedObject(null);
+        }
+
+        // Remove the namespace from the collection
+        RunOnUIThread(() =>
+        {
+            Namespaces.Remove(namespaceToRemove);
+        });
+
+        // Dispose the namespace and its children to clean up resources
+        namespaceToRemove.Dispose();
+
+        PublishSuccessState($"Disconnected from namespace: {namespaceToRemove.NamespacePath}");
     }
 
     /// <summary>

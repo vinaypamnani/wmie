@@ -1,4 +1,5 @@
 using WmiExplorer.Common.Models;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 
 namespace WmiExplorer.Common.Messages;
@@ -16,6 +17,19 @@ public class ApplicationStateMessage : MessageBase
     }
 
     public ApplicationState State { get; }
+}
+
+/// <summary>
+/// Message sent when a root namespace should be disconnected (removed from the tree)
+/// </summary>
+public class DisconnectNamespaceMessage : MessageBase
+{
+    public DisconnectNamespaceMessage(WmiNamespaceViewModel namespaceViewModel)
+    {
+        NamespaceViewModel = namespaceViewModel ?? throw new ArgumentNullException(nameof(namespaceViewModel));
+    }
+
+    public WmiNamespaceViewModel NamespaceViewModel { get; }
 }
 
 /// <summary>

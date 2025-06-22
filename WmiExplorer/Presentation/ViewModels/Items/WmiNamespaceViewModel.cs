@@ -128,6 +128,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     public ICollectionView ClassesView => _classFilterHelper.CollectionView;
 
+    /// <summary>
+    /// Indicates whether this namespace is a root namespace (can be disconnected)
+    /// </summary>
+    public bool IsRoot => _wmiNamespace.IsRoot;
+
     public LoadState LoadState
     {
         get
@@ -415,6 +420,22 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         PublishSuccessState($"Copied path: {NamespacePath}");
     }
 
+    /// <summary>
+    /// Command to disconnect (remove) this root namespace from the tree
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(DisconnectCanExecute))]
+    private void Disconnect()
+    {
+        // Send message to NamespacesViewModel to handle the removal
+        PublishMessage(new DisconnectNamespaceMessage(this));
+    }
+
+    /// <summary>
+    /// Determines if the disconnect command can execute (only for root namespaces)
+    /// </summary>
+    private bool DisconnectCanExecute() => IsRoot;
+
+    // Property change notification methods
     partial void OnClassFilterTextChanged(string value)
     {
         _classFilterHelper.FilterText = value;
