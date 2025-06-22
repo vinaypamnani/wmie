@@ -193,25 +193,48 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         if (Normalize(rootMatch.NamespacePath) == target)
             return rootMatch;
 
-        return await FindOrExpandNamespaceRecursiveAsync(rootMatch, target);
+        return await FindOrExpandNamespaceByPathAsync(rootMatch, target);
     }
 
-    private async Task<WmiNamespaceViewModel?> FindOrExpandNamespaceRecursiveAsync(WmiNamespaceViewModel current, string target)
+    /// <summary>
+    /// Intelligently navigates to the target namespace by following the specific path segments,
+    /// avoiding unnecessary expansion of sibling namespaces.
+    /// </summary>
+    private async Task<WmiNamespaceViewModel?> FindOrExpandNamespaceByPathAsync(WmiNamespaceViewModel current, string target)
     {
         string Normalize(string path) => path.Trim().TrimEnd('\\').ToLowerInvariant();
-        if (Normalize(current.NamespacePath) == target)
+        var currentPath = Normalize(current.NamespacePath);
+
+        // If we've reached our target, return it
+        if (currentPath == target)
             return current;
 
+        // If the target doesn't start with our current path, we're on the wrong branch
+        if (!target.StartsWith(currentPath))
+            return null;
+
+        // Extract the remaining path after the current namespace
+        var remainingPath = target.Substring(currentPath.Length).TrimStart('\\');
+        if (string.IsNullOrEmpty(remainingPath))
+            return current; // We've reached the target
+
+        // Get the next segment in the path
+        var nextSegment = remainingPath.Split('\\')[0];
+        var nextTargetPath = currentPath + "\\" + nextSegment;
+
+        // Ensure children are loaded
         if (!current.HasLoadedChildren)
             await current.ExpandAsync();
 
-        foreach (var child in current.Children)
-        {
-            var found = await FindOrExpandNamespaceRecursiveAsync(child, target);
-            if (found != null)
-                return found;
-        }
-        return null;
+        // Find the specific child that matches the next segment in our path
+        var targetChild = current.Children.FirstOrDefault(child =>
+            Normalize(child.NamespacePath) == nextTargetPath);
+
+        if (targetChild == null)
+            return null; // Path doesn't exist
+
+        // Recursively continue down the specific path
+        return await FindOrExpandNamespaceByPathAsync(targetChild, target);
     }
 
     /// <summary>
@@ -244,10 +267,10 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
             {
                 PublishErrorState($"Namespace '{message.NamespacePath}' not found.");
                 return;
-            }            // Select the namespace using SelectionManager
+            }
+
+            // Select the namespace using SelectionManager
             SelectionManager.SetSelectedObject(nsVm);
-            nsVm.IsSelected = true;
-            nsVm.IsExpanded = true;
 
             // Ensure classes are loaded
             if (nsVm.ClassLoadState != ClassLoadState.Success)
