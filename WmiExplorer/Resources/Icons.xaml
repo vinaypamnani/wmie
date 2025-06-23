@@ -36,6 +36,15 @@
                    Text="&#xE8A7;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="KeyIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                   Text="&#xE8D7;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="JumpToIconTemplate">
         <TextBlock HorizontalAlignment="Center"
                    VerticalAlignment="Center"

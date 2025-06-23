@@ -188,7 +188,7 @@
             </Border>
 
             <!--  Key icon - directly in column 1  -->
-            <Path Grid.Column="1"
+            <!-- <Path Grid.Column="1"
                   Width="14"
                   Height="14"
                   HorizontalAlignment="Left"
@@ -197,7 +197,18 @@
                   Fill="{DynamicResource PropertyGridKeyIconFillBrush}"
                   Stretch="Uniform"
                   ToolTip="Key Property"
-                  Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />
+                  Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />-->
+
+            <!--  Key icon - directly in column 1  -->
+            <TextBlock Grid.Column="1"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                       FontSize="12"
+                       Foreground="{DynamicResource PropertyGridKeyIconFillBrush}"
+                       Text="&#xE8D7;"
+                       ToolTip="Key Property"
+                       Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />
 
             <!--  Property Value - directly in column 2  -->
             <Border Grid.Column="2"

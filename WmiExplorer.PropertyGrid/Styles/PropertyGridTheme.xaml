@@ -180,7 +180,8 @@
                     <RowDefinition Height="{Binding HelpPaneHeight, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}" />
                 </Grid.RowDefinitions>
                 <!--  ===== OPTIONS PANEL (for checkboxes) =====  -->
-                <StackPanel Grid.Row="0" Margin="8,8,8,8" Orientation="Horizontal">                    <!--  ShowOptions checkboxes - Using FilterOptions for cleaner property management  -->
+                <StackPanel Grid.Row="0" Margin="8,8,8,8" Orientation="Horizontal">
+                    <!--  ShowOptions checkboxes - Using FilterOptions for cleaner property management  -->
                     <StackPanel Orientation="Horizontal" Visibility="{Binding ShowOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                         <CheckBox Content="Show null values" IsChecked="{Binding FilterOptions.IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                         <CheckBox Margin="8,0,0,0" Content="Show read-only properties" IsChecked="{Binding FilterOptions.IncludeReadOnlyProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />

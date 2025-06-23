@@ -64,13 +64,27 @@
                                         </Path.Style>
                                     </Path>
                                 </DataTemplate>-->
-                                <DataTemplate>
+                                <!-- <DataTemplate>
                                     <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
                                                 <Setter Property="Foreground" Value="Black" />
                                                 <Setter Property="Background" Value="{DynamicResource KeyIconFillBrush}" />
                                                 <Setter Property="Content" Value="K" />
+                                                <Setter Property="ToolTip" Value="Key Property" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsKey}" Value="False">
+                                                        <Setter Property="Visibility" Value="Hidden" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ContentControl.Style>
+                                    </ContentControl>
+                                </DataTemplate>-->
+                                <DataTemplate>
+                                    <ContentControl ContentTemplate="{StaticResource KeyIconTemplate}" Foreground="{DynamicResource KeyIconFillBrush}">
+                                        <ContentControl.Style>
+                                            <Style TargetType="ContentControl">
                                                 <Setter Property="ToolTip" Value="Key Property" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsKey}" Value="False">
