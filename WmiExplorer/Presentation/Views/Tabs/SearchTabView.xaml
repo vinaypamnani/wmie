@@ -148,7 +148,11 @@
                           Style="{StaticResource ModernGridListViewStyle}">
                     <ListView.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{Binding JumpToClassCommand}" Header="Jump to class" />
+                            <MenuItem Command="{Binding JumpToClassCommand}" Header="Jump to class">
+                                <MenuItem.Icon>
+                                    <ContentControl ContentTemplate="{StaticResource JumpToIconTemplate}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </ContextMenu>
                     </ListView.ContextMenu>
                     <ListView.View>

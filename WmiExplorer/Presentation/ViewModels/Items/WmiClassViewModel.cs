@@ -40,13 +40,18 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     private ObservableCollection<WmiMethod>? _methods;
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
+
+    [ObservableProperty]
     private ObservableCollection<WmiProperty>? _properties;
 
     [ObservableProperty]
     private WmiInstanceViewModel? _selectedInstance;
 
     private readonly SelectionManager _selectionManager;
+
+    [ObservableProperty]
     private ObservableCollection<WmiMethod>? _staticMethods;
+
     private readonly WmiClass _wmiClass;
     private readonly IWmiService _wmiService;
 
@@ -91,17 +96,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     public ObservableCollection<WmiMethod> Methods => _methods!;
 
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
-
-    /// <summary>
-    /// Collection of properties available for this class.
-    /// </summary>
-    public ObservableCollection<WmiProperty> Properties => _properties!;
-
-    /// <summary>
-    /// Collection of static methods available for this class.
-    /// </summary>
-    public ObservableCollection<WmiMethod> StaticMethods => _staticMethods!;
-
     public WmiClass WmiClass => _wmiClass;
 
     public static ObservableCollection<WmiClassViewModel> CreateFromCollection(
@@ -324,7 +318,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private void LoadMethods()
     {
         _methods = new ObservableCollection<WmiMethod>();
-        _staticMethods = new ObservableCollection<WmiMethod>();
+        StaticMethods = new ObservableCollection<WmiMethod>();
 
         try
         {
@@ -341,7 +335,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     // Only add static methods to the static methods collection
                     if (method.IsStatic)
                     {
-                        _staticMethods.Add(method);
+                        StaticMethods.Add(method);
                     }
                 }
             }
@@ -357,7 +351,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadProperties()
     {
-        _properties = new ObservableCollection<WmiProperty>();
+        Properties = new ObservableCollection<WmiProperty>();
 
         try
         {
@@ -369,7 +363,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 foreach (var property in properties)
                 {
                     // Add all properties to the properties collection
-                    _properties.Add(new WmiProperty(property, _wmiClass.ActualClass));
+                    Properties.Add(new WmiProperty(property, _wmiClass.ActualClass));
                 }
             }
         }

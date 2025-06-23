@@ -116,8 +116,16 @@
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu>
-                                                <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path" />
-                                                <MenuItem Command="{Binding CancelInstanceLoadCommand}" CommandParameter="{Binding}" Header="Cancel loading" />
+                                                <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Command="{Binding CancelInstanceLoadCommand}" CommandParameter="{Binding}" Header="Cancel loading">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource StopIconTemplate}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
                                                 <MenuItem ItemsSource="{Binding StaticMethods}">
                                                     <MenuItem.Header>
                                                         <StackPanel Orientation="Horizontal">
@@ -125,6 +133,9 @@
                                                             <TextBlock Margin="4,0,0,0" Text="{Binding StaticMethods.Count, StringFormat='[{0}]'}" />
                                                         </StackPanel>
                                                     </MenuItem.Header>
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource ExecMethodIconTemplate}" />
+                                                    </MenuItem.Icon>
                                                     <MenuItem.Style>
                                                         <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
                                                             <Style.Triggers>

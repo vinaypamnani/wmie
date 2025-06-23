@@ -31,9 +31,17 @@
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
-                                <MenuItem Command="{Binding EditPropertiesCommand}" Header="Edit Properties..." />
+                                <MenuItem Command="{Binding EditPropertiesCommand}" Header="Edit Properties...">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource EditIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
-                                <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path" />
+                                <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem ItemsSource="{Binding InstanceMethods}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -42,7 +50,7 @@
                                         </StackPanel>
                                     </MenuItem.Header>
                                     <MenuItem.Icon>
-                                        <Ellipse Width="10" Height="10" Fill="Green" />
+                                        <ContentControl ContentTemplate="{StaticResource ExecMethodIconTemplate}" />
                                     </MenuItem.Icon>
                                     <MenuItem.Style>
                                         <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="{x:Type MenuItem}">

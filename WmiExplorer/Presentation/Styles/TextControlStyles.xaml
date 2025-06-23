@@ -5,10 +5,26 @@
 
     <!--  Standard TextBox Context Menu  -->
     <ContextMenu x:Key="TextBoxContextMenu">
-        <MenuItem Command="ApplicationCommands.Cut" Header="Cut" />
-        <MenuItem Command="ApplicationCommands.Copy" Header="Copy" />
-        <MenuItem Command="ApplicationCommands.Paste" Header="Paste" />
-        <MenuItem Command="ApplicationCommands.SelectAll" Header="Select All" />
+        <MenuItem Command="ApplicationCommands.Cut" Header="Cut">
+            <MenuItem.Icon>
+                <ContentControl ContentTemplate="{StaticResource CutIconTemplate}" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Command="ApplicationCommands.Copy" Header="Copy">
+            <MenuItem.Icon>
+                <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Command="ApplicationCommands.Paste" Header="Paste">
+            <MenuItem.Icon>
+                <ContentControl ContentTemplate="{StaticResource PasteIconTemplate}" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Command="ApplicationCommands.SelectAll" Header="Select All">
+            <MenuItem.Icon>
+                <ContentControl ContentTemplate="{StaticResource SelectAllIconTemplate}" />
+            </MenuItem.Icon>
+        </MenuItem>
     </ContextMenu>
 
     <!--  TextBox  -->

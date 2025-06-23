@@ -71,7 +71,11 @@
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.ExecuteMethodCommand}" CommandParameter="{Binding SelectedMethod}" Header="Execute Method..." />
+                            <MenuItem Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.ExecuteMethodCommand}" CommandParameter="{Binding SelectedMethod}" Header="Execute Method...">
+                                <MenuItem.Icon>
+                                    <ContentControl ContentTemplate="{StaticResource ExecMethodIconTemplate}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>

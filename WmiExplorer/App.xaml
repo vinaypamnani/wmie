@@ -6,8 +6,13 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!--  Load generic theme - Main Theme will be loaded dynamically by ThemeService from the Themes folder  -->
-                <ResourceDictionary Source="Presentation/Themes/Generic.xaml" />                <!--  Converters  -->
+                <ResourceDictionary Source="Presentation/Themes/Generic.xaml" />
+
+                <!--  Converters  -->
                 <ResourceDictionary Source="Presentation/Converters/Converters.xaml" />
+
+                <!--  Add the new Icons.xaml resource dictionary  -->
+                <ResourceDictionary Source="Resources/Icons.xaml" />
 
                 <!--  String resources  -->
                 <ResourceDictionary Source="Resources/TooltipStrings.xaml" />

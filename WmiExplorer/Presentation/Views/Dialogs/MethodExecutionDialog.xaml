@@ -38,10 +38,13 @@
                 <StackPanel Orientation="Vertical">
 
                     <!--  Method Name with accent underline  -->
-                    <TextBlock FontSize="18"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource PrimaryForegroundBrush}"
-                               Text="{Binding MethodName}" />
+                    <StackPanel Orientation="Horizontal">
+                        <ContentControl Margin="0,0,8,0" ContentTemplate="{StaticResource ExecMethodIconTemplate}" />
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding MethodName}" />
+                    </StackPanel>
 
                     <!--  Class and Instance Info  -->
                     <Grid Margin="0,0,0,2">

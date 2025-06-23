@@ -30,6 +30,7 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </Window.Resources>
+
     <Border behaviors:HyperlinkNavigationBehavior.IsEnabled="True"
             Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
@@ -50,10 +51,13 @@
                     Background="{DynamicResource PrimaryBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock FontSize="18"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource PrimaryForegroundBrush}"
-                               Text="Connection Options" />
+                    <StackPanel Orientation="Horizontal">
+                        <ContentControl Margin="0,0,8,0" ContentTemplate="{StaticResource ConnectionOptionsIconTemplate}" />
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="Connection Options" />
+                    </StackPanel>
                     <TextBlock Margin="0,4,0,0"
                                FontSize="13"
                                Foreground="{DynamicResource SecondaryForegroundBrush}"

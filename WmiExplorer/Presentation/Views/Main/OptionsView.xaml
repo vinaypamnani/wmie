@@ -48,7 +48,11 @@
                         <!--  Popup for additional options  -->
                         <Button.ContextMenu>
                             <ContextMenu Name="ConnectContextMenu">
-                                <MenuItem Command="{Binding ConnectWithOptionsCommand}" Header="Connection Options" ToolTip="{StaticResource Tooltip.Options.ConnectionOptions}" />
+                                <MenuItem Command="{Binding ConnectWithOptionsCommand}" Header="Connection Options" ToolTip="{StaticResource Tooltip.Options.ConnectionOptions}">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource ConnectionOptionsIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>

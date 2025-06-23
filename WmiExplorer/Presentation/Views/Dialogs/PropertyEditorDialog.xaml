@@ -32,10 +32,14 @@
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="0,0,0,1">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock FontSize="18"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource PrimaryForegroundBrush}"
-                               Text="{Binding Title}" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <ContentControl Margin="0,0,8,0" ContentTemplate="{StaticResource EditIconTemplate}" />
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding Title}" />
+                    </StackPanel>
 
                     <TextBlock Margin="0,4,0,0"
                                FontSize="13"

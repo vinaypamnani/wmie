@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  Icons from SegoeFluentIcons  -->
+    <!--  Reference: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font  -->
+
+    <DataTemplate x:Key="ExitIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE711;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="StopIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE71A;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ExecMethodIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE90F;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="OpenInNewwindowIconTemplate" x:Shared="False">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE8A7;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="JumpToIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE73F;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ConnectionOptionsIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE703;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="EditIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE70F;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CopyIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE8C8;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CutIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE8C6;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="PasteIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE77F;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="SelectAllIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE8B3;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="DisconnectIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xEA14;" />
+    </DataTemplate>
+</ResourceDictionary>

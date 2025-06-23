@@ -36,12 +36,11 @@
             <MenuItem Header="_File">
                 <MenuItem Header="Load..." />
                 <MenuItem Header="Save..." />
-                <MenuItem Command="{Binding ExitCommand}" Header="E_xit" />
-            </MenuItem>
-            <MenuItem Header="_Edit">
-                <MenuItem Header="Cut" />
-                <MenuItem Header="Copy" />
-                <MenuItem Header="Paste" />
+                <MenuItem Command="{Binding ExitCommand}" Header="E_xit">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource ExitIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <TextBlock>
                 <Hyperlink>
