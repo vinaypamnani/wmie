@@ -32,7 +32,7 @@
                         <Setter.Value>
                             <ContextMenu>
                                 <MenuItem Command="{Binding EditPropertiesCommand}" Header="Edit Properties..." />
-                                <Separator />
+                                <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                 <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path" />
                                 <MenuItem ItemsSource="{Binding InstanceMethods}">
                                     <MenuItem.Header>

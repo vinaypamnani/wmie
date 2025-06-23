@@ -14,5 +14,6 @@
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ModernListViewStyle.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ModernGridListViewStyle.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/DataGridStyle.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/SeparatorStyles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

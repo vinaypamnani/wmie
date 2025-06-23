@@ -38,7 +38,7 @@
                                 <ContextMenu>
                                     <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path" />
                                     <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path (Test)" />
-                                    <Separator Visibility="{Binding IsRoot, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <Separator Style="{StaticResource ModernSeparatorStyle}" Visibility="{Binding IsRoot, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     <MenuItem Command="{Binding DisconnectCommand}" Header="Disconnect" Visibility="{Binding IsRoot, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 </ContextMenu>
                             </Setter.Value>
