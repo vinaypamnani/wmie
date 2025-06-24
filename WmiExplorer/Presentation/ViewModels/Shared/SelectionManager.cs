@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
@@ -47,6 +48,31 @@ public partial class SelectionManager : ObservableObject
 
     // Selection state for coordination between ViewModels
     public object? SelectedObject { get; private set; }
+
+    /// <summary>
+    /// Clears all selection state, including SelectedNamespace, SelectedClass, SelectedInstance,
+    /// and SelectedObject. Also clears the PropertyGrid selection.
+    /// </summary>
+    public void ClearSelections()
+    {
+        try
+        {
+            // Clear selection properties
+            SelectedNamespace = null;
+            SelectedObject = null;
+            PreviousObject = null;
+
+            // Clear PropertyGrid selection
+            _propertyGrid.UpdatePropertyGridFromSelection(null);
+
+            // Publish a message to notify other ViewModels
+            PublishSelectionChanged();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to clear selections");
+        }
+    }
 
     /// <summary>
     /// Gets the currently selected class from the selected namespace.

@@ -262,7 +262,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         // Clear selection if the namespace being removed is currently selected
         if (SelectionManager.SelectedNamespace == namespaceToRemove)
         {
-            SelectionManager.SetSelectedObject(null);
+            SelectionManager.ClearSelections();
         }
 
         // Remove the namespace from the collection
