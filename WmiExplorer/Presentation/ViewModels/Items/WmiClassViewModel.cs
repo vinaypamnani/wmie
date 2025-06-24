@@ -165,51 +165,26 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     [RelayCommand]
     private void CopyClassMof(object? parameter)
     {
-        bool useAmendedQualifiers = true; // Default
-
-        // Try to parse the parameter as bool
-        if (parameter is bool b)
-            useAmendedQualifiers = b;
-        else if (parameter is string s && bool.TryParse(s, out var parsed))
-            useAmendedQualifiers = parsed;
-
-        try
+        bool useAmendedQualifiers = CommandParameterHelper.ParseBool(parameter, true);
+        if (TryGetClassMof(useAmendedQualifiers, out var mof) && mof != null)
         {
-            var managementClass = _wmiClass.ActualClass;
-            if (managementClass == null)
-            {
-                PublishErrorState("Class data is not loaded.");
-                return;
-            }
-
-            // Store the original value to restore after operation
-            bool originalValue = managementClass.Options.UseAmendedQualifiers;
-            managementClass.Options.UseAmendedQualifiers = useAmendedQualifiers;
-
-            // Get the MOF representation of the class
-            managementClass.Get();
-            string mof = managementClass.GetText(System.Management.TextFormat.Mof);
-
-            // Restore the original value
-            managementClass.Options.UseAmendedQualifiers = originalValue;
-            managementClass.Get();
-
             _applicationService.CopyToClipboard(mof);
             PublishSuccessState($"Class MOF copied to clipboard (amended qualifiers: {useAmendedQualifiers})");
         }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to copy class MOF for: {ClassName}", ClassName);
-            PublishErrorState($"Failed to copy class MOF: {ex.Message}", ex);
-        }
     }
 
+    /// <summary>
+    /// Command to copy the class path to clipboard.
+    /// </summary>
     [RelayCommand]
     private void CopyRelativePath()
     {
         var classPath = _wmiClass.ClassPath.RelativePath;
+        if (string.IsNullOrEmpty(classPath))
+            return;
+
         _applicationService.CopyToClipboard(classPath);
-        PublishSuccessState($"Copied path: {classPath}");
+        PublishSuccessState($"Copied class path: {classPath}");
     }
 
     /// <summary>
@@ -261,8 +236,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         return string.IsNullOrWhiteSpace(filter) ||
                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
     }
-
-    private bool LoadInstancesCanExecute() => LoadState != InstanceLoadState.Loading;
 
     [RelayCommand(CanExecute = nameof(LoadInstancesCanExecute))]
     private async Task LoadInstancesAsync()
@@ -359,6 +332,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         }
     }
 
+    private bool LoadInstancesCanExecute() => LoadState != InstanceLoadState.Loading;
+
     /// <summary>
     /// Loads the methods available for this class.
     /// </summary>
@@ -450,6 +425,60 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             {
                 _isUpdatingSelection = false;
             }
+        }
+    }
+
+    [RelayCommand]
+    private void ShowClassMof(object? parameter)
+    {
+        bool useAmendedQualifiers = CommandParameterHelper.ParseBool(parameter, true);
+        if (TryGetClassMof(useAmendedQualifiers, out var mof) && mof != null)
+        {
+            var dialog = new WmiExplorer.Presentation.Views.Dialogs.MofViewerDialog(mof)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+            dialog.ShowDialog();
+        }
+    }
+
+    /// <summary>
+    /// Retrieves the MOF representation of the class, handling UseAmendedQualifiers and error reporting.
+    /// </summary>
+    /// <param name="useAmendedQualifiers">Whether to use amended qualifiers.</param>
+    /// <param name="mof">The resulting MOF string, or null if failed.</param>
+    /// <returns>True if successful, false otherwise.</returns>
+    private bool TryGetClassMof(bool useAmendedQualifiers, out string? mof)
+    {
+        mof = null;
+        try
+        {
+            var managementClass = _wmiClass.ActualClass;
+            if (managementClass == null)
+            {
+                PublishErrorState("Class data is not loaded.");
+                return false;
+            }
+
+            // Store the original value to restore after operation
+            bool originalValue = managementClass.Options.UseAmendedQualifiers;
+            managementClass.Options.UseAmendedQualifiers = useAmendedQualifiers;
+
+            // Get the MOF representation of the class
+            managementClass.Get();
+            mof = managementClass.GetText(System.Management.TextFormat.Mof);
+
+            // Restore the original value
+            managementClass.Options.UseAmendedQualifiers = originalValue;
+            managementClass.Get();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to get class MOF for: {ClassName}", ClassName);
+            PublishErrorState($"Failed to get class MOF: {ex.Message}", ex);
+            return false;
         }
     }
 }

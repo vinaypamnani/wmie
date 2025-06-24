@@ -37,14 +37,30 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
+                                <MenuItem Command="{Binding ShowInstanceMofCommand}" CommandParameter="True" Header="Show MOF (with amended qualifiers)">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource ShowResultsIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Command="{Binding ShowInstanceMofCommand}" CommandParameter="False" Header="Show MOF (without amended qualifiers)">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource OpenInNewwindowIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                 <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path">
                                     <MenuItem.Icon>
                                         <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <MenuItem Command="{Binding CopyInstanceMofCommand}" Header="Copy MOF">
+                                <MenuItem Command="{Binding CopyInstanceMofCommand}" CommandParameter="True" Header="Copy MOF (with amended qualifiers)">
                                     <MenuItem.Icon>
                                         <ContentControl ContentTemplate="{StaticResource CopyMofIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Command="{Binding CopyInstanceMofCommand}" CommandParameter="False" Header="Copy MOF (without amended qualifiers)">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource CopyMofSimpleIconTemplate}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />

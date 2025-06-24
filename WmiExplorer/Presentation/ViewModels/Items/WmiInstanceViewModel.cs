@@ -6,6 +6,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
 
@@ -158,6 +159,20 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Command to copy the instance MOF to clipboard, with or without amended qualifiers.
+    /// </summary>
+    [RelayCommand]
+    private void CopyInstanceMof(object? parameter = null)
+    {
+        bool useAmendedQualifiers = CommandParameterHelper.ParseBool(parameter, true);
+        if (TryGetInstanceMof(useAmendedQualifiers, out var mof) && mof != null)
+        {
+            _applicationService.CopyToClipboard(mof);
+            PublishSuccessState($"Instance MOF copied to clipboard (amended qualifiers: {useAmendedQualifiers})");
+        }
+    }
+
+    /// <summary>
     /// Command to copy the instance path to clipboard.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CopyRelativePathCanExecute))]
@@ -172,34 +187,6 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     }
 
     private bool CopyRelativePathCanExecute() => !string.IsNullOrEmpty(NamespacePath);
-
-    /// <summary>
-    /// Command to copy the instance MOF to clipboard.
-    /// </summary>
-    [RelayCommand]
-    private void CopyInstanceMof()
-    {
-        try
-        {
-            var managementObject = _wmiInstance.ActualObject;
-            if (managementObject == null)
-            {
-                PublishErrorState("Instance data is not loaded.");
-                return;
-            }
-
-            // Get the MOF representation of the instance
-            string mof = managementObject.GetText(System.Management.TextFormat.Mof);
-
-            _applicationService.CopyToClipboard(mof);
-            PublishSuccessState("Instance MOF copied to clipboard.");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to copy instance MOF for: {InstanceName}", InstanceName);
-            PublishErrorState($"Failed to copy instance MOF: {ex.Message}", ex);
-        }
-    }
 
     /// <summary>
     /// Command to edit instance properties using PropertyEditorDialog.
@@ -344,6 +331,63 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
             {
                 _isUpdatingSelection = false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Command to show the instance MOF in a dialog, with or without amended qualifiers.
+    /// </summary>
+    [RelayCommand]
+    private void ShowInstanceMof(object? parameter = null)
+    {
+        bool useAmendedQualifiers = CommandParameterHelper.ParseBool(parameter, true);
+        if (TryGetInstanceMof(useAmendedQualifiers, out var mof) && mof != null)
+        {
+            var dialog = new WmiExplorer.Presentation.Views.Dialogs.MofViewerDialog(mof)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+            dialog.ShowDialog();
+        }
+    }
+
+    /// <summary>
+    /// Retrieves the MOF representation of the instance, handling UseAmendedQualifiers and error reporting.
+    /// </summary>
+    /// <param name="useAmendedQualifiers">Whether to use amended qualifiers.</param>
+    /// <param name="mof">The resulting MOF string, or null if failed.</param>
+    /// <returns>True if successful, false otherwise.</returns>
+    private bool TryGetInstanceMof(bool useAmendedQualifiers, out string? mof)
+    {
+        mof = null;
+        try
+        {
+            var managementObject = _wmiInstance.ActualObject;
+            if (managementObject == null)
+            {
+                PublishErrorState("Instance data is not loaded.");
+                return false;
+            }
+
+            // Store the original value to restore after operation
+            bool originalValue = managementObject.Options.UseAmendedQualifiers;
+            managementObject.Options.UseAmendedQualifiers = useAmendedQualifiers;
+
+            // Get the MOF representation of the instance
+            managementObject.Get();
+            mof = managementObject.GetText(System.Management.TextFormat.Mof);
+
+            // Restore the original value
+            managementObject.Options.UseAmendedQualifiers = originalValue;
+            managementObject.Get();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to get instance MOF for: {InstanceName}", InstanceName);
+            PublishErrorState($"Failed to get instance MOF: {ex.Message}", ex);
+            return false;
         }
     }
 }

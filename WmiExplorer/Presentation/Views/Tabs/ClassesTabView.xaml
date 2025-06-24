@@ -130,6 +130,17 @@
                                                     </MenuItem.Icon>
                                                 </MenuItem>
                                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
+                                                <MenuItem Command="{Binding ShowClassMofCommand}" CommandParameter="True" Header="Show MOF (with amended qualifiers)">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource ShowResultsIconTemplate}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Command="{Binding ShowClassMofCommand}" CommandParameter="False" Header="Show MOF (without amended qualifiers)">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource OpenInNewwindowIconTemplate}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                                 <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path">
                                                     <MenuItem.Icon>
                                                         <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />

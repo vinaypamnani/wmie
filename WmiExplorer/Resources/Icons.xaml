@@ -4,132 +4,78 @@
     <!--  Icons from SegoeFluentIcons  -->
     <!--  Reference: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font  -->
 
+    <Style x:Key="IconTextBlockStyle" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
     <DataTemplate x:Key="ExitIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE711;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE711;" />
     </DataTemplate>
 
     <DataTemplate x:Key="StopIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE71A;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71A;" />
     </DataTemplate>
 
     <DataTemplate x:Key="ExecMethodIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE90F;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE90F;" />
     </DataTemplate>
 
     <DataTemplate x:Key="OpenInNewwindowIconTemplate" x:Shared="False">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE8A7;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A7;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ShowResultsIconTemplate" x:Shared="False">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8BC;" />
     </DataTemplate>
 
     <DataTemplate x:Key="KeyIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}"
-                   Text="&#xE8D7;" />
+        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE8D7;" />
     </DataTemplate>
 
     <DataTemplate x:Key="JumpToIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE73F;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE73F;" />
     </DataTemplate>
 
     <DataTemplate x:Key="ConnectionOptionsIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE703;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE703;" />
     </DataTemplate>
 
     <DataTemplate x:Key="EditIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE70F;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE70F;" />
     </DataTemplate>
 
     <DataTemplate x:Key="CopyMofIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE8A1;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A1;" />
     </DataTemplate>
 
     <DataTemplate x:Key="CopyMofSimpleIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE8A5;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A5;" />
     </DataTemplate>
 
     <DataTemplate x:Key="LoadIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE71D;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71D;" />
     </DataTemplate>
 
     <DataTemplate x:Key="CopyIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE8C8;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8C8;" />
     </DataTemplate>
 
     <DataTemplate x:Key="CutIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE8C6;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8C6;" />
     </DataTemplate>
 
     <DataTemplate x:Key="PasteIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE77F;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE77F;" />
     </DataTemplate>
 
     <DataTemplate x:Key="SelectAllIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xE8B3;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8B3;" />
     </DataTemplate>
 
     <DataTemplate x:Key="DisconnectIconTemplate">
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                   FontSize="16"
-                   Text="&#xEA14;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA14;" />
     </DataTemplate>
 </ResourceDictionary>
