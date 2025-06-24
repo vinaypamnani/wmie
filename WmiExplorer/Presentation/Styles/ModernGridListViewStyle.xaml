@@ -45,7 +45,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="true">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SelectedItemBackgroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />

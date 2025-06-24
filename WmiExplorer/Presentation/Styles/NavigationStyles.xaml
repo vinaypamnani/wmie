@@ -110,8 +110,8 @@
                     <ControlTemplate.Triggers>
                         <!--  Selected Tab Style  -->
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SelectedItemBackgroundBrush}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SelectedItemBackgroundBrush}" />
                         </Trigger>
                         <!--  Disabled Tab Style  -->
                         <Trigger Property="IsEnabled" Value="False">

@@ -106,8 +106,8 @@
                                 <Condition Property="IsSelected" Value="True" />
                                 <Condition Property="IsMouseOver" Value="True" />
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource InvertedForegroundBrush}" />
+                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource HoverBackgroundBrush}" />
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

@@ -108,14 +108,14 @@
         <ControlTemplate.Triggers>
             <!--  Highlight on mouse over  -->
             <Trigger Property="IsMouseOver" Value="true">
-                <Setter TargetName="templateRoot" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
-                <Setter TargetName="templateRoot" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                <Setter TargetName="templateRoot" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+                <Setter TargetName="templateRoot" Property="BorderBrush" Value="{DynamicResource HoverBackgroundBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
             </Trigger>
             <!--  Change appearance when menu item is pressed  -->
             <Trigger Property="IsPressed" Value="True">
-                <Setter TargetName="templateRoot" Property="Background" Value="{DynamicResource SecondaryAccentBrush}" />
-                <Setter TargetName="templateRoot" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+                <Setter TargetName="templateRoot" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
+                <Setter TargetName="templateRoot" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
             </Trigger>
             <!--  Change appearance when menu item is enabled/disabled  -->
