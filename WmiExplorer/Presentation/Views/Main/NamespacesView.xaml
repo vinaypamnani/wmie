@@ -35,6 +35,13 @@
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu>
+                                    <MenuItem Command="{Binding LoadClassesCommand}"
+                                              FontWeight="Bold"
+                                              Header="Load Classes">
+                                        <MenuItem.Icon>
+                                            <ContentControl ContentTemplate="{StaticResource LoadIconTemplate}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path">
                                         <MenuItem.Icon>
                                             <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />

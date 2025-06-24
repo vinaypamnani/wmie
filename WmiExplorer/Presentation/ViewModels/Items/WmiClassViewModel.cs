@@ -262,7 +262,9 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
-    [RelayCommand]
+    private bool LoadInstancesCanExecute() => LoadState != InstanceLoadState.Loading;
+
+    [RelayCommand(CanExecute = nameof(LoadInstancesCanExecute))]
     private async Task LoadInstancesAsync()
     {
         if (LoadState == InstanceLoadState.Loading)

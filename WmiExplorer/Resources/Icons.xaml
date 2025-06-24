@@ -85,6 +85,14 @@
                    Text="&#xE8A5;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="LoadIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE71D;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="CopyIconTemplate">
         <TextBlock HorizontalAlignment="Center"
                    VerticalAlignment="Center"
