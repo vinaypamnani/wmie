@@ -51,12 +51,12 @@
                                                 <Setter Property="Foreground" Value="White" />
                                                 <Setter Property="Background" Value="{DynamicResource InstanceMethodIconFillBrush}" />
                                                 <Setter Property="Content" Value="I" />
-                                                <Setter Property="ToolTip" Value="Instance Method" />
+                                                <Setter Property="ToolTip" Value="Non-Static (Instance) Method" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsStatic}" Value="True">
                                                         <Setter Property="Content" Value="C" />
                                                         <Setter Property="Background" Value="{DynamicResource StaticMethodIconFillBrush}" />
-                                                        <Setter Property="ToolTip" Value="Class Method" />
+                                                        <Setter Property="ToolTip" Value="Static (Class) Method" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
