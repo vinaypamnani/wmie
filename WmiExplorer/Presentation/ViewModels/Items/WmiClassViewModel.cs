@@ -159,6 +159,51 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     private bool CancelInstanceLoadCanExecute() => LoadState == InstanceLoadState.Loading;
 
+    /// <summary>
+    /// Command to copy the class MOF to clipboard, with or without amended qualifiers.
+    /// </summary>
+    [RelayCommand]
+    private void CopyClassMof(object? parameter)
+    {
+        bool useAmendedQualifiers = true; // Default
+
+        // Try to parse the parameter as bool
+        if (parameter is bool b)
+            useAmendedQualifiers = b;
+        else if (parameter is string s && bool.TryParse(s, out var parsed))
+            useAmendedQualifiers = parsed;
+
+        try
+        {
+            var managementClass = _wmiClass.ActualClass;
+            if (managementClass == null)
+            {
+                PublishErrorState("Class data is not loaded.");
+                return;
+            }
+
+            // Store the original value to restore after operation
+            bool originalValue = managementClass.Options.UseAmendedQualifiers;
+            managementClass.Options.UseAmendedQualifiers = useAmendedQualifiers;
+
+            // Get the MOF representation of the class
+            managementClass.Get();
+            string mof = managementClass.GetText(System.Management.TextFormat.Mof);
+
+            // Restore the original value
+            managementClass.Options.UseAmendedQualifiers = originalValue;
+            managementClass.Get();
+
+            _applicationService.CopyToClipboard(mof);
+            PublishSuccessState($"Class MOF copied to clipboard (amended qualifiers: {useAmendedQualifiers})");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to copy class MOF for: {ClassName}", ClassName);
+            PublishErrorState($"Failed to copy class MOF: {ex.Message}", ex);
+        }
+    }
+
     [RelayCommand]
     private void CopyRelativePath()
     {

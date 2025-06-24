@@ -174,6 +174,34 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
     private bool CopyRelativePathCanExecute() => !string.IsNullOrEmpty(NamespacePath);
 
     /// <summary>
+    /// Command to copy the instance MOF to clipboard.
+    /// </summary>
+    [RelayCommand]
+    private void CopyInstanceMof()
+    {
+        try
+        {
+            var managementObject = _wmiInstance.ActualObject;
+            if (managementObject == null)
+            {
+                PublishErrorState("Instance data is not loaded.");
+                return;
+            }
+
+            // Get the MOF representation of the instance
+            string mof = managementObject.GetText(System.Management.TextFormat.Mof);
+
+            _applicationService.CopyToClipboard(mof);
+            PublishSuccessState("Instance MOF copied to clipboard.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to copy instance MOF for: {InstanceName}", InstanceName);
+            PublishErrorState($"Failed to copy instance MOF: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     /// Command to edit instance properties using PropertyEditorDialog.
     /// </summary>
     [RelayCommand(CanExecute = nameof(EditPropertiesCanExecute))]

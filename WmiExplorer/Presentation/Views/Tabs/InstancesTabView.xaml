@@ -42,6 +42,12 @@
                                         <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
+                                <MenuItem Command="{Binding CopyInstanceMofCommand}" Header="Copy MOF">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource CopyMofIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                 <MenuItem ItemsSource="{Binding InstanceMethods}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">

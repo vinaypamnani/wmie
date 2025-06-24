@@ -116,16 +116,28 @@
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu>
-                                                <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path">
-                                                    <MenuItem.Icon>
-                                                        <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
                                                 <MenuItem Command="{Binding CancelInstanceLoadCommand}" CommandParameter="{Binding}" Header="Cancel loading">
                                                     <MenuItem.Icon>
                                                         <ContentControl ContentTemplate="{StaticResource StopIconTemplate}" />
                                                     </MenuItem.Icon>
                                                 </MenuItem>
+                                                <Separator Style="{StaticResource ModernSeparatorStyle}" />
+                                                <MenuItem Command="{Binding CopyRelativePathCommand}" CommandParameter="{Binding}" Header="Copy Relative Path">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Command="{Binding CopyClassMofCommand}" CommandParameter="True" Header="Copy MOF (with amended qualifiers)">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource CopyMofIconTemplate}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Command="{Binding CopyClassMofCommand}" CommandParameter="False" Header="Copy MOF (without amended qualifiers)">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource CopyMofSimpleIconTemplate}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                                 <MenuItem ItemsSource="{Binding StaticMethods}">
                                                     <MenuItem.Header>
                                                         <StackPanel Orientation="Horizontal">

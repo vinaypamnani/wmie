@@ -69,6 +69,22 @@
                    Text="&#xE70F;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="CopyMofIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE8A1;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CopyMofSimpleIconTemplate">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   FontSize="16"
+                   Text="&#xE8A5;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="CopyIconTemplate">
         <TextBlock HorizontalAlignment="Center"
                    VerticalAlignment="Center"
