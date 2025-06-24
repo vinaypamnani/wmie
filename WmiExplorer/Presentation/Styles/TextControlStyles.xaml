@@ -213,6 +213,18 @@
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
     </Style>
 
+    <!--  Expander Text Block style  -->
+    <Style x:Key="ExpanderTextBlockStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="FontWeight" Value="Light" />
+        <Setter Property="LayoutTransform">
+            <Setter.Value>
+                <RotateTransform Angle="90" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--  Hyperlink  -->
     <Style TargetType="Hyperlink">
         <Setter Property="FontSize" Value="12" />

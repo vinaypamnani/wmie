@@ -51,21 +51,21 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
                     <Border x:Name="ToggleBorder"
-                            Width="24"
-                            Height="24"
+                            Width="20"
+                            Height="20"
                             Background="{DynamicResource TertiaryBackgroundBrush}"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="1.5"
-                            CornerRadius="3">
+                            BorderBrush="{DynamicResource PrimaryForegroundBrush}"
+                            BorderThickness="0.5"
+                            CornerRadius="2">
                         <!--  Chevron arrow similar to SortArrow  -->
                         <Path x:Name="ExpanderArrow"
                               Width="10"
                               Height="10"
                               HorizontalAlignment="Center"
                               VerticalAlignment="Center"
-                              Fill="{DynamicResource PrimaryAccentBrush}"
+                              Fill="{DynamicResource PrimaryForegroundBrush}"
                               Stretch="Uniform"
-                              Stroke="{DynamicResource PrimaryAccentBrush}"
+                              Stroke="{DynamicResource PrimaryForegroundBrush}"
                               StrokeEndLineCap="Round"
                               StrokeLineJoin="Round"
                               StrokeStartLineCap="Round"
@@ -91,10 +91,8 @@
                                 <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Right" />
                             </MultiDataTrigger.Conditions>
                             <Setter TargetName="ExpanderArrow" Property="Data" Value="M 5,0 L 0,5 L 5,10" />
-                            <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource PrimaryAccentBrush}" />
                             <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
-                            <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="2" />
+                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="1" />
                         </MultiDataTrigger>
 
                         <!--  Left direction default - left pointing arrow  -->
@@ -109,26 +107,16 @@
                                 <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Left" />
                             </MultiDataTrigger.Conditions>
                             <Setter TargetName="ExpanderArrow" Property="Data" Value="M 0,0 L 5,5 L 0,10" />
-                            <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource PrimaryAccentBrush}" />
                             <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
-                            <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="2" />
+                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="1" />
                         </MultiDataTrigger>
-
-                        <!--  Fallback for backward compatibility  -->
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="ExpanderArrow" Property="Stroke" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
-                            <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="2" />
-                        </Trigger>
 
                         <!--  Hover effect with improved visuals  -->
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="ExpanderArrow" Property="Fill" Value="{DynamicResource SecondaryAccentBrush}" />
                             <Setter TargetName="ExpanderArrow" Property="Stroke" Value="{DynamicResource SecondaryAccentBrush}" />
                             <Setter TargetName="ExpanderArrow" Property="StrokeThickness" Value="1.5" />
+                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="2" />
                             <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
                             <Setter TargetName="ToggleBorder" Property="Background">
                                 <Setter.Value>
@@ -198,7 +186,7 @@
                                 <ContentPresenter x:Name="HeaderContent"
                                                   Grid.Row="1"
                                                   MinWidth="30"
-                                                  Margin="2,5,2,10"
+                                                  Margin="2,8,2,8"
                                                   ContentSource="Header" />
                             </Grid>
                         </Border>

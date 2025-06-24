@@ -16,11 +16,7 @@
                   Style="{StaticResource VerticalHeaderExpanderStyle}">
             <Expander.Header>
                 <Border Width="25">
-                    <TextBlock FontSize="15" FontWeight="Light" Text="Namespaces">
-                        <TextBlock.LayoutTransform>
-                            <RotateTransform Angle="90" />
-                        </TextBlock.LayoutTransform>
-                    </TextBlock>
+                    <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="Namespaces" />
                 </Border>
             </Expander.Header>
             <TreeView Name="WmiNamespaces" behaviors:TreeViewAutoScrollBehavior.AutoScroll="True" ItemsSource="{Binding Namespaces}">
