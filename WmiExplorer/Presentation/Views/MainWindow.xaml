@@ -78,11 +78,8 @@
                     <!--  Namespace View  -->
                     <main:NamespacesView Grid.Column="0" DataContext="{Binding NamespacesViewModel}" />
 
-                    <GridSplitter Grid.Column="1"
-                                  Width="{StaticResource SpacingMedium}"
-                                  HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Stretch"
-                                  Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <GridSplitter Grid.Column="1" Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+
                     <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
                         <TabItem Header="{Binding ClassesTabHeader}">
                             <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
@@ -105,11 +102,7 @@
                         </TabItem>
                     </TabControl>
 
-                    <GridSplitter Grid.Column="3"
-                                  Width="{StaticResource SpacingMedium}"
-                                  HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Stretch"
-                                  Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <GridSplitter Grid.Column="3" Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
                     <!--  Property Grid View  -->
                     <main:PropertyGridView Grid.Column="4" DataContext="{Binding}" />
                 </Grid>

@@ -16,7 +16,6 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="{Binding WindowPosition.ClassesColumnGridLength, Mode=TwoWay}" />
             <ColumnDefinition Width="Auto" />
-            <!--  Changed from fixed 15px to Auto  -->
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
 
@@ -116,10 +115,10 @@
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu>
-                                                <MenuItem Header="Load Instances"
-                                                          Command="{Binding LoadInstancesCommand}"
+                                                <MenuItem Command="{Binding LoadInstancesCommand}"
                                                           CommandParameter="{Binding}"
-                                                          FontWeight="Bold" >
+                                                          FontWeight="Bold"
+                                                          Header="Load Instances">
                                                     <MenuItem.Icon>
                                                         <ContentControl ContentTemplate="{StaticResource LoadIconTemplate}" />
                                                     </MenuItem.Icon>
@@ -195,13 +194,11 @@
                 </Expander.Content>
             </Expander>
         </Grid>
-        <GridSplitter Grid.Row="0"
-                      Grid.Column="1"
-                      Width="{StaticResource SpacingMedium}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Stretch"
-                      Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-        <TabControl Grid.Row="0" Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+        <GridSplitter Grid.Row="0" Grid.Column="1" Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+        <TabControl Grid.Row="0"
+                    Grid.Column="2"
+                    BorderThickness="1,1,0,0"
+                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
             <TabItem Header="{Binding InstancesTabHeader}">
                 <!--  Instances View  -->
                 <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />

@@ -23,10 +23,7 @@
                     </TextBlock>
                 </Border>
             </Expander.Header>
-            <TreeView Name="WmiNamespaces"
-                      Margin="{StaticResource MarginSmall}"
-                      behaviors:TreeViewAutoScrollBehavior.AutoScroll="True"
-                      ItemsSource="{Binding Namespaces}">
+            <TreeView Name="WmiNamespaces" behaviors:TreeViewAutoScrollBehavior.AutoScroll="True" ItemsSource="{Binding Namespaces}">
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource ModernTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -35,9 +32,7 @@
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu>
-                                    <MenuItem Command="{Binding LoadClassesCommand}"
-                                              FontWeight="Bold"
-                                              Header="Load Classes">
+                                    <MenuItem Command="{Binding LoadClassesCommand}" FontWeight="Bold" Header="Load Classes">
                                         <MenuItem.Icon>
                                             <ContentControl ContentTemplate="{StaticResource LoadIconTemplate}" />
                                         </MenuItem.Icon>
