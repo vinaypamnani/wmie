@@ -28,7 +28,10 @@
             <Expander.Content>
                 <Grid>
                     <!--  Border around both header and property grid  -->
-                    <Border BorderBrush="{DynamicResource PrimaryAccentBrush}" BorderThickness="0" CornerRadius="3">
+                    <Border Margin="{StaticResource MarginRightSmall}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="3">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -36,7 +39,6 @@
                             </Grid.RowDefinitions>
                             <!--  Header for selected object  -->
                             <Border Grid.Row="0"
-                                    Margin="{StaticResource MarginRightSmall}"
                                     Padding="{StaticResource PaddingSmall}"
                                     Background="{DynamicResource PrimaryAccentBrush}"
                                     BorderThickness="0">
@@ -48,8 +50,8 @@
                             </Border>
                             <pg:PropertyGrid x:Name="PropertyGrid"
                                              Grid.Row="1"
-                                             Margin="{StaticResource MarginRightSmall}"
                                              Background="{DynamicResource PropertyGridBackgroundBrush}"
+                                             BorderThickness="0"
                                              EnableVirtualization="True"
                                              IsPropertyGridReadOnly="True"
                                              NameColumnWidth="150"

@@ -209,7 +209,7 @@
                                 Margin="0,0,0,0"
                                 Background="{DynamicResource PrimaryBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1,0,0,0"
+                                BorderThickness="0"
                                 Visibility="Collapsed">
                             <ContentPresenter x:Name="ContentSite"
                                               Margin="{TemplateBinding Padding}"
@@ -232,8 +232,6 @@
                         <Trigger Property="ExpandDirection" Value="Right">
                             <Setter TargetName="HeaderBorder" Property="Grid.Column" Value="0" />
                             <Setter TargetName="ContentBorder" Property="Grid.Column" Value="1" />
-                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0,0,1,0" />
-                            <Setter TargetName="ContentBorder" Property="BorderThickness" Value="1,0,0,0" />
                             <Setter TargetName="ExpanderButton" Property="Tag" Value="Right" />
                             <Setter TargetName="HeaderBorder" Property="Width" Value="Auto" />
                             <Setter TargetName="HeaderBorder" Property="HorizontalAlignment" Value="Left" />
@@ -245,8 +243,6 @@
                             <Setter TargetName="ContentBorder" Property="Grid.Column" Value="0" />
                             <Setter TargetName="ContentBorder" Property="HorizontalAlignment" Value="Stretch" />
                             <Setter TargetName="ContentBorder" Property="Width" Value="Auto" />
-                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="1,0,0,0" />
-                            <Setter TargetName="ContentBorder" Property="BorderThickness" Value="0,0,1,0" />
                             <Setter TargetName="ExpanderButton" Property="Tag" Value="Left" />
                             <Setter TargetName="HeaderBorder" Property="Width" Value="Auto" />
                             <Setter TargetName="HeaderBorder" Property="MinWidth" Value="30" />

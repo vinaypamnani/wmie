@@ -49,11 +49,13 @@
                                   Content="Show System Classes"
                                   IsChecked="{Binding SelectionManager.SelectedNamespace.ShowSystemClasses, Mode=TwoWay}" />
                         <TextBox Grid.Row="1"
+                                 Margin="{StaticResource MarginSmall}"
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"
                                  Tag="Filter Classes..."
                                  Text="{Binding SelectionManager.SelectedNamespace.ClassFilterText, UpdateSourceTrigger=PropertyChanged}" />
                         <ListView Grid.Row="2"
+                                  Margin="{StaticResource MarginSmall}"
                                   behaviors:ListViewAutoScrollBehavior.AutoScroll="False"
                                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass}"
                                   behaviors:ListViewSortBehavior.DefaultSortProperty="ClassName"
@@ -216,9 +218,9 @@
         <!--  Query GroupBox spanning all columns  -->
         <GroupBox Grid.Row="1"
                   Grid.ColumnSpan="3"
-                  Margin="{StaticResource MarginTopSmall}"
+                  Margin="0"
                   HorizontalContentAlignment="Stretch"
-                  Header="Query">
+                  Header="Auto-generated Query for selected class or instance">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
