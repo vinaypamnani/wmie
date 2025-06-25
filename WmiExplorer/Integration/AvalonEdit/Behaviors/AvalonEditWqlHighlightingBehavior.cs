@@ -25,6 +25,10 @@ public static class AvalonEditWqlHighlightingBehavior
 
     private static ISettingsService? _settingsService;
 
+    // Attached property to store the last applied theme for each editor
+    private static readonly DependencyProperty LastAppliedThemeProperty = DependencyProperty.RegisterAttached(
+        "LastAppliedTheme", typeof(string), typeof(AvalonEditWqlHighlightingBehavior), new PropertyMetadata(null));
+
     public static bool GetEnableWqlHighlighting(DependencyObject obj) => (bool)obj.GetValue(EnableWqlHighlightingProperty);
 
     public static void SetEnableWqlHighlighting(DependencyObject obj, bool value) => obj.SetValue(EnableWqlHighlightingProperty, value);
@@ -47,6 +51,13 @@ public static class AvalonEditWqlHighlightingBehavior
 
     private static void ApplyWqlHighlighting(TextEditor editor, string? theme = null)
     {
+        // Prevent unnecessary reload if the requested theme is already applied
+        var lastTheme = GetLastAppliedTheme(editor);
+        if (string.Equals(lastTheme, theme, StringComparison.OrdinalIgnoreCase) && editor.SyntaxHighlighting != null)
+        {
+            return;
+        }
+
         IHighlightingDefinition? wqlHighlighting = null;
         try
         {
@@ -77,6 +88,12 @@ public static class AvalonEditWqlHighlightingBehavior
             System.Diagnostics.Debug.WriteLine("[AvalonEditHighlighting] WQL highlighting not found.");
         }
         editor.SyntaxHighlighting = wqlHighlighting ?? HighlightingManager.Instance.GetDefinition("SQL");
+        SetLastAppliedTheme(editor, theme);
+    }
+
+    private static string? GetLastAppliedTheme(TextEditor editor)
+    {
+        return (string?)editor.GetValue(LastAppliedThemeProperty);
     }
 
     private static void OnEnableWqlHighlightingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -96,5 +113,10 @@ public static class AvalonEditWqlHighlightingBehavior
                 });
             }
         }
+    }
+
+    private static void SetLastAppliedTheme(TextEditor editor, string? value)
+    {
+        editor.SetValue(LastAppliedThemeProperty, value);
     }
 }
