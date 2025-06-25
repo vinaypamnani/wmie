@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
         <GroupBox Grid.Column="0" Header="Computer Name">
             <StackPanel Orientation="Horizontal">
-                <TextBox MinWidth="120"
+                <TextBox MinWidth="160"
                          Margin="{StaticResource MarginSmall}"
                          VerticalContentAlignment="Center"
                          Style="{StaticResource TextBoxWithPlaceholder}"
@@ -28,7 +28,7 @@
                 <StackPanel Orientation="Horizontal">
                     <!--  Main Connect Button  -->
                     <Button Height="26"
-                            Margin="4,0,0,0"
+                            Margin="4,0,0.5,0"
                             Command="{Binding ConnectCommand}"
                             Content="Connect"
                             ToolTip="{StaticResource Tooltip.Options.Connect}" />

@@ -68,7 +68,7 @@ public static class ThemeCollection
             ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF5478E4"), // lighter variant
 
             // Border & Structural Colors - Clear but subtle
-            ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FF4D4D4D"), // neutral border
+            ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FF555555"), // subtle border for dark theme
         }
     };
 
@@ -108,7 +108,7 @@ public static class ThemeCollection
             ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF79B9D3"), // darker variant
 
             // Border Color - Subtle but defined
-            ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FFCACACA"), // neutral light gray
+            ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FFCCCCCC"), // subtle border for light theme
         }
     };
 

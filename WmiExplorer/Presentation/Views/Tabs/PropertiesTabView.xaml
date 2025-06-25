@@ -82,7 +82,7 @@
                                     </ContentControl>
                                 </DataTemplate>-->
                                 <DataTemplate>
-                                    <ContentControl ContentTemplate="{StaticResource KeyIconTemplate}" Foreground="{DynamicResource BaseOrangeBrush}">
+                                    <ContentControl ContentTemplate="{StaticResource KeyIconTemplate}" Foreground="{DynamicResource BaseGreenBrush}">
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
                                                 <Setter Property="ToolTip" Value="Key Property" />

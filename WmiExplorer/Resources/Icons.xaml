@@ -17,7 +17,7 @@
     </DataTemplate>
 
     <DataTemplate x:Key="BrightnessIconTemplate">
-        <TextBlock Foreground="{DynamicResource BaseOrangeBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE706;" />
+        <TextBlock Foreground="{DynamicResource BaseGreenBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE706;" />
     </DataTemplate>
 
     <DataTemplate x:Key="QuietHoursIconTemplate">

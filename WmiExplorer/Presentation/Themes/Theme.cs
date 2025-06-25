@@ -100,7 +100,7 @@ public partial class Theme : DisposableObservableObject
         brushes["PropertyGridSelectedBackgroundBrush"] = brushes["SelectedItemBackgroundBrush"];
         brushes["PropertyGridDisabledForegroundBrush"] = brushes["DisabledForegroundBrush"];
         brushes["PropertyGridHoverBackgroundBrush"] = brushes["HoverBackgroundBrush"];
-        brushes["PropertyGridBaseOrangeBrush"] = brushes["BaseOrangeBrush"];
+        brushes["PropertyGridKeyHighlightBrush"] = brushes["BaseGreenBrush"];
 
         return brushes;
     }
