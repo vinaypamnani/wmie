@@ -48,6 +48,8 @@
                                 <TextBox Width="40"
                                          Height="26"
                                          HorizontalContentAlignment="Center"
+                                         Style="{StaticResource TextBoxWithPlaceholder}"
+                                         Tag="Seconds..."
                                          IsEnabled="{Binding EventQueryBuilder.IsWithinEnabled}"
                                          Text="{Binding EventQueryBuilder.EventWithin, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="{StaticResource Tooltip.Watcher.Within}" />
@@ -69,6 +71,8 @@
                                 <TextBox Width="180"
                                          Height="26"
                                          HorizontalContentAlignment="Left"
+                                         Style="{StaticResource TextBoxWithPlaceholder}"
+                                         Tag="Event Property Value..."
                                          IsEnabled="{Binding EventQueryBuilder.IsEventPropertyValueEnabled}"
                                          Text="{Binding EventQueryBuilder.EventPropertyValue, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="{StaticResource Tooltip.Watcher.EventPropertyValue}" />
@@ -104,6 +108,8 @@
                                 <TextBox Width="180"
                                          Height="26"
                                          HorizontalContentAlignment="Left"
+                                         Style="{StaticResource TextBoxWithPlaceholder}"
+                                         Tag="Target Class Property Value..."
                                          IsEnabled="{Binding EventQueryBuilder.IsEventTargetClassPropertyValueEnabled}"
                                          Text="{Binding EventQueryBuilder.EventTargetClassPropertyValue, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="{StaticResource Tooltip.Watcher.TargetClassPropertyValue}" />
@@ -147,6 +153,8 @@
                             <TextBox Grid.Column="1"
                                      Height="28"
                                      VerticalContentAlignment="Center"
+                                     Style="{StaticResource TextBoxWithPlaceholder}"
+                                     Tag="Auto-generated event query..."
                                      AcceptsReturn="True"
                                      IsReadOnly="{Binding IsQueryReadOnly}"
                                      Text="{Binding EventQueryBuilder.EventQuery, UpdateSourceTrigger=PropertyChanged}"
