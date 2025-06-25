@@ -180,7 +180,7 @@
                 <Rectangle x:Name="ProgressBar"
                            Width="20"
                            Height="5"
-                           Fill="{DynamicResource SecondaryAccentBrush}"
+                           Fill="{DynamicResource BaseBlueBrush}"
                            RadiusX="2.5"
                            RadiusY="2.5"
                            RenderTransformOrigin="0.5,0.5">
@@ -202,7 +202,7 @@
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
                     Margin="0"
-                    BorderBrush="{DynamicResource SecondaryAccentBrush}"
+                    BorderBrush="{DynamicResource BaseBlueBrush}"
                     BorderThickness="1"
                     CornerRadius="8"
                     Opacity="0">
