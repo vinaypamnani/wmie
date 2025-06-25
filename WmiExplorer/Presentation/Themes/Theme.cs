@@ -28,8 +28,8 @@ public partial class Theme : DisposableObservableObject
             if (!ThemeColors.ContainsKey(key) || ThemeColors[key] != value)
             {
                 ThemeColors[key] = value;
-                // Auto-generate SecondaryAccentColor if PrimaryAccentColor is changed
-                if (key == "PrimaryAccentColor")
+                // Auto-generate SecondaryAccentColor if PrimaryAccentColor is changed and not Transparent
+                if (key == "PrimaryAccentColor" && value != Colors.Transparent)
                 {
                     ThemeColors["SecondaryAccentColor"] = GenerateSecondaryAccentColor(value, ThemeColors);
                 }
