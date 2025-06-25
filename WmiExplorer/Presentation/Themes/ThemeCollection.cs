@@ -85,11 +85,11 @@ public static class ThemeCollection
         ThemeColors = new Dictionary<string, Color>
         {
             // Base Colors - Slightly softened for better balance on light background
-            ["BaseGreen"] = (Color)ColorConverter.ConvertFromString("#FF107C10"), // Softer green
-            ["BaseRed"] = (Color)ColorConverter.ConvertFromString("#FFD13438"), // Brighter red
-            ["BaseOrange"] = (Color)ColorConverter.ConvertFromString("#FFFFAA44"), // Warm amber
-            ["BaseGray"] = (Color)ColorConverter.ConvertFromString("#FF8A8A8A"), // Slightly lighter
-            ["BaseBlue"] = (Color)ColorConverter.ConvertFromString("#FF005FB8"), // Slightly deeper blue
+            ["BaseGreen"] = (Color)ColorConverter.ConvertFromString("#FF28A745"), // vibrant accessible green
+            ["BaseRed"] = (Color)ColorConverter.ConvertFromString("#FFD13438"), // brighter red
+            ["BaseOrange"] = (Color)ColorConverter.ConvertFromString("#FFFFAA44"), // warm amber
+            ["BaseGray"] = (Color)ColorConverter.ConvertFromString("#FF666666"), // darker gray for better separation
+            ["BaseBlue"] = (Color)ColorConverter.ConvertFromString("#FF0078D4"), // accessible vivid blue
 
             // Background Colors - Clear visual layering
             ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFFFFFFF"), // white
