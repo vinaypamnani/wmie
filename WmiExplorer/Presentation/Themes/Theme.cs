@@ -51,38 +51,43 @@ public partial class Theme : DisposableObservableObject
 
         var brushes = new Dictionary<string, SolidColorBrush>
         {
-            // Status brushes
-            ["SuccessBrush"] = new SolidColorBrush(GetColor("SuccessColor", fallbackColor: Colors.Green)),
-            ["ErrorBrush"] = new SolidColorBrush(GetColor("ErrorColor", fallbackColor: Colors.Red)),
-            ["WarningBrush"] = new SolidColorBrush(GetColor("WarningColor", fallbackColor: Colors.Orange)),
-            ["IndeterminateBrush"] = new SolidColorBrush(GetColor("IndeterminateColor", fallbackColor: Colors.Gray)),
-            ["BusyBrush"] = new SolidColorBrush(GetColor("BusyColor", fallbackColor: Colors.Blue)),
-            // Base brushes
+            // Base color brushes
+            ["BaseGreenBrush"] = new SolidColorBrush(GetColor("BaseGreen", fallbackColor: Colors.Green)),
+            ["BaseRedBrush"] = new SolidColorBrush(GetColor("BaseRed", fallbackColor: Colors.Red)),
+            ["BaseOrangeBrush"] = new SolidColorBrush(GetColor("BaseOrange", fallbackColor: Colors.Orange)),
+            ["BaseGrayBrush"] = new SolidColorBrush(GetColor("BaseGray", fallbackColor: Colors.Gray)),
+            ["BaseBlueBrush"] = new SolidColorBrush(GetColor("BaseBlue", fallbackColor: Colors.Blue)),
+
+            // Background brushes
             ["PrimaryBackgroundBrush"] = new SolidColorBrush(GetColor("PrimaryBackgroundColor", fallbackColor: Colors.White)),
             ["SecondaryBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
             ["TertiaryBackgroundBrush"] = new SolidColorBrush(GetColor("TertiaryBackgroundColor", fallbackColor: Colors.LightGray)),
             ["DisabledBackgroundBrush"] = new SolidColorBrush(GetColor("DisabledBackgroundColor", fallbackColor: Colors.LightGray)),
+
+            // Foreground brushes
             ["PrimaryForegroundBrush"] = new SolidColorBrush(GetColor("PrimaryForegroundColor", fallbackColor: Colors.Black)),
             ["SecondaryForegroundBrush"] = new SolidColorBrush(GetColor("SecondaryForegroundColor", fallbackKey: "PrimaryForegroundColor", fallbackColor: Colors.Black)),
             ["TertiaryForegroundBrush"] = new SolidColorBrush(GetColor("TertiaryForegroundColor", fallbackKey: "SecondaryForegroundColor", fallbackColor: Colors.Gray)),
             ["DisabledForegroundBrush"] = new SolidColorBrush(GetColor("DisabledForegroundColor", fallbackColor: Colors.Gray)),
+
+            // Accent brushes with improved contrast and interaction states
             ["PrimaryAccentBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),
             ["SecondaryAccentBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)),
+
+            // Border brush
             ["BorderBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)),
+
             // Selection and interaction states with improved opacity for better contrast
             ["SelectedItemBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.8 },
             ["SelectedUnfocusedBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackKey: "PrimaryAccentColor", fallbackColor: Colors.LightBlue)) { Opacity = 0.4 },
             ["HoverBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.6 },
             ["ItemPressedBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)) { Opacity = 0.75 },
+
             // ScrollBar brushes with improved contrast and interaction states
             ["ScrollBarTrackBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),
             ["ScrollBarThumbBrush"] = new SolidColorBrush(GetColor("BorderColor", fallbackColor: Colors.DarkGray)) { Opacity = 0.8 },
             ["ScrollBarThumbHoverBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.7 },
             ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.9 },
-            // Icon Fill brushes - common for dark/light themes for now
-            ["NeutralGoldBrush"] = new SolidColorBrush(Colors.Gold),
-            ["NeutralBlueBrush"] = new SolidColorBrush(Colors.RoyalBlue),
-            ["NeutralGreenBrush"] = new SolidColorBrush(Colors.ForestGreen)
         };
 
         // PropertyGrid* brushes are aliases to existing brushes
@@ -95,7 +100,7 @@ public partial class Theme : DisposableObservableObject
         brushes["PropertyGridSelectedBackgroundBrush"] = brushes["SelectedItemBackgroundBrush"];
         brushes["PropertyGridDisabledForegroundBrush"] = brushes["DisabledForegroundBrush"];
         brushes["PropertyGridHoverBackgroundBrush"] = brushes["HoverBackgroundBrush"];
-        brushes["PropertyGridNeutralGoldBrush"] = brushes["NeutralGoldBrush"];
+        brushes["PropertyGridBaseOrangeBrush"] = brushes["BaseOrangeBrush"];
 
         return brushes;
     }

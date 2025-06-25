@@ -116,7 +116,7 @@
                           Grid.Column="3"
                           Margin="8,0,8,0"
                           VerticalAlignment="Center"
-                          Background="{DynamicResource NeutralBlueBrush}"
+                          Background="{DynamicResource BaseBlueBrush}"
                           IsChecked="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                           Style="{StaticResource MenuToggleSwitchStyle}"
                           Visibility="{Binding IsCheckable, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}" />

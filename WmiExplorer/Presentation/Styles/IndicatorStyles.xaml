@@ -7,16 +7,16 @@
         <Setter Property="Fill" Value="{DynamicResource BorderBrush}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding LoadState}" Value="Loading">
-                <Setter Property="Fill" Value="{DynamicResource BusyBrush}" />
+                <Setter Property="Fill" Value="{DynamicResource BaseBlueBrush}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding LoadState}" Value="Success">
-                <Setter Property="Fill" Value="{DynamicResource SuccessBrush}" />
+                <Setter Property="Fill" Value="{DynamicResource BaseGreenBrush}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding LoadState}" Value="Warning">
-                <Setter Property="Fill" Value="{DynamicResource WarningBrush}" />
+                <Setter Property="Fill" Value="{DynamicResource BaseOrangeBrush}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding LoadState}" Value="Failed">
-                <Setter Property="Fill" Value="{DynamicResource ErrorBrush}" />
+                <Setter Property="Fill" Value="{DynamicResource BaseRedBrush}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>
@@ -24,11 +24,12 @@
     <!--  Letter Icon Template for reusable icon indicators  -->
     <ControlTemplate x:Key="LetterIconTemplate" TargetType="ContentControl">
         <Border Width="16" Height="16" Background="{TemplateBinding Background}" CornerRadius="2">
+            <!-- Uses PrimaryBackgroundBrush for Foreground intentionally to inverse for better contrast -->
             <TextBlock Text="{TemplateBinding Content}"
                        FontFamily="Segoe UI"
                        FontSize="11"
                        FontWeight="SemiBold"
-                       Foreground="{TemplateBinding Foreground}"
+                       Foreground="{DynamicResource PrimaryBackgroundBrush}"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"/>
         </Border>

@@ -323,7 +323,7 @@
                                                                     <Path Width="10"
                                                                           Height="10"
                                                                           Data="M1,1 L9,9 M1,9 L9,1"
-                                                                          Stroke="{DynamicResource ErrorBrush}"
+                                                                          Stroke="{DynamicResource BaseRedBrush}"
                                                                           StrokeThickness="1" />
                                                                 </Button>
                                                                 <TextBlock Margin="8,0,0,0"

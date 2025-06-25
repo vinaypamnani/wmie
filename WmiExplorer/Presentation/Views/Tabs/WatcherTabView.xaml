@@ -230,10 +230,10 @@
                                                              VerticalAlignment="Center">
                                                         <Ellipse.Style>
                                                             <Style TargetType="Ellipse">
-                                                                <Setter Property="Fill" Value="{DynamicResource ErrorBrush}" />
+                                                                <Setter Property="Fill" Value="{DynamicResource BaseRedBrush}" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                                        <Setter Property="Fill" Value="{DynamicResource SuccessBrush}" />
+                                                                        <Setter Property="Fill" Value="{DynamicResource BaseGreenBrush}" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -263,7 +263,7 @@
                                                               HorizontalAlignment="Center"
                                                               VerticalAlignment="Center"
                                                               Data="M2,2 L10,6 L2,10 Z"
-                                                              Fill="{DynamicResource SuccessBrush}"
+                                                              Fill="{DynamicResource BaseGreenBrush}"
                                                               Stretch="Uniform" />
                                                     </Button>
                                                     <Button Width="22"
@@ -280,7 +280,7 @@
                                                                    Height="12"
                                                                    HorizontalAlignment="Center"
                                                                    VerticalAlignment="Center"
-                                                                   Fill="{DynamicResource ErrorBrush}"
+                                                                   Fill="{DynamicResource BaseRedBrush}"
                                                                    RadiusX="2"
                                                                    RadiusY="2" />
                                                     </Button>
@@ -298,7 +298,7 @@
                                                               HorizontalAlignment="Center"
                                                               VerticalAlignment="Center"
                                                               Data="M3,3 L9,9 M9,3 L3,9"
-                                                              Stroke="{DynamicResource ErrorBrush}"
+                                                              Stroke="{DynamicResource BaseRedBrush}"
                                                               StrokeEndLineCap="Round"
                                                               StrokeStartLineCap="Round"
                                                               StrokeThickness="2" />

@@ -17,11 +17,11 @@
     </DataTemplate>
 
     <DataTemplate x:Key="BrightnessIconTemplate">
-        <TextBlock Foreground="OrangeRed" Style="{StaticResource IconTextBlockStyle}" Text="&#xE706;" />
+        <TextBlock Foreground="{DynamicResource BaseOrangeBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE706;" />
     </DataTemplate>
 
     <DataTemplate x:Key="QuietHoursIconTemplate">
-        <TextBlock Foreground="RoyalBlue" Style="{StaticResource IconTextBlockStyle}" Text="&#xE708;" />
+        <TextBlock Foreground="{DynamicResource BaseBlueBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE708;" />
     </DataTemplate>
 
     <DataTemplate x:Key="ColorOffIconTemplate">

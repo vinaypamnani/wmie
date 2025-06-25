@@ -182,7 +182,7 @@
                                                             <Setter Property="CommandParameter" Value="{Binding}" />
                                                             <Setter Property="helpers:LetterIconHelper.LetterIcon" Value="C" />
                                                             <Setter Property="helpers:LetterIconHelper.LetterIconToolTip" Value="Static (Class) Method" />
-                                                            <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource NeutralBlueBrush}" />
+                                                            <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource BaseBlueBrush}" />
                                                         </Style>
                                                     </MenuItem.ItemContainerStyle>
                                                 </MenuItem>

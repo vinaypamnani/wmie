@@ -41,36 +41,37 @@ public static class ThemeCollection
     /// Dark theme with refined dark palette for better depth and readability
     /// </summary>
     public static Theme DarkTheme { get; } = new Theme("Dark")
+{
+    ThemeColors = new Dictionary<string, Color>
     {
-        ThemeColors = new Dictionary<string, Color>
-        {
-            // Background Colors - Improved contrast for better distinction
-            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF181A1B"),
-            ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF232526"),
-            ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF313335"),
-            ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF393B3D"),
+        // Base colors - Brightened for vibrancy on dark backgrounds
+        ["BaseGreen"] = (Color)ColorConverter.ConvertFromString("#FF4CD964"),  // Apple-style green
+        ["BaseRed"] = (Color)ColorConverter.ConvertFromString("#FFFF5E5E"),    // Soft but distinct red
+        ["BaseOrange"] = (Color)ColorConverter.ConvertFromString("#FFFFB340"), // Warm amber
+        ["BaseGray"] = (Color)ColorConverter.ConvertFromString("#FFBFBFBF"),   // Lighter neutral gray
+        ["BaseBlue"] = (Color)ColorConverter.ConvertFromString("#FF5CAEFF"),   // Refined soft blue
 
-            // Foreground Colors - High contrast and clear hierarchy
-            ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF3F3F3"),
-            ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFCCCCCC"),
-            ["TertiaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF9A9A9A "),
-            ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF5A5A5A"),
+        // Background Colors - Refined layering and contrast
+        ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1E1E1E"), // near-black
+        ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF2C2C2E"), // deep gray
+        ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF3A3A3C"), // medium dark
+        ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF4A4A4C"), // slightly lighter
 
-            // Accent Colors - More saturated blue for better visibility in dark theme
-            ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF3B9CFF"),
-            ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF60AFFF"),
+        // Foreground Colors - Maintain clarity without eye strain
+        ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF5F5F5"),   // near-white
+        ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFD0D0D0"), // light gray
+        ["TertiaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF9E9E9E"),  // medium gray
+        ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF646464"),  // muted gray
 
-            // Border & Structural Colors - More distinct for better UI definition
-            ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FF3D3D3D"),
+        // Accent Colors - Eye-catching and accessible
+        ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF409CFF"),  // clean blue
+        ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF62B4FF"), // lighter variant
 
-            // Status Colors - More vibrant for better visibility
-            ["SuccessColor"] = (Color)ColorConverter.ConvertFromString("#FF42D642"),
-            ["ErrorColor"] = (Color)ColorConverter.ConvertFromString("#FFFF4D4D"),
-            ["WarningColor"] = (Color)ColorConverter.ConvertFromString("#FFFFCC00"),
-            ["IndeterminateColor"] = (Color)ColorConverter.ConvertFromString("#FFB3B3B3"),
-            ["BusyColor"] = (Color)ColorConverter.ConvertFromString("#FF69B5FF")
-        }
-    };
+        // Border & Structural Colors - Clear but subtle
+        ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FF4D4D4D"), // neutral border
+    }
+};
+
 
     /// <summary>
     /// Gets the default theme (Dark theme)
@@ -81,36 +82,37 @@ public static class ThemeCollection
     /// Light theme with clean whites and modern blue accents
     /// </summary>
     public static Theme LightTheme { get; } = new Theme("Light")
+{
+    ThemeColors = new Dictionary<string, Color>
     {
-        ThemeColors = new Dictionary<string, Color>
-        {
-            // Background Colors - Improved contrast for better distinction
-            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFFFFFFF"), // pure white
-            ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF6F8FA"), // very light gray-blue
-            ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFEDEFF1"), // light gray
-            ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFE5E7E9"), // slightly darker, for disabled
+        // Base Colors - Slightly softened for better balance on light background
+        ["BaseGreen"] = (Color)ColorConverter.ConvertFromString("#FF107C10"), // Softer green
+        ["BaseRed"] = (Color)ColorConverter.ConvertFromString("#FFD13438"), // Brighter red
+        ["BaseOrange"] = (Color)ColorConverter.ConvertFromString("#FFFFAA44"), // Warm amber
+        ["BaseGray"] = (Color)ColorConverter.ConvertFromString("#FF8A8A8A"), // Slightly lighter
+        ["BaseBlue"] = (Color)ColorConverter.ConvertFromString("#FF005FB8"), // Slightly deeper blue
 
-            // Foreground Colors - Dark grays for better contrast and readability
-            ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1A1A1A"),
-            ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF505050"),
-            ["TertiaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF8A8A8A"),
-            ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFB0B0B0"),
+        // Background Colors - Clear visual layering
+        ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFFFFFFF"), // white
+        ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF2F4F7"), // subtle cool gray
+        ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFE6E9ED"), // mid gray-blue
+        ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFDADDE1"), // muted neutral
 
-            // Accent Colors - Modern blue palette with better contrast
-            ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF0078D7"),
-            ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF3A96DD"),
+        // Foreground Colors - High contrast and clarity
+        ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF111111"), // almost black
+        ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF444444"), // strong gray
+        ["TertiaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF777777"), // medium gray
+        ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFA0A0A0"), // muted gray
 
-            // Border & Structural Colors - Soft borders for clean appearance
-            ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FFD0D0D0"),
+        // Accent Colors - Aligned for modern UI standards
+        ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF0067C0"), // accessible blue
+        ["SecondaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF4AA0E2"), // lighter variant
 
-            // Status Colors - More saturated for better visibility while maintaining light theme aesthetic
-            ["SuccessColor"] = (Color)ColorConverter.ConvertFromString("#FF0F7B0F"),
-            ["ErrorColor"] = (Color)ColorConverter.ConvertFromString("#FFE81123"),
-            ["WarningColor"] = (Color)ColorConverter.ConvertFromString("#FFFF8C00"),
-            ["IndeterminateColor"] = (Color)ColorConverter.ConvertFromString("#FF767676"),
-            ["BusyColor"] = (Color)ColorConverter.ConvertFromString("#FF0063B1")
-        }
-    };
+        // Border Color - Subtle but defined
+        ["BorderColor"] = (Color)ColorConverter.ConvertFromString("#FFCACACA"), // neutral light gray
+    }
+};
+
 
     /// <summary>
     /// Gets all available theme names

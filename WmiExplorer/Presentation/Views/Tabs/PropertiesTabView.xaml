@@ -50,7 +50,7 @@
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
                                           Data="M6,0 L7.5,4.5 L12,4.5 L8.5,7.5 L10,12 L6,9 L2,12 L3.5,7.5 L0,4.5 L4.5,4.5 Z"
-                                          Fill="{DynamicResource NeutralGoldBrush}"
+                                          Fill="{DynamicResource BaseOrangeBrush}"
                                           Stretch="Uniform"
                                           ToolTip="Key Property">
                                         <Path.Style>
@@ -69,7 +69,7 @@
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
                                                 <Setter Property="Foreground" Value="Black" />
-                                                <Setter Property="Background" Value="{DynamicResource NeutralGoldBrush}" />
+                                                <Setter Property="Background" Value="{DynamicResource BaseOrangeBrush}" />
                                                 <Setter Property="Content" Value="K" />
                                                 <Setter Property="ToolTip" Value="Key Property" />
                                                 <Style.Triggers>
@@ -82,7 +82,7 @@
                                     </ContentControl>
                                 </DataTemplate>-->
                                 <DataTemplate>
-                                    <ContentControl ContentTemplate="{StaticResource KeyIconTemplate}" Foreground="{DynamicResource NeutralGoldBrush}">
+                                    <ContentControl ContentTemplate="{StaticResource KeyIconTemplate}" Foreground="{DynamicResource BaseOrangeBrush}">
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
                                                 <Setter Property="ToolTip" Value="Key Property" />

@@ -120,7 +120,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="{Binding HasException, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     <Setter Property="Text" Value="⚠" />
-                                    <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
                                     <Setter Property="HorizontalAlignment" Value="Center" />
                                     <Setter Property="ToolTip" Value="Has Exception Details" />
                                 </Style>
@@ -138,16 +138,16 @@
                                     <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Level}" Value="Debug">
-                                            <Setter Property="Foreground" Value="{DynamicResource IndeterminateBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseGrayBrush}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Level}" Value="Information">
-                                            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseGreenBrush}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Level}" Value="Warning">
-                                            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Level}" Value="Error">
-                                            <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>

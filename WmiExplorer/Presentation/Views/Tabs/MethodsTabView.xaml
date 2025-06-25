@@ -48,14 +48,13 @@
                                     <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
-                                                <Setter Property="Foreground" Value="White" />
-                                                <Setter Property="Background" Value="{DynamicResource NeutralGreenBrush}" />
+                                                <Setter Property="Background" Value="{DynamicResource BaseGreenBrush}" />
                                                 <Setter Property="Content" Value="I" />
                                                 <Setter Property="ToolTip" Value="Non-Static (Instance) Method" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsStatic}" Value="True">
                                                         <Setter Property="Content" Value="C" />
-                                                        <Setter Property="Background" Value="{DynamicResource NeutralBlueBrush}" />
+                                                        <Setter Property="Background" Value="{DynamicResource BaseBlueBrush}" />
                                                         <Setter Property="ToolTip" Value="Static (Class) Method" />
                                                     </DataTrigger>
                                                 </Style.Triggers>

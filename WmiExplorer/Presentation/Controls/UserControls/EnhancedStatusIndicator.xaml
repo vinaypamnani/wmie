@@ -63,7 +63,7 @@
                          Width="14"
                          Height="14"
                          HorizontalAlignment="Center"
-                         Fill="{DynamicResource IndeterminateBrush}">
+                         Fill="{DynamicResource BaseGrayBrush}">
                     <Ellipse.Style>
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -85,7 +85,7 @@
                 <Ellipse Width="14"
                          Height="14"
                          HorizontalAlignment="Center"
-                         Fill="{DynamicResource ErrorBrush}">
+                         Fill="{DynamicResource BaseRedBrush}">
                     <Ellipse.Style>
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -107,7 +107,7 @@
                 <Ellipse Width="14"
                          Height="14"
                          HorizontalAlignment="Center"
-                         Fill="{DynamicResource SuccessBrush}">
+                         Fill="{DynamicResource BaseGreenBrush}">
                     <Ellipse.Style>
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -132,7 +132,7 @@
                 <Ellipse Width="14"
                          Height="14"
                          HorizontalAlignment="Center"
-                         Fill="{DynamicResource WarningBrush}">
+                         Fill="{DynamicResource BaseOrangeBrush}">
                     <Ellipse.Style>
                         <Style TargetType="Ellipse">
                             <Setter Property="Visibility" Value="Collapsed" />
