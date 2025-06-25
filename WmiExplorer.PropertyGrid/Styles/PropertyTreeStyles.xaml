@@ -194,7 +194,7 @@
                   HorizontalAlignment="Left"
                   VerticalAlignment="Center"
                   Data="M6,0 L7.5,4.5 L12,4.5 L8.5,7.5 L10,12 L6,9 L2,12 L3.5,7.5 L0,4.5 L4.5,4.5 Z"
-                  Fill="{DynamicResource PropertyGridKeyIconFillBrush}"
+                  Fill="{DynamicResource PropertyGridNeutralGoldBrush}"
                   Stretch="Uniform"
                   ToolTip="Key Property"
                   Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />-->
@@ -205,7 +205,7 @@
                        VerticalAlignment="Center"
                        FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                        FontSize="12"
-                       Foreground="{DynamicResource PropertyGridKeyIconFillBrush}"
+                       Foreground="{DynamicResource PropertyGridNeutralGoldBrush}"
                        Text="&#xE8D7;"
                        ToolTip="Key Property"
                        Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />

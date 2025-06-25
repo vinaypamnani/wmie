@@ -34,7 +34,11 @@
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
             <MenuItem Header="_File">
-                <MenuItem Header="Load..." />
+                <MenuItem Header="Load..." IsCheckable="True" IsChecked="True">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource ExitIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Save..." />
                 <MenuItem Command="{Binding ExitCommand}" Header="E_xit">
                     <MenuItem.Icon>

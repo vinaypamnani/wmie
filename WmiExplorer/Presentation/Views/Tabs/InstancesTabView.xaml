@@ -95,7 +95,7 @@
                                             <Setter Property="CommandParameter" Value="{Binding}" />
                                             <Setter Property="helpers:LetterIconHelper.LetterIcon" Value="I" />
                                             <Setter Property="helpers:LetterIconHelper.LetterIconToolTip" Value="Non-Static (Instance) Method" />
-                                            <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource InstanceMethodIconFillBrush}" />
+                                            <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource NeutralGreenBrush}" />
                                         </Style>
                                     </MenuItem.ItemContainerStyle>
                                 </MenuItem>

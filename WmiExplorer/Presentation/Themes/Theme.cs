@@ -64,6 +64,7 @@ public partial class Theme : DisposableObservableObject
             ["DisabledBackgroundBrush"] = new SolidColorBrush(GetColor("DisabledBackgroundColor", fallbackColor: Colors.LightGray)),
             ["PrimaryForegroundBrush"] = new SolidColorBrush(GetColor("PrimaryForegroundColor", fallbackColor: Colors.Black)),
             ["SecondaryForegroundBrush"] = new SolidColorBrush(GetColor("SecondaryForegroundColor", fallbackKey: "PrimaryForegroundColor", fallbackColor: Colors.Black)),
+            ["TertiaryForegroundBrush"] = new SolidColorBrush(GetColor("TertiaryForegroundColor", fallbackKey: "SecondaryForegroundColor", fallbackColor: Colors.Gray)),
             ["DisabledForegroundBrush"] = new SolidColorBrush(GetColor("DisabledForegroundColor", fallbackColor: Colors.Gray)),
             ["PrimaryAccentBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)),
             ["SecondaryAccentBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)),
@@ -79,9 +80,9 @@ public partial class Theme : DisposableObservableObject
             ["ScrollBarThumbHoverBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.7 },
             ["ScrollBarThumbPressedBrush"] = new SolidColorBrush(GetColor("PrimaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.9 },
             // Icon Fill brushes - common for dark/light themes for now
-            ["KeyIconFillBrush"] = new SolidColorBrush(Colors.Gold),
-            ["StaticMethodIconFillBrush"] = new SolidColorBrush(Colors.RoyalBlue),
-            ["InstanceMethodIconFillBrush"] = new SolidColorBrush(Colors.ForestGreen)
+            ["NeutralGoldBrush"] = new SolidColorBrush(Colors.Gold),
+            ["NeutralBlueBrush"] = new SolidColorBrush(Colors.RoyalBlue),
+            ["NeutralGreenBrush"] = new SolidColorBrush(Colors.ForestGreen)
         };
 
         // PropertyGrid* brushes are aliases to existing brushes
@@ -94,7 +95,7 @@ public partial class Theme : DisposableObservableObject
         brushes["PropertyGridSelectedBackgroundBrush"] = brushes["SelectedItemBackgroundBrush"];
         brushes["PropertyGridDisabledForegroundBrush"] = brushes["DisabledForegroundBrush"];
         brushes["PropertyGridHoverBackgroundBrush"] = brushes["HoverBackgroundBrush"];
-        brushes["PropertyGridKeyIconFillBrush"] = brushes["KeyIconFillBrush"];
+        brushes["PropertyGridNeutralGoldBrush"] = brushes["NeutralGoldBrush"];
 
         return brushes;
     }

@@ -14,16 +14,17 @@ public static class ThemeCollection
     {
         ThemeColors = new Dictionary<string, Color>
         {
-            // Background Colors - Refined dark theme palette with better depth
-            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF121212"),
-            ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1E1E1E"),
-            ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF252525"),
-            ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF2D2D2D"),
+            // Background Colors - Improved contrast for better distinction
+            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF181A1B"),
+            ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF232526"),
+            ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF313335"),
+            ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF393B3D"),
 
-            // Foreground Colors - High contrast with softer white for better readability
-            ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFEBEBEB"),
-            ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFD4D4D4"),
-            ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF6D6D6D"),
+            // Foreground Colors - High contrast and clear hierarchy
+            ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF3F3F3"),
+            ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFCCCCCC"),
+            ["TertiaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF9A9A9A "),
+            ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF5A5A5A"),
 
             // Accent Colors - More saturated blue for better visibility in dark theme
             ["PrimaryAccentColor"] = (Color)ColorConverter.ConvertFromString("#FF3B9CFF"),
@@ -48,15 +49,16 @@ public static class ThemeCollection
     {
         ThemeColors = new Dictionary<string, Color>
         {
-            // Background Colors - Clean whites with subtle gray variations for depth
-            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFFFFFFF"),
-            ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF5F5F5"),
-            ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFEBEBEB"),
-            ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF0F0F0"),
+            // Background Colors - Improved contrast for better distinction
+            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFFFFFFF"), // pure white
+            ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFF6F8FA"), // very light gray-blue
+            ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFEDEFF1"), // light gray
+            ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FFE5E7E9"), // slightly darker, for disabled
 
             // Foreground Colors - Dark grays for better contrast and readability
-            ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF202020"),
+            ["PrimaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1A1A1A"),
             ["SecondaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF505050"),
+            ["TertiaryForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FF8A8A8A"),
             ["DisabledForegroundColor"] = (Color)ColorConverter.ConvertFromString("#FFB0B0B0"),
 
             // Accent Colors - Modern blue palette with better contrast

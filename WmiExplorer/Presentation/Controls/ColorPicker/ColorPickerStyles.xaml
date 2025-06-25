@@ -82,7 +82,7 @@
 
     <!--  Tab Control Style  -->
     <Style x:Key="ColorPickerTabControlStyle" TargetType="TabControl">
-        <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="TabStripPlacement" Value="Top" />
         <Setter Property="BorderThickness" Value="0" />
@@ -111,11 +111,8 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

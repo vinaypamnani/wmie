@@ -130,7 +130,7 @@
                         <Trigger Property="IsEditable" Value="False">
                             <Setter TargetName="ContentSite" Property="Visibility" Value="Visible" />
                             <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
                         </Trigger>
 

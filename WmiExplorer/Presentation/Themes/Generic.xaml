@@ -7,6 +7,7 @@
     <Color x:Key="DisabledBackgroundColor">#FFF0F0F0</Color>
     <Color x:Key="PrimaryForegroundColor">#FF202020</Color>
     <Color x:Key="SecondaryForegroundColor">#FF505050</Color>
+    <Color x:Key="TertiaryForegroundColor">#FF8A8A8A</Color>
     <Color x:Key="DisabledForegroundColor">#FFB0B0B0</Color>
     <Color x:Key="PrimaryAccentColor">#FF0078D7</Color>
     <Color x:Key="SecondaryAccentColor">#FF3A96DD</Color>
@@ -31,6 +32,7 @@
     <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="{StaticResource DisabledBackgroundColor}" />
     <SolidColorBrush x:Key="PrimaryForegroundBrush" Color="{StaticResource PrimaryForegroundColor}" />
     <SolidColorBrush x:Key="SecondaryForegroundBrush" Color="{StaticResource SecondaryForegroundColor}" />
+    <SolidColorBrush x:Key="TertiaryForegroundBrush" Color="{StaticResource TertiaryForegroundColor}" />
     <SolidColorBrush x:Key="DisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="PrimaryAccentBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource SecondaryAccentColor}" />
@@ -48,9 +50,9 @@
     <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Opacity="0.7" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Opacity="0.9" Color="{StaticResource PrimaryAccentColor}" />
     <!--  Icon highlight brushes  -->
-    <SolidColorBrush x:Key="KeyIconFillBrush" Color="Gold" />
-    <SolidColorBrush x:Key="StaticMethodIconFillBrush" Color="RoyalBlue" />
-    <SolidColorBrush x:Key="InstanceMethodIconFillBrush" Color="ForestGreen" />
+    <SolidColorBrush x:Key="NeutralGoldBrush" Color="Gold" />
+    <SolidColorBrush x:Key="NeutralBlueBrush" Color="RoyalBlue" />
+    <SolidColorBrush x:Key="NeutralGreenBrush" Color="ForestGreen" />
 
     <!--  PropertyGrid Colors (Consolidated, only used brushes)  -->
     <SolidColorBrush x:Key="PropertyGridBackgroundBrush" Color="{StaticResource PrimaryBackgroundColor}" />
@@ -62,6 +64,6 @@
     <SolidColorBrush x:Key="PropertyGridSelectedBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="PropertyGridDisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
-    <SolidColorBrush x:Key="PropertyGridKeyIconFillBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="PropertyGridNeutralGoldBrush" Color="{StaticResource WarningColor}" />
 
 </ResourceDictionary>
