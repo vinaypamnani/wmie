@@ -104,7 +104,7 @@
                                Text="Primary"
                                TextAlignment="Left" />
                     <colorpicker:ColorPicker Width="40"
-                                             Height="20"
+                                             Height="24"
                                              SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
                                              ShowAlphaChannel="True"
                                              ShowRecentColors="True"
@@ -116,7 +116,7 @@
                                Text="Secondary"
                                TextAlignment="Left" />
                     <colorpicker:ColorPicker Width="40"
-                                             Height="20"
+                                             Height="24"
                                              SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
                                              ShowAlphaChannel="True"
                                              ShowRecentColors="True"
