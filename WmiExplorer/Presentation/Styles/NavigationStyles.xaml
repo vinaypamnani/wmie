@@ -100,8 +100,9 @@
                     <Border x:Name="Bd"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
+                            Margin="0,0,3,0"
                             BorderBrush="Transparent"
-                            BorderThickness="0,0,2,0">
+                            BorderThickness="0,0,0,0">
                         <ContentPresenter x:Name="Content"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
@@ -111,7 +112,7 @@
                         <!--  Selected Tab Style  -->
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SelectedItemBackgroundBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SelectedItemBackgroundBrush}" />
+                            <!-- <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource SelectedItemBackgroundBrush}" /> -->
                         </Trigger>
                         <!--  Disabled Tab Style  -->
                         <Trigger Property="IsEnabled" Value="False">
