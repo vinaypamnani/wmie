@@ -258,7 +258,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", _messengerService);
         try
         {
-            PublishBusyState($"Loading {NamespacePath}...");
+            PublishBusyState($"Loading child namespaces for {NamespacePath}...");
             NamespaceLoadState = NamespaceLoadState.Loading;
 
             // Use the ViewModel's ManagementScope for the service call.
@@ -301,19 +301,19 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             HasLoadedChildren = true;
             IsExpanded = true;
             NamespaceLoadState = NamespaceLoadState.Success;
-            PublishSuccessState($"Loaded children for {NamespacePath}");
+            PublishSuccessState($"Loaded child namespaces for {NamespacePath}");
         }
         catch (OperationCanceledException)
         {
             Log.Warning("Loading child namespaces for {NamespacePath} was canceled", NamespacePath);
             NamespaceLoadState = NamespaceLoadState.Failed;
-            PublishErrorState($"Loading {NamespacePath} was canceled");
+            PublishErrorState($"Loading child namespaces for {NamespacePath} was canceled");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error loading child namespaces for {NamespacePath}", NamespacePath);
             NamespaceLoadState = NamespaceLoadState.Failed;
-            PublishErrorState($"Error loading {NamespacePath}: {ex.Message}", ex);
+            PublishErrorState($"Error loading child namespaces for {NamespacePath}: {ex.Message}", ex);
         }
     }
 
