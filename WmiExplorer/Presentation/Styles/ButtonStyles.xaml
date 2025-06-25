@@ -116,7 +116,7 @@
                 <ControlTemplate TargetType="CheckBox">
                     <Grid VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <!--  Toggle Track  -->
@@ -131,9 +131,9 @@
                         <!--  Toggle Thumb  -->
                         <Ellipse x:Name="SwitchThumb"
                                  Grid.Column="0"
-                                 Width="14"
-                                 Height="14"
-                                 Margin="1,1,0,1"
+                                 Width="12"
+                                 Height="12"
+                                 Margin="3"
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Center"
                                  Fill="{DynamicResource TertiaryForegroundBrush}" />
@@ -143,9 +143,9 @@
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="SwitchTrack" Property="Background" Value="{DynamicResource SecondaryAccentBrush}" />
                             <Setter TargetName="SwitchTrack" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
-                            <Setter TargetName="SwitchThumb" Property="Fill" Value="{DynamicResource SecondaryForegroundBrush}" />
+                            <Setter TargetName="SwitchThumb" Property="Fill" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             <Setter TargetName="SwitchThumb" Property="HorizontalAlignment" Value="Right" />
-                            <Setter TargetName="SwitchThumb" Property="Margin" Value="0,1,1,1" />
+                            <!-- <Setter TargetName="SwitchThumb" Property="Margin" Value="0,2,1,2" /> -->
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="SwitchTrack" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
