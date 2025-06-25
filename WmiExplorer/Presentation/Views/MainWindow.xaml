@@ -46,17 +46,49 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <TextBlock>
-                <Hyperlink>
-                    <Run Text="{x:Static local:VersionInfo.AppVersion}" />
-                </Hyperlink>
-            </TextBlock>
+
+            <MenuItem Header="_Help">
+                <MenuItem Command="{Binding ResetThemeCommand}" Header="Reset Theme..." ToolTip="Resets default theme colors in themes.json file but preserves accent colors. Use this if the themes.json is corrupted or outdated.">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource ColorOffIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem>
+                <MenuItem.Header>
+                    <Hyperlink>
+                        <Run Text="{x:Static local:VersionInfo.AppVersion}" />
+                    </Hyperlink>
+                </MenuItem.Header>
+            </MenuItem>
+
+            <!--  Toggle Theme  -->
             <MenuItem x:Name="ThemeToggle"
-                      Margin="{StaticResource MarginHorizontalLarge}"
                       HorizontalAlignment="Right"
                       Command="{Binding ToggleThemeCommand}"
                       DockPanel.Dock="Right"
-                      Header="{Binding ThemeToggleText, Mode=OneWay}" />
+                      Header="{Binding CurrentThemeName, Mode=OneWay}"
+                      ToolTip="Toggle between Dark and Light theme">
+                <MenuItem.Icon>
+                    <ContentControl>
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                                <Setter Property="ContentTemplate" Value="{StaticResource BrightnessIconTemplate}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentThemeName}" Value="Dark">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource QuietHoursIconTemplate}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentThemeName}" Value="Light">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource BrightnessIconTemplate}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+                    </ContentControl>
+                </MenuItem.Icon>
+            </MenuItem>
+
         </Menu>
 
         <Grid Name="ApplicationContentGrid" Grid.Row="1">

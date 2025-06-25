@@ -16,6 +16,18 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE711;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="BrightnessIconTemplate">
+        <TextBlock Foreground="OrangeRed" Style="{StaticResource IconTextBlockStyle}" Text="&#xE706;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="QuietHoursIconTemplate">
+        <TextBlock Foreground="RoyalBlue" Style="{StaticResource IconTextBlockStyle}" Text="&#xE708;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ColorOffIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xF570;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="StopIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71A;" />
     </DataTemplate>

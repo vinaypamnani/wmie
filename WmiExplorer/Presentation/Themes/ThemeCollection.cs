@@ -77,6 +77,16 @@ public static class ThemeCollection
         }
     };
 
+    // Immutable default themes for restoring
+    public static readonly Theme DefaultDarkTheme = new Theme("Dark_Default")
+    {
+        ThemeColors = new Dictionary<string, Color>(DarkTheme.ThemeColors)
+    };
+    public static readonly Theme DefaultLightTheme = new Theme("Light_Default")
+    {
+        ThemeColors = new Dictionary<string, Color>(LightTheme.ThemeColors)
+    };
+
     /// <summary>
     /// Dictionary of all available themes for easy lookup and modification
     /// </summary>

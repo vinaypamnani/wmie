@@ -23,6 +23,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     private Theme _currentTheme = null!;
 
     [ObservableProperty]
+    private string _currentThemeName = string.Empty;
+
+    [ObservableProperty]
     private string _elapsedTimeMessage = string.Empty;
 
     [ObservableProperty]
@@ -39,9 +42,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
-
-    [ObservableProperty]
-    private string _themeToggleText = string.Empty;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
@@ -229,6 +229,23 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Command to reset both Light and Dark themes (preserving accent colors) and refresh the current theme.
+    /// </summary>
+    [RelayCommand]
+    private void ResetTheme()
+    {
+        try
+        {
+            _themeManager.ResetThemesPreservingAccentsAndRefresh();
+            Log.Information("Theme colors have been reset to defaults (accents preserved).");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to reset themes to default. Remove %appdata%\\WmiExplorer\\themes.json file manually.");
+        }
+    }
+
+    /// <summary>
     /// Command to toggle between light and dark theme
     /// </summary>
     [RelayCommand]
@@ -256,6 +273,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     private void UpdateThemeProperties()
     {
         CurrentTheme = _themeManager.CurrentTheme!;
-        ThemeToggleText = _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
+        CurrentThemeName = _themeManager.CurrentThemeName == "Dark" ? "Dark" : "Light";
+        // CurrentThemeName = _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
     }
 }

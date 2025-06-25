@@ -215,6 +215,16 @@ public partial class ThemeManager : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Resets both Light and Dark themes (preserving accent colors) and refreshes the current theme.
+    /// Intended for Help -> Reset Theme menu action.
+    /// </summary>
+    public void ResetThemesPreservingAccentsAndRefresh()
+    {
+        ResetAllThemesToDefaultsPreservingAccents();
+        ApplyTheme(CurrentThemeName); // Refresh UI
+    }
+
     public static void SaveThemesToFile()
     {
         var themesToSave = ThemeCollection.Themes.ToDictionary(
@@ -256,5 +266,50 @@ public partial class ThemeManager : ObservableObject
             SaveThemesToFile();
             ApplyTheme(CurrentThemeName); // Refresh theme
         }
+    }
+
+    /// <summary>
+    /// Resets both Light and Dark themes to their defaults, preserving accent colors.
+    /// </summary>
+    private static void ResetAllThemesToDefaultsPreservingAccents()
+    {
+        ResetThemeColorsPreservingAccents(ThemeCollection.DarkTheme.ThemeName);
+        ResetThemeColorsPreservingAccents(ThemeCollection.LightTheme.ThemeName);
+        SaveThemesToFile();
+    }
+
+    /// <summary>
+    /// Resets all theme colors for the specified theme except for primary/secondary accent colors.
+    /// </summary>
+    /// <param name="themeName">The name of the theme to reset.</param>
+    private static void ResetThemeColorsPreservingAccents(string themeName)
+    {
+        if (!ThemeCollection.Themes.TryGetValue(themeName, out var theme))
+            return;
+
+        // Define the keys to preserve
+        var preserveKeys = new[] { "PrimaryAccentColor", "SecondaryAccentColor" };
+        var preserved = theme.ThemeColors
+            .Where(kvp => preserveKeys.Contains(kvp.Key))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        // Use immutable defaults for true reset
+        var defaultColors = themeName == ThemeCollection.DarkTheme.ThemeName
+            ? ThemeCollection.DefaultDarkTheme.ThemeColors
+            : ThemeCollection.DefaultLightTheme.ThemeColors;
+
+        // Clear and repopulate the dictionary to preserve reference
+        theme.ThemeColors.Clear();
+        foreach (var kvp in defaultColors)
+        {
+            if (!preserveKeys.Contains(kvp.Key))
+                theme.ThemeColors[kvp.Key] = kvp.Value;
+        }
+        // Restore preserved accent colors
+        foreach (var kvp in preserved)
+            theme.ThemeColors[kvp.Key] = kvp.Value;
+
+        // Regenerate brushes to reflect new colors
+        theme.RegenerateBrushes();
     }
 }

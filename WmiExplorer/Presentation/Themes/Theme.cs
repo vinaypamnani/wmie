@@ -100,6 +100,11 @@ public partial class Theme : DisposableObservableObject
         return brushes;
     }
 
+    public void RegenerateBrushes()
+    {
+        ThemeBrushes = CreateThemeBrushes(ThemeColors);
+    }
+
     // Darken a color by a percentage
     private static Color DarkenColor(Color color, double amount)
     {
@@ -153,10 +158,5 @@ public partial class Theme : DisposableObservableObject
     partial void OnThemeColorsChanged(Dictionary<string, Color> value)
     {
         RegenerateBrushes();
-    }
-
-    private void RegenerateBrushes()
-    {
-        ThemeBrushes = CreateThemeBrushes(ThemeColors);
     }
 }
