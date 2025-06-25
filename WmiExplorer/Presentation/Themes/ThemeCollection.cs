@@ -7,6 +7,36 @@ namespace WmiExplorer.Presentation.Themes;
 /// </summary>
 public static class ThemeCollection
 {
+    // Immutable default themes for restoring
+    public static readonly Theme DefaultDarkTheme;
+
+    public static readonly Theme DefaultLightTheme;
+
+    /// <summary>
+    /// Dictionary of all available themes for easy lookup and modification
+    /// </summary>
+    private static readonly Dictionary<string, Theme> _themes;
+
+    static ThemeCollection()
+    {
+        // Ensure DarkTheme and LightTheme are initialized before using them
+        DefaultDarkTheme = new Theme("Dark_Default")
+        {
+            ThemeColors = new Dictionary<string, Color>(DarkTheme.ThemeColors)
+        };
+
+        DefaultLightTheme = new Theme("Light_Default")
+        {
+            ThemeColors = new Dictionary<string, Color>(LightTheme.ThemeColors)
+        };
+
+        _themes = new Dictionary<string, Theme>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Dark"] = DarkTheme,
+            ["Light"] = LightTheme
+        };
+    }
+
     /// <summary>
     /// Dark theme with refined dark palette for better depth and readability
     /// </summary>
@@ -43,6 +73,11 @@ public static class ThemeCollection
     };
 
     /// <summary>
+    /// Gets the default theme (Dark theme)
+    /// </summary>
+    public static Theme Default => DarkTheme;
+
+    /// <summary>
     /// Light theme with clean whites and modern blue accents
     /// </summary>
     public static Theme LightTheme { get; } = new Theme("Light")
@@ -77,34 +112,15 @@ public static class ThemeCollection
         }
     };
 
-    // Immutable default themes for restoring
-    public static readonly Theme DefaultDarkTheme = new Theme("Dark_Default")
-    {
-        ThemeColors = new Dictionary<string, Color>(DarkTheme.ThemeColors)
-    };
-    public static readonly Theme DefaultLightTheme = new Theme("Light_Default")
-    {
-        ThemeColors = new Dictionary<string, Color>(LightTheme.ThemeColors)
-    };
-
     /// <summary>
-    /// Dictionary of all available themes for easy lookup and modification
+    /// Gets all available theme names
     /// </summary>
-    private static readonly Dictionary<string, Theme> _themes = new Dictionary<string, Theme>(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Dark"] = DarkTheme,
-        ["Light"] = LightTheme
-    };
+    public static IEnumerable<string> ThemeNames => _themes.Keys;
 
     /// <summary>
     /// Gets the modifiable theme dictionary for runtime access
     /// </summary>
     public static Dictionary<string, Theme> Themes => _themes;
-
-    /// <summary>
-    /// Gets all available theme names
-    /// </summary>
-    public static IEnumerable<string> ThemeNames => _themes.Keys;
 
     /// <summary>
     /// Gets a theme by name, returns Dark theme as fallback
@@ -125,9 +141,4 @@ public static class ThemeCollection
     {
         return _themes.ContainsKey(themeName);
     }
-
-    /// <summary>
-    /// Gets the default theme (Dark theme)
-    /// </summary>
-    public static Theme Default => DarkTheme;
 }
