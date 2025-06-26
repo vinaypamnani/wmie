@@ -7,6 +7,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="450"
              d:DesignWidth="800"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -15,6 +16,7 @@
         </Grid.RowDefinitions>
 
         <TextBox Grid.Row="0"
+                 Margin="4,4,0,4"
                  VerticalAlignment="Center"
                  Style="{StaticResource TextBoxWithClearButton}"
                  Tag="Filter Instances..."
@@ -23,7 +25,6 @@
         <ListView Grid.Row="1"
                   behaviors:ListViewAutoScrollBehavior.AutoScroll="False"
                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance}"
-                  BorderThickness="0"
                   ItemsSource="{Binding SelectionManager.SelectedNamespace.SelectedClass.InstancesView}"
                   SelectedItem="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance}"
                   SelectionMode="Single"
@@ -70,7 +71,7 @@
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="Execute Methods" />
-                                            <TextBlock Margin="4,0,0,0" Text="{Binding InstanceMethods.Count, StringFormat='[{0}]'}" />
+                                            <TextBlock Text="{Binding InstanceMethods.Count, StringFormat='[{0}]'}" />
                                         </StackPanel>
                                     </MenuItem.Header>
                                     <MenuItem.Icon>
@@ -104,14 +105,12 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <Grid Width="16" Height="16" Margin="{StaticResource MarginTiny}">
-                            <Ellipse Width="10"
-                                     Height="10"
-                                     RenderTransformOrigin="0.5,0.5"
-                                     Style="{DynamicResource StatusIndicatorStyle}" />
-                        </Grid>
-                        <TextBlock Margin="{StaticResource MarginTiny}" Text="{Binding InstanceName}" />
+                    <StackPanel Margin="4,1,0,1" Orientation="Horizontal">
+                        <Ellipse Width="10"
+                                 Height="10"
+                                 RenderTransformOrigin="0.5,0.5"
+                                 Style="{DynamicResource StatusIndicatorStyle}" />
+                        <TextBlock Text="{Binding InstanceName}" />
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

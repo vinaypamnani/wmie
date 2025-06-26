@@ -1,9 +1,9 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--  Status Indicator Style  -->
     <Style x:Key="StatusIndicatorStyle" TargetType="Ellipse">
-        <Setter Property="Width" Value="{StaticResource SpacingSmall}" />
-        <Setter Property="Height" Value="{StaticResource SpacingSmall}" />
-        <Setter Property="Margin" Value="{StaticResource MarginTiny}" />
+        <Setter Property="Width" Value="{DynamicResource SpacingSmall}" />
+        <Setter Property="Height" Value="{DynamicResource SpacingSmall}" />
+        <Setter Property="Margin" Value="{DynamicResource MarginRightMedium}" />
         <Setter Property="Fill" Value="{DynamicResource BorderBrush}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding LoadState}" Value="Loading">
@@ -23,15 +23,18 @@
 
     <!--  Letter Icon Template for reusable icon indicators  -->
     <ControlTemplate x:Key="LetterIconTemplate" TargetType="ContentControl">
-        <Border Width="16" Height="16" Background="{TemplateBinding Background}" CornerRadius="2">
-            <!-- Uses PrimaryBackgroundBrush for Foreground intentionally to inverse for better contrast -->
-            <TextBlock Text="{TemplateBinding Content}"
+        <Border Width="16"
+                Height="16"
+                Background="{TemplateBinding Background}"
+                CornerRadius="2">
+            <!--  Uses PrimaryBackgroundBrush for Foreground intentionally to inverse for better contrast  -->
+            <TextBlock HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
                        FontFamily="Segoe UI"
                        FontSize="11"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource PrimaryBackgroundBrush}"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
+                       Text="{TemplateBinding Content}" />
         </Border>
     </ControlTemplate>
 </ResourceDictionary>

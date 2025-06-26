@@ -7,6 +7,7 @@
              xmlns:models="clr-namespace:WmiExplorer.Common.Models"
              d:DesignHeight="600"
              d:DesignWidth="600"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
     <Grid x:Name="LogGrid">
@@ -18,7 +19,7 @@
         <!--  Log Controls GroupBox  -->
         <GroupBox Grid.Row="0" HorizontalContentAlignment="Stretch" Header="Log Controls">
 
-            <Grid Margin="0,8,0,0">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -26,20 +27,16 @@
                 </Grid.ColumnDefinitions>
                 <!--  Log Options  -->
                 <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                    <TextBlock Margin="0,0,5,0" VerticalAlignment="Center" Text="Configure Log Level:" />
+                    <TextBlock Margin="{DynamicResource MarginRightMedium}" VerticalAlignment="Center" Text="Configure Log Level:" />
 
                     <ComboBox Width="120"
-                              Margin="0,0,12,0"
                               ItemsSource="{Binding AvailableLogLevels}"
                               SelectedItem="{Binding MinimumLogLevel}"
                               ToolTip="Sets the minimum log level that will be captured by the application" />
 
-                    <CheckBox Margin="0,0,12,0"
-                              VerticalAlignment="Center"
-                              Content="Auto-scroll"
-                              IsChecked="{Binding AutoScroll}" />
+                    <CheckBox VerticalAlignment="Center" Content="Auto-scroll" IsChecked="{Binding AutoScroll}" />
 
-                    <TextBlock Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock VerticalAlignment="Center">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="Entries: {0}">
                                 <Binding Path="LogEntries.Count" />
@@ -62,7 +59,6 @@
 
         <!--  Log Entries GroupBox  -->
         <GroupBox Grid.Row="1"
-                  Margin="8"
                   HorizontalContentAlignment="Stretch"
                   VerticalContentAlignment="Stretch"
                   Header="Log Entries">
@@ -73,7 +69,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <!--  Filter Controls  -->
-                <Grid Grid.Row="0" Margin="4,4,4,4">
+                <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -82,13 +78,12 @@
 
                     <TextBox Grid.Column="0"
                              Height="26"
-                             Margin="0,0,8,0"
                              Style="{StaticResource TextBoxWithClearButton}"
                              Tag="Search logs..."
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock Grid.Column="1"
-                               Margin="0,0,5,0"
+                               Margin="{DynamicResource MarginRightMedium}"
                                VerticalAlignment="Center"
                                Text="Filter:" />
 
@@ -101,7 +96,6 @@
                 <!--  Log Entries DataGrid  -->
                 <DataGrid x:Name="LogEntriesDataGrid"
                           Grid.Row="1"
-                          Margin="0"
                           ItemsSource="{Binding FilteredLogsView}"
                           SelectedItem="{Binding SelectedLogEntry, Mode=TwoWay}"
                           Style="{StaticResource ModernDataGridStyle}">
@@ -183,10 +177,11 @@
 
                 <!--  Exception Details Panel  -->
                 <Expander Grid.Row="2"
-                          Margin="4,4,4,0"
-                          Background="{DynamicResource SecondaryBackgroundBrush}"
+                          Margin="0,4,0,0"
+                          Padding="{DynamicResource PaddingSmall}"
+                          Background="{DynamicResource PrimaryBackgroundBrush}"
                           BorderBrush="{DynamicResource BorderBrush}"
-                          BorderThickness="0,1,0,0"
+                          BorderThickness="0"
                           Header="Exception Details"
                           IsExpanded="True">
 
@@ -201,17 +196,10 @@
                         </Style>
                     </Expander.Style>
 
-                    <ScrollViewer MaxHeight="200"
-                                  Margin="4"
-                                  HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Auto">
-
-                        <TextBox AcceptsReturn="True"
-                                 Background="Transparent"
-                                 BorderThickness="0"
+                    <ScrollViewer MaxHeight="200" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <TextBox Background="Transparent"
                                  FontFamily="Consolas, Courier New, Monospace"
                                  FontSize="11"
-                                 Foreground="{DynamicResource PrimaryForegroundBrush}"
                                  IsReadOnly="True"
                                  Text="{Binding SelectedLogEntry.Exception, Mode=OneWay}"
                                  TextWrapping="Wrap" />

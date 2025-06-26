@@ -3,7 +3,7 @@
     <!--  DataGrid Cell Style  -->
     <Style x:Key="ModernDataGridCellStyle" TargetType="DataGridCell">
         <Setter Property="Padding" Value="{DynamicResource PaddingTiny}" />
-        <Setter Property="Margin" Value="8,0,0,0" />
+        <Setter Property="Margin" Value="{DynamicResource MarginHorizontalSmall}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
@@ -24,7 +24,7 @@
 
     <!--  DataGrid Row Style  -->
     <Style x:Key="ModernDataGridRowStyle" TargetType="DataGridRow">
-        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
         <Style.Triggers>
@@ -48,12 +48,12 @@
 
     <!--  DataGrid Column Header Style  -->
     <Style x:Key="ModernDataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="Height" Value="24" />
-        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Padding" Value="{DynamicResource MarginHorizontalSmall}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,1,1" />
+        <Setter Property="BorderThickness" Value="0,0,1,0" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="Template">
             <Setter.Value>
@@ -70,7 +70,7 @@
                         <Path x:Name="SortArrow"
                               Width="10"
                               Height="10"
-                              Margin="0,0,8,0"
+                              Margin="{DynamicResource MarginRightMedium}"
                               HorizontalAlignment="Right"
                               VerticalAlignment="Center"
                               Data="M 0,0 L 5,5 L 10,0"
@@ -111,6 +111,9 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
                         </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource SecondaryAccentBrush}" />
+                        </Trigger>
                         <!--  Sort Arrow Direction - Modern Chevron Style  -->
                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=SortDirection}" Value="Descending">
                             <Setter TargetName="SortArrow" Property="Visibility" Value="Visible" />
@@ -138,6 +141,7 @@
     <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
         <Setter Property="AutoGenerateColumns" Value="False" />
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Margin" Value="{DynamicResource MarginSmall}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CanUserAddRows" Value="False" />
         <Setter Property="CanUserDeleteRows" Value="False" />
@@ -147,13 +151,15 @@
         <Setter Property="CanUserSortColumns" Value="True" />
         <Setter Property="EnableColumnVirtualization" Value="True" />
         <Setter Property="EnableRowVirtualization" Value="True" />
-        <Setter Property="GridLinesVisibility" Value="Horizontal" />
+        <Setter Property="GridLinesVisibility" Value="None" />
         <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="IsReadOnly" Value="True" />
         <Setter Property="RowHeaderWidth" Value="0" />
         <Setter Property="SelectionMode" Value="Extended" />
         <Setter Property="SelectionUnit" Value="FullRow" />
         <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
         <Setter Property="CellStyle" Value="{StaticResource ModernDataGridCellStyle}" />
         <Setter Property="RowStyle" Value="{StaticResource ModernDataGridRowStyle}" />
         <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModernDataGridColumnHeaderStyle}" />
@@ -166,7 +172,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}">
                         <ScrollViewer x:Name="PART_ScrollViewer"
                                       Padding="{TemplateBinding Padding}"
-                                      Background="{DynamicResource SecondaryBackgroundBrush}"
+                                      Background="{DynamicResource PrimaryBackgroundBrush}"
                                       CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
                                       HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
                                       VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">

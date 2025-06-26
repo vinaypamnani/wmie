@@ -73,8 +73,8 @@
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,1,1" />
-        <Setter Property="Padding" Value="{StaticResource PaddingLarge}" />
+        <Setter Property="BorderThickness" Value="0,0,1,0" />
+        <Setter Property="Padding" Value="{StaticResource PaddingSmall}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
@@ -95,7 +95,7 @@
                                   Grid.Column="1"
                                   Width="10"
                                   Height="10"
-                                  Margin="0,0,8,0"
+                                  Margin="{DynamicResource MarginRightMedium}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center"
                                   Data="M 0,0 L 5,5 L 10,0"
@@ -107,8 +107,8 @@
                                   Visibility="Collapsed" />
                             <Thumb x:Name="PART_HeaderGripper"
                                    Grid.Column="1"
-                                   Width="{StaticResource SpacingLarge}"
-                                   Margin="0,0,-3,0"
+                                   Width="{DynamicResource SpacingLarge}"
+                                   Margin="0,0,-2,0"
                                    HorizontalAlignment="Right"
                                    Cursor="SizeWE"
                                    Opacity="0" />
@@ -151,7 +151,8 @@
     <Style x:Key="ModernGridListViewStyle" TargetType="{x:Type ListView}">
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Margin" Value="{DynamicResource MarginSmall}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
@@ -179,7 +180,7 @@
                                           VerticalScrollBarVisibility="Disabled">
                                 <!--  Wrap in a border to provide the background  -->
                                 <Border Background="{DynamicResource SecondaryBackgroundBrush}">
-                                    <GridViewHeaderRowPresenter Margin="{StaticResource MarginHorizontalTiny}" ColumnHeaderContainerStyle="{DynamicResource ModernGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    <GridViewHeaderRowPresenter ColumnHeaderContainerStyle="{DynamicResource ModernGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </Border>
                             </ScrollViewer>
 

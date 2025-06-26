@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="450"
              d:DesignWidth="800"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -14,10 +15,7 @@
         </Grid.RowDefinitions>
 
         <!--  Search Criteria GroupBox  -->
-        <GroupBox Grid.Row="0"
-                  Margin="8"
-                  HorizontalContentAlignment="Stretch"
-                  Header="Search Criteria">
+        <GroupBox Grid.Row="0" HorizontalContentAlignment="Stretch" Header="Search Criteria">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -29,10 +27,10 @@
                 </Grid.ColumnDefinitions>
 
                 <!--  Help Text  -->
-                <TextBlock Grid.Row="0" Margin="4,4,4,4" Text="Select what to search and enter a search term. Use Recursive for deep search." />
+                <TextBlock Grid.Row="0" Margin="4,4,4,0" Text="Select what to search and enter a search term. Use Recursive for deep search." />
 
                 <!--  Search Controls Row  -->
-                <Grid Grid.Row="1" Margin="4,0,0,4">
+                <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <!--  Classes  -->
@@ -50,19 +48,16 @@
                         <!--  Cancel Button  -->
                     </Grid.ColumnDefinitions>
                     <RadioButton Grid.Column="0"
-                                 Margin="0,0,8,0"
                                  VerticalAlignment="Center"
                                  Content="Classes"
                                  GroupName="SearchType"
                                  IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static enums:WmiSearchType.Class}}" />
                     <RadioButton Grid.Column="1"
-                                 Margin="0,0,8,0"
                                  VerticalAlignment="Center"
                                  Content="Methods"
                                  GroupName="SearchType"
                                  IsChecked="{Binding SearchType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static enums:WmiSearchType.Method}}" />
                     <RadioButton Grid.Column="2"
-                                 Margin="0,0,16,0"
                                  VerticalAlignment="Center"
                                  Content="Properties"
                                  GroupName="SearchType"
@@ -70,7 +65,6 @@
                     <TextBox Grid.Column="3"
                              Height="26"
                              MinWidth="120"
-                             Margin="0,0,8,0"
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Center"
                              Style="{StaticResource TextBoxWithClearButton}"
@@ -81,7 +75,6 @@
                         </TextBox.InputBindings>
                     </TextBox>
                     <CheckBox Grid.Column="4"
-                              Margin="0,0,8,0"
                               VerticalAlignment="Center"
                               Content="Recursive"
                               IsChecked="{Binding Recursive}" />
@@ -94,7 +87,6 @@
                     <Button Grid.Column="6"
                             Width="64"
                             Height="26"
-                            Margin="4,0,8,0"
                             Command="{Binding CancelSearchCommand}"
                             Content="Cancel"
                             IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}" />
@@ -102,16 +94,15 @@
 
                 <!--  Note Text  -->
                 <TextBlock Grid.Row="2"
-                           Margin="4,0,4,4"
-                           FontWeight="Bold"
-                           Foreground="OrangeRed"
-                           Text="NOTE: Search can take a long time depending on scope and recursion." />
+                           Margin="{DynamicResource MarginHorizontalSmall}"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource BaseRedBrush}"
+                           Text="NOTE: Search can take a long time depending on namespace and recursion." />
             </Grid>
         </GroupBox>
 
         <!--  Results GroupBox  -->
         <GroupBox Grid.Row="1"
-                  Margin="8"
                   HorizontalContentAlignment="Stretch"
                   VerticalContentAlignment="Stretch"
                   Header="Search Results">
@@ -121,14 +112,13 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <!--  Filter TextBox and Clear Button  -->
-                <Grid Grid.Row="0" Margin="4,4,4,4">
+                <Grid Grid.Row="0" Margin="0,4,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0"
                              Height="26"
-                             Margin="0,0,8,0"
                              Style="{StaticResource TextBoxWithClearButton}"
                              Tag="Filter results..."
                              Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" />
@@ -140,15 +130,13 @@
                 </Grid>
                 <!--  Results ListView  -->
                 <ListView Grid.Row="1"
-                          Margin="0"
-                          BorderThickness="0"
                           ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
                           ItemsSource="{Binding ResultsView}"
                           SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                           Style="{StaticResource ModernGridListViewStyle}">
                     <ListView.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{Binding JumpToClassCommand}" Header="Jump to class">
+                            <MenuItem Command="{Binding JumpToClassCommand}" Header="Go to Class">
                                 <MenuItem.Icon>
                                     <ContentControl ContentTemplate="{StaticResource JumpToIconTemplate}" />
                                 </MenuItem.Icon>

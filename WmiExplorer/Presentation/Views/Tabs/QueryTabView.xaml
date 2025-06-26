@@ -7,6 +7,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="450"
              d:DesignWidth="800"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
     <Grid x:Name="QueryGrid">
         <Grid.RowDefinitions>
@@ -16,28 +17,20 @@
         <!--  Query GroupBox  -->
         <GroupBox Grid.Row="0" HorizontalContentAlignment="Stretch" Header="Query">
             <DockPanel LastChildFill="True">
-                <Grid Margin="0,8,0,0" DockPanel.Dock="Bottom">
+                <Grid DockPanel.Dock="Bottom">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <!--  Query Options  -->
-                    <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                        <CheckBox Margin="0,0,12,0"
-                                  Content="DirectRead"
-                                  IsChecked="{Binding DirectRead}"
-                                  ToolTip="{StaticResource Tooltip.Query.DirectAccess}" />
-                        <CheckBox Margin="0,0,12,0"
-                                  Content="UseAmendedQualifiers"
-                                  IsChecked="{Binding UseAmendedQualifiers}"
-                                  ToolTip="{StaticResource Tooltip.Query.UseAmendedQualifiers}" />
-                    </WrapPanel>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <CheckBox Content="DirectRead" IsChecked="{Binding DirectRead}" ToolTip="{StaticResource Tooltip.Query.DirectAccess}" />
+                        <CheckBox Content="UseAmendedQualifiers" IsChecked="{Binding UseAmendedQualifiers}" ToolTip="{StaticResource Tooltip.Query.UseAmendedQualifiers}" />
+                    </StackPanel>
                     <!--  Action Buttons  -->
                     <Button Grid.Column="1"
                             Width="90"
-                            Height="30"
-                            Margin="8,0,8,0"
                             Command="{Binding ExecuteQueryCommand}"
                             Content="Execute"
                             IsDefault="True"
@@ -45,8 +38,6 @@
                             ToolTip="{StaticResource Tooltip.Query.Execute}" />
                     <Button Grid.Column="2"
                             Width="90"
-                            Height="30"
-                            Margin="0,0,0,0"
                             Command="{Binding CancelQueryCommand}"
                             Content="Cancel"
                             IsEnabled="{Binding Converter={StaticResource NullToBoolConverter}}"
@@ -54,13 +45,13 @@
                 </Grid>
 
                 <!--  Query Editor  -->
-                <Border BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1"
+                <Border Margin="4"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0"
                         CornerRadius="2"
                         DockPanel.Dock="Top">
                     <avalonedit:TextEditor MinHeight="80"
-                                           Margin="0"
-                                           Padding="4"
+                                           Padding="0,4,0,0"
                                            avalonbehaviors:AvalonEditCompletionBehavior.CacheService="{Binding CacheService}"
                                            avalonbehaviors:AvalonEditCompletionBehavior.EnableCompletion="True"
                                            avalonbehaviors:AvalonEditCompletionBehavior.Namespace="{Binding SelectionManager.SelectedNamespace.NamespacePath}"
@@ -83,7 +74,6 @@
 
         <!--  Results GroupBox  -->
         <GroupBox Grid.Row="1"
-                  Margin="8"
                   HorizontalContentAlignment="Stretch"
                   VerticalContentAlignment="Stretch"
                   Header="Query Results">
@@ -94,14 +84,13 @@
                 </Grid.RowDefinitions>
 
                 <!--  Filter TextBox  -->
-                <Grid Grid.Row="0" Margin="4,4,4,4">
+                <Grid Grid.Row="0" Margin="0,4,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0"
                              Height="26"
-                             Margin="0,0,8,0"
                              Style="{StaticResource TextBoxWithClearButton}"
                              Tag="Filter results..."
                              Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
@@ -109,7 +98,6 @@
 
                     <Button Grid.Column="1"
                             Width="80"
-                            Height="26"
                             Command="{Binding ClearResultsCommand}"
                             Content="Clear Results"
                             ToolTip="{StaticResource Tooltip.Query.ClearResults}" />
@@ -117,7 +105,7 @@
                 <!--  Results DataGrid  -->
                 <DataGrid x:Name="ResultsDataGrid"
                           Grid.Row="1"
-                          Margin="0"
+                          Background="{DynamicResource PrimaryBackgroundBrush}"
                           ItemsSource="{Binding ResultsView}"
                           SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                           Style="{StaticResource ModernDataGridStyle}">

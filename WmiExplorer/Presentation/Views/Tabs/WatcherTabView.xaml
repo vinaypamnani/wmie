@@ -7,6 +7,7 @@
              x:Name="ThisControl"
              d:DesignHeight="600"
              d:DesignWidth="1000"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
     <Grid>
@@ -19,7 +20,7 @@
 
         <Grid Grid.Row="0">
 
-            <GroupBox HorizontalContentAlignment="Stretch" BorderThickness="1" Header="Event Query Builder">
+            <GroupBox Margin="2" HorizontalContentAlignment="Stretch" Header="Event Query Builder">
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -35,7 +36,7 @@
                         <StackPanel Orientation="Horizontal">
                             <!--  Event Class  -->
                             <GroupBox Margin="0" Header="Event Type">
-                                <ComboBox Width="200"
+                                <ComboBox Width="180"
                                           Height="26"
                                           IsEditable="True"
                                           IsTextSearchEnabled="True"
@@ -43,20 +44,9 @@
                                           SelectedItem="{Binding EventQueryBuilder.EventClass, UpdateSourceTrigger=PropertyChanged}"
                                           ToolTip="{StaticResource Tooltip.Watcher.EventType}" />
                             </GroupBox>
-                            <!--  Within (sec)  -->
-                            <GroupBox Margin="0" Header="Within (sec)">
-                                <TextBox Width="40"
-                                         Height="26"
-                                         HorizontalContentAlignment="Center"
-                                         Style="{StaticResource TextBoxWithPlaceholder}"
-                                         Tag="Seconds..."
-                                         IsEnabled="{Binding EventQueryBuilder.IsWithinEnabled}"
-                                         Text="{Binding EventQueryBuilder.EventWithin, UpdateSourceTrigger=PropertyChanged}"
-                                         ToolTip="{StaticResource Tooltip.Watcher.Within}" />
-                            </GroupBox>
                             <!--  Event Property  -->
                             <GroupBox Margin="0" Header="Event Property">
-                                <ComboBox Width="200"
+                                <ComboBox Width="180"
                                           Height="26"
                                           DisplayMemberPath="Display"
                                           IsEditable="True"
@@ -71,11 +61,22 @@
                                 <TextBox Width="180"
                                          Height="26"
                                          HorizontalContentAlignment="Left"
+                                         IsEnabled="{Binding EventQueryBuilder.IsEventPropertyValueEnabled}"
                                          Style="{StaticResource TextBoxWithPlaceholder}"
                                          Tag="Event Property Value..."
-                                         IsEnabled="{Binding EventQueryBuilder.IsEventPropertyValueEnabled}"
                                          Text="{Binding EventQueryBuilder.EventPropertyValue, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="{StaticResource Tooltip.Watcher.EventPropertyValue}" />
+                            </GroupBox>
+                            <!--  Within (sec)  -->
+                            <GroupBox Margin="0" Header="Within (sec)">
+                                <TextBox Width="40"
+                                         Height="26"
+                                         HorizontalContentAlignment="Center"
+                                         IsEnabled="{Binding EventQueryBuilder.IsWithinEnabled}"
+                                         Style="{StaticResource TextBoxWithPlaceholder}"
+                                         Tag="Seconds..."
+                                         Text="{Binding EventQueryBuilder.EventWithin, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="{StaticResource Tooltip.Watcher.Within}" />
                             </GroupBox>
                         </StackPanel>
                         <DockPanel LastChildFill="False">
@@ -108,9 +109,9 @@
                                 <TextBox Width="180"
                                          Height="26"
                                          HorizontalContentAlignment="Left"
+                                         IsEnabled="{Binding EventQueryBuilder.IsEventTargetClassPropertyValueEnabled}"
                                          Style="{StaticResource TextBoxWithPlaceholder}"
                                          Tag="Target Class Property Value..."
-                                         IsEnabled="{Binding EventQueryBuilder.IsEventTargetClassPropertyValueEnabled}"
                                          Text="{Binding EventQueryBuilder.EventTargetClassPropertyValue, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="{StaticResource Tooltip.Watcher.TargetClassPropertyValue}" />
                             </GroupBox>
@@ -144,7 +145,6 @@
                             <!--  Custom Event Query CheckBox  -->
                             <CheckBox x:Name="OverrideQueryCheckBox"
                                       Grid.Column="0"
-                                      Margin="4,4,4,4"
                                       VerticalAlignment="Center"
                                       Content="Custom"
                                       IsChecked="{Binding IsCustomQuery}"
@@ -153,10 +153,10 @@
                             <TextBox Grid.Column="1"
                                      Height="28"
                                      VerticalContentAlignment="Center"
-                                     Style="{StaticResource TextBoxWithPlaceholder}"
-                                     Tag="Auto-generated event query..."
                                      AcceptsReturn="True"
                                      IsReadOnly="{Binding IsQueryReadOnly}"
+                                     Style="{StaticResource TextBoxWithPlaceholder}"
+                                     Tag="Auto-generated event query..."
                                      Text="{Binding EventQueryBuilder.EventQuery, UpdateSourceTrigger=PropertyChanged}"
                                      TextWrapping="Wrap"
                                      ToolTip="{StaticResource Tooltip.Watcher.EventQuery}" />
@@ -191,24 +191,23 @@
                 </Grid.RowDefinitions>
 
                 <GroupBox Grid.Row="0"
-                          Margin="4"
                           HorizontalContentAlignment="Stretch"
                           VerticalContentAlignment="Stretch"
                           Header="Event Watchers">
-                    <DockPanel>
+                    <DockPanel Margin="0,4,0,0">
                         <StackPanel HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal">
                             <Button Width="80"
-                                    Height="28"
+                                    Height="26"
                                     Command="{Binding StartAllWatchersCommand}"
                                     Content="Start All"
                                     ToolTip="{StaticResource Tooltip.Watcher.StartAll}" />
                             <Button Width="80"
-                                    Height="28"
+                                    Height="26"
                                     Command="{Binding StopAllWatchersCommand}"
                                     Content="Stop All"
                                     ToolTip="{StaticResource Tooltip.Watcher.StopAll}" />
                             <Button Width="80"
-                                    Height="28"
+                                    Height="26"
                                     Command="{Binding RemoveAllWatchersCommand}"
                                     Content="Remove All"
                                     DockPanel.Dock="Right"
@@ -216,7 +215,6 @@
 
                         </StackPanel>
                         <ListView Height="Auto"
-                                  Margin="{StaticResource MarginTiny}"
                                   BorderThickness="0"
                                   ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
                                   ItemsSource="{Binding Watchers}"
@@ -229,25 +227,22 @@
                                     <GridViewColumn Width="50" Header="State">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
-                                                    <!--  Status  -->
-                                                    <Ellipse Width="12"
-                                                             Height="12"
-                                                             Margin="6,0,6,0"
-                                                             HorizontalAlignment="Center"
-                                                             VerticalAlignment="Center">
-                                                        <Ellipse.Style>
-                                                            <Style TargetType="Ellipse">
-                                                                <Setter Property="Fill" Value="{DynamicResource BaseRedBrush}" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                                        <Setter Property="Fill" Value="{DynamicResource BaseGreenBrush}" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Ellipse.Style>
-                                                    </Ellipse>
-                                                </StackPanel>
+                                                <!--  Status  -->
+                                                <Ellipse Width="12"
+                                                         Height="12"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center">
+                                                    <Ellipse.Style>
+                                                        <Style TargetType="Ellipse">
+                                                            <Setter Property="Fill" Value="{DynamicResource BaseRedBrush}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                                    <Setter Property="Fill" Value="{DynamicResource BaseGreenBrush}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Ellipse.Style>
+                                                </Ellipse>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -256,13 +251,10 @@
                                             <DataTemplate>
                                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
                                                     <!--  Start/Stop Button  -->
-                                                    <Button Width="22"
-                                                            Height="22"
-                                                            Margin="0,0,6,0"
-                                                            Padding="0"
+                                                    <Button Width="12"
+                                                            Height="12"
                                                             VerticalAlignment="Center"
                                                             Background="Transparent"
-                                                            BorderThickness="0"
                                                             Command="{Binding StartCommand}"
                                                             ToolTip="Start"
                                                             Visibility="{Binding IsRunning, Converter={StaticResource InverseBooleanConverter}}">
@@ -274,10 +266,8 @@
                                                               Fill="{DynamicResource BaseGreenBrush}"
                                                               Stretch="Uniform" />
                                                     </Button>
-                                                    <Button Width="22"
-                                                            Height="22"
-                                                            Margin="0,0,6,0"
-                                                            Padding="0"
+                                                    <Button Width="12"
+                                                            Height="12"
                                                             VerticalAlignment="Center"
                                                             Background="Transparent"
                                                             BorderThickness="0"
@@ -292,9 +282,8 @@
                                                                    RadiusX="2"
                                                                    RadiusY="2" />
                                                     </Button>
-                                                    <Button Width="22"
-                                                            Height="22"
-                                                            Margin="0,0,0,0"
+                                                    <Button Width="12"
+                                                            Height="12"
                                                             Padding="0"
                                                             VerticalAlignment="Center"
                                                             Background="Transparent"
@@ -339,10 +328,7 @@
             </Grid>
 
             <!--  GridSplitter  -->
-            <GridSplitter Grid.Column="1"
-                          Margin="0"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Stretch" />
+            <GridSplitter Grid.Column="1" Margin="0,4,0,0" />
 
             <!--  Right Panel: Events  -->
             <Grid Grid.Column="2">
@@ -353,7 +339,6 @@
                 <GroupBox Grid.Row="1"
                           HorizontalContentAlignment="Stretch"
                           VerticalContentAlignment="Stretch"
-                          BorderThickness="1"
                           Header="Events">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -361,16 +346,15 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <DockPanel Grid.Row="0">
+                        <DockPanel Grid.Row="0" Margin="0,4,0,0">
                             <Button Width="100"
-                                    Height="28"
+                                    Height="26"
                                     Command="{Binding ClearEventsCommand}"
                                     Content="Clear Events"
                                     DockPanel.Dock="Right"
                                     ToolTip="{StaticResource Tooltip.Watcher.ClearEvents}" />
                             <ComboBox Height="26"
                                       MinWidth="150"
-                                      Margin="4"
                                       IsEditable="True"
                                       ItemsSource="{Binding WatcherNames}"
                                       SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -378,17 +362,14 @@
                         </DockPanel>
                         <!--  Filter TextBox for Events  -->
                         <TextBox Grid.Row="1"
-                                 Height="26"
-                                 Margin="4,4,4,4"
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"
                                  Tag="Filter Events..."
                                  Text="{Binding EventFilterText, UpdateSourceTrigger=PropertyChanged}"
                                  ToolTip="{StaticResource Tooltip.Watcher.FilterEvents}" />
                         <ListView Grid.Row="2"
-                                  Margin="0"
-                                  BorderThickness="0"
                                   IsSynchronizedWithCurrentItem="True"
+                                  ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
                                   ItemsSource="{Binding EventsView}"
                                   SelectedItem="{Binding SelectedEvent, Mode=TwoWay}"
                                   Style="{StaticResource ModernGridListViewStyle}"
@@ -428,9 +409,6 @@
                                     </GridViewColumn>
                                 </GridView>
                             </ListView.View>
-                            <ListView.ItemContainerStyle>
-                                <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="ListViewItem" />
-                            </ListView.ItemContainerStyle>
                         </ListView>
                     </Grid>
                 </GroupBox>

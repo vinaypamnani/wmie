@@ -4,6 +4,7 @@
     <Style TargetType="ComboBox">
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="Margin" Value="{StaticResource MarginSmall}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="{StaticResource PaddingSmall}" />
@@ -111,7 +112,7 @@
                                     BorderThickness="1"
                                     CornerRadius="3"
                                     SnapsToDevicePixels="True">
-                                <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                <ScrollViewer Margin="{DynamicResource MarginSmall}" SnapsToDevicePixels="True">
                                     <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                 </ScrollViewer>
                             </Border>

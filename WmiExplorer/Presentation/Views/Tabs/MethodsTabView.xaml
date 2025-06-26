@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="600"
              d:DesignWidth="800"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -16,98 +17,93 @@
         </Grid.RowDefinitions>
 
         <!--  Methods Filter  -->
-        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
-            <TextBox VerticalAlignment="Center"
-                     Style="{StaticResource TextBoxWithClearButton}"
-                     Tag="Filter Methods..."
-                     Text="{Binding MethodFilterText, UpdateSourceTrigger=PropertyChanged}" />
-        </DockPanel>
+        <TextBox Grid.Row="0"
+                 VerticalAlignment="Center"
+                 Style="{StaticResource TextBoxWithClearButton}"
+                 Tag="Filter Methods..."
+                 Text="{Binding MethodFilterText, UpdateSourceTrigger=PropertyChanged}" />
+
 
         <!--  Methods List with Status Area  -->
-        <GroupBox Grid.Row="1"
-                  Margin="{StaticResource MarginSmall}"
-                  HorizontalContentAlignment="Stretch"
-                  VerticalContentAlignment="Stretch"
-                  Header="Methods">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <!--  Methods DataGrid  -->
-                <DataGrid x:Name="MethodsDataGrid"
-                          Grid.Row="0"
-                          ItemsSource="{Binding FilteredMethodsView}"
-                          SelectedItem="{Binding SelectedMethod}"
-                          Style="{StaticResource ModernDataGridStyle}">
-                    <DataGrid.Columns>
-                        <!--  Method Type Indicator Column  -->
-                        <DataGridTemplateColumn Width="30" CanUserResize="False" Header="">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
-                                        <ContentControl.Style>
-                                            <Style TargetType="ContentControl">
-                                                <Setter Property="Background" Value="{DynamicResource BaseGreenBrush}" />
-                                                <Setter Property="Content" Value="I" />
-                                                <Setter Property="ToolTip" Value="Non-Static (Instance) Method" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsStatic}" Value="True">
-                                                        <Setter Property="Content" Value="C" />
-                                                        <Setter Property="Background" Value="{DynamicResource BaseBlueBrush}" />
-                                                        <Setter Property="ToolTip" Value="Static (Class) Method" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </ContentControl.Style>
-                                    </ContentControl>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
-                        <DataGridTextColumn Width="Auto" Binding="{Binding IsStatic, Mode=OneWay}" Header="Is Static" />
-                        <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
-                    </DataGrid.Columns>
-                    <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.ExecuteMethodCommand}" CommandParameter="{Binding SelectedMethod}" Header="Execute Method...">
-                                <MenuItem.Icon>
-                                    <ContentControl ContentTemplate="{StaticResource ExecMethodIconTemplate}" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-                </DataGrid>
 
-                <!--  Status Messages Area  -->
-                <Border Grid.Row="1"
-                        Margin="{StaticResource MarginSmall}"
-                        Background="{DynamicResource PrimaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="3">
-                    <StackPanel Margin="{StaticResource MarginSmall}" Orientation="Vertical">
-                        <!--  Dynamic Help Text  -->
-                        <TextBlock HorizontalAlignment="Center"
-                                   FontSize="14"
-                                   Opacity="0.7"
-                                   Text="{Binding HelpText}"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </GroupBox>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!--  Methods DataGrid  -->
+            <DataGrid x:Name="MethodsDataGrid"
+                      Grid.Row="0"
+                      ItemsSource="{Binding FilteredMethodsView}"
+                      SelectedItem="{Binding SelectedMethod}"
+                      Style="{StaticResource ModernDataGridStyle}">
+                <DataGrid.Columns>
+                    <!--  Method Type Indicator Column  -->
+                    <DataGridTemplateColumn Width="30" CanUserResize="False" Header="">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
+                                    <ContentControl.Style>
+                                        <Style TargetType="ContentControl">
+                                            <Setter Property="Background" Value="{DynamicResource BaseGreenBrush}" />
+                                            <Setter Property="Content" Value="I" />
+                                            <Setter Property="ToolTip" Value="Non-Static (Instance) Method" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsStatic}" Value="True">
+                                                    <Setter Property="Content" Value="C" />
+                                                    <Setter Property="Background" Value="{DynamicResource BaseBlueBrush}" />
+                                                    <Setter Property="ToolTip" Value="Static (Class) Method" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ContentControl.Style>
+                                </ContentControl>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
+                    <DataGridTextColumn Width="Auto" Binding="{Binding IsStatic, Mode=OneWay}" Header="Is Static" />
+                    <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.ExecuteMethodCommand}" CommandParameter="{Binding SelectedMethod}" Header="Execute Method...">
+                            <MenuItem.Icon>
+                                <ContentControl ContentTemplate="{StaticResource ExecMethodIconTemplate}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+
+            <!--  Status Messages Area  -->
+            <Border Grid.Row="1"
+                    Margin="{StaticResource MarginSmall}"
+                    Background="{DynamicResource PrimaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="0">
+                <!--  Dynamic Help Text  -->
+                <TextBlock Margin="{DynamicResource MarginSmall}"
+                           HorizontalAlignment="Center"
+                           FontSize="14"
+                           Opacity="0.7"
+                           Text="{Binding HelpText}"
+                           TextWrapping="Wrap" />
+            </Border>
+        </Grid>
 
         <!--  GridSplitter between Methods and Parameters  -->
         <GridSplitter Grid.Row="2" Style="{StaticResource HorizontalGridSplitterStyle}" />
 
         <!--  Parameters Pane  -->
-        <Grid Grid.Row="3" Margin="{StaticResource MarginSmall}">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
+
             <!--  Input Parameters  -->
             <GroupBox Grid.Column="0"
                       HorizontalContentAlignment="Stretch"
@@ -123,7 +119,8 @@
             </GroupBox>
 
             <!--  GridSplitter between Input and Output Parameters  -->
-            <GridSplitter Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+            <GridSplitter Grid.Column="1" Margin="0,4,0,4" />
+
             <!--  Output Parameters  -->
             <GroupBox Grid.Column="2"
                       HorizontalContentAlignment="Stretch"

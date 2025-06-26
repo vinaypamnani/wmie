@@ -5,7 +5,8 @@
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Margin" Value="4,4,0,0" />
+        <Setter Property="BorderThickness" Value="0,0,0,0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TabControl}">
@@ -18,10 +19,7 @@
                             <RowDefinition Name="RowDefinition0" Height="Auto" />
                             <RowDefinition Name="RowDefinition1" Height="*" />
                         </Grid.RowDefinitions>
-                        <Border x:Name="HeaderBorder"
-                                Margin="0,0,0,0"
-                                Background="Transparent"
-                                CornerRadius="5">
+                        <Border x:Name="HeaderBorder" Background="Transparent" CornerRadius="5">
                             <TabPanel Name="HeaderPanel"
                                       Grid.Row="0"
                                       Grid.Column="0"
@@ -40,7 +38,6 @@
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="0">
                                 <ContentPresenter Name="PART_SelectedContentHost"
-                                                  Margin="2"
                                                   Content="{TemplateBinding SelectedContent}"
                                                   ContentSource="SelectedContent"
                                                   ContentStringFormat="{TemplateBinding SelectedContentStringFormat}"
@@ -98,11 +95,11 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="Bd"
-                            Margin="0,0,3,0"
+                            Margin="{DynamicResource MarginRightSmall}"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             BorderBrush="Transparent"
-                            BorderThickness="0,0,0,0">
+                            BorderThickness="0">
                         <ContentPresenter x:Name="Content"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
@@ -137,11 +134,11 @@
                             Background="{DynamicResource SecondaryBackgroundBrush}"
                             BorderBrush="{DynamicResource PrimaryForegroundBrush}"
                             BorderThickness="0.5"
-                            CornerRadius="2">
+                            CornerRadius="1">
                         <!--  Chevron arrow similar to SortArrow  -->
                         <Path x:Name="ExpanderArrow"
-                              Width="10"
-                              Height="10"
+                              Width="12"
+                              Height="12"
                               HorizontalAlignment="Center"
                               VerticalAlignment="Center"
                               Fill="{DynamicResource PrimaryForegroundBrush}"
@@ -172,8 +169,6 @@
                                 <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Right" />
                             </MultiDataTrigger.Conditions>
                             <Setter TargetName="ExpanderArrow" Property="Data" Value="M 5,0 L 0,5 L 5,10" />
-                            <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
-                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="1" />
                         </MultiDataTrigger>
 
                         <!--  Left direction default - left pointing arrow  -->
@@ -188,8 +183,6 @@
                                 <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Left" />
                             </MultiDataTrigger.Conditions>
                             <Setter TargetName="ExpanderArrow" Property="Data" Value="M 0,0 L 5,5 L 0,10" />
-                            <Setter TargetName="ToggleBorder" Property="Background" Value="Transparent" />
-                            <Setter TargetName="ToggleBorder" Property="BorderThickness" Value="1" />
                         </MultiDataTrigger>
 
                         <!--  Hover effect with improved visuals  -->
@@ -275,7 +268,6 @@
                         <!--  Content - Position determined by ExpandDirection  -->
                         <Border x:Name="ContentBorder"
                                 Grid.Column="1"
-                                Margin="0,0,0,0"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="0"
@@ -291,13 +283,12 @@
                         <Trigger Property="IsExpanded" Value="True">
                             <Setter TargetName="ContentBorder" Property="Visibility" Value="Visible" />
                             <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
-                            <Setter TargetName="HeaderContent" Property="TextElement.Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsExpanded" Value="False">
                             <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="1" />
-                            <Setter TargetName="HeaderBorder" Property="Margin" Value="0,4,0,4" />
+                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0,0,0,0" />
+                            <!--<Setter TargetName="HeaderBorder" Property="Margin" Value="0,4,0,4" />-->
                         </Trigger>
 
                         <!--  ExpandDirection Triggers  -->

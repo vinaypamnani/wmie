@@ -7,7 +7,7 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
-        <Setter Property="Margin" Value="4" />
+        <Setter Property="Margin" Value="{DynamicResource MarginSmall}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GroupBox">
@@ -21,15 +21,15 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3" />
+                                CornerRadius="0" />
                         <ContentPresenter Grid.Row="0"
-                                          Margin="8,4,4,2"
+                                          Margin="4,4,4,0"
                                           ContentSource="Header"
                                           RecognizesAccessKey="True"
                                           TextElement.FontWeight="DemiBold"
                                           TextElement.Foreground="{TemplateBinding Foreground}" />
                         <ContentPresenter Grid.Row="1"
-                                          Margin="8,0,4,4"
+                                          Margin="4,0,4,4"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Grid>
@@ -44,14 +44,14 @@
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
     </Style>
 
-    <!--  GridSplitter  -->
+    <!--  GridSplitter - Vertical (Default)  -->
     <Style TargetType="GridSplitter">
-        <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Width" Value="{DynamicResource SpacingMedium}" />
         <Setter Property="Height" Value="Auto" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
-        <Setter Property="Margin" Value="0,4,0,4" />
+        <!--<Setter Property="Margin" Value="{DynamicResource MarginHorizontalSmall}" />-->
         <Setter Property="Focusable" Value="False" />
         <Setter Property="ShowsPreview" Value="True" />
         <Setter Property="PreviewStyle">
@@ -85,7 +85,7 @@
         </Style.Triggers>
     </Style>
 
-    <!--  Horizontal GridSplitter  -->
+    <!--  GridSplitter - Horizontal (Named)  -->
     <Style x:Key="HorizontalGridSplitterStyle" TargetType="GridSplitter">
         <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
         <Setter Property="Height" Value="{StaticResource SpacingMedium}" />

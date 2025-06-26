@@ -52,7 +52,7 @@
         </Style.Triggers>
     </Style>
 
-    <!--  TextBox  -->
+    <!--  PasswordBox  -->
     <Style TargetType="PasswordBox">
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
@@ -85,7 +85,7 @@
                             <ScrollViewer x:Name="PART_ContentHost" Background="Transparent" Focusable="false" />
                             <TextBlock x:Name="PlaceholderText"
                                        Margin="{TemplateBinding Padding}"
-                                       Padding="{StaticResource PaddingLeftTiny}"
+                                       Padding="{DynamicResource PaddingLeftTiny}"
                                        VerticalAlignment="Center"
                                        Foreground="Gray"
                                        IsHitTestVisible="False"

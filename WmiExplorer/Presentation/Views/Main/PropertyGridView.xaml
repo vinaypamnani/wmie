@@ -2,58 +2,55 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
-             xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid">
+             xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
+             Background="{DynamicResource PrimaryBackgroundBrush}">
 
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </UserControl.Resources>
 
-    <Border Margin="4,0,0,0"
-            BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="0"
-            CornerRadius="3">
-        <Grid>
-            <!--  Property Grid with Expander  -->
-            <Expander Name="ExpanderPropertyGrid"
-                      BorderThickness="0"
-                      ExpandDirection="Left"
-                      IsExpanded="{Binding WindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
-                      Style="{StaticResource VerticalHeaderExpanderStyle}">
-                <Expander.Header>
-                    <Border Width="25">
-                        <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="Properties" />
+    <Grid>
+        <!--  Property Grid with Expander  -->
+        <Expander Name="ExpanderPropertyGrid"
+                  BorderThickness="0"
+                  ExpandDirection="Left"
+                  IsExpanded="{Binding WindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
+                  Style="{StaticResource VerticalHeaderExpanderStyle}">
+            <Expander.Header>
+                <Border Width="25">
+                    <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="Properties" />
+                </Border>
+            </Expander.Header>
+            <Expander.Content>
+                <!--  Border around both header and property grid  -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <!--  Header for selected object  -->
+                    <Border Grid.Row="0"
+                            Padding="{StaticResource PaddingSmall}"
+                            Background="{DynamicResource PrimaryAccentBrush}"
+                            BorderThickness="0">
+                        <TextBlock Background="{DynamicResource PrimaryAccentBrush}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding SelectionManager.PropertyGrid.SelectedObjectDisplayName}"
+                                   TextTrimming="CharacterEllipsis" />
                     </Border>
-                </Expander.Header>
-                <Expander.Content>
-                    <!--  Border around both header and property grid  -->
-                    <Grid Margin="4,8,8,4">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <!--  Header for selected object  -->
-                        <Border Grid.Row="0"
-                                Padding="{StaticResource PaddingSmall}"
-                                Background="{DynamicResource PrimaryAccentBrush}"
-                                BorderThickness="0">
-                            <TextBlock Background="{DynamicResource PrimaryAccentBrush}"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                       Text="{Binding SelectionManager.PropertyGrid.SelectedObjectDisplayName}"
-                                       TextTrimming="CharacterEllipsis" />
-                        </Border>
-                        <pg:PropertyGrid x:Name="PropertyGrid"
-                                         Grid.Row="1"
-                                         Background="{DynamicResource PrimaryBackgroundBrush}"
-                                         BorderThickness="1"
-                                         EnableVirtualization="True"
-                                         IsPropertyGridReadOnly="True"
-                                         NameColumnWidth="150"
-                                         SelectedObject="{Binding SelectionManager.PropertyGrid.SelectedObjectForPropertyGrid, Mode=OneWay}"
-                                         ShowSearchBox="True" />
-                    </Grid>
-                </Expander.Content>
-            </Expander>
-        </Grid>
-    </Border>
+                    <pg:PropertyGrid x:Name="PropertyGrid"
+                                     Grid.Row="1"
+                                     Background="{DynamicResource PrimaryBackgroundBrush}"
+                                     BorderThickness="1"
+                                     EnableVirtualization="True"
+                                     IsPropertyGridReadOnly="True"
+                                     NameColumnWidth="150"
+                                     SelectedObject="{Binding SelectionManager.PropertyGrid.SelectedObjectForPropertyGrid, Mode=OneWay}"
+                                     ShowSearchBox="True" />
+                </Grid>
+            </Expander.Content>
+        </Expander>
+    </Grid>
+
 </UserControl>

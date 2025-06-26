@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="600"
              d:DesignWidth="800"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -15,36 +16,23 @@
         </Grid.RowDefinitions>
 
         <!--  Properties Filter  -->
-        <DockPanel Grid.Row="0" Margin="{StaticResource MarginSmall}">
-            <TextBox VerticalAlignment="Center"
-                     Style="{StaticResource TextBoxWithClearButton}"
-                     Tag="Filter Properties..."
-                     Text="{Binding PropertyFilterText, UpdateSourceTrigger=PropertyChanged}" />
-        </DockPanel>
+        <TextBox Grid.Row="0"
+                 VerticalAlignment="Center"
+                 Style="{StaticResource TextBoxWithClearButton}"
+                 Tag="Filter Properties..."
+                 Text="{Binding PropertyFilterText, UpdateSourceTrigger=PropertyChanged}" />
 
-        <!--  Properties List with Status Area  -->
-        <GroupBox Grid.Row="1"
-                  Margin="{StaticResource MarginSmall}"
-                  HorizontalContentAlignment="Stretch"
-                  VerticalContentAlignment="Stretch"
-                  Header="Properties">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!--  Properties DataGrid  -->
-                <DataGrid x:Name="PropertiesDataGrid"
-                          Grid.Row="0"
-                          ItemsSource="{Binding FilteredPropertiesView}"
-                          SelectedItem="{Binding SelectedProperty}"
-                          Style="{StaticResource ModernDataGridStyle}">
-                    <DataGrid.Columns>
-                        <!--  Key Property Indicator Column  -->
-                        <DataGridTemplateColumn Width="Auto" CanUserResize="False" Header="">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <!-- <DataTemplate>
+        <!--  Properties DataGrid  -->
+        <DataGrid x:Name="PropertiesDataGrid"
+                  Grid.Row="1"
+                  ItemsSource="{Binding FilteredPropertiesView}"
+                  SelectedItem="{Binding SelectedProperty}"
+                  Style="{StaticResource ModernDataGridStyle}">
+            <DataGrid.Columns>
+                <!--  Key Property Indicator Column  -->
+                <DataGridTemplateColumn Width="Auto" CanUserResize="False" Header="">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <!-- <DataTemplate>
                                     <Path Width="12"
                                           Height="12"
                                           HorizontalAlignment="Center"
@@ -64,7 +52,7 @@
                                         </Path.Style>
                                     </Path>
                                 </DataTemplate>-->
-                                <!-- <DataTemplate>
+                        <!-- <DataTemplate>
                                     <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Template="{StaticResource LetterIconTemplate}">
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
@@ -81,46 +69,45 @@
                                         </ContentControl.Style>
                                     </ContentControl>
                                 </DataTemplate>-->
-                                <DataTemplate>
-                                    <ContentControl ContentTemplate="{StaticResource KeyIconTemplate}" Foreground="{DynamicResource BaseGreenBrush}">
-                                        <ContentControl.Style>
-                                            <Style TargetType="ContentControl">
-                                                <Setter Property="ToolTip" Value="Key Property" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsKey}" Value="False">
-                                                        <Setter Property="Visibility" Value="Hidden" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </ContentControl.Style>
-                                    </ContentControl>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Property Name" />
-                        <DataGridTextColumn Width="Auto" Binding="{Binding Type}" Header="Type" />
-                        <DataGridTextColumn Width="Auto" Binding="{Binding IsLazy, Mode=OneWay}" Header="Lazy" />
-                        <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                        <DataTemplate>
+                            <ContentControl ContentTemplate="{StaticResource KeyIconTemplate}" Foreground="{DynamicResource BaseGreenBrush}">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="ToolTip" Value="Key Property" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsKey}" Value="False">
+                                                <Setter Property="Visibility" Value="Hidden" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Property Name" />
+                <DataGridTextColumn Width="Auto" Binding="{Binding Type}" Header="Type" />
+                <DataGridTextColumn Width="Auto" Binding="{Binding IsLazy, Mode=OneWay}" Header="Lazy" />
+                <DataGridTextColumn Width="*" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
+            </DataGrid.Columns>
+        </DataGrid>
 
-                <!--  Status Messages Area  -->
-                <Border Grid.Row="1"
-                        Margin="{StaticResource MarginSmall}"
-                        Background="{DynamicResource PrimaryBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="3">
-                    <StackPanel Margin="{StaticResource MarginSmall}" Orientation="Vertical">
-                        <!--  Dynamic Help Text  -->
-                        <TextBlock HorizontalAlignment="Center"
-                                   FontSize="14"
-                                   Opacity="0.7"
-                                   Text="{Binding HelpText}"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </GroupBox>
+        <!--  Status Messages Area  -->
+        <Border Grid.Row="2"
+                Margin="{DynamicResource MarginSmall}"
+                Background="{DynamicResource PrimaryBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="0">
+            <StackPanel Orientation="Vertical">
+                <!--  Dynamic Help Text  -->
+                <TextBlock Margin="{StaticResource MarginSmall}"
+                           HorizontalAlignment="Center"
+                           FontSize="14"
+                           Opacity="0.7"
+                           Text="{Binding HelpText}"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

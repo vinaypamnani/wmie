@@ -42,8 +42,8 @@
     <Style TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="Padding" Value="{StaticResource PaddingHorizontalLarge}" />
-        <Setter Property="Margin" Value="{StaticResource MarginSmall}" />
+        <Setter Property="Padding" Value="{DynamicResource PaddingHorizontalLarge}" />
+        <Setter Property="Margin" Value="{DynamicResource MarginSmall}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
@@ -53,7 +53,7 @@
                         <Border x:Name="Border"
                                 Width="16"
                                 Height="16"
-                                Margin="{StaticResource MarginRightMedium}"
+                                Margin="{DynamicResource MarginRightSmall}"
                                 VerticalAlignment="Center"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -78,7 +78,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="RadioDot" Property="Opacity" Value="1" />
-                            <Setter TargetName="RadioDot" Property="Fill" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="RadioDot" Property="Fill" Value="{DynamicResource SecondaryForegroundBrush}" />
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                         </Trigger>
@@ -105,7 +105,7 @@
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="Margin" Value="{StaticResource MarginRightLarge}" />
+        <Setter Property="Margin" Value="{DynamicResource MarginRightLarge}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />

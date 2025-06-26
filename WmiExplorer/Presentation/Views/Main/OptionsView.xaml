@@ -8,10 +8,7 @@
              Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
-    <Border Margin="0,0,0,0"
-            BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="0,0,0,1"
-            CornerRadius="3">
+    <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" CornerRadius="3">
         <Grid Name="OptionsGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -19,13 +16,9 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <GroupBox Grid.Column="0"
-                      Margin="4,0"
-                      Background="{DynamicResource PrimaryBackgroundBrush}"
-                      Header="Computer Name">
+            <GroupBox Grid.Column="0" Background="{DynamicResource PrimaryBackgroundBrush}" Header="Computer Name">
                 <StackPanel Orientation="Horizontal">
                     <TextBox MinWidth="160"
-                             Margin="{StaticResource MarginSmall}"
                              VerticalContentAlignment="Center"
                              Style="{StaticResource TextBoxWithPlaceholder}"
                              Tag="Computer Name..."
@@ -45,7 +38,7 @@
                         <Button Name="ConnectDropdownButton"
                                 Width="24"
                                 Height="26"
-                                Margin="0,0,0,0"
+                                Margin="0"
                                 Click="ConnectDropdownButton_Click">
                             <Path HorizontalAlignment="Center"
                                   VerticalAlignment="Center"
@@ -66,35 +59,26 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
-            <GroupBox Grid.Column="1"
-                      Margin="4,0"
-                      Background="{DynamicResource PrimaryBackgroundBrush}"
-                      Header="Mode">
+            <GroupBox Grid.Column="1" Background="{DynamicResource PrimaryBackgroundBrush}" Header="Mode">
                 <StackPanel Orientation="Horizontal">
                     <RadioButton Content="Asynchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.AsynchronousMode}" />
                     <RadioButton Content="Synchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.SynchronousMode}" />
                 </StackPanel>
             </GroupBox>
-            <GroupBox Grid.Column="2"
-                      Margin="4,0"
-                      Background="{DynamicResource PrimaryBackgroundBrush}"
-                      Header="Class Enumeration">
-                <StackPanel Margin="{StaticResource MarginHorizontalTiny}" Orientation="Horizontal">
+            <GroupBox Grid.Column="2" Background="{DynamicResource PrimaryBackgroundBrush}" Header="Class Enumeration">
+                <StackPanel Orientation="Horizontal">
                     <CheckBox Grid.Row="0"
                               Grid.Column="1"
-                              Margin="{StaticResource MarginSmall}"
                               Content="Include CIM Classes"
                               IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}"
                               ToolTip="{StaticResource Tooltip.Options.IncludeCimClasses}" />
                     <CheckBox Grid.Row="1"
                               Grid.Column="0"
-                              Margin="{StaticResource MarginSmall}"
                               Content="Include MSFT Classes"
                               IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}"
                               ToolTip="{StaticResource Tooltip.Options.IncludeMsftClasses}" />
                     <CheckBox Grid.Row="1"
                               Grid.Column="1"
-                              Margin="{StaticResource MarginSmall}"
                               Content="Include Perf Classes"
                               IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}"
                               ToolTip="{StaticResource Tooltip.Options.IncludePerfClasses}" />
@@ -103,19 +87,15 @@
                             Grid.Column="2"
                             Height="28"
                             MinWidth="100"
-                            Margin="{StaticResource MarginSmall}"
                             Command="{Binding ReloadClassesCommand}"
                             Content="Reload Classes"
                             ToolTip="{StaticResource Tooltip.Options.ReloadClasses}" />
                 </StackPanel>
             </GroupBox>
-            <GroupBox Grid.Column="3"
-                      Margin="4,0"
-                      Background="{DynamicResource PrimaryBackgroundBrush}"
-                      Header="Accent Colors">
+            <GroupBox Grid.Column="3" Background="{DynamicResource PrimaryBackgroundBrush}" Header="Accent Colors">
                 <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                    <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Margin="{DynamicResource MarginHorizontalMedium}"
                                    VerticalAlignment="Center"
                                    Text="Primary"
                                    TextAlignment="Left" />
@@ -126,8 +106,8 @@
                                                  ShowRecentColors="True"
                                                  ToolTip="{StaticResource Tooltip.Options.PrimaryAccentColor}" />
                     </StackPanel>
-                    <StackPanel Margin="{StaticResource MarginHorizontalSmall}" VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Margin="{DynamicResource MarginHorizontalMedium}"
                                    VerticalAlignment="Center"
                                    Text="Secondary"
                                    TextAlignment="Left" />
