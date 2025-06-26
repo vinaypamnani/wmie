@@ -106,7 +106,7 @@ public partial class ThemeManager : ObservableObject
             DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkModeValue, sizeof(uint));
 
             // Get the background color from the current theme
-            if (CurrentTheme?.ThemeColors.TryGetValue("PrimaryBackgroundColor", out Color bgColor) == true)
+            if (CurrentTheme?.ThemeColors.TryGetValue("SecondaryBackgroundColor", out Color bgColor) == true)
             {
                 // Convert to win32 COLORREF format (BGR)
                 uint colorRef = (uint)((bgColor.R) | (bgColor.G << 8) | (bgColor.B << 16));

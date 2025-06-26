@@ -52,7 +52,7 @@ public static class ThemeCollection
             ["BaseBlue"] = (Color)ColorConverter.ConvertFromString("#FF5CAEFF"),   // Refined soft blue
 
             // Background Colors - Even stepping for dark theme
-            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF1E1E1E"), // near-black
+            ["PrimaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF181818"), // near-black
             ["SecondaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF292929"), // dark gray
             ["TertiaryBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF343434"), // medium dark gray
             ["DisabledBackgroundColor"] = (Color)ColorConverter.ConvertFromString("#FF404040"), // lighter dark gray

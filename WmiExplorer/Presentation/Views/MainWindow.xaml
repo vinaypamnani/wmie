@@ -99,7 +99,7 @@
             <DockPanel Grid.Row="0" VerticalAlignment="Top">
                 <main:OptionsView DataContext="{Binding OptionsViewModel}" />
             </DockPanel>
-            <DockPanel Grid.Row="1" Margin="{StaticResource MarginHorizontalSmall}">
+            <DockPanel Grid.Row="1">
                 <Grid Name="ContentGrid">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
@@ -114,40 +114,48 @@
                     <!--  Namespace View  -->
                     <main:NamespacesView Grid.Column="0" DataContext="{Binding NamespacesViewModel}" />
 
-                    <GridSplitter Grid.Column="1" Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <GridSplitter Margin="0,6,0,0" Grid.Column="1" Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                    <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-                        <TabItem Header="{Binding ClassesTabHeader}">
-                            <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
-                        </TabItem>
-                        <TabItem Header="{Binding SearchTabHeader}">
-                            <!--  Search View  -->
-                            <tabs:SearchTabView DataContext="{Binding SelectionManager.SelectedNamespace.SearchTabViewModel}" />
-                        </TabItem>
-                        <TabItem Header="{Binding QueryTabHeader}">
-                            <!--  Query View  -->
-                            <tabs:QueryTabView DataContext="{Binding SelectionManager.SelectedNamespace.QueryTabViewModel}" />
-                        </TabItem>
-                        <TabItem Header="{Binding WatcherTabHeader}">
-                            <!--  Event Watcher View  -->
-                            <tabs:WatcherTabView DataContext="{Binding NamespacesViewModel.WatcherTabViewModel}" />
-                        </TabItem>
-                        <TabItem Header="{Binding LogTabHeader}">
-                            <!--  Log View  -->
-                            <tabs:LogTabView DataContext="{Binding LogTabViewModel}" />
-                        </TabItem>
-                    </TabControl>
+                    <Border Grid.Column="2"
+                            Margin="4,4,4,4"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0"
+                            CornerRadius="3">
+                        <TabControl Margin="0,2,0,0" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                            <TabItem Header="{Binding ClassesTabHeader}">
+                                <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
+                            </TabItem>
+                            <TabItem Header="{Binding SearchTabHeader}">
+                                <!--  Search View  -->
+                                <tabs:SearchTabView DataContext="{Binding SelectionManager.SelectedNamespace.SearchTabViewModel}" />
+                            </TabItem>
+                            <TabItem Header="{Binding QueryTabHeader}">
+                                <!--  Query View  -->
+                                <tabs:QueryTabView DataContext="{Binding SelectionManager.SelectedNamespace.QueryTabViewModel}" />
+                            </TabItem>
+                            <TabItem Header="{Binding WatcherTabHeader}">
+                                <!--  Event Watcher View  -->
+                                <tabs:WatcherTabView DataContext="{Binding NamespacesViewModel.WatcherTabViewModel}" />
+                            </TabItem>
+                            <TabItem Header="{Binding LogTabHeader}">
+                                <!--  Log View  -->
+                                <tabs:LogTabView DataContext="{Binding LogTabViewModel}" />
+                            </TabItem>
+                        </TabControl>
+                    </Border>
 
-                    <GridSplitter Grid.Column="3" Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <GridSplitter Margin="0,6,0,0" Grid.Column="3" Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                     <!--  Property Grid View  -->
                     <main:PropertyGridView Grid.Column="4" DataContext="{Binding}" />
+
                 </Grid>
+
             </DockPanel>
         </Grid>
 
         <!--  Status Bar  -->
-        <StatusBar Grid.Row="2" Margin="{StaticResource MarginTopSmall}">
+        <StatusBar Grid.Row="2">
             <StatusBarItem>
                 <controls:EnhancedStatusIndicator Margin="4,0"
                                                   AppState="{Binding CurrentApplicationState.State}"

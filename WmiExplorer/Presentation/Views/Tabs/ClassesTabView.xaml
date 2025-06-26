@@ -9,6 +9,7 @@
              d:DesignHeight="450"
              d:DesignWidth="800"
              mc:Ignorable="d">
+
     <Grid x:Name="ClassesGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -21,7 +22,7 @@
         </Grid.ColumnDefinitions>
 
         <!--  Classes View Content  -->
-        <Grid Grid.Row="0" Grid.Column="0">
+        <Grid Grid.Row="0" Grid.Column="0" Margin="0,2,4,0">
             <Expander Name="ExpanderClasses"
                       Padding="{StaticResource PaddingTopSmall}"
                       BorderThickness="0"
@@ -196,24 +197,29 @@
                 </Expander.Content>
             </Expander>
         </Grid>
+
         <GridSplitter Grid.Row="0" Grid.Column="1" Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
-        <TabControl Grid.Row="0"
-                    Grid.Column="2"
-                    BorderThickness="1,1,0,0"
-                    SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-            <TabItem Header="{Binding InstancesTabHeader}">
-                <!--  Instances View  -->
-                <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />
-            </TabItem>
-            <TabItem Header="{Binding PropertiesTabHeader}">
-                <!--  Properties View  -->
-                <tabs:PropertiesTabView DataContext="{Binding PropertiesTabViewModel}" />
-            </TabItem>
-            <TabItem Header="{Binding MethodsTabHeader}">
-                <!--  Methods View  -->
-                <tabs:MethodsTabView DataContext="{Binding MethodsTabViewModel}" />
-            </TabItem>
-        </TabControl>
+
+        <Border Grid.Column="2"
+                Margin="4,4,0,4"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0"
+                CornerRadius="3">
+            <TabControl Grid.Row="0" BorderThickness="0" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                <TabItem Header="{Binding InstancesTabHeader}">
+                    <!--  Instances View  -->
+                    <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />
+                </TabItem>
+                <TabItem Header="{Binding PropertiesTabHeader}">
+                    <!--  Properties View  -->
+                    <tabs:PropertiesTabView DataContext="{Binding PropertiesTabViewModel}" />
+                </TabItem>
+                <TabItem Header="{Binding MethodsTabHeader}">
+                    <!--  Methods View  -->
+                    <tabs:MethodsTabView DataContext="{Binding MethodsTabViewModel}" />
+                </TabItem>
+            </TabControl>
+        </Border>
 
         <!--  Query GroupBox spanning all columns  -->
         <GroupBox Grid.Row="1"
@@ -240,4 +246,5 @@
             </Grid>
         </GroupBox>
     </Grid>
+
 </UserControl>

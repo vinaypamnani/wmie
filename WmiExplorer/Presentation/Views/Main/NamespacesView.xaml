@@ -7,62 +7,68 @@
              d:DesignHeight="450"
              d:DesignWidth="300"
              mc:Ignorable="d">
-    <Grid>
-        <Expander Name="ExpanderNamespaces"
-                  Padding="{StaticResource PaddingTopSmall}"
-                  BorderThickness="0"
-                  ExpandDirection="Right"
-                  IsExpanded="{Binding WindowPosition.IsNamespacesExpanded, Mode=TwoWay}"
-                  Style="{StaticResource VerticalHeaderExpanderStyle}">
-            <Expander.Header>
-                <Border Width="25">
-                    <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="Namespaces" />
-                </Border>
-            </Expander.Header>
-            <TreeView Name="WmiNamespaces" behaviors:TreeViewAutoScrollBehavior.AutoScroll="True" ItemsSource="{Binding Namespaces}">
-                <TreeView.ItemContainerStyle>
-                    <Style BasedOn="{StaticResource ModernTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
-                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                        <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
-                        <Setter Property="behaviors:ItemDoubleClickBehavior.Command" Value="{Binding LoadClassesCommand}" />
-                        <Setter Property="ContextMenu">
-                            <Setter.Value>
-                                <ContextMenu>
-                                    <MenuItem Command="{Binding LoadClassesCommand}" FontWeight="Bold" Header="Load Classes">
-                                        <MenuItem.Icon>
-                                            <ContentControl ContentTemplate="{StaticResource LoadIconTemplate}" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path">
-                                        <MenuItem.Icon>
-                                            <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <Separator Style="{StaticResource ModernSeparatorStyle}" Visibility="{Binding IsRoot, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                    <MenuItem Command="{Binding DisconnectCommand}" Header="Disconnect" Visibility="{Binding IsRoot, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <MenuItem.Icon>
-                                            <ContentControl ContentTemplate="{StaticResource DisconnectIconTemplate}" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                </ContextMenu>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </TreeView.ItemContainerStyle>
-                <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                        <StackPanel Orientation="Horizontal">
-                            <Grid Width="16" Height="16" Margin="{StaticResource MarginTiny}">
-                                <Ellipse Width="10"
-                                         Height="10"
-                                         RenderTransformOrigin="0.5,0.5"
-                                         Style="{DynamicResource StatusIndicatorStyle}" />
-                            </Grid>
-                            <TextBlock Margin="{StaticResource MarginTiny}" Text="{Binding Name}" />
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
-                </TreeView.ItemTemplate>
-            </TreeView>
-        </Expander>
-    </Grid>
+    <Border Margin="0,0,4,0"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0"
+            CornerRadius="3">
+        <Grid>
+            <Expander Name="ExpanderNamespaces"
+                      Padding="{StaticResource PaddingTopSmall}"
+                      BorderThickness="0"
+                      ExpandDirection="Right"
+                      IsExpanded="{Binding WindowPosition.IsNamespacesExpanded, Mode=TwoWay}"
+                      Style="{StaticResource VerticalHeaderExpanderStyle}">
+                <Expander.Header>
+                    <Border Width="25">
+                        <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="Namespaces" />
+                    </Border>
+                </Expander.Header>
+                <TreeView Name="WmiNamespaces" behaviors:TreeViewAutoScrollBehavior.AutoScroll="True" ItemsSource="{Binding Namespaces}">
+                    <TreeView.ItemContainerStyle>
+                        <Style BasedOn="{StaticResource ModernTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                            <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
+                            <Setter Property="behaviors:ItemDoubleClickBehavior.Command" Value="{Binding LoadClassesCommand}" />
+                            <Setter Property="ContextMenu">
+                                <Setter.Value>
+                                    <ContextMenu>
+                                        <MenuItem Command="{Binding LoadClassesCommand}" FontWeight="Bold" Header="Load Classes">
+                                            <MenuItem.Icon>
+                                                <ContentControl ContentTemplate="{StaticResource LoadIconTemplate}" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Command="{Binding CopyRelativePathCommand}" Header="Copy Relative Path">
+                                            <MenuItem.Icon>
+                                                <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator Style="{StaticResource ModernSeparatorStyle}" Visibility="{Binding IsRoot, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <MenuItem Command="{Binding DisconnectCommand}" Header="Disconnect" Visibility="{Binding IsRoot, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <MenuItem.Icon>
+                                                <ContentControl ContentTemplate="{StaticResource DisconnectIconTemplate}" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid Width="16" Height="16" Margin="{StaticResource MarginTiny}">
+                                    <Ellipse Width="10"
+                                             Height="10"
+                                             RenderTransformOrigin="0.5,0.5"
+                                             Style="{DynamicResource StatusIndicatorStyle}" />
+                                </Grid>
+                                <TextBlock Margin="{StaticResource MarginTiny}" Text="{Binding Name}" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Expander>
+
+        </Grid>
+    </Border>
 </UserControl>

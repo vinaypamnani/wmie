@@ -5,123 +5,141 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignWidth="800"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
-    <Grid Name="OptionsGrid">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <GroupBox Grid.Column="0" Header="Computer Name">
-            <StackPanel Orientation="Horizontal">
-                <TextBox MinWidth="160"
-                         Margin="{StaticResource MarginSmall}"
-                         VerticalContentAlignment="Center"
-                         Style="{StaticResource TextBoxWithPlaceholder}"
-                         Tag="Computer Name..."
-                         Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="{StaticResource Tooltip.Options.ComputerName}" />
-
-                <!--  Split Button for Connect with Dropdown  -->
+    <Border Margin="0,0,0,0"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0,0,0,1"
+            CornerRadius="3">
+        <Grid Name="OptionsGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0"
+                      Margin="4,0"
+                      Background="{DynamicResource PrimaryBackgroundBrush}"
+                      Header="Computer Name">
                 <StackPanel Orientation="Horizontal">
-                    <!--  Main Connect Button  -->
-                    <Button Height="26"
-                            Margin="4,0,0.5,0"
-                            Command="{Binding ConnectCommand}"
-                            Content="Connect"
-                            ToolTip="{StaticResource Tooltip.Options.Connect}" />
+                    <TextBox MinWidth="160"
+                             Margin="{StaticResource MarginSmall}"
+                             VerticalContentAlignment="Center"
+                             Style="{StaticResource TextBoxWithPlaceholder}"
+                             Tag="Computer Name..."
+                             Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{StaticResource Tooltip.Options.ComputerName}" />
 
-                    <!--  Dropdown Arrow Button  -->
-                    <Button Name="ConnectDropdownButton"
-                            Width="24"
-                            Height="26"
-                            Margin="0,0,0,0"
-                            Click="ConnectDropdownButton_Click">
-                        <Path HorizontalAlignment="Center"
-                              VerticalAlignment="Center"
-                              Data="M 0 0 L 4 4 L 8 0 Z"
-                              Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                    <!--  Split Button for Connect with Dropdown  -->
+                    <StackPanel Orientation="Horizontal">
+                        <!--  Main Connect Button  -->
+                        <Button Height="26"
+                                Margin="4,0,0.5,0"
+                                Command="{Binding ConnectCommand}"
+                                Content="Connect"
+                                ToolTip="{StaticResource Tooltip.Options.Connect}" />
 
-                        <!--  Popup for additional options  -->
-                        <Button.ContextMenu>
-                            <ContextMenu Name="ConnectContextMenu">
-                                <MenuItem Command="{Binding ConnectWithOptionsCommand}" Header="Connection Options" ToolTip="{StaticResource Tooltip.Options.ConnectionOptions}">
-                                    <MenuItem.Icon>
-                                        <ContentControl ContentTemplate="{StaticResource ConnectionOptionsIconTemplate}" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                    </Button>
+                        <!--  Dropdown Arrow Button  -->
+                        <Button Name="ConnectDropdownButton"
+                                Width="24"
+                                Height="26"
+                                Margin="0,0,0,0"
+                                Click="ConnectDropdownButton_Click">
+                            <Path HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M 0 0 L 4 4 L 8 0 Z"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+
+                            <!--  Popup for additional options  -->
+                            <Button.ContextMenu>
+                                <ContextMenu Name="ConnectContextMenu">
+                                    <MenuItem Command="{Binding ConnectWithOptionsCommand}" Header="Connection Options" ToolTip="{StaticResource Tooltip.Options.ConnectionOptions}">
+                                        <MenuItem.Icon>
+                                            <ContentControl ContentTemplate="{StaticResource ConnectionOptionsIconTemplate}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
-        </GroupBox>
-        <GroupBox Grid.Column="1" Header="Mode">
-            <StackPanel Orientation="Horizontal">
-                <RadioButton Content="Asynchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.AsynchronousMode}" />
-                <RadioButton Content="Synchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.SynchronousMode}" />
-            </StackPanel>
-        </GroupBox>
-        <GroupBox Grid.Column="2" Header="Class Enumeration">
-            <StackPanel Margin="{StaticResource MarginHorizontalTiny}" Orientation="Horizontal">
-                <CheckBox Grid.Row="0"
-                          Grid.Column="1"
-                          Margin="{StaticResource MarginSmall}"
-                          Content="Include CIM Classes"
-                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}"
-                          ToolTip="{StaticResource Tooltip.Options.IncludeCimClasses}" />
-                <CheckBox Grid.Row="1"
-                          Grid.Column="0"
-                          Margin="{StaticResource MarginSmall}"
-                          Content="Include MSFT Classes"
-                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}"
-                          ToolTip="{StaticResource Tooltip.Options.IncludeMsftClasses}" />
-                <CheckBox Grid.Row="1"
-                          Grid.Column="1"
-                          Margin="{StaticResource MarginSmall}"
-                          Content="Include Perf Classes"
-                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}"
-                          ToolTip="{StaticResource Tooltip.Options.IncludePerfClasses}" />
-                <Button Grid.Row="0"
-                        Grid.RowSpan="2"
-                        Grid.Column="2"
-                        Height="28"
-                        MinWidth="100"
-                        Margin="{StaticResource MarginSmall}"
-                        Command="{Binding ReloadClassesCommand}"
-                        Content="Reload Classes"
-                        ToolTip="{StaticResource Tooltip.Options.ReloadClasses}" />
-            </StackPanel>
-        </GroupBox>
-        <GroupBox Grid.Column="3" Header="Accent Colors">
-            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
-                               VerticalAlignment="Center"
-                               Text="Primary"
-                               TextAlignment="Left" />
-                    <colorpicker:ColorPicker Width="40"
-                                             Height="24"
-                                             SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
-                                             ShowAlphaChannel="True"
-                                             ShowRecentColors="True"
-                                             ToolTip="{StaticResource Tooltip.Options.PrimaryAccentColor}" />
+            </GroupBox>
+            <GroupBox Grid.Column="1"
+                      Margin="4,0"
+                      Background="{DynamicResource PrimaryBackgroundBrush}"
+                      Header="Mode">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton Content="Asynchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.AsynchronousMode}" />
+                    <RadioButton Content="Synchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.SynchronousMode}" />
                 </StackPanel>
-                <StackPanel Margin="{StaticResource MarginHorizontalSmall}" VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
-                               VerticalAlignment="Center"
-                               Text="Secondary"
-                               TextAlignment="Left" />
-                    <colorpicker:ColorPicker Width="40"
-                                             Height="24"
-                                             SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
-                                             ShowAlphaChannel="True"
-                                             ShowRecentColors="True"
-                                             ToolTip="{StaticResource Tooltip.Options.SecondaryAccentColor}" />
+            </GroupBox>
+            <GroupBox Grid.Column="2"
+                      Margin="4,0"
+                      Background="{DynamicResource PrimaryBackgroundBrush}"
+                      Header="Class Enumeration">
+                <StackPanel Margin="{StaticResource MarginHorizontalTiny}" Orientation="Horizontal">
+                    <CheckBox Grid.Row="0"
+                              Grid.Column="1"
+                              Margin="{StaticResource MarginSmall}"
+                              Content="Include CIM Classes"
+                              IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}"
+                              ToolTip="{StaticResource Tooltip.Options.IncludeCimClasses}" />
+                    <CheckBox Grid.Row="1"
+                              Grid.Column="0"
+                              Margin="{StaticResource MarginSmall}"
+                              Content="Include MSFT Classes"
+                              IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}"
+                              ToolTip="{StaticResource Tooltip.Options.IncludeMsftClasses}" />
+                    <CheckBox Grid.Row="1"
+                              Grid.Column="1"
+                              Margin="{StaticResource MarginSmall}"
+                              Content="Include Perf Classes"
+                              IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}"
+                              ToolTip="{StaticResource Tooltip.Options.IncludePerfClasses}" />
+                    <Button Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Grid.Column="2"
+                            Height="28"
+                            MinWidth="100"
+                            Margin="{StaticResource MarginSmall}"
+                            Command="{Binding ReloadClassesCommand}"
+                            Content="Reload Classes"
+                            ToolTip="{StaticResource Tooltip.Options.ReloadClasses}" />
                 </StackPanel>
-            </StackPanel>
-        </GroupBox>
-    </Grid>
+            </GroupBox>
+            <GroupBox Grid.Column="3"
+                      Margin="4,0"
+                      Background="{DynamicResource PrimaryBackgroundBrush}"
+                      Header="Accent Colors">
+                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                    <StackPanel Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
+                                   VerticalAlignment="Center"
+                                   Text="Primary"
+                                   TextAlignment="Left" />
+                        <colorpicker:ColorPicker Width="40"
+                                                 Height="24"
+                                                 SelectedColor="{Binding CurrentTheme[PrimaryAccentColor], Mode=TwoWay}"
+                                                 ShowAlphaChannel="True"
+                                                 ShowRecentColors="True"
+                                                 ToolTip="{StaticResource Tooltip.Options.PrimaryAccentColor}" />
+                    </StackPanel>
+                    <StackPanel Margin="{StaticResource MarginHorizontalSmall}" VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Margin="{StaticResource MarginHorizontalMedium}"
+                                   VerticalAlignment="Center"
+                                   Text="Secondary"
+                                   TextAlignment="Left" />
+                        <colorpicker:ColorPicker Width="40"
+                                                 Height="24"
+                                                 SelectedColor="{Binding CurrentTheme[SecondaryAccentColor], Mode=TwoWay}"
+                                                 ShowAlphaChannel="True"
+                                                 ShowRecentColors="True"
+                                                 ToolTip="{StaticResource Tooltip.Options.SecondaryAccentColor}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+    </Border>
 </UserControl>

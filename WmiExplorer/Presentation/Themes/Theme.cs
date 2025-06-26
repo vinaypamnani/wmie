@@ -93,7 +93,7 @@ public partial class Theme : DisposableObservableObject
         // PropertyGrid* brushes are aliases to existing brushes
         brushes["PropertyGridBackgroundBrush"] = brushes["PrimaryBackgroundBrush"];
         brushes["PropertyGridForegroundBrush"] = brushes["PrimaryForegroundBrush"];
-        brushes["PropertyGridSecondaryBackgroundBrush"] = brushes["SecondaryBackgroundBrush"];
+        brushes["PropertyGridSecondaryBackgroundBrush"] = brushes["TertiaryBackgroundBrush"];
         brushes["PropertyGridCategoryBackgroundBrush"] = brushes["SecondaryBackgroundBrush"];
         brushes["PropertyGridBorderBrush"] = brushes["BorderBrush"];
         brushes["PropertyGridAccentBrush"] = brushes["PrimaryAccentBrush"];
