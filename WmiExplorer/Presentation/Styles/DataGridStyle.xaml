@@ -195,9 +195,10 @@
                                                                 Grid.Row="1"
                                                                 Grid.Column="0"
                                                                 CanContentScroll="{TemplateBinding CanContentScroll}" />
-                                        <!--  Vertical ScrollBar  -->
+                                        <!--  Vertical ScrollBar: span all rows for full height alignment  -->
                                         <ScrollBar x:Name="PART_VerticalScrollBar"
-                                                   Grid.Row="1"
+                                                   Grid.Row="0"
+                                                   Grid.RowSpan="3"
                                                    Grid.Column="1"
                                                    Maximum="{TemplateBinding ScrollableHeight}"
                                                    Orientation="Vertical"
