@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using WmiExplorer.Common.Base;
@@ -237,8 +238,16 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
             var column = new DataGridTextColumn
             {
                 Header = property.Name,
-                Binding = new Binding($"Properties[{property.Name}].Value"),
-                SortMemberPath = $"Properties[{property.Name}].Value"
+                Binding = new MultiBinding
+                {
+                    Converter = (IMultiValueConverter)Application.Current.FindResource("SafePropertyValueConverter"),
+                    Bindings =
+                    {
+                        new Binding(), // The WmiInstance itself (DataContext of row)
+                        new Binding { Source = property.Name }
+                    }
+                },
+                SortMemberPath = property.Name
             };
             ResultColumns.Add(column);
         }

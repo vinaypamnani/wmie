@@ -14,4 +14,5 @@
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
     <conv:DebugConverter x:Key="DebugConverter" />
     <conv:TopLevelMenuIconColumnWidthConverter x:Key="TopLevelMenuIconColumnWidthConverter" />
+    <conv:SafePropertyValueConverter x:Key="SafePropertyValueConverter" />
 </ResourceDictionary>

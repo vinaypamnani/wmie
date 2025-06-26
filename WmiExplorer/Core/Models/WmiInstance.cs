@@ -29,11 +29,10 @@ public class WmiInstance
     /// </summary>
     [Browsable(false)]
     public string InstanceName =>
-                Path.RelativePath.ToString().Replace("\\\\", "\\") // TODO: Extract friendly name from known "Name" properties
-                ?? string.Empty;
+                    Path.RelativePath.ToString().Replace("\\\\", "\\") // TODO: Extract friendly name from known "Name" properties
+                    ?? string.Empty;
 
     public ObjectGetOptions Options => _actualObject.Options;
-
     public ManagementPath Path => _actualObject.Path;
 
     [Category("Properties")]
@@ -48,6 +47,17 @@ public class WmiInstance
     public PropertyDataCollection SystemProperties => _actualObject.SystemProperties;
 
     public object this[string propertyName] => _actualObject[propertyName];
+
+    /// <summary>
+    /// Safely retrieves the value of a property by name
+    /// </summary>
+    /// <param name="propertyName">The name of the property</param>
+    /// <returns>The value of the property, or null if the property does not exist</returns>
+    public object? GetPropertyValue(string propertyName)
+    {
+        try { return _actualObject.Properties[propertyName]?.Value; }
+        catch { return null; }
+    }
 
     /// <summary>
     /// Returns the instance's string representation
