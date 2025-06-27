@@ -4,9 +4,9 @@
     <Style TargetType="TabControl">
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
         <Setter Property="Margin" Value="0,4,0,0" />
-        <Setter Property="BorderThickness" Value="0,0,0,0" />
+        <Setter Property="BorderThickness" Value="0,4,0,0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TabControl}">
@@ -89,7 +89,7 @@
     <Style TargetType="TabItem">
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="Padding" Value="12,6,12,6" />
         <Setter Property="Template">
             <Setter.Value>
@@ -98,7 +98,7 @@
                             Margin="0,0,4,4"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
-                            BorderBrush="Transparent"
+                            BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="0">
                         <ContentPresenter x:Name="Content"
                                           HorizontalAlignment="Center"
