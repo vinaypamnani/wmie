@@ -229,7 +229,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         if (value != 0) // Assuming 0 is the index for Classes tab
             SelectionManager.PropertyGrid.ClearPropertyGrid();
         else
-            SelectionManager.SetSelectedObject(SelectionManager.PreviousObject, updatePropertyGrid: true);
+            SelectionManager.SetSelectedObject(SelectionManager.SelectedNamespace, updatePropertyGrid: true);
     }
 
     /// <summary>
