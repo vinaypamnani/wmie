@@ -13,6 +13,7 @@
     <!--  TreeViewItem Style  -->
     <Style x:Key="ModernTreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="4,0,4,0" />
         <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
         <Setter Property="Template">
             <Setter.Value>

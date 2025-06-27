@@ -4,7 +4,7 @@
         <Setter Property="Width" Value="{DynamicResource SpacingSmall}" />
         <Setter Property="Height" Value="{DynamicResource SpacingSmall}" />
         <Setter Property="Margin" Value="{DynamicResource MarginRightMedium}" />
-        <Setter Property="Fill" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Fill" Value="{DynamicResource TertiaryForegroundBrush}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding LoadState}" Value="Loading">
                 <Setter Property="Fill" Value="{DynamicResource BaseBlueBrush}" />
