@@ -111,12 +111,17 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
 
             // Check if we're already connected to this path
             var existingRoot = Namespaces.FirstOrDefault(n =>
-                n.NamespacePath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase)); if (existingRoot != null)
+                n.NamespacePath.Equals(effectivePath, StringComparison.OrdinalIgnoreCase));
+
+            if (existingRoot != null)
             {
                 // Just select the existing root namespace using SelectionManager
-                SelectionManager.SetSelectedObject(existingRoot);
-                PublishSuccessState($"Connected to {effectivePath}");
-                return;
+                // SelectionManager.SetSelectedObject(existingRoot);
+                // existingRoot.IsSelected = true;
+                // PublishSuccessState($"Already connected. Right-click {effectivePath} to disconnect first before reconnecting.");
+                // return;
+                DisconnectRoot(existingRoot);
+
             }
 
             // Create the root namespace view model using the async method
@@ -257,8 +262,11 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         if (message?.NamespaceViewModel == null || !message.NamespaceViewModel.IsRoot)
             return;
 
-        var namespaceToRemove = message.NamespaceViewModel;
+        DisconnectRoot(message.NamespaceViewModel);
+    }
 
+    private void DisconnectRoot(WmiNamespaceViewModel namespaceToRemove)
+    {
         // Clear selection if the namespace being removed is currently selected
         if (SelectionManager.SelectedNamespace == namespaceToRemove)
         {
@@ -275,6 +283,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         namespaceToRemove.Dispose();
 
         PublishSuccessState($"Disconnected from namespace: {namespaceToRemove.NamespacePath}");
+        Log.Information("Disconnected from namespace: {NamespacePath}", namespaceToRemove.NamespacePath);
     }
 
     /// <summary>
