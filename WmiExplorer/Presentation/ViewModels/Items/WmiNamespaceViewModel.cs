@@ -69,10 +69,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     private readonly SelectionManager _selectionManager;
     private readonly ISettingsService _settingsService;
-
-    [ObservableProperty]
-    private bool _showSystemClasses;
-
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
 
@@ -103,9 +99,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
         Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
 
-        // Initialize ShowSystemClasses from settings
-        _showSystemClasses = _settingsService.ShowSystemClasses;
-
         // Set parent namespace if provided
         ParentNamespaceViewModel = parentNamespaceViewModel;
 
@@ -114,6 +107,12 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             throw new InvalidOperationException("Failed to resolve WmiSearchViewModel from service provider");
         _queryTabViewModel = App.ServiceProvider?.GetRequiredService<QueryTabViewModel>() ??
             throw new InvalidOperationException("Failed to resolve QueryTabViewModel from service provider");
+
+        // Subscribe to settings property changes for ShowSystemClasses
+        if (_settingsService is INotifyPropertyChanged npc)
+        {
+            npc.PropertyChanged += SettingsService_PropertyChanged;
+        }
     }
 
     /// <summary>
@@ -171,6 +170,21 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     public string NamespacePath => _wmiNamespace.NamespacePath;
     public QueryTabViewModel QueryTabViewModel => _queryTabViewModel;
     public SearchTabViewModel SearchTabViewModel => _searchTabViewModel;
+
+    // Proxy property for ShowSystemClasses
+    public bool ShowSystemClasses
+    {
+        get => _settingsService.ShowSystemClasses;
+        set
+        {
+            if (_settingsService.ShowSystemClasses != value)
+            {
+                _settingsService.ShowSystemClasses = value;
+                // PropertyChanged will be raised by the service event handler
+            }
+        }
+    }
+
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
@@ -474,15 +488,17 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
     }
 
-    partial void OnShowSystemClassesChanged(bool value)
+    private void SettingsService_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // Update the settings service
-        _settingsService.ShowSystemClasses = value;
-
-        // Refresh the filter view
-        _classFilterHelper.CollectionView.Refresh();
-        if (IsSelected)
-            PublishMessage(new ClassesFilteredMessage(this));
+        if (e.PropertyName == nameof(ISettingsService.ShowSystemClasses))
+        {
+            // Raise property changed for ShowSystemClasses so bindings update
+            OnPropertyChanged(nameof(ShowSystemClasses));
+            // Refresh the filter view
+            _classFilterHelper.CollectionView.Refresh();
+            if (IsSelected)
+                PublishMessage(new ClassesFilteredMessage(this));
+        }
     }
 }
 
