@@ -47,6 +47,9 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
     private TimeSpan _timeout = TimeSpan.MaxValue;
 
     [ObservableProperty]
+    private double _timeoutMins = 0;
+
+    [ObservableProperty]
     private string _username = string.Empty;
 
     private readonly Window _window;
@@ -77,6 +80,11 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
             Locale = !string.IsNullOrWhiteSpace(existingOptions.Locale) ? existingOptions.Locale : string.Empty;
             Username = existingOptions.Username ?? string.Empty;
             Timeout = existingOptions.Timeout != TimeSpan.MaxValue ? existingOptions.Timeout : TimeSpan.MaxValue;
+            // Set TimeoutMins based on Timeout
+            if (Timeout == TimeSpan.MaxValue)
+                TimeoutMins = 0;
+            else
+                TimeoutMins = Math.Round(Timeout.TotalMinutes, 2);
 
             // Copy context items if they exist
             if (existingOptions.Context != null)
@@ -88,6 +96,11 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
             }
 
             // Note: We cannot retrieve the password from existing ConnectionOptions for security reasons
+        }
+        else
+        {
+            Timeout = TimeSpan.MaxValue;
+            TimeoutMins = 0;
         }
     }
 
@@ -209,6 +222,32 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
         }
     }
 
+    partial void OnTimeoutChanged(TimeSpan value)
+    {
+        // Update TimeoutMins when Timeout changes
+        if (value == TimeSpan.MaxValue)
+        {
+            TimeoutMins = 0;
+        }
+        else
+        {
+            TimeoutMins = Math.Round(value.TotalMinutes, 2);
+        }
+    }
+
+    partial void OnTimeoutMinsChanged(double value)
+    {
+        // Update Timeout when TimeoutMins changes
+        if (value <= 0)
+        {
+            Timeout = TimeSpan.MaxValue;
+        }
+        else
+        {
+            Timeout = TimeSpan.FromMinutes(value);
+        }
+    }
+
     [RelayCommand]
     private void RemoveContextItem(KeyValuePair<string, object> item)
     {
@@ -230,6 +269,7 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
         Password = string.Empty;
         Username = string.Empty;
         Timeout = TimeSpan.MaxValue;
+        TimeoutMins = 0;
         ComputerName = Environment.MachineName;
 
         // Clear context items

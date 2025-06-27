@@ -8,7 +8,7 @@
     <sys:String x:Key="Tooltip.ConnectionOptions.AuthenticationLevel">Set the COM authentication level to be used for operatoins in this connection.</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.ImpersonationLevel">Set the COM impersonation level to be used for operations in this connection.</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.Authority">Set the Authority (e.g., kerberos:&lt;DOMAIN&gt; or ntlmdomain:&lt;DOMAIN&gt;) to authenticate the specified user.</sys:String>
-    <sys:String x:Key="Tooltip.ConnectionOptions.Timeout">Set the time-out to apply to the operation.</sys:String>
+    <sys:String x:Key="Tooltip.ConnectionOptions.Timeout">Set the time-out to apply to the operation, in minutes. 0 means no timeout (infinite).</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.Locale">Set the Locale to be used for the connection operation (e.g., 'MS_409' for English US). Leave empty for system default.</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.EditContext">Enable editing of WMI context object. This is a name-value pairs list to be passed through to a WMI provider that supports context information for customized operation.</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.ContextKey">Enter the context key name</sys:String>

@@ -206,16 +206,16 @@
                         <StackPanel Margin="0,8,0,0" Orientation="Vertical">
 
                             <StackPanel Orientation="Horizontal">
-                                <!--  Locale  -->
+                                <!--  Timeout  -->
                                 <StackPanel Orientation="Vertical">
                                     <TextBlock Margin="4,0,0,0"
                                                FontWeight="Medium"
                                                Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                               Text="Timeout:" />
+                                               Text="Timeout (mins):" />
                                     <TextBox MinWidth="180"
                                              HorizontalAlignment="Stretch"
-                                             Text="{Binding Timeout, UpdateSourceTrigger=PropertyChanged}"
-                                             ToolTip="{StaticResource Tooltip.ConnectionOptions.Timeout}" />
+                                             Text="{Binding TimeoutMins, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="Specify the timeout in minutes. 0 means no timeout (infinite)." />
                                 </StackPanel>
 
                                 <!--  Locale  -->
