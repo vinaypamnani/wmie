@@ -79,7 +79,20 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     /// <summary>
     /// Gets the value of the property. Allows expansion if _allowExpansion is true (for WmiClass).
     /// </summary>
-    public object Value => _allowExpansion ? _propertyData : _propertyData.Value;
+    public object Value
+    {
+        get
+        {
+            if (_allowExpansion)
+                return _propertyData;
+            if (_propertyData.Type == CimType.DateTime && _propertyData.Value is string s && !string.IsNullOrEmpty(s))
+            {
+                var dt = ManagementDateTimeConverter.ToDateTime(s);
+                return $"{dt:G} [{s}]";
+            }
+            return _propertyData.Value;
+        }
+    }
 
     /// <summary>
     /// Sets the value of the property if it is writable.
