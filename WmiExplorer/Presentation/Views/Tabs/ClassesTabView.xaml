@@ -11,7 +11,7 @@
              Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
-    <Grid x:Name="ClassesGrid">
+    <Grid x:Name="ClassesGrid" Margin="{DynamicResource MarginVerticalSmall}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -221,7 +221,7 @@
         <!--  Query GroupBox spanning all columns - override Style margin  -->
         <GroupBox Grid.Row="1"
                   Grid.ColumnSpan="3"
-                  Margin="0,0,0,4"
+                  Margin="0,0,0,0"
                   HorizontalContentAlignment="Stretch"
                   Header="Auto-generated Query for selected class or instance">
             <Grid>
