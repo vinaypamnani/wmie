@@ -19,7 +19,7 @@
                             <RowDefinition Name="RowDefinition0" Height="Auto" />
                             <RowDefinition Name="RowDefinition1" Height="*" />
                         </Grid.RowDefinitions>
-                        <Border x:Name="HeaderBorder" Background="Transparent" CornerRadius="1">
+                        <Border x:Name="HeaderBorder" Background="Transparent" CornerRadius="0">
                             <TabPanel Name="HeaderPanel"
                                       Grid.Row="0"
                                       Grid.Column="0"
@@ -38,6 +38,7 @@
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="0">
                                 <ContentPresenter Name="PART_SelectedContentHost"
+                                                  Margin="0,4,0,0"
                                                   Content="{TemplateBinding SelectedContent}"
                                                   ContentSource="SelectedContent"
                                                   ContentStringFormat="{TemplateBinding SelectedContentStringFormat}"
@@ -90,12 +91,12 @@
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="Padding" Value="12,6,12,6" />
+        <Setter Property="Padding" Value="12,4,12,4" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="Bd"
-                            Margin="0,0,4,4"
+                            Margin="0,0,4,-1"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
