@@ -1,85 +1,85 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:System="clr-namespace:System;assembly=mscorlib">
 
-     <!--
-          SpacingStyles.xaml: Defines standard spacing sizes for consistent Margin/Padding usage throughout the application.
-          Naming convention: TypeSize (e.g., SpacingTiny, SpacingSmall, SpacingMedium, SpacingLarge)
-     -->
+    <!--
+        SpacingStyles.xaml: Defines standard spacing sizes for consistent Margin/Padding usage throughout the application.
+        Naming convention: TypeSize (e.g., SpacingTiny, SpacingSmall, SpacingMedium, SpacingLarge)
+    -->
 
-     <!--  Spacing Values (Uniform)  -->
-     <System:Double x:Key="SpacingTiny">2</System:Double>
-     <System:Double x:Key="SpacingSmall">4</System:Double>
-     <System:Double x:Key="SpacingMedium">6</System:Double>
-     <System:Double x:Key="SpacingLarge">8</System:Double>
+    <!--  Spacing Values (Uniform)  -->
+    <System:Double x:Key="SpacingTiny">2</System:Double>
+    <System:Double x:Key="SpacingSmall">4</System:Double>
+    <System:Double x:Key="SpacingMedium">6</System:Double>
+    <System:Double x:Key="SpacingLarge">8</System:Double>
 
-     <!--  Margin Values (Uniform)  -->
-     <Thickness x:Key="MarginTiny">2</Thickness>
-     <Thickness x:Key="MarginSmall">4</Thickness>
-     <Thickness x:Key="MarginMedium">6</Thickness>
-     <Thickness x:Key="MarginLarge">8</Thickness>
+    <!--  Margin Values (Uniform)  -->
+    <Thickness x:Key="MarginTiny">2</Thickness>
+    <Thickness x:Key="MarginSmall">4</Thickness>
+    <Thickness x:Key="MarginMedium">6</Thickness>
+    <Thickness x:Key="MarginLarge">8</Thickness>
 
-     <!--  Margin Values (Directional)  -->
-     <Thickness x:Key="MarginHorizontalTiny">2,0,2,0</Thickness>
-     <Thickness x:Key="MarginHorizontalSmall">4,0,4,0</Thickness>
-     <Thickness x:Key="MarginHorizontalMedium">6,0,6,0</Thickness>
-     <Thickness x:Key="MarginHorizontalLarge">8,0,8,0</Thickness>
-     <Thickness x:Key="MarginVerticalTiny">0,2,0,2</Thickness>
-     <Thickness x:Key="MarginVerticalSmall">0,4,0,4</Thickness>
-     <Thickness x:Key="MarginVerticalMedium">0,6,0,6</Thickness>
-     <Thickness x:Key="MarginVerticalLarge">0,8,0,8</Thickness>
+    <!--  Margin Values (Directional)  -->
+    <Thickness x:Key="MarginHorizontalTiny">2,0,2,0</Thickness>
+    <Thickness x:Key="MarginHorizontalSmall">4,0,4,0</Thickness>
+    <Thickness x:Key="MarginHorizontalMedium">6,0,6,0</Thickness>
+    <Thickness x:Key="MarginHorizontalLarge">8,0,8,0</Thickness>
+    <Thickness x:Key="MarginVerticalTiny">0,2,0,2</Thickness>
+    <Thickness x:Key="MarginVerticalSmall">0,4,0,4</Thickness>
+    <Thickness x:Key="MarginVerticalMedium">0,6,0,6</Thickness>
+    <Thickness x:Key="MarginVerticalLarge">0,8,0,8</Thickness>
 
-     <!--  Margin Top/Bottom only  -->
-     <Thickness x:Key="MarginTopTiny">0,2,0,0</Thickness>
-     <Thickness x:Key="MarginTopSmall">0,4,0,0</Thickness>
-     <Thickness x:Key="MarginTopMedium">0,6,0,0</Thickness>
-     <Thickness x:Key="MarginTopLarge">0,8,0,0</Thickness>
-     <Thickness x:Key="MarginBottomTiny">0,0,0,2</Thickness>
-     <Thickness x:Key="MarginBottomSmall">0,0,0,4</Thickness>
-     <Thickness x:Key="MarginBottomMedium">0,0,0,6</Thickness>
-     <Thickness x:Key="MarginBottomLarge">0,0,0,8</Thickness>
+    <!--  Margin Top/Bottom only  -->
+    <Thickness x:Key="MarginTopTiny">0,2,0,0</Thickness>
+    <Thickness x:Key="MarginTopSmall">0,4,0,0</Thickness>
+    <Thickness x:Key="MarginTopMedium">0,6,0,0</Thickness>
+    <Thickness x:Key="MarginTopLarge">0,8,0,0</Thickness>
+    <Thickness x:Key="MarginBottomTiny">0,0,0,2</Thickness>
+    <Thickness x:Key="MarginBottomSmall">0,0,0,4</Thickness>
+    <Thickness x:Key="MarginBottomMedium">0,0,0,6</Thickness>
+    <Thickness x:Key="MarginBottomLarge">0,0,0,8</Thickness>
 
-     <!--  Margin Left/Right only  -->
-     <Thickness x:Key="MarginLeftTiny">2,0,0,0</Thickness>
-     <Thickness x:Key="MarginLeftSmall">4,0,0,0</Thickness>
-     <Thickness x:Key="MarginLeftMedium">6,0,0,0</Thickness>
-     <Thickness x:Key="MarginLeftLarge">8,0,0,0</Thickness>
-     <Thickness x:Key="MarginRightTiny">0,0,2,0</Thickness>
-     <Thickness x:Key="MarginRightSmall">0,0,4,0</Thickness>
-     <Thickness x:Key="MarginRightMedium">0,0,6,0</Thickness>
-     <Thickness x:Key="MarginRightLarge">0,0,8,0</Thickness>
+    <!--  Margin Left/Right only  -->
+    <Thickness x:Key="MarginLeftTiny">2,0,0,0</Thickness>
+    <Thickness x:Key="MarginLeftSmall">4,0,0,0</Thickness>
+    <Thickness x:Key="MarginLeftMedium">6,0,0,0</Thickness>
+    <Thickness x:Key="MarginLeftLarge">8,0,0,0</Thickness>
+    <Thickness x:Key="MarginRightTiny">0,0,2,0</Thickness>
+    <Thickness x:Key="MarginRightSmall">0,0,4,0</Thickness>
+    <Thickness x:Key="MarginRightMedium">0,0,6,0</Thickness>
+    <Thickness x:Key="MarginRightLarge">0,0,8,0</Thickness>
 
-     <!--  Padding Values (Uniform)  -->
-     <Thickness x:Key="PaddingTiny">2</Thickness>
-     <Thickness x:Key="PaddingSmall">4</Thickness>
-     <Thickness x:Key="PaddingMedium">6</Thickness>
-     <Thickness x:Key="PaddingLarge">8</Thickness>
+    <!--  Padding Values (Uniform)  -->
+    <Thickness x:Key="PaddingTiny">2</Thickness>
+    <Thickness x:Key="PaddingSmall">4</Thickness>
+    <Thickness x:Key="PaddingMedium">6</Thickness>
+    <Thickness x:Key="PaddingLarge">8</Thickness>
 
-     <!--  Padding Values (Directional)  -->
-     <Thickness x:Key="PaddingHorizontalTiny">2,0,2,0</Thickness>
-     <Thickness x:Key="PaddingHorizontalSmall">4,0,4,0</Thickness>
-     <Thickness x:Key="PaddingHorizontalMedium">6,0,6,0</Thickness>
-     <Thickness x:Key="PaddingHorizontalLarge">8,0,8,0</Thickness>
-     <Thickness x:Key="PaddingVerticalTiny">0,2,0,2</Thickness>
-     <Thickness x:Key="PaddingVerticalSmall">0,4,0,4</Thickness>
-     <Thickness x:Key="PaddingVerticalMedium">0,6,0,6</Thickness>
-     <Thickness x:Key="PaddingVerticalLarge">0,8,0,8</Thickness>
+    <!--  Padding Values (Directional)  -->
+    <Thickness x:Key="PaddingHorizontalTiny">2,0,2,0</Thickness>
+    <Thickness x:Key="PaddingHorizontalSmall">4,0,4,0</Thickness>
+    <Thickness x:Key="PaddingHorizontalMedium">6,0,6,0</Thickness>
+    <Thickness x:Key="PaddingHorizontalLarge">8,0,8,0</Thickness>
+    <Thickness x:Key="PaddingVerticalTiny">0,2,0,2</Thickness>
+    <Thickness x:Key="PaddingVerticalSmall">0,4,0,4</Thickness>
+    <Thickness x:Key="PaddingVerticalMedium">0,6,0,6</Thickness>
+    <Thickness x:Key="PaddingVerticalLarge">0,8,0,8</Thickness>
 
-     <!--  Padding Top/Bottom only  -->
-     <Thickness x:Key="PaddingTopTiny">0,2,0,0</Thickness>
-     <Thickness x:Key="PaddingTopSmall">0,4,0,0</Thickness>
-     <Thickness x:Key="PaddingTopMedium">0,6,0,0</Thickness>
-     <Thickness x:Key="PaddingTopLarge">0,8,0,0</Thickness>
-     <Thickness x:Key="PaddingBottomTiny">0,0,0,2</Thickness>
-     <Thickness x:Key="PaddingBottomSmall">0,0,0,4</Thickness>
-     <Thickness x:Key="PaddingBottomMedium">0,0,0,6</Thickness>
-     <Thickness x:Key="PaddingBottomLarge">0,0,0,8</Thickness>
+    <!--  Padding Top/Bottom only  -->
+    <Thickness x:Key="PaddingTopTiny">0,2,0,0</Thickness>
+    <Thickness x:Key="PaddingTopSmall">0,4,0,0</Thickness>
+    <Thickness x:Key="PaddingTopMedium">0,6,0,0</Thickness>
+    <Thickness x:Key="PaddingTopLarge">0,8,0,0</Thickness>
+    <Thickness x:Key="PaddingBottomTiny">0,0,0,2</Thickness>
+    <Thickness x:Key="PaddingBottomSmall">0,0,0,4</Thickness>
+    <Thickness x:Key="PaddingBottomMedium">0,0,0,6</Thickness>
+    <Thickness x:Key="PaddingBottomLarge">0,0,0,8</Thickness>
 
-     <!--  Padding Left/Right only  -->
-     <Thickness x:Key="PaddingLeftTiny">2,0,0,0</Thickness>
-     <Thickness x:Key="PaddingLeftSmall">4,0,0,0</Thickness>
-     <Thickness x:Key="PaddingLeftMedium">6,0,0,0</Thickness>
-     <Thickness x:Key="PaddingLeftLarge">8,0,0,0</Thickness>
-     <Thickness x:Key="PaddingRightTiny">0,0,2,0</Thickness>
-     <Thickness x:Key="PaddingRightSmall">0,0,4,0</Thickness>
-     <Thickness x:Key="PaddingRightMedium">0,0,6,0</Thickness>
-     <Thickness x:Key="PaddingRightLarge">0,0,8,0</Thickness>
+    <!--  Padding Left/Right only  -->
+    <Thickness x:Key="PaddingLeftTiny">2,0,0,0</Thickness>
+    <Thickness x:Key="PaddingLeftSmall">4,0,0,0</Thickness>
+    <Thickness x:Key="PaddingLeftMedium">6,0,0,0</Thickness>
+    <Thickness x:Key="PaddingLeftLarge">8,0,0,0</Thickness>
+    <Thickness x:Key="PaddingRightTiny">0,0,2,0</Thickness>
+    <Thickness x:Key="PaddingRightSmall">0,0,4,0</Thickness>
+    <Thickness x:Key="PaddingRightMedium">0,0,6,0</Thickness>
+    <Thickness x:Key="PaddingRightLarge">0,0,8,0</Thickness>
 </ResourceDictionary>

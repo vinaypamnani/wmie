@@ -14,16 +14,12 @@
         <Expander Name="ExpanderPropertyGrid"
                   BorderThickness="0"
                   ExpandDirection="Left"
+                  Header="Properties"
                   IsExpanded="{Binding WindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
                   Style="{StaticResource VerticalHeaderExpanderStyle}">
-            <Expander.Header>
-                <Border Width="25">
-                    <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="Properties" />
-                </Border>
-            </Expander.Header>
             <Expander.Content>
                 <!--  Border around both header and property grid  -->
-                <Border Margin="{DynamicResource MarginTopSmall}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,0">
+                <Border Margin="0,4,4,4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

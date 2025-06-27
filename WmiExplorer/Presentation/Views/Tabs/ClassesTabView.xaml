@@ -11,7 +11,7 @@
              Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
-    <Grid x:Name="ClassesGrid" Margin="{DynamicResource MarginVerticalSmall}">
+    <Grid x:Name="ClassesGrid" Margin="{DynamicResource MarginBottomSmall}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -28,13 +28,9 @@
                       Padding="{StaticResource PaddingTopSmall}"
                       BorderThickness="0"
                       ExpandDirection="Right"
+                      Header="Classes"
                       IsExpanded="{Binding WindowPosition.IsClassesExpanded, Mode=TwoWay}"
                       Style="{StaticResource VerticalHeaderExpanderStyle}">
-                <Expander.Header>
-                    <Border Width="25">
-                        <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="Classes" />
-                    </Border>
-                </Expander.Header>
                 <Expander.Content>
                     <Grid>
                         <Grid.RowDefinitions>
@@ -224,7 +220,7 @@
                   Margin="0,0,0,0"
                   HorizontalContentAlignment="Stretch"
                   Header="Auto-generated Query for selected class or instance">
-            <Grid>
+            <Grid Margin="{DynamicResource MarginSmall}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

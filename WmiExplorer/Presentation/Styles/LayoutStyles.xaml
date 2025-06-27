@@ -24,13 +24,13 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="0" />
                         <ContentPresenter Grid.Row="0"
-                                          Margin="4,4,4,0"
+                                          Margin="{TemplateBinding Margin}"
                                           ContentSource="Header"
                                           RecognizesAccessKey="True"
                                           TextElement.FontWeight="DemiBold"
                                           TextElement.Foreground="{TemplateBinding Foreground}" />
                         <ContentPresenter Grid.Row="1"
-                                          Margin="4,0,4,4"
+                                          Margin="{TemplateBinding Margin}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Grid>

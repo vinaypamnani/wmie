@@ -210,10 +210,20 @@
     <Style x:Key="VerticalHeaderExpanderStyle" TargetType="Expander">
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="MinWidth" Value="30" />
-        <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <!--  Add HeaderTemplate for consistent header styling  -->
+        <Setter Property="HeaderTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <Border Width="25">
+                        <TextBlock Style="{DynamicResource ExpanderTextBlockStyle}" Text="{Binding}" />
+                    </Border>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Expander">
@@ -226,9 +236,11 @@
                         <!--  Header - Position determined by ExpandDirection  -->
                         <Border x:Name="HeaderBorder"
                                 Grid.Column="0"
+                                Margin="{DynamicResource MarginVerticalSmall}"
                                 Background="{DynamicResource SecondaryBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="0">
+                                BorderThickness="0"
+                                CornerRadius="0">
 
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -239,7 +251,7 @@
                                 <!--  Toggle Button at Top  -->
                                 <ToggleButton x:Name="ExpanderButton"
                                               Grid.Row="0"
-                                              Margin="0,6,0,0"
+                                              Margin="0,8,0,0"
                                               HorizontalAlignment="Center"
                                               IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                               Style="{StaticResource VerticalExpanderToggleStyle}"
@@ -278,7 +290,7 @@
                             <Setter TargetName="ExpanderButton" Property="ToolTip" Value="Expand" />
                             <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="HeaderBorder" Property="Margin" Value="0,4,0,4" />
+                            <!-- <Setter TargetName="HeaderBorder" Property="Margin" Value="0,4,0,4" /> -->
                         </Trigger>
 
                         <!--  ExpandDirection Triggers  -->
@@ -314,6 +326,7 @@
                                 <Condition Property="ExpandDirection" Value="Right" />
                             </MultiTrigger.Conditions>
                             <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0,2,2,2" />
+                            <Setter TargetName="HeaderBorder" Property="CornerRadius" Value="0,3,3,0" />
                         </MultiTrigger>
 
                         <MultiTrigger>
@@ -322,6 +335,7 @@
                                 <Condition Property="ExpandDirection" Value="Left" />
                             </MultiTrigger.Conditions>
                             <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="2,2,0,2" />
+                            <Setter TargetName="HeaderBorder" Property="CornerRadius" Value="3,0,0,3" />
                         </MultiTrigger>
 
                         <!--  Animation Triggers for better user experience  -->
@@ -358,9 +372,6 @@
             </Setter.Value>
         </Setter>
         <Style.Triggers>
-            <Trigger Property="IsExpanded" Value="False">
-                <!--  MinWidth set at style level  -->
-            </Trigger>
             <Trigger Property="IsExpanded" Value="True">
                 <!--  Setting Width properly to ensure proper layout  -->
                 <Setter Property="Width" Value="NaN" />
