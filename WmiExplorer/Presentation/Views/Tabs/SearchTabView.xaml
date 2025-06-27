@@ -15,7 +15,10 @@
         </Grid.RowDefinitions>
 
         <!--  Search Criteria GroupBox  -->
-        <GroupBox Grid.Row="0" HorizontalContentAlignment="Stretch" Header="Search Criteria">
+        <GroupBox Grid.Row="0"
+                  Margin="{DynamicResource MarginVerticalSmall}"
+                  HorizontalContentAlignment="Stretch"
+                  Header="Search Criteria">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -103,6 +106,7 @@
 
         <!--  Results GroupBox  -->
         <GroupBox Grid.Row="1"
+                  Margin="{DynamicResource MarginBottomSmall}"
                   HorizontalContentAlignment="Stretch"
                   VerticalContentAlignment="Stretch"
                   Header="Search Results">

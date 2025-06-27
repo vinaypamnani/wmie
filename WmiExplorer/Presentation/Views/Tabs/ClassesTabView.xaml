@@ -11,7 +11,7 @@
              Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
-    <Grid x:Name="ClassesGrid" Margin="0,0,4,0">
+    <Grid x:Name="ClassesGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -43,6 +43,7 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <CheckBox Grid.Row="0"
+                                  Margin="{DynamicResource MarginSmall}"
                                   HorizontalAlignment="Right"
                                   Content="Show System Classes"
                                   IsChecked="{Binding SelectionManager.SelectedNamespace.ShowSystemClasses, Mode=TwoWay}" />

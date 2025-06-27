@@ -235,12 +235,7 @@
                                 Background="{DynamicResource SecondaryBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="0">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="3"
-                                                  Direction="270"
-                                                  Opacity="0.2"
-                                                  ShadowDepth="1" />
-                            </Border.Effect>
+
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -250,7 +245,7 @@
                                 <!--  Toggle Button at Top  -->
                                 <ToggleButton x:Name="ExpanderButton"
                                               Grid.Row="0"
-                                              Margin="0,10,0,0"
+                                              Margin="0,6,0,0"
                                               HorizontalAlignment="Center"
                                               IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                               Style="{StaticResource VerticalExpanderToggleStyle}"
@@ -281,14 +276,14 @@
                     <ControlTemplate.Triggers>
                         <!--  IsExpanded Triggers  -->
                         <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ExpanderButton" Property="ToolTip" Value="Collapse" />
                             <Setter TargetName="ContentBorder" Property="Visibility" Value="Visible" />
                             <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsExpanded" Value="False">
+                            <Setter TargetName="ExpanderButton" Property="ToolTip" Value="Expand" />
                             <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0,0,0,0" />
-                            <!--<Setter TargetName="HeaderBorder" Property="Margin" Value="0,4,0,4" />-->
                         </Trigger>
 
                         <!--  ExpandDirection Triggers  -->
@@ -316,6 +311,23 @@
                             <Setter TargetName="RightColumn" Property="Width" Value="Auto" />
                             <Setter TargetName="ContentSite" Property="HorizontalAlignment" Value="Stretch" />
                         </Trigger>
+
+                        <!--  IsExpanded False triggers based on ExpandDirection  -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsExpanded" Value="False" />
+                                <Condition Property="ExpandDirection" Value="Right" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0,0,4,0" />
+                        </MultiTrigger>
+
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsExpanded" Value="False" />
+                                <Condition Property="ExpandDirection" Value="Left" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="4,0,0,0" />
+                        </MultiTrigger>
 
                         <!--  Animation Triggers for better user experience  -->
                         <EventTrigger RoutedEvent="Expander.Expanded">

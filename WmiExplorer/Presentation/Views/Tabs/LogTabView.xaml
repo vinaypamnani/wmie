@@ -17,7 +17,10 @@
         </Grid.RowDefinitions>
 
         <!--  Log Controls GroupBox  -->
-        <GroupBox Grid.Row="0" HorizontalContentAlignment="Stretch" Header="Log Controls">
+        <GroupBox Grid.Row="0"
+                  Margin="{DynamicResource MarginVerticalSmall}"
+                  HorizontalContentAlignment="Stretch"
+                  Header="Log Controls">
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -58,6 +61,7 @@
 
         <!--  Log Entries GroupBox  -->
         <GroupBox Grid.Row="1"
+                  Margin="{DynamicResource MarginBottomSmall}"
                   HorizontalContentAlignment="Stretch"
                   VerticalContentAlignment="Stretch"
                   Header="Log Entries">

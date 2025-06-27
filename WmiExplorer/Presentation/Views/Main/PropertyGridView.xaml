@@ -23,32 +23,34 @@
             </Expander.Header>
             <Expander.Content>
                 <!--  Border around both header and property grid  -->
-                <Grid Margin="0,4,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <!--  Header for selected object  -->
-                    <Border Grid.Row="0"
-                            Padding="{StaticResource PaddingSmall}"
-                            Background="{DynamicResource PrimaryAccentBrush}"
-                            BorderThickness="0">
-                        <TextBlock Background="{DynamicResource PrimaryAccentBrush}"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
-                                   Text="{Binding SelectionManager.PropertyGrid.SelectedObjectDisplayName}"
-                                   TextTrimming="CharacterEllipsis" />
-                    </Border>
-                    <pg:PropertyGrid x:Name="PropertyGrid"
-                                     Grid.Row="1"
-                                     Background="{DynamicResource PrimaryBackgroundBrush}"
-                                     BorderThickness="1"
-                                     EnableVirtualization="True"
-                                     IsPropertyGridReadOnly="True"
-                                     NameColumnWidth="150"
-                                     SelectedObject="{Binding SelectionManager.PropertyGrid.SelectedObjectForPropertyGrid, Mode=OneWay}"
-                                     ShowSearchBox="True" />
-                </Grid>
+                <Border Margin="{DynamicResource MarginTopSmall}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!--  Header for selected object  -->
+                        <Border Grid.Row="0"
+                                Padding="{StaticResource PaddingSmall}"
+                                Background="{DynamicResource PrimaryAccentBrush}"
+                                BorderThickness="0">
+                            <TextBlock Background="{DynamicResource PrimaryAccentBrush}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                       Text="{Binding SelectionManager.PropertyGrid.SelectedObjectDisplayName}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </Border>
+                        <pg:PropertyGrid x:Name="PropertyGrid"
+                                         Grid.Row="1"
+                                         Background="{DynamicResource PrimaryBackgroundBrush}"
+                                         BorderThickness="0"
+                                         EnableVirtualization="True"
+                                         IsPropertyGridReadOnly="True"
+                                         NameColumnWidth="150"
+                                         SelectedObject="{Binding SelectionManager.PropertyGrid.SelectedObjectForPropertyGrid, Mode=OneWay}"
+                                         ShowSearchBox="True" />
+                    </Grid>
+                </Border>
             </Expander.Content>
         </Expander>
     </Grid>

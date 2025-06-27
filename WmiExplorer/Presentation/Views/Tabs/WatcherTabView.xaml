@@ -20,8 +20,7 @@
 
         <Grid Grid.Row="0">
 
-            <GroupBox Margin="2" HorizontalContentAlignment="Stretch" Header="Event Query Builder">
-
+            <GroupBox Margin="{DynamicResource MarginVerticalSmall}" HorizontalContentAlignment="Stretch" Header="Event Query Builder">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -185,234 +184,229 @@
             </Grid.ColumnDefinitions>
 
             <!--  Left Panel: Watchers List  -->
-            <Grid Grid.Column="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+            <GroupBox Grid.Column="0"
+                      Margin="0,0,4,4"
+                      HorizontalContentAlignment="Stretch"
+                      VerticalContentAlignment="Stretch"
+                      Header="Event Watchers">
+                <DockPanel>
+                    <StackPanel Margin="{DynamicResource MarginVerticalSmall}"
+                                HorizontalAlignment="Left"
+                                DockPanel.Dock="Top"
+                                Orientation="Horizontal">
+                        <Button Width="80"
+                                Height="26"
+                                Command="{Binding StartAllWatchersCommand}"
+                                Content="Start All"
+                                ToolTip="{StaticResource Tooltip.Watcher.StartAll}" />
+                        <Button Width="80"
+                                Height="26"
+                                Command="{Binding StopAllWatchersCommand}"
+                                Content="Stop All"
+                                ToolTip="{StaticResource Tooltip.Watcher.StopAll}" />
+                        <Button Width="80"
+                                Height="26"
+                                Command="{Binding RemoveAllWatchersCommand}"
+                                Content="Remove All"
+                                DockPanel.Dock="Right"
+                                ToolTip="{StaticResource Tooltip.Watcher.RemoveAll}" />
 
-                <GroupBox Grid.Row="0"
-                          HorizontalContentAlignment="Stretch"
-                          VerticalContentAlignment="Stretch"
-                          Header="Event Watchers">
-                    <DockPanel Margin="{DynamicResource MarginVerticalSmall}">
-                        <StackPanel HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal">
-                            <Button Width="80"
-                                    Height="26"
-                                    Command="{Binding StartAllWatchersCommand}"
-                                    Content="Start All"
-                                    ToolTip="{StaticResource Tooltip.Watcher.StartAll}" />
-                            <Button Width="80"
-                                    Height="26"
-                                    Command="{Binding StopAllWatchersCommand}"
-                                    Content="Stop All"
-                                    ToolTip="{StaticResource Tooltip.Watcher.StopAll}" />
-                            <Button Width="80"
-                                    Height="26"
-                                    Command="{Binding RemoveAllWatchersCommand}"
-                                    Content="Remove All"
-                                    DockPanel.Dock="Right"
-                                    ToolTip="{StaticResource Tooltip.Watcher.RemoveAll}" />
+                    </StackPanel>
+                    <ListView Height="Auto"
+                              BorderThickness="0"
+                              ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
+                              ItemsSource="{Binding Watchers}"
+                              Style="{StaticResource ModernGridListViewStyle}">
+                        <ListView.View>
+                            <GridView>
+                                <GridView.ColumnHeaderContainerStyle>
+                                    <Style BasedOn="{StaticResource ModernGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
+                                </GridView.ColumnHeaderContainerStyle>
+                                <GridViewColumn Width="50" Header="State">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <!--  Status  -->
+                                            <Ellipse Width="12"
+                                                     Height="12"
+                                                     HorizontalAlignment="Center"
+                                                     VerticalAlignment="Center">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Fill" Value="{DynamicResource BaseRedBrush}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                                <Setter Property="Fill" Value="{DynamicResource BaseGreenBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="60" Header="Actions">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                                                <!--  Start/Stop Button  -->
+                                                <Button Width="12"
+                                                        Height="12"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent"
+                                                        Command="{Binding StartCommand}"
+                                                        ToolTip="Start"
+                                                        Visibility="{Binding IsRunning, Converter={StaticResource InverseBooleanConverter}}">
+                                                    <Path Width="12"
+                                                          Height="12"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Data="M2,2 L10,6 L2,10 Z"
+                                                          Fill="{DynamicResource BaseGreenBrush}"
+                                                          Stretch="Uniform" />
+                                                </Button>
+                                                <Button Width="12"
+                                                        Height="12"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Command="{Binding StopCommand}"
+                                                        ToolTip="Stop"
+                                                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <Rectangle Width="12"
+                                                               Height="12"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Fill="{DynamicResource BaseRedBrush}"
+                                                               RadiusX="2"
+                                                               RadiusY="2" />
+                                                </Button>
+                                                <Button Width="12"
+                                                        Height="12"
+                                                        Padding="0"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Command="{Binding RemoveCommand}"
+                                                        ToolTip="Remove">
+                                                    <Path Width="12"
+                                                          Height="12"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Data="M3,3 L9,9 M9,3 L3,9"
+                                                          Stroke="{DynamicResource BaseRedBrush}"
+                                                          StrokeEndLineCap="Round"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeThickness="2" />
+                                                </Button>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="220" Header="Name">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="160" Header="Query">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Query}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Query}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="100" DisplayMemberBinding="{Binding EventDisplayPropertyName}" Header="EventDisplayProperty" />
+                                <GridViewColumn Width="160" DisplayMemberBinding="{Binding Namespace}" Header="Namespace" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </DockPanel>
+            </GroupBox>
 
-                        </StackPanel>
-                        <ListView Height="Auto"
-                                  BorderThickness="0"
-                                  ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
-                                  ItemsSource="{Binding Watchers}"
-                                  Style="{StaticResource ModernGridListViewStyle}">
-                            <ListView.View>
-                                <GridView>
-                                    <GridView.ColumnHeaderContainerStyle>
-                                        <Style BasedOn="{StaticResource ModernGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
-                                    </GridView.ColumnHeaderContainerStyle>
-                                    <GridViewColumn Width="50" Header="State">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <!--  Status  -->
-                                                <Ellipse Width="12"
-                                                         Height="12"
-                                                         HorizontalAlignment="Center"
-                                                         VerticalAlignment="Center">
-                                                    <Ellipse.Style>
-                                                        <Style TargetType="Ellipse">
-                                                            <Setter Property="Fill" Value="{DynamicResource BaseRedBrush}" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                                    <Setter Property="Fill" Value="{DynamicResource BaseGreenBrush}" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Ellipse.Style>
-                                                </Ellipse>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="60" Header="Actions">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
-                                                    <!--  Start/Stop Button  -->
-                                                    <Button Width="12"
-                                                            Height="12"
-                                                            VerticalAlignment="Center"
-                                                            Background="Transparent"
-                                                            Command="{Binding StartCommand}"
-                                                            ToolTip="Start"
-                                                            Visibility="{Binding IsRunning, Converter={StaticResource InverseBooleanConverter}}">
-                                                        <Path Width="12"
-                                                              Height="12"
-                                                              HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"
-                                                              Data="M2,2 L10,6 L2,10 Z"
-                                                              Fill="{DynamicResource BaseGreenBrush}"
-                                                              Stretch="Uniform" />
-                                                    </Button>
-                                                    <Button Width="12"
-                                                            Height="12"
-                                                            VerticalAlignment="Center"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Command="{Binding StopCommand}"
-                                                            ToolTip="Stop"
-                                                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                        <Rectangle Width="12"
-                                                                   Height="12"
-                                                                   HorizontalAlignment="Center"
-                                                                   VerticalAlignment="Center"
-                                                                   Fill="{DynamicResource BaseRedBrush}"
-                                                                   RadiusX="2"
-                                                                   RadiusY="2" />
-                                                    </Button>
-                                                    <Button Width="12"
-                                                            Height="12"
-                                                            Padding="0"
-                                                            VerticalAlignment="Center"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Command="{Binding RemoveCommand}"
-                                                            ToolTip="Remove">
-                                                        <Path Width="12"
-                                                              Height="12"
-                                                              HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"
-                                                              Data="M3,3 L9,9 M9,3 L3,9"
-                                                              Stroke="{DynamicResource BaseRedBrush}"
-                                                              StrokeEndLineCap="Round"
-                                                              StrokeStartLineCap="Round"
-                                                              StrokeThickness="2" />
-                                                    </Button>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="220" Header="Name">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="160" Header="Query">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Query}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Query}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding EventDisplayPropertyName}" Header="EventDisplayProperty" />
-                                    <GridViewColumn Width="160" DisplayMemberBinding="{Binding Namespace}" Header="Namespace" />
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
-                    </DockPanel>
-                </GroupBox>
-            </Grid>
 
             <!--  GridSplitter  -->
-            <GridSplitter Grid.Column="1" Margin="0,4,0,0" />
+            <GridSplitter Grid.Column="1" />
 
             <!--  Right Panel: Events  -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <GroupBox Grid.Row="1"
-                          HorizontalContentAlignment="Stretch"
-                          VerticalContentAlignment="Stretch"
-                          Header="Events">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <DockPanel Grid.Row="0" Margin="0,4,0,0">
-                            <Button Width="100"
-                                    Height="26"
-                                    Command="{Binding ClearEventsCommand}"
-                                    Content="Clear Events"
-                                    DockPanel.Dock="Right"
-                                    ToolTip="{StaticResource Tooltip.Watcher.ClearEvents}" />
-                            <ComboBox Height="26"
-                                      MinWidth="150"
-                                      IsEditable="True"
-                                      ItemsSource="{Binding WatcherNames}"
-                                      SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      ToolTip="{StaticResource Tooltip.Watcher.WatcherFilter}" />
-                        </DockPanel>
-                        <!--  Filter TextBox for Events  -->
-                        <TextBox Grid.Row="1"
-                                 VerticalAlignment="Center"
-                                 Style="{StaticResource TextBoxWithClearButton}"
-                                 Tag="Filter Events..."
-                                 Text="{Binding EventFilterText, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="{StaticResource Tooltip.Watcher.FilterEvents}" />
-                        <ListView Grid.Row="2"
-                                  IsSynchronizedWithCurrentItem="True"
-                                  ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
-                                  ItemsSource="{Binding EventsView}"
-                                  SelectedItem="{Binding SelectedEvent, Mode=TwoWay}"
-                                  Style="{StaticResource ModernGridListViewStyle}"
-                                  VirtualizingStackPanel.IsVirtualizing="True">
-                            <ListView.View>
-                                <GridView>
-                                    <GridView.ColumnHeaderContainerStyle>
-                                        <Style BasedOn="{StaticResource ModernGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
-                                    </GridView.ColumnHeaderContainerStyle>
-                                    <GridViewColumn Width="Auto" Header="Time">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding EventTimestamp, StringFormat={}{0:HH:mm:ss.fff}}" ToolTip="{Binding EventTimestamp}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="Auto" Header="Display Property">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding EventDisplayPropertyName}" ToolTip="{Binding EventDisplayPropertyName}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="Auto" Header="Display Property Value">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding EventDisplayPropertyValue}" ToolTip="{Binding EventDisplayPropertyValue}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                    <GridViewColumn Width="Auto" Header="Watcher">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding WatcherName}" ToolTip="{Binding WatcherName}" />
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-                                </GridView>
-                            </ListView.View>
-                        </ListView>
-                    </Grid>
-                </GroupBox>
-            </Grid>
+            <GroupBox Grid.Column="2"
+                      Margin="4,0,0,4"
+                      HorizontalContentAlignment="Stretch"
+                      VerticalContentAlignment="Stretch"
+                      Header="Events">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="{DynamicResource MarginVerticalSmall}">
+                        <Button Width="100"
+                                Height="26"
+                                Command="{Binding ClearEventsCommand}"
+                                Content="Clear Events"
+                                DockPanel.Dock="Right"
+                                ToolTip="{StaticResource Tooltip.Watcher.ClearEvents}" />
+                        <ComboBox Height="26"
+                                  MinWidth="150"
+                                  IsEditable="True"
+                                  ItemsSource="{Binding WatcherNames}"
+                                  SelectedItem="{Binding SelectedWatcherName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  ToolTip="{StaticResource Tooltip.Watcher.WatcherFilter}" />
+                    </DockPanel>
+                    <!--  Filter TextBox for Events  -->
+                    <TextBox Grid.Row="1"
+                             VerticalAlignment="Center"
+                             Style="{StaticResource TextBoxWithClearButton}"
+                             Tag="Filter Events..."
+                             Text="{Binding EventFilterText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{StaticResource Tooltip.Watcher.FilterEvents}" />
+                    <ListView Grid.Row="2"
+                              IsSynchronizedWithCurrentItem="True"
+                              ItemContainerStyle="{StaticResource ModernGridListViewItemStyle}"
+                              ItemsSource="{Binding EventsView}"
+                              SelectedItem="{Binding SelectedEvent, Mode=TwoWay}"
+                              Style="{StaticResource ModernGridListViewStyle}"
+                              VirtualizingStackPanel.IsVirtualizing="True">
+                        <ListView.View>
+                            <GridView>
+                                <GridView.ColumnHeaderContainerStyle>
+                                    <Style BasedOn="{StaticResource ModernGridViewColumnHeaderStyle}" TargetType="GridViewColumnHeader" />
+                                </GridView.ColumnHeaderContainerStyle>
+                                <GridViewColumn Width="Auto" Header="Time">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding EventTimestamp, StringFormat={}{0:HH:mm:ss.fff}}" ToolTip="{Binding EventTimestamp}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="Auto" Header="Display Property">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding EventDisplayPropertyName}" ToolTip="{Binding EventDisplayPropertyName}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="Auto" Header="Display Property Value">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding EventDisplayPropertyValue}" ToolTip="{Binding EventDisplayPropertyValue}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Width="Auto" Header="Watcher">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding WatcherName}" ToolTip="{Binding WatcherName}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </GroupBox>
         </Grid>
     </Grid>
+
 </UserControl>

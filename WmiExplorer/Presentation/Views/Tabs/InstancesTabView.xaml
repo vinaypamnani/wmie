@@ -16,13 +16,14 @@
         </Grid.RowDefinitions>
 
         <TextBox Grid.Row="0"
-                 Margin="4,4,0,4"
+                 Margin="{DynamicResource MarginVerticalSmall}"
                  VerticalAlignment="Center"
                  Style="{StaticResource TextBoxWithClearButton}"
                  Tag="Filter Instances..."
                  Text="{Binding SelectionManager.SelectedNamespace.SelectedClass.InstanceFilterText, UpdateSourceTrigger=PropertyChanged}" />
 
         <ListView Grid.Row="1"
+                  Margin="{DynamicResource MarginBottomSmall}"
                   behaviors:ListViewAutoScrollBehavior.AutoScroll="False"
                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance}"
                   ItemsSource="{Binding SelectionManager.SelectedNamespace.SelectedClass.InstancesView}"

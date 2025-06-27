@@ -93,7 +93,7 @@
         <Setter Property="Width" Value="Auto" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Margin" Value="{StaticResource MarginHorizontalSmall}" />
+        <!--<Setter Property="Margin" Value="{StaticResource MarginHorizontalSmall}" />-->
         <Setter Property="Focusable" Value="False" />
         <Setter Property="ShowsPreview" Value="True" />
         <Setter Property="PreviewStyle">
