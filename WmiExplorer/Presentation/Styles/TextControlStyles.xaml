@@ -223,6 +223,12 @@
                 <RotateTransform Angle="90" />
             </Setter.Value>
         </Setter>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=Expander}}" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource TertiaryForegroundBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 
     <!--  Hyperlink  -->
