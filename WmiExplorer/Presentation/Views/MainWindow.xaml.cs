@@ -82,6 +82,8 @@ public partial class MainWindow : Window
             // Set IsWindowMaximized property based on current window state
             _mainViewModel.WindowPosition.IsWindowMaximized = WindowState == WindowState.Maximized;
 
+            _settingsService.MainWindowPosition = _mainViewModel.WindowPosition;
+
             // Explicitly save all settings
             _settingsService.SaveSettings();
 

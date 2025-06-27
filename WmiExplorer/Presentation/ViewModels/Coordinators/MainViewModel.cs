@@ -176,7 +176,11 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// Command to exit the application
     /// </summary>
     [RelayCommand]
-    private void Exit() => Environment.Exit(0);
+    private void Exit()
+    {
+        // Use window close to ensure Closing event is fired and settings are saved
+        System.Windows.Application.Current.MainWindow?.Close();
+    }
 
     /// <summary>
     /// Handles application state messages
