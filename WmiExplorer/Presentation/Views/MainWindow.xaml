@@ -146,7 +146,7 @@
             <!--  Property Grid View  -->
             <GridSplitter Grid.Column="3" Margin="4,0,0,0" Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-            <main:PropertyGridView Grid.Column="4" Margin="4,0,0,0" DataContext="{Binding}" />
+            <main:PropertyGridView Grid.Column="4" DataContext="{Binding}" />
 
         </Grid>
 

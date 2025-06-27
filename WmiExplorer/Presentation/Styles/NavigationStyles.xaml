@@ -236,7 +236,6 @@
                         <!--  Header - Position determined by ExpandDirection  -->
                         <Border x:Name="HeaderBorder"
                                 Grid.Column="0"
-                                Margin="{DynamicResource MarginVerticalSmall}"
                                 Background="{DynamicResource SecondaryBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="0"
@@ -337,11 +336,12 @@
                             </MultiTrigger.Conditions>
                             <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="2,2,0,2" />
                             <Setter TargetName="HeaderBorder" Property="CornerRadius" Value="3,0,0,3" />
+                            <!--  Workaround for not being able to/wanting to set Margin on outer GridSplitter or else the MouseOver on button doesn't have Left Margin  -->
+                            <Setter TargetName="HeaderBorder" Property="Margin" Value="4,0,0,0" />
                         </MultiTrigger>
 
                         <!--  Mouse over on Button  -->
                         <Trigger SourceName="ExpanderButton" Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ContentSite" Property="Margin" Value="4" />
                             <!--<Setter TargetName="ContentBorder" Property="Margin" Value="4" />
                             <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="2" />
                             <Setter TargetName="HeaderBorder" Property="CornerRadius" Value="3" />
