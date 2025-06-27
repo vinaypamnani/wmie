@@ -190,6 +190,9 @@ public static class AvalonEditCompletionBehavior
             editor.TextArea.TextEntering += OnTextEntering;
             editor.TextArea.TextEntered += OnTextEntered;
             editor.TextArea.KeyDown += OnKeyDown;
+
+            // Set options
+            editor.Options.HighlightCurrentLine = true;
         }
         else if (!newValue && oldValue)
         {
