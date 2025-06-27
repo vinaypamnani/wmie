@@ -16,7 +16,7 @@
 
         <!--  Search Criteria GroupBox  -->
         <GroupBox Grid.Row="0"
-                  Margin="{DynamicResource MarginVerticalSmall}"
+                  Margin="{DynamicResource MarginBottomSmall}"
                   HorizontalContentAlignment="Stretch"
                   Header="Search Criteria">
             <Grid>

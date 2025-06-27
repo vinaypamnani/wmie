@@ -11,7 +11,7 @@
              Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
 
-    <Grid x:Name="ClassesGrid" Margin="{DynamicResource MarginBottomSmall}">
+    <Grid x:Name="ClassesGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -39,7 +39,6 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <CheckBox Grid.Row="0"
-                                  Margin="{DynamicResource MarginSmall}"
                                   HorizontalAlignment="Right"
                                   Content="Show System Classes"
                                   IsChecked="{Binding SelectionManager.SelectedNamespace.ShowSystemClasses, Mode=TwoWay}" />
@@ -218,10 +217,10 @@
         <!--  Query GroupBox spanning all columns - override Style margin  -->
         <GroupBox Grid.Row="1"
                   Grid.ColumnSpan="3"
-                  Margin="0,0,0,0"
+                  Margin="{DynamicResource MarginBottomSmall}"
                   HorizontalContentAlignment="Stretch"
                   Header="Auto-generated Query for selected class or instance">
-            <Grid Margin="{DynamicResource MarginSmall}">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

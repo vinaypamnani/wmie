@@ -19,7 +19,7 @@
         <!--  Configuration Panel  -->
         <Grid Grid.Row="0">
 
-            <GroupBox Margin="{DynamicResource MarginTopSmall}" HorizontalContentAlignment="Stretch" Header="Event Query Builder">
+            <GroupBox Margin="{DynamicResource MarginBottomSmall}" HorizontalContentAlignment="Stretch" Header="Event Query Builder">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -184,7 +184,7 @@
 
             <!--  Left Panel: Watchers List  -->
             <GroupBox Grid.Column="0"
-                      Margin="{DynamicResource MarginVerticalSmall}"
+                      Margin="{DynamicResource MarginBottomSmall}"
                       HorizontalContentAlignment="Stretch"
                       VerticalContentAlignment="Stretch"
                       Header="Event Watchers">
@@ -326,7 +326,7 @@
 
             <!--  Right Panel: Events  -->
             <GroupBox Grid.Column="2"
-                      Margin="{DynamicResource MarginVerticalSmall}"
+                      Margin="{DynamicResource MarginBottomSmall}"
                       HorizontalContentAlignment="Stretch"
                       VerticalContentAlignment="Stretch"
                       Header="Events">

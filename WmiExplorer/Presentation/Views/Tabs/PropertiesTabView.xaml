@@ -17,7 +17,7 @@
 
         <!--  Properties Filter  -->
         <TextBox Grid.Row="0"
-                 Margin="{DynamicResource MarginVerticalSmall}"
+                 Margin="{DynamicResource MarginBottomSmall}"
                  VerticalAlignment="Center"
                  Style="{StaticResource TextBoxWithClearButton}"
                  Tag="Filter Properties..."

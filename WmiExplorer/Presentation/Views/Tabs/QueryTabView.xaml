@@ -17,7 +17,7 @@
 
         <!--  Query GroupBox  -->
         <GroupBox Grid.Row="0"
-                  Margin="{DynamicResource MarginVerticalSmall}"
+                  Margin="{DynamicResource MarginBottomSmall}"
                   HorizontalContentAlignment="Stretch"
                   Header="Query">
             <DockPanel LastChildFill="True">

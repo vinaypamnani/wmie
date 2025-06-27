@@ -95,7 +95,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="Bd"
-                            Margin="{DynamicResource MarginRightSmall}"
+                            Margin="0,0,4,4"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             BorderBrush="Transparent"
