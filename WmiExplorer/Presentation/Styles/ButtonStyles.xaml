@@ -42,8 +42,8 @@
     <Style TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="Padding" Value="{DynamicResource PaddingHorizontalLarge}" />
-        <Setter Property="Margin" Value="{DynamicResource MarginSmall}" />
+        <Setter Property="Padding" Value="{DynamicResource PaddingHorizontalMedium}" />
+        <Setter Property="Margin" Value="{DynamicResource MarginHorizontalMedium}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
@@ -105,7 +105,7 @@
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="Margin" Value="{DynamicResource MarginRightLarge}" />
+        <Setter Property="Margin" Value="{DynamicResource MarginHorizontalMedium}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />

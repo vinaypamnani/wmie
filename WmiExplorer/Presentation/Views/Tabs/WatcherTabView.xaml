@@ -194,7 +194,7 @@
                           HorizontalContentAlignment="Stretch"
                           VerticalContentAlignment="Stretch"
                           Header="Event Watchers">
-                    <DockPanel Margin="0,4,0,0">
+                    <DockPanel Margin="{DynamicResource MarginVerticalSmall}">
                         <StackPanel HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal">
                             <Button Width="80"
                                     Height="26"

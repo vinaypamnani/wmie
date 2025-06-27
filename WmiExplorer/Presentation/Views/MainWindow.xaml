@@ -90,10 +90,14 @@
                     </ContentControl>
                 </MenuItem.Icon>
             </MenuItem>
-
         </Menu>
 
-        <main:OptionsView Grid.Row="1" DataContext="{Binding OptionsViewModel}" />
+        <Border Grid.Row="1"
+                BorderBrush="{DynamicResource SecondaryBackgroundBrush}"
+                BorderThickness="0,0,0,4"
+                CornerRadius="0">
+            <main:OptionsView DataContext="{Binding OptionsViewModel}" />
+        </Border>
 
         <Grid Name="ContentGrid" Grid.Row="2">
             <Grid.ColumnDefinitions>

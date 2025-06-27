@@ -197,24 +197,26 @@
             </Trigger>
             <!--  Handle top-level menu items differently (those in the main menu bar)  -->
             <Trigger Property="Role" Value="TopLevelHeader">
-                <Setter Property="Padding" Value="{StaticResource PaddingMedium}" />
+                <Setter Property="Padding" Value="{DynamicResource PaddingMedium}" />
+                <Setter TargetName="templateRoot" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+                <Setter TargetName="templateRoot" Property="Margin" Value="{DynamicResource MarginHorizontalTiny}" />
                 <Setter TargetName="IconColumn" Property="Width" Value="0" />
                 <Setter TargetName="ToggleColumn" Property="Width" Value="0" />
-                <Setter TargetName="templateRoot" Property="Margin" Value="{StaticResource MarginHorizontalTiny}" />
                 <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom" />
                 <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Collapsed" />
             </Trigger>
             <!--  Handle top-level menu items without children  -->
             <Trigger Property="Role" Value="TopLevelItem">
-                <Setter Property="Padding" Value="{StaticResource PaddingMedium}" />
+                <Setter Property="Padding" Value="{DynamicResource PaddingMedium}" />
                 <!-- <Setter TargetName="IconColumn" Property="Width" Value="Auto" /> -->
                 <Setter TargetName="ToggleColumn" Property="Width" Value="0" />
-                <Setter TargetName="templateRoot" Property="Margin" Value="{StaticResource MarginHorizontalTiny}" />
+                <Setter TargetName="templateRoot" Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+                <Setter TargetName="templateRoot" Property="Margin" Value="{DynamicResource MarginHorizontalTiny}" />
                 <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Collapsed" />
             </Trigger>
             <!--  Handle submenu headers differently  -->
             <Trigger Property="Role" Value="SubmenuHeader">
-                <Setter Property="Padding" Value="{StaticResource PaddingMedium}" />
+                <Setter Property="Padding" Value="{DynamicResource PaddingMedium}" />
                 <Setter Property="MinWidth" Value="150" />
                 <Setter TargetName="PART_Popup" Property="Placement" Value="Right" />
                 <Setter TargetName="PART_Popup" Property="HorizontalOffset" Value="1" />
@@ -237,12 +239,12 @@
     <Style TargetType="ContextMenu">
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="{StaticResource PaddingTiny}" />
+        <Setter Property="Padding" Value="{DynamicResource PaddingTiny}" />
         <Setter Property="MinWidth" Value="175" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContextMenu">
-                    <Border Padding="{StaticResource PaddingSmall}"
+                    <Border Padding="{DynamicResource PaddingSmall}"
                             Background="{DynamicResource SecondaryBackgroundBrush}"
                             BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="0"
@@ -265,7 +267,7 @@
     <Style TargetType="MenuItem">
         <Setter Property="Padding" Value="{StaticResource PaddingMedium}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Template" Value="{StaticResource MenuItemControlTemplate}" />

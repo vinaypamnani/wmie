@@ -23,7 +23,7 @@
             </Expander.Header>
             <Expander.Content>
                 <!--  Border around both header and property grid  -->
-                <Grid>
+                <Grid Margin="0,4,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />

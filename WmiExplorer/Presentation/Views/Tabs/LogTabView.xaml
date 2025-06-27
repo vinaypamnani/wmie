@@ -27,8 +27,7 @@
                 </Grid.ColumnDefinitions>
                 <!--  Log Options  -->
                 <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                    <TextBlock Margin="{DynamicResource MarginRightMedium}" VerticalAlignment="Center" Text="Configure Log Level:" />
-
+                    <TextBlock VerticalAlignment="Center" Text="Application Log Level:" />
                     <ComboBox Width="120"
                               ItemsSource="{Binding AvailableLogLevels}"
                               SelectedItem="{Binding MinimumLogLevel}"
@@ -69,7 +68,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <!--  Filter Controls  -->
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="0" Margin="{DynamicResource MarginVerticalSmall}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -83,7 +82,7 @@
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock Grid.Column="1"
-                               Margin="{DynamicResource MarginRightMedium}"
+                               Margin="8,0,0,0"
                                VerticalAlignment="Center"
                                Text="Filter:" />
 
@@ -160,7 +159,7 @@
                                             CanUserResize="True"
                                             Header="Source" />
                         <!--  Message  -->
-                        <DataGridTextColumn Width="*"
+                        <DataGridTextColumn Width="Auto"
                                             MinWidth="200"
                                             Binding="{Binding Message}"
                                             CanUserResize="True"

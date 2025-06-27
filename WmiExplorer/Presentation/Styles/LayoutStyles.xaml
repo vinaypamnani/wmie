@@ -8,6 +8,7 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="Margin" Value="{DynamicResource MarginSmall}" />
+        <Setter Property="Padding" Value="{DynamicResource PaddingSmall}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GroupBox">

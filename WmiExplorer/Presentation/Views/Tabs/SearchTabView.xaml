@@ -112,7 +112,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <!--  Filter TextBox and Clear Button  -->
-                <Grid Grid.Row="0" Margin="0,4,0,0">
+                <Grid Grid.Row="0" Margin="{DynamicResource MarginVerticalSmall}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
