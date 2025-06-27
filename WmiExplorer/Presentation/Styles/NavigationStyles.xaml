@@ -279,6 +279,7 @@
                                               VerticalAlignment="Stretch" />
                         </Border>
                     </Grid>
+
                     <ControlTemplate.Triggers>
                         <!--  IsExpanded Triggers  -->
                         <Trigger Property="IsExpanded" Value="True">
@@ -337,6 +338,18 @@
                             <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="2,2,0,2" />
                             <Setter TargetName="HeaderBorder" Property="CornerRadius" Value="3,0,0,3" />
                         </MultiTrigger>
+
+                        <!--  Mouse over on Button  -->
+                        <Trigger SourceName="ExpanderButton" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ContentSite" Property="Margin" Value="4" />
+                            <!--<Setter TargetName="ContentBorder" Property="Margin" Value="4" />
+                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="2" />
+                            <Setter TargetName="HeaderBorder" Property="CornerRadius" Value="3" />
+                            <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />-->
+                            <Setter TargetName="ContentBorder" Property="BorderThickness" Value="2" />
+                            <Setter TargetName="ContentBorder" Property="CornerRadius" Value="3" />
+                            <Setter TargetName="ContentBorder" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+                        </Trigger>
 
                         <!--  Animation Triggers for better user experience  -->
                         <EventTrigger RoutedEvent="Expander.Expanded">
