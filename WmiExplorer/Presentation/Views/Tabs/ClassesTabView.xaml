@@ -195,6 +195,7 @@
                       Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
         <Border Grid.Column="2"
+                Margin="{DynamicResource MarginLeftSmall}"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="0"
                 CornerRadius="3">

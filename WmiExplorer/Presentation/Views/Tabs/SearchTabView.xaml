@@ -97,7 +97,7 @@
 
                 <!--  Note Text  -->
                 <TextBlock Grid.Row="2"
-                           Margin="{DynamicResource MarginHorizontalSmall}"
+                           Margin="4,0,4,4"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource BaseRedBrush}"
                            Text="NOTE: Search can take a long time depending on namespace and recursion." />
@@ -116,7 +116,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <!--  Filter TextBox and Clear Button  -->
-                <Grid Grid.Row="0" Margin="{DynamicResource MarginVerticalSmall}">
+                <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />

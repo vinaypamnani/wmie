@@ -5,7 +5,7 @@
         <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="Margin" Value="4,4,0,0" />
+        <Setter Property="Margin" Value="0,4,0,0" />
         <Setter Property="BorderThickness" Value="0,0,0,0" />
         <Setter Property="Template">
             <Setter.Value>
@@ -19,7 +19,7 @@
                             <RowDefinition Name="RowDefinition0" Height="Auto" />
                             <RowDefinition Name="RowDefinition1" Height="*" />
                         </Grid.RowDefinitions>
-                        <Border x:Name="HeaderBorder" Background="Transparent" CornerRadius="5">
+                        <Border x:Name="HeaderBorder" Background="Transparent" CornerRadius="1">
                             <TabPanel Name="HeaderPanel"
                                       Grid.Row="0"
                                       Grid.Column="0"

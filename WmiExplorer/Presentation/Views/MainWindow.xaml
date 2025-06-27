@@ -116,6 +116,7 @@
 
             <!--  Classes Tab  -->
             <Border Grid.Column="2"
+                    Margin="4,0,0,0"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="0"
                     CornerRadius="3">

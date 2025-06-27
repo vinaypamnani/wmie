@@ -28,6 +28,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+
                 <!--  Log Options  -->
                 <WrapPanel Grid.Column="0" VerticalAlignment="Center">
                     <TextBlock VerticalAlignment="Center" Text="Application Log Level:" />
@@ -72,7 +73,7 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <!--  Filter Controls  -->
-                <Grid Grid.Row="0" Margin="{DynamicResource MarginVerticalSmall}">
+                <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />

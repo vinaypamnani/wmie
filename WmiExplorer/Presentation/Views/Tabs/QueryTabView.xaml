@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
         <!--  Query GroupBox  -->
         <GroupBox Grid.Row="0"
                   Margin="{DynamicResource MarginVerticalSmall}"
@@ -51,7 +52,6 @@
                 <Border Margin="4"
                         BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="0"
-                        CornerRadius="2"
                         DockPanel.Dock="Top">
                     <avalonedit:TextEditor MinHeight="80"
                                            Padding="0,4,0,0"
@@ -87,7 +87,7 @@
                 </Grid.RowDefinitions>
 
                 <!--  Filter TextBox  -->
-                <Grid Grid.Row="0" Margin="{DynamicResource MarginVerticalSmall}">
+                <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
