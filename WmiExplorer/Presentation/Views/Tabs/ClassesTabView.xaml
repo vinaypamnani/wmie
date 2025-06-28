@@ -146,7 +146,7 @@
                                                     </MenuItem.Icon>
                                                 </MenuItem>
                                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
-                                                <MenuItem ItemsSource="{Binding StaticMethods}">
+                                                <MenuItem InputGestureText="Ctrl+E" ItemsSource="{Binding StaticMethods}">
                                                     <MenuItem.Header>
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="Execute Static Methods" />

@@ -74,6 +74,12 @@
 
     <!--  Custom template for MenuItems that removes the white border around submenus and has proper submenu arrow indicators  -->
     <ControlTemplate x:Key="MenuItemControlTemplate" TargetType="{x:Type MenuItem}">
+        <ControlTemplate.Resources>
+            <!--  DataTemplate for InputGestureText to set foreground color  -->
+            <DataTemplate x:Key="InputGestureTextTemplate">
+                <TextBlock Foreground="{DynamicResource SecondaryForegroundBrush}" Text="{Binding}" />
+            </DataTemplate>
+        </ControlTemplate.Resources>
         <Border x:Name="templateRoot"
                 Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -111,6 +117,17 @@
                                   ContentSource="Header"
                                   RecognizesAccessKey="True"
                                   SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                <!--  InputGestureText (keyboard shortcut)  -->
+                <ContentPresenter x:Name="GestureText"
+                                  Grid.Column="2"
+                                  Margin="8,0,8,0"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  Content="{TemplateBinding InputGestureText}"
+                                  ContentTemplate="{StaticResource InputGestureTextTemplate}"
+                                  RecognizesAccessKey="False"
+                                  SnapsToDevicePixels="True"
+                                  Visibility="{Binding InputGestureText, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
                 <!--  Modern ToggleSwitch for checkable menu items  -->
                 <CheckBox x:Name="ToggleSwitch"
                           Grid.Column="3"

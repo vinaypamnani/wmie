@@ -42,8 +42,11 @@
                         <ContentControl ContentTemplate="{StaticResource ExitIconTemplate}" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Save..." />
-                <MenuItem Command="{Binding ExitCommand}" Header="E_xit">
+                <MenuItem Header="Save..." InputGestureText="Ctrl+S" />
+                <MenuItem Command="{Binding ExitCommand}"
+                          Header="E_xit"
+                          InputGestureText="Ctrl+Q"
+                          ToolTip="Exit the application">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource ExitIconTemplate}" />
                     </MenuItem.Icon>
@@ -161,4 +164,8 @@
             </StatusBarItem>
         </StatusBar>
     </Grid>
+
+    <Window.InputBindings>
+        <KeyBinding Key="Q" Command="{Binding ExitCommand}" Modifiers="Control" />
+    </Window.InputBindings>
 </Window>
