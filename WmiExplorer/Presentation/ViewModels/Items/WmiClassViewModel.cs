@@ -128,6 +128,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     {
         if (disposing)
         {
+            Log.Debug("Disposing WmiClassViewModel for class: {ClassName}", ClassName);
             // Dispose all instances
             lock (_collectionLock)
             {
@@ -151,7 +152,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 {
                     if (method is IDisposable disposable)
                     {
-                        try { disposable.Dispose(); } catch { }
+                        try { disposable.Dispose(); }
+                        catch (Exception ex) { Log.Warning(ex, "Error disposing method for class: {ClassName}", ClassName); }
                     }
                 }
                 _methods.Clear();
@@ -162,7 +164,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 {
                     if (method is IDisposable disposable)
                     {
-                        try { disposable.Dispose(); } catch { }
+                        try { disposable.Dispose(); }
+                        catch (Exception ex) { Log.Warning(ex, "Error disposing static method for class: {ClassName}", ClassName); }
                     }
                 }
                 StaticMethods.Clear();
@@ -174,7 +177,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 {
                     if (prop is IDisposable disposable)
                     {
-                        try { disposable.Dispose(); } catch { }
+                        try { disposable.Dispose(); }
+                        catch (Exception ex) { Log.Warning(ex, "Error disposing property for class: {ClassName}", ClassName); }
                     }
                 }
                 Properties.Clear();
@@ -183,6 +187,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             _cts.Cancel();
             _cts.Dispose();
             _instanceFilterHelper.Dispose();
+            Log.Debug("Disposed WmiClassViewModel for class: {ClassName}", ClassName);
         }
         base.Dispose(disposing);
     }
@@ -195,6 +200,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     {
         try
         {
+            Log.Debug("Cancellation requested for class: {ClassName}", ClassName);
             // Show immediate feedback that cancellation was requested
             PublishBusyState($"Cancellation requested for {ClassName} - operation will stop soon");
 
@@ -220,6 +226,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         if (TryGetClassMof(useAmendedQualifiers, out var mof) && mof != null)
         {
             _applicationService.CopyToClipboard(mof);
+            Log.Information("Class MOF copied to clipboard for {ClassName} (amended qualifiers: {UseAmended})", ClassName, useAmendedQualifiers);
             PublishSuccessState($"Class MOF copied to clipboard (amended qualifiers: {useAmendedQualifiers})");
         }
     }
@@ -235,6 +242,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             return;
 
         _applicationService.CopyToClipboard(classPath);
+        Log.Information("Class path copied to clipboard for {ClassName}: {ClassPath}", ClassName, classPath);
         PublishSuccessState($"Copied class path: {classPath}");
     }
 
@@ -294,6 +302,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         if (LoadState == InstanceLoadState.Loading)
             return;
 
+        Log.Debug("Starting to load instances for class {ClassName}", ClassName);
+
         // Create a new CTS for this operation
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
@@ -341,11 +351,13 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             if (_cts.Token.IsCancellationRequested)
             {
                 LoadState = InstanceLoadState.Warning;
+                Log.Warning("Found {InstanceCount} instances for {ClassName} before loading was cancelled (token signaled)", instanceViewModels.Count, ClassName);
                 PublishWarningState($"Found {instanceViewModels.Count} instances for {ClassName} before loading was cancelled");
             }
             else
             {
                 LoadState = InstanceLoadState.Success;
+                Log.Information("Successfully loaded {InstanceCount} instances for {ClassName}", instanceViewModels.Count, ClassName);
                 PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
             }
         }
@@ -390,6 +402,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadMethods()
     {
+        Log.Debug("Loading methods for class: {ClassName}", ClassName);
         _methods = new ObservableCollection<WmiMethod>();
         StaticMethods = new ObservableCollection<WmiMethod>();
 
@@ -411,6 +424,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                         StaticMethods.Add(method);
                     }
                 }
+                Log.Information("Loaded {MethodCount} methods for class: {ClassName}", methods.Count, ClassName);
+            }
+            else
+            {
+                Log.Information("No methods found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
@@ -424,6 +442,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadProperties()
     {
+        Log.Debug("Loading properties for class: {ClassName}", ClassName);
         Properties = new ObservableCollection<WmiProperty>();
 
         try
@@ -438,6 +457,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     // Add all properties to the properties collection
                     Properties.Add(new WmiProperty(property, _wmiClass.ActualClass));
                 }
+                Log.Information("Loaded {PropertyCount} properties for class: {ClassName}", properties.Count, ClassName);
+            }
+            else
+            {
+                Log.Information("No properties found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
@@ -485,6 +509,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         bool useAmendedQualifiers = CommandParameterHelper.ParseBool(parameter, true);
         if (TryGetClassMof(useAmendedQualifiers, out var mof) && mof != null)
         {
+            Log.Information("Showing MOF viewer dialog for {ClassName}", ClassName);
             var dialog = new WmiExplorer.Presentation.Views.Dialogs.MofViewerDialog(mof)
             {
                 Owner = System.Windows.Application.Current.MainWindow

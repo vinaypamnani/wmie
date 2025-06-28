@@ -334,6 +334,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [RelayCommand]
     public async Task LoadClassesAsync()
     {
+        Log.Debug("Starting to load classes for {NamespacePath}", NamespacePath);
         using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", _messengerService);
         try
         {
@@ -349,7 +350,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _cts.Token);
 
             if (_cts.IsCancellationRequested)
+            {
+                Log.Warning("Loading classes for {NamespacePath} was canceled (token signaled)", NamespacePath);
                 return;
+            }
 
             // Map ManagementObject to WmiClass and create view models for all classes at once.
             var classModels = wmiClasses.Select(mo => new WmiClass(mo));
@@ -377,6 +381,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             });
 
             ClassLoadState = ClassLoadState.Success;
+            Log.Information("Successfully loaded {ClassCount} classes for {NamespacePath}", _classes.Count, NamespacePath);
 
             // Publish message that classes are loaded
             PublishMessage(new ClassesLoadedMessage(this));
@@ -387,10 +392,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             // Publish message that classes are filtered to update status bar
             PublishMessage(new ClassesFilteredMessage(this));
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ocex)
         {
             ClassLoadState = ClassLoadState.Warning;
-            Log.Warning("Loading classes for {NamespacePath} was canceled", NamespacePath);
+            Log.Warning(ocex, "Loading classes for {NamespacePath} was canceled (exception)", NamespacePath);
             PublishErrorState($"Loading classes for {NamespacePath} was canceled");
         }
         catch (Exception ex)
