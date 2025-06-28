@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:WmiExplorer.Presentation.Controls.UserControls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:helpers="clr-namespace:WmiExplorer.Presentation.ViewModels.Helpers"
         xmlns:local="clr-namespace:WmiExplorer"
         xmlns:main="clr-namespace:WmiExplorer.Presentation.Views.Main"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -57,7 +58,7 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem>
+            <MenuItem helpers:MenuItemHelper.IsHyperlinkMenuItem="True">
                 <MenuItem.Header>
                     <Hyperlink>
                         <Run Text="{x:Static local:VersionInfo.AppVersion}" />
