@@ -367,9 +367,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
             await RunOnUIThreadAsync(() =>
             {
+                ClearAndDisposeClasses();
                 lock (_collectionLock)
                 {
-                    _classes.Clear();
                     foreach (var classVm in classViewModels)
                     {
                         _classes.Add(classVm);
@@ -411,35 +411,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         if (disposing)
         {
             // Dispose all child namespaces
-            lock (_collectionLock)
-            {
-                foreach (var childNamespace in _children)
-                {
-                    try
-                    {
-                        childNamespace.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Error disposing child namespace: {NamespacePath}", childNamespace.NamespacePath);
-                    }
-                }
-                _children.Clear();
-
-                // Dispose all classes
-                foreach (var wmiClass in _classes)
-                {
-                    try
-                    {
-                        wmiClass.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Error disposing class: {ClassName}", wmiClass.ClassName);
-                    }
-                }
-                _classes.Clear();
-            }
+            ClearAndDisposeChildren();
+            ClearAndDisposeClasses();
             _wmiNamespace?.Dispose();
             _cts.Cancel();
             _cts.Dispose();
@@ -456,6 +429,56 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         if (!string.IsNullOrWhiteSpace(filter))
             return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
         return true;
+    }
+
+    /// <summary>
+    /// Disposes all WmiNamespaceViewModel items in the _children collection and clears the collection.
+    /// </summary>
+    private void ClearAndDisposeChildren()
+    {
+        List<WmiNamespaceViewModel> toDispose;
+        lock (_collectionLock)
+        {
+            toDispose = new List<WmiNamespaceViewModel>(_children);
+            _children.Clear();
+        }
+        foreach (var childNamespace in toDispose)
+        {
+            try
+            {
+                childNamespace.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error disposing child namespace: {NamespacePath}", childNamespace.NamespacePath);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Disposes all WmiClassViewModel items in the _classes collection and clears the collection.
+    /// </summary>
+    private void ClearAndDisposeClasses()
+    {
+        List<WmiClassViewModel> toDispose;
+        lock (_collectionLock)
+        {
+            toDispose = new List<WmiClassViewModel>(_classes);
+            _classes.Clear();
+        }
+        foreach (var wmiClass in toDispose)
+        {
+            try
+            {
+                wmiClass.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error disposing class: {ClassName}", wmiClass.ClassName);
+            }
+        }
+
+        Log.Debug("Cleared and disposed all classes for namespace: {NamespacePath}", NamespacePath);
     }
 
     // Commands

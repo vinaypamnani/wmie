@@ -128,66 +128,15 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     {
         if (disposing)
         {
-            Log.Debug("Disposing WmiClassViewModel for class: {ClassName}", ClassName);
-            // Dispose all instances
-            lock (_collectionLock)
-            {
-                foreach (var instance in _instances)
-                {
-                    try
-                    {
-                        instance.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Error disposing instance: {InstanceName}", instance.InstanceName);
-                    }
-                }
-                _instances.Clear();
-            }
-            // Dispose and clear methods
-            if (_methods != null)
-            {
-                foreach (var method in _methods)
-                {
-                    if (method is IDisposable disposable)
-                    {
-                        try { disposable.Dispose(); }
-                        catch (Exception ex) { Log.Warning(ex, "Error disposing method for class: {ClassName}", ClassName); }
-                    }
-                }
-                _methods.Clear();
-            }
-            if (StaticMethods != null)
-            {
-                foreach (var method in StaticMethods)
-                {
-                    if (method is IDisposable disposable)
-                    {
-                        try { disposable.Dispose(); }
-                        catch (Exception ex) { Log.Warning(ex, "Error disposing static method for class: {ClassName}", ClassName); }
-                    }
-                }
-                StaticMethods.Clear();
-            }
-            // Dispose and clear properties
-            if (Properties != null)
-            {
-                foreach (var prop in Properties)
-                {
-                    if (prop is IDisposable disposable)
-                    {
-                        try { disposable.Dispose(); }
-                        catch (Exception ex) { Log.Warning(ex, "Error disposing property for class: {ClassName}", ClassName); }
-                    }
-                }
-                Properties.Clear();
-            }
+            // Dispose and clear all collections
+            ClearAndDisposeInstances();
+            ClearAndDispose(_methods);
+            ClearAndDispose(StaticMethods);
+            ClearAndDispose(Properties);
             _wmiClass?.Dispose();
             _cts.Cancel();
             _cts.Dispose();
             _instanceFilterHelper.Dispose();
-            Log.Debug("Disposed WmiClassViewModel for class: {ClassName}", ClassName);
         }
         base.Dispose(disposing);
     }
@@ -215,6 +164,70 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     }
 
     private bool CancelInstanceLoadCanExecute() => LoadState == InstanceLoadState.Loading;
+
+    /// <summary>
+    /// Disposes all items in the collection (if IDisposable) and clears the collection.
+    /// </summary>
+    private static void ClearAndDispose(System.Collections.IEnumerable? collection)
+    {
+        if (collection == null) return;
+        if (collection is System.Collections.IList list)
+        {
+            foreach (var item in list)
+            {
+                if (item is IDisposable disposable)
+                {
+                    try { disposable.Dispose(); }
+                    catch (Exception ex) { Log.Warning(ex, "Error disposing item in collection"); }
+                }
+            }
+            list.Clear();
+        }
+        else if (collection is System.Collections.ICollection col)
+        {
+            var toDispose = new List<IDisposable>();
+            foreach (var item in col)
+            {
+                if (item is IDisposable disposable)
+                    toDispose.Add(disposable);
+            }
+            foreach (var disposable in toDispose)
+            {
+                try { disposable.Dispose(); }
+                catch (Exception ex) { Log.Warning(ex, "Error disposing item in collection"); }
+            }
+            var clearMethod = col.GetType().GetMethod("Clear");
+            clearMethod?.Invoke(col, null);
+        }
+    }
+
+    /// <summary>
+    /// Disposes all instances in the _instances collection and clears the collection.
+    /// </summary>
+    private void ClearAndDisposeInstances()
+    {
+        if (_instances.Count == 0)
+            return;
+
+        List<WmiInstanceViewModel> toDispose;
+        lock (_collectionLock)
+        {
+            toDispose = new List<WmiInstanceViewModel>(_instances);
+            _instances.Clear();
+            Log.Debug("Cleared and disposed all instances for class: {ClassName}", ClassName);
+        }
+        foreach (var instance in toDispose)
+        {
+            try
+            {
+                instance.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error disposing instance: {InstanceName}", instance.InstanceName);
+            }
+        }
+    }
 
     /// <summary>
     /// Command to copy the class MOF to clipboard, with or without amended qualifiers.
@@ -333,15 +346,14 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             // Use RunOnUIThread for synchronous UI updates to avoid hanging
             RunOnUIThread(() =>
             {
+                ClearAndDisposeInstances();
                 lock (_collectionLock)
                 {
-                    _instances.Clear();
                     foreach (var vm in instanceViewModels)
                     {
                         _instances.Add(vm);
                     }
                 }
-
                 // No need to reapply filter or refresh, FilterHelper handles it.
                 PublishMessage(new InstancesFilteredMessage(this));
                 OnPropertyChanged(nameof(InstanceFilterText));
