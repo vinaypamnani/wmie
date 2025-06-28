@@ -491,10 +491,12 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 _isUpdatingSelection = true;
 
                 // Load methods for this class
-                LoadMethods();
+                if (_methods == null)
+                    LoadMethods();
 
                 // Load properties for this class
-                LoadProperties();
+                if (_properties == null)
+                    LoadProperties();
             }
             finally
             {
