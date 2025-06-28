@@ -460,6 +460,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     /// </summary>
     private void ClearAndDisposeClasses()
     {
+        if (_classes.Count == 0)
+            return;
+
         List<WmiClassViewModel> toDispose;
         lock (_collectionLock)
         {
