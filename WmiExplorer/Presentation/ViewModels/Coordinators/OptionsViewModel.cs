@@ -59,8 +59,9 @@ public partial class OptionsViewModel : MessagingViewModelBase
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
 
-        // Initialize the operation mode from the service
-        _operationMode = _wmiService.OperationMode;
+        // Initialize the operation mode from the settings service
+        _operationMode = _settingsService.OperationMode;
+        _wmiService.OperationMode = _operationMode;
 
         // Initialize the class type filter from the settings
         _classTypeFilter = _settingsService.ClassEnumerationFilter;
@@ -184,10 +185,14 @@ public partial class OptionsViewModel : MessagingViewModelBase
     // Partial method that will be called when OperationMode changes
     partial void OnOperationModeChanged(WmiOperationMode value)
     {
-        // Sync the value with the WMI service
+        // Sync the value with the WMI service and persist to settings
         if (_wmiService.OperationMode != value)
         {
             _wmiService.OperationMode = value;
+        }
+        if (_settingsService.OperationMode != value)
+        {
+            _settingsService.OperationMode = value;
         }
     }
 

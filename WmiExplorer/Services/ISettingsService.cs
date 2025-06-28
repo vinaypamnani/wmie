@@ -10,6 +10,7 @@ public interface ISettingsService
     LogLevel LogLevel { get; set; }
     MainWindowPosition MainWindowPosition { get; set; }
     bool ShowSystemClasses { get; set; }
+    WmiOperationMode OperationMode { get; set; }
 
     void ReloadSettings();
     void SaveSettings();

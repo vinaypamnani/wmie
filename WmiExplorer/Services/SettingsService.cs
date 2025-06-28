@@ -100,6 +100,13 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         set => SetValue(value);
     }
 
+    [Setting(WmiOperationMode.Asynchronous)]
+    public WmiOperationMode OperationMode
+    {
+        get => GetValue<WmiOperationMode>();
+        set => SetValue(value);
+    }
+
     public void ReloadSettings()
     {
         var oldValues = new Dictionary<string, object?>(_values);
