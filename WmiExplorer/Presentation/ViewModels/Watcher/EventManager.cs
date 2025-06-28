@@ -21,6 +21,7 @@ public partial class EventManager : DisposableObservableObject
 
     private readonly ObservableCollection<WmiEvent> _events = new();
     private ICollectionView? _eventsView;
+    private int _maxEvents;
 
     [ObservableProperty]
     private string? _selectedWatcherName;
@@ -28,10 +29,11 @@ public partial class EventManager : DisposableObservableObject
     /// <summary>
     /// Initializes a new instance of the EventManager class
     /// </summary>
-    public EventManager()
+    public EventManager(int maxEvents)
     {
         Events = new ReadOnlyObservableCollection<WmiEvent>(_events);
         TrackDisposable(_eventFilterDebouncer);
+        _maxEvents = maxEvents;
     }
 
     /// <summary>
@@ -56,11 +58,6 @@ public partial class EventManager : DisposableObservableObject
     }
 
     /// <summary>
-    /// Maximum number of events to keep in memory
-    /// </summary>
-    public int MaxEvents { get; set; } = 1000;
-
-    /// <summary>
     /// Adds a new event to the collection
     /// </summary>
     /// <param name="wmiEvent">The event to add</param>
@@ -70,22 +67,7 @@ public partial class EventManager : DisposableObservableObject
             return;
 
         _events.Add(wmiEvent);
-
-        // Remove old events if we exceed the maximum
-        while (_events.Count > MaxEvents)
-        {
-            var oldEvent = _events[0];
-            _events.RemoveAt(0);
-            try
-            {
-                oldEvent.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Error disposing WmiEvent during cleanup");
-            }
-        }
-
+        TrimEventsToMax();
         // Notify that properties dependent on collection count have changed
         OnPropertyChanged(nameof(Events));
     }
@@ -133,6 +115,16 @@ public partial class EventManager : DisposableObservableObject
             return _events.Count;
 
         return _events.Count(e => e.WatcherName == watcherName);
+    }
+
+    /// <summary>
+    /// Sets the maximum number of events and trims the collection if needed
+    /// </summary>
+    public void SetMaxEvents(int maxEvents)
+    {
+        _maxEvents = maxEvents;
+        TrimEventsToMax();
+        OnPropertyChanged(nameof(Events));
     }
 
     /// <summary>
@@ -207,5 +199,25 @@ public partial class EventManager : DisposableObservableObject
         {
             EventsView.Refresh();
         });
+    }
+
+    /// <summary>
+    /// Trims the event collection to the current maximum, disposing old events as needed
+    /// </summary>
+    private void TrimEventsToMax()
+    {
+        while (_events.Count > _maxEvents)
+        {
+            var oldEvent = _events[0];
+            _events.RemoveAt(0);
+            try
+            {
+                oldEvent.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Error disposing WmiEvent during event trimming");
+            }
+        }
     }
 }

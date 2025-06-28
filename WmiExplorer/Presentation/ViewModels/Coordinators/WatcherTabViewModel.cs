@@ -33,6 +33,13 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     private bool _isCustomQuery = false;
 
     [ObservableProperty]
+    private int _maxEvents = 1000;
+
+    // Backing property for the MaxEvents input field
+    [ObservableProperty]
+    private string _maxEventsInput = "1000";
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedEvent))]
     private WmiEvent? _selectedEvent;
 
@@ -56,7 +63,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
         _displayPropertyManager = TrackDisposable(new DisplayPropertyManager());
         _classListManager = TrackDisposable(new ClassListManager(cacheService));
         _watcherManager = TrackDisposable(new WatcherManager(messengerService));
-        _eventManager = TrackDisposable(new EventManager());
+        _eventManager = TrackDisposable(new EventManager(MaxEvents));
 
         _eventQueryBuilder = new WatcherQueryBuilder();
 
@@ -71,6 +78,15 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
 
         // Subscribe to events collection changes to update HasEvents property
         _eventManager.PropertyChanged += EventManager_PropertyChanged;
+
+        // Sync MaxEvents changes to EventManager
+        PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(MaxEvents))
+            {
+                _eventManager.SetMaxEvents(MaxEvents);
+            }
+        };
     }
 
     public ReadOnlyObservableCollection<string> EventClassList => _classListManager.EventClasses;
@@ -160,6 +176,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
         // Notify UI updates - no local property to notify
         OnPropertyChanged(nameof(HasActiveNamespace));
         AddWatcherCommand.NotifyCanExecuteChanged();
+        SetMaxEventsCommand.NotifyCanExecuteChanged();
 
         // Handle namespace change logic
         EventQueryBuilder.EventTargetClass = string.Empty;
@@ -227,6 +244,11 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     /// Determines if the RemoveAllWatchers command can execute
     /// </summary>
     private bool CanRemoveAllWatchers() => HasWatchers;
+
+    /// <summary>
+    /// Determines if the SetMaxEvents command can execute
+    /// </summary>
+    private bool CanSetMaxEvents() => HasActiveNamespace;
 
     /// <summary>
     /// Determines if the StartAllWatchers command can execute
@@ -313,6 +335,15 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Add a partial method to handle MaxEvents changes
+    /// </summary>
+    partial void OnMaxEventsChanged(int value)
+    {
+        _eventManager.SetMaxEvents(value);
+        MaxEventsInput = value.ToString(); // keep input in sync
+    }
+
+    /// <summary>
     /// Command to remove all watchers
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanRemoveAllWatchers))]
@@ -326,6 +357,23 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
         }
 
         PublishSuccessState($"Removed {count} watchers.");
+    }
+
+    /// <summary>
+    /// RelayCommand to set MaxEvents from the input field
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanSetMaxEvents))]
+    private void SetMaxEvents()
+    {
+        if (int.TryParse(MaxEventsInput, out int value) && value > 0)
+        {
+            MaxEvents = value;
+        }
+        else
+        {
+            Log.Warning("Invalid MaxEvents input: {InputValue}. Must be a positive integer. Resetting to {MaxEvents}", MaxEventsInput, MaxEvents);
+            MaxEventsInput = MaxEvents.ToString();
+        }
     }
 
     /// <summary>
