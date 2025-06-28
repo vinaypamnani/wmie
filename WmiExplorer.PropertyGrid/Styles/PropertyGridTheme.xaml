@@ -16,7 +16,6 @@
     <pgConverters:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />
     <pgConverters:DoubleToGridLengthConverter x:Key="DoubleToGridLengthConverter" />
 
-
     <!--  ================================================================  -->
     <!--  TEXTBOX SEARCH BOX STYLE  -->
     <!--  ================================================================  -->
@@ -286,8 +285,16 @@
                                      TextWrapping="Wrap">
                                 <TextBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Command="{x:Static local:PropertyGrid.HelpPaneCopyCommand}" Header="Copy" />
-                                        <MenuItem Command="{x:Static local:PropertyGrid.HelpPaneSelectAllCommand}" Header="Select All" />
+                                        <MenuItem Command="{x:Static local:PropertyGrid.HelpPaneCopyCommand}" Header="Copy">
+                                            <MenuItem.Icon>
+                                                <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8C8;" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Command="{x:Static local:PropertyGrid.HelpPaneSelectAllCommand}" Header="Select All">
+                                            <MenuItem.Icon>
+                                                <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8B3;" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
                                     </ContextMenu>
                                 </TextBox.ContextMenu>
                             </TextBox>

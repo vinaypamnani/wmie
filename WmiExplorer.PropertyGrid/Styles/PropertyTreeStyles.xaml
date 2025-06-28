@@ -10,6 +10,16 @@
     <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <conv:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />
 
+    <!--  Icons from SegoeFluentIcons  -->
+    <!--  Reference: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font  -->
+    <Style x:Key="PropertyGridIconStyle" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
     <!--  Common style for property text  -->
     <Style x:Key="PropertyTextBlockStyle" TargetType="TextBlock">
         <Setter Property="Margin" Value="0,2" />
@@ -154,10 +164,25 @@
                                 <Binding Path="FormattedValue" />
                             </MultiBinding>
                         </MenuItem.CommandParameter>
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE90C;" />
+                        </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" Header="Copy Name" />
-                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" Header="Copy Value" />
-                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" Header="Copy Description" />
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" Header="Copy Name">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8F3;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" Header="Copy Value">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8C8;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" Header="Copy Description">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8A4;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </ContextMenu>
             </Grid.ContextMenu>
             <Grid.ColumnDefinitions>
