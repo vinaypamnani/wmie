@@ -180,22 +180,23 @@
                     <RowDefinition Height="{Binding HelpPaneHeight, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}" />
                 </Grid.RowDefinitions>
                 <!--  ===== OPTIONS PANEL (for checkboxes) =====  -->
-                <StackPanel Grid.Row="0" Margin="8,8,8,8" Orientation="Horizontal">
+                <StackPanel Grid.Row="0" Margin="0,4" Orientation="Horizontal">
+
                     <!--  ShowOptions checkboxes - Using FilterOptions for cleaner property management  -->
                     <StackPanel Orientation="Horizontal" Visibility="{Binding ShowOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <CheckBox Content="Show null values" IsChecked="{Binding FilterOptions.IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
-                        <CheckBox Margin="8,0,0,0" Content="Show read-only properties" IsChecked="{Binding FilterOptions.IncludeReadOnlyProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                        <CheckBox Margin="0,0,0,0" Content="Show null values" IsChecked="{Binding FilterOptions.IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                        <CheckBox Margin="4,0,0,0" Content="Show read-only properties" IsChecked="{Binding FilterOptions.IncludeReadOnlyProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                     </StackPanel>
 
                     <!--  ShowWmiOptions checkboxes - Using FilterOptions for cleaner property management  -->
-                    <StackPanel Margin="8,0,0,0" Orientation="Horizontal" Visibility="{Binding ShowWmiOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Margin="4,0,0,0" Orientation="Horizontal" Visibility="{Binding ShowWmiOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                         <CheckBox Content="Show System Properties" IsChecked="{Binding FilterOptions.IncludeSystemProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                     </StackPanel>
 
                 </StackPanel>
 
                 <!--  ===== SEARCH BOX =====  -->
-                <Grid Grid.Row="1" Margin="8,8,8,4" Visibility="{Binding ShowSearchBox, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid Grid.Row="1" Margin="0,4" Visibility="{Binding ShowSearchBox, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
@@ -273,7 +274,7 @@
                         BorderThickness="0"
                         Visibility="{Binding ShowHelpPane, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="8" VerticalAlignment="Top">
+                        <StackPanel Margin="0,4" VerticalAlignment="Top">
                             <TextBlock FontWeight="Bold" Foreground="{DynamicResource PropertyGridForegroundBrush}" Text="{Binding SelectedHierarchyItem.DisplayName, RelativeSource={RelativeSource TemplatedParent}}" />
                             <TextBox Background="Transparent"
                                      BorderThickness="0"
