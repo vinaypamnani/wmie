@@ -45,6 +45,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
 
         // Subscribe to messages
         StrongSubscribe<InstancesFilteredMessage>(HandleInstancesFilteredMessage);
+        StrongSubscribe<TabCountChangedMessage>(message => UpdateTabHeaders());
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;

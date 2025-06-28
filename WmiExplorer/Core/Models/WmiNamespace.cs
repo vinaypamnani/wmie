@@ -6,7 +6,7 @@ namespace WmiExplorer.Core.Models;
 /// <summary>
 /// Minimal container for a WMI namespace object
 /// </summary>
-public class WmiNamespace
+public class WmiNamespace : IDisposable
 {
     private ManagementObject _actualObject;
 
@@ -55,8 +55,8 @@ public class WmiNamespace
     /// </summary>
     [Category("Namespace")]
     public string NamespaceName =>
-                                string.IsNullOrEmpty(NamespacePath) ? string.Empty :
-                                NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
+                                    string.IsNullOrEmpty(NamespacePath) ? string.Empty :
+                                    NamespacePath.Contains("\\") ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
 
     /// <summary>
     /// The path of the namespace (e.g., "root\\cimv2")
@@ -71,4 +71,13 @@ public class WmiNamespace
     /// Returns the string representation
     /// </summary>
     public override string ToString() => $"Namespace: {NamespacePath}";
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+        _actualObject?.Dispose();
+    }
+
+    #endregion
 }

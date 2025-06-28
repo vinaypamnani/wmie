@@ -10,7 +10,7 @@ using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
 
-public partial class WmiParameterViewModel : DisposableObservableObject
+public partial class WmiParameterViewModel : DisposableObservableObject, IDisposable
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEnabled))]
@@ -337,6 +337,26 @@ public partial class WmiParameterViewModel : DisposableObservableObject
 
         ObjectDisplayText = $"{TargetClassName} object (configured)";
     }
+
+    #region IDisposable
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _parameterObject?.Dispose();
+            _referenceValuesCts?.Cancel();
+            _referenceValuesCts?.Dispose();
+            if (_wmiParameter is IDisposable disposable)
+            {
+                try { disposable.Dispose(); } catch { }
+            }
+            ReferenceValues?.Clear();
+        }
+        base.Dispose(disposing);
+    }
+
+    #endregion
 }
 
 public enum ReferenceValueLoadState

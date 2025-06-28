@@ -4,16 +4,16 @@ using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
-using WmiExplorer.Presentation.ViewModels.Helpers;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
 
 /// <summary>
 /// ViewModel for a WMI instance. Exposes instance properties and supports selection messaging.
 /// </summary>
-public partial class WmiInstanceViewModel : MessagingViewModelBase
+public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
 {
     public enum InstanceState
     {
@@ -390,4 +390,28 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase
             return false;
         }
     }
+
+    #region IDisposable
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (InstanceMethods != null)
+            {
+                foreach (var method in InstanceMethods)
+                {
+                    if (method is IDisposable disposable)
+                    {
+                        try { disposable.Dispose(); } catch { }
+                    }
+                }
+                InstanceMethods.Clear();
+            }
+            _wmiInstance?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
+    #endregion
 }

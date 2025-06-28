@@ -6,14 +6,16 @@ namespace WmiExplorer.Core.Models;
 /// <summary>
 /// Thin wrapper for a WMI class ManagementClass
 /// </summary>
-public class WmiClass
+public class WmiClass : IDisposable
 {
     private ManagementClass _actualClass;
 
     public WmiClass(ManagementBaseObject actualClass)
     {
 
-        _actualClass = (ManagementClass)actualClass ?? throw new ArgumentNullException(nameof(actualClass));        // Initialize the Methods collection and populate it with WmiMethod objects, encapsulating the MethodData objects so retrieval is fast.
+        _actualClass = (ManagementClass)actualClass ?? throw new ArgumentNullException(nameof(actualClass));
+
+        // Initialize the Methods collection and populate it with WmiMethod objects, encapsulating the MethodData objects so retrieval is fast.
         // This is done in the constructor to avoid having to do it in the property getter, which would be slow.
         Methods = new List<WmiMethod>();
         foreach (MethodData method in _actualClass.Methods)
@@ -80,4 +82,13 @@ public class WmiClass
     {
         return $"Class: {LocalRelativePath}";
     }
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+        _actualClass?.Dispose();
+    }
+
+    #endregion
 }

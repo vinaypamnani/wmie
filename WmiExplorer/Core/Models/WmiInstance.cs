@@ -6,9 +6,9 @@ namespace WmiExplorer.Core.Models;
 /// <summary>
 /// Model representing a WMI instance
 /// </summary>
-public class WmiInstance
+public class WmiInstance : IDisposable
 {
-    private readonly ManagementObject _actualObject;
+    private ManagementObject _actualObject;
 
     /// <summary>
     /// Constructor that takes required instance information
@@ -29,8 +29,8 @@ public class WmiInstance
     /// </summary>
     [Browsable(false)]
     public string InstanceName =>
-                    Path.RelativePath.ToString().Replace("\\\\", "\\") // TODO: Extract friendly name from known "Name" properties
-                    ?? string.Empty;
+                        Path.RelativePath.ToString().Replace("\\\\", "\\") // TODO: Extract friendly name from known "Name" properties
+                        ?? string.Empty;
 
     public ObjectGetOptions Options => _actualObject.Options;
     public ManagementPath Path => _actualObject.Path;
@@ -63,4 +63,14 @@ public class WmiInstance
     /// Returns the instance's string representation
     /// </summary>
     public override string ToString() => $"Instance: {InstanceName}";
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+        _actualObject?.Dispose();
+        // _actualObject is readonly, so cannot set to null
+    }
+
+    #endregion
 }

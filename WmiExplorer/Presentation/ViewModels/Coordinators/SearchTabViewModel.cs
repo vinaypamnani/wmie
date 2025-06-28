@@ -50,9 +50,11 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     // Clear results for the current search type only
     public void ClearCurrentTypeResults()
     {
+        DisposeResults(_results);
         _results.Clear();
         if (_searchTypeStates.ContainsKey(SearchType))
         {
+            DisposeResults(_searchTypeStates[SearchType].Results);
             _searchTypeStates[SearchType].Results.Clear();
             _searchTypeStates[SearchType].SearchQuery = string.Empty;
         }
@@ -107,6 +109,16 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     private void ClearResults()
     {
         ClearCurrentTypeResults();
+        SelectionManager.PropertyGrid.ClearPropertyGrid();
+    }
+
+    private void DisposeResults(IEnumerable<WmiSearchResult> results)
+    {
+        foreach (var result in results)
+        {
+            result.Class?.Dispose();
+            // If in the future Method or Property become disposable, dispose them here as well.
+        }
     }
 
     private void ExecuteJumpToClass()
@@ -250,7 +262,8 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             _searchTypeStates[oldValue].SearchQuery = SearchQuery;
         }
 
-        // Clear current results and query
+        // Dispose and clear current results and query
+        DisposeResults(_results);
         _results.Clear();
         SelectionManager.PropertyGrid.ClearPropertyGrid();
 

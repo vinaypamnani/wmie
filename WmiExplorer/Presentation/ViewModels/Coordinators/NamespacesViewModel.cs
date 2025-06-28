@@ -181,6 +181,27 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         UpdateStatusBar();
     }
 
+    private void DisconnectRoot(WmiNamespaceViewModel namespaceToRemove)
+    {
+        // Clear selection if the namespace being removed is currently selected
+        if (SelectionManager.SelectedNamespace == namespaceToRemove)
+        {
+            SelectionManager.ClearSelections();
+        }
+
+        // Remove the namespace from the collection
+        RunOnUIThread(() =>
+        {
+            Namespaces.Remove(namespaceToRemove);
+        });
+
+        // Dispose the namespace and all its children, classes, and instances
+        namespaceToRemove.Dispose();
+
+        PublishSuccessState($"Disconnected from namespace: {namespaceToRemove.NamespacePath}");
+        Log.Information("Disconnected from namespace: {NamespacePath}", namespaceToRemove.NamespacePath);
+    }
+
     /// <summary>
     /// Finds or expands namespaces to reach the target path, starting from the correct root namespace and following the path segments.
     /// </summary>
@@ -263,27 +284,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
             return;
 
         DisconnectRoot(message.NamespaceViewModel);
-    }
-
-    private void DisconnectRoot(WmiNamespaceViewModel namespaceToRemove)
-    {
-        // Clear selection if the namespace being removed is currently selected
-        if (SelectionManager.SelectedNamespace == namespaceToRemove)
-        {
-            SelectionManager.ClearSelections();
-        }
-
-        // Remove the namespace from the collection
-        RunOnUIThread(() =>
-        {
-            Namespaces.Remove(namespaceToRemove);
-        });
-
-        // Dispose the namespace and its children to clean up resources
-        namespaceToRemove.Dispose();
-
-        PublishSuccessState($"Disconnected from namespace: {namespaceToRemove.NamespacePath}");
-        Log.Information("Disconnected from namespace: {NamespacePath}", namespaceToRemove.NamespacePath);
     }
 
     /// <summary>

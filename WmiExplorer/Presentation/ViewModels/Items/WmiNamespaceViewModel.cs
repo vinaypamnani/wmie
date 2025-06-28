@@ -405,11 +405,41 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     {
         if (disposing)
         {
+            // Dispose all child namespaces
+            lock (_collectionLock)
+            {
+                foreach (var childNamespace in _children)
+                {
+                    try
+                    {
+                        childNamespace.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error disposing child namespace: {NamespacePath}", childNamespace.NamespacePath);
+                    }
+                }
+                _children.Clear();
+
+                // Dispose all classes
+                foreach (var wmiClass in _classes)
+                {
+                    try
+                    {
+                        wmiClass.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error disposing class: {ClassName}", wmiClass.ClassName);
+                    }
+                }
+                _classes.Clear();
+            }
+            _wmiNamespace?.Dispose();
             _cts.Cancel();
             _cts.Dispose();
             _classFilterHelper.Dispose();
         }
-
         base.Dispose(disposing);
     }
 

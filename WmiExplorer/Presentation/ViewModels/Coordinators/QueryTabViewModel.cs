@@ -115,8 +115,18 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     private void ClearResults()
     {
         _results.Clear();
+        DisposeResults(_results);
         RefreshResultsView();
         UpdateResultColumns();
+        SelectionManager.PropertyGrid.ClearPropertyGrid();
+    }
+
+    private void DisposeResults(IEnumerable<WmiInstance> results)
+    {
+        foreach (var instance in results)
+        {
+            instance.Dispose();
+        }
     }
 
     /// <summary>

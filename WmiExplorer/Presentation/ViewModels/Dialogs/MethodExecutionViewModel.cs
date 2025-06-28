@@ -139,6 +139,22 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         {
             _cts?.Cancel();
             _cts?.Dispose();
+
+            // Dispose OutputParameters if present
+            OutputParameters?.Dispose();
+            OutputParameters = null;
+
+            // Dispose all parameter view models
+            foreach (var param in _parameters)
+            {
+                // Unsubscribe event handler if attached
+                if (param.IsReference)
+                {
+                    param.PropertyChanged -= WmiParameterViewModel_PropertyChanged;
+                }
+                param.Dispose();
+            }
+            _parameters.Clear();
         }
         base.Dispose(disposing);
     }
@@ -260,6 +276,11 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
                 OutputParameters = new WmiBaseObject(outParams);
                 HasOutputParameters = true;
             }
+            else
+            {
+                OutputParameters = null;
+                HasOutputParameters = false;
+            }
 
             // Update status
             ExecutionState = AppState.Success;
@@ -314,6 +335,12 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
             ExecutionState = AppState.Busy;
             StatusMessage = "Executing method...";
         }
+    }
+
+    partial void OnOutputParametersChanging(WmiBaseObject? value)
+    {
+        // Dispose previous value before changing
+        OutputParameters?.Dispose();
     }
 
     private void WmiParameterViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -7,7 +7,7 @@ namespace WmiExplorer.Core.Models;
 /// <summary>
 /// Model representing a WMI instance
 /// </summary>
-public class WmiBaseObject
+public class WmiBaseObject : IDisposable
 {
     private readonly ManagementBaseObject _actualObject;
 
@@ -36,4 +36,13 @@ public class WmiBaseObject
     public PropertyDataCollection SystemProperties => _actualObject.SystemProperties;
 
     public object this[string propertyName] => _actualObject[propertyName];
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+        _actualObject?.Dispose();
+    }
+
+    #endregion
 }

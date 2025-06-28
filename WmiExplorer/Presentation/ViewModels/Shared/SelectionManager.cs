@@ -67,6 +67,9 @@ public partial class SelectionManager : ObservableObject
 
             // Publish a message to notify other ViewModels
             PublishSelectionChanged();
+
+            // Publish messsage to update the tab count
+            _messengerService.Send(new TabCountChangedMessage());
         }
         catch (Exception ex)
         {

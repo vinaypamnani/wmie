@@ -128,11 +128,62 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     {
         if (disposing)
         {
+            // Dispose all instances
+            lock (_collectionLock)
+            {
+                foreach (var instance in _instances)
+                {
+                    try
+                    {
+                        instance.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error disposing instance: {InstanceName}", instance.InstanceName);
+                    }
+                }
+                _instances.Clear();
+            }
+            // Dispose and clear methods
+            if (_methods != null)
+            {
+                foreach (var method in _methods)
+                {
+                    if (method is IDisposable disposable)
+                    {
+                        try { disposable.Dispose(); } catch { }
+                    }
+                }
+                _methods.Clear();
+            }
+            if (StaticMethods != null)
+            {
+                foreach (var method in StaticMethods)
+                {
+                    if (method is IDisposable disposable)
+                    {
+                        try { disposable.Dispose(); } catch { }
+                    }
+                }
+                StaticMethods.Clear();
+            }
+            // Dispose and clear properties
+            if (Properties != null)
+            {
+                foreach (var prop in Properties)
+                {
+                    if (prop is IDisposable disposable)
+                    {
+                        try { disposable.Dispose(); } catch { }
+                    }
+                }
+                Properties.Clear();
+            }
+            _wmiClass?.Dispose();
             _cts.Cancel();
             _cts.Dispose();
             _instanceFilterHelper.Dispose();
         }
-
         base.Dispose(disposing);
     }
 
