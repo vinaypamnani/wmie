@@ -54,11 +54,35 @@
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Margin="0,1,0,1" Orientation="Horizontal">
-                            <Ellipse Width="10"
-                                     Height="10"
-                                     RenderTransformOrigin="0.5,0.5"
-                                     Style="{DynamicResource StatusIndicatorStyle}" />
-                            <TextBlock Text="{Binding Name}" />
+                            <ContentControl x:Name="IconContent"
+                                            Width="16"
+                                            Height="16"
+                                            VerticalAlignment="Center">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="ContentTemplate" Value="{DynamicResource StatusIndicatorStyle}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRoot}" Value="True">
+                                                <Setter Property="ContentTemplate" Value="{DynamicResource ConnectionOptionsIconTemplate}" />
+                                                <Setter Property="Margin" Value="0,0,4,0" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsRoot}" Value="False">
+                                                <Setter Property="ContentTemplate">
+                                                    <Setter.Value>
+                                                        <DataTemplate>
+                                                            <Ellipse Width="10"
+                                                                     Height="10"
+                                                                     RenderTransformOrigin="0.5,0.5"
+                                                                     Style="{DynamicResource StatusIndicatorStyle}" />
+                                                        </DataTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
