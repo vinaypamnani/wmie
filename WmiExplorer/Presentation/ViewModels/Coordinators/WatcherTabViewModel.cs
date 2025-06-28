@@ -381,10 +381,16 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void SetupManagerInteractions()
     {
-        // When watchers change, ensure the selected watcher name is valid
+        // Set initial default watcher name to "All"
+        SelectedWatcherName = "All";
+        
+        // When watchers change, reset selection if it becomes invalid or null
         _watcherManager.WatchersChanged += (s, e) =>
         {
-            if (SelectedWatcherName != null && !WatcherNames.Contains(SelectedWatcherName))
+            // Reset to "All" if selection is null (removed watcher) or no longer valid
+            // Since UpdateWatcherNames() no longer clears the collection, this won't
+            // interfere with user selections when adding watchers
+            if (SelectedWatcherName == null || !WatcherNames.Contains(SelectedWatcherName))
             {
                 SelectedWatcherName = "All";
             }

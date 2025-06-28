@@ -209,10 +209,34 @@ public class WatcherManager : DisposableObservableObject
     private void UpdateWatcherNames()
     {
         var names = _watchers.Select(w => w.Name).Distinct().OrderBy(n => n).ToList();
-        WatcherNames.Clear();
-        WatcherNames.Add("All"); // Always add "All" as the first item
-
-        foreach (var name in names)
-            WatcherNames.Add(name);
+        
+        // Build the new collection with "All" first, then watcher names
+        var newNames = new List<string> { "All" };
+        newNames.AddRange(names);
+        
+        // Update collection efficiently to preserve ComboBox selection
+        // Remove items not in new list
+        for (int i = WatcherNames.Count - 1; i >= 0; i--)
+        {
+            if (!newNames.Contains(WatcherNames[i]))
+                WatcherNames.RemoveAt(i);
+        }
+        
+        // Add items that are in new list but not in current collection
+        foreach (var name in newNames)
+        {
+            if (!WatcherNames.Contains(name))
+                WatcherNames.Add(name);
+        }
+        
+        // Ensure "All" is first if it's not already
+        if (WatcherNames.Count > 0 && WatcherNames[0] != "All")
+        {
+            var allIndex = WatcherNames.IndexOf("All");
+            if (allIndex > 0)
+            {
+                WatcherNames.Move(allIndex, 0);
+            }
+        }
     }
 }
