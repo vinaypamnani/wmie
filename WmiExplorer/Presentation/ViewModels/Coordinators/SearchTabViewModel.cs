@@ -50,15 +50,14 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     // Clear results for the current search type only
     public void ClearCurrentTypeResults()
     {
-        DisposeResults(_results);
         _results.Clear();
         if (_searchTypeStates.ContainsKey(SearchType))
         {
             DisposeResults(_searchTypeStates[SearchType].Results);
             _searchTypeStates[SearchType].Results.Clear();
-            _searchTypeStates[SearchType].SearchQuery = string.Empty;
+            // _searchTypeStates[SearchType].SearchQuery = string.Empty;
         }
-        SearchQuery = string.Empty;
+        // SearchQuery = string.Empty;
         _resultsView?.Refresh();
     }
 
@@ -158,6 +157,8 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         if (!_searchTypeStates.ContainsKey(SearchType))
             _searchTypeStates[SearchType] = new SearchTypeState();
 
+        // Dispose previous results before clearing
+        DisposeResults(_searchTypeStates[SearchType].Results);
         _searchTypeStates[SearchType].Results.Clear();
         _searchTypeStates[SearchType].SearchQuery = string.Empty;
 
@@ -262,12 +263,11 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             _searchTypeStates[oldValue].SearchQuery = SearchQuery;
         }
 
-        // Dispose and clear current results and query
-        DisposeResults(_results);
+        // Clear current type results
         _results.Clear();
         SelectionManager.PropertyGrid.ClearPropertyGrid();
 
-        SearchQuery = string.Empty;
+        // SearchQuery = string.Empty;
 
         // Restore state for the new type if available
         if (_searchTypeStates.TryGetValue(newValue, out var state) && state.Results.Count > 0)
