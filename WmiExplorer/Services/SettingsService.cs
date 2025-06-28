@@ -294,5 +294,8 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         // Send generic setting change message
         _messengerService.Send(new SettingChangedMessage<T>(propertyName, oldValue, value));
         Log.Information("Setting {PropertyName} changed to {Value}", propertyName, value?.ToString() ?? "null");
+
+        // Auto-save settings after any change
+        SaveSettings();
     }
 }
