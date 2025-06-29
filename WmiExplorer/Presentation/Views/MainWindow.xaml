@@ -59,6 +59,11 @@
                         <ContentControl ContentTemplate="{StaticResource ColorOffIconTemplate}" />
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Command="{Binding CheckForUpdatesCommand}" Header="Check for Updates..." ToolTip="Check for the latest version on GitHub.">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource CheckUpdateIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem helpers:MenuItemHelper.IsHyperlinkMenuItem="True">

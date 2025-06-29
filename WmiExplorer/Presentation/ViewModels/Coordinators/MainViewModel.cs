@@ -42,6 +42,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
+    private readonly UpdateService _updateService;
 
     [ObservableProperty]
     private MainWindowPosition _windowPosition;
@@ -53,13 +54,15 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         SelectionManager selectionManager,
         NamespacesViewModel namespacesViewModel,
         OptionsViewModel optionsViewModel,
-        LogTabViewModel logTabViewModel) : base(messengerService, selectionManager)
+        LogTabViewModel logTabViewModel,
+        UpdateService updateService) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
+        _updateService = updateService ?? throw new ArgumentNullException(nameof(updateService));
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -149,6 +152,24 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
     {
         UpdateTabHeaders();
+    }
+
+    /// <summary>
+    /// Command to check for updates via GitHub releases
+    /// </summary>
+    [RelayCommand]
+    private async Task CheckForUpdatesAsync()
+    {
+        var currentVersion = WmiExplorer.VersionInfo.AppVersion;
+        var (isUpdateAvailable, latestVersion, changelog) = await _updateService.CheckForUpdateAsync(currentVersion);
+        if (isUpdateAvailable)
+        {
+            Log.Information($"Update available! Current: {currentVersion}, Latest: {latestVersion}");
+        }
+        else
+        {
+            Log.Information($"No update available. Current version: {currentVersion}, Latest version: {latestVersion}");
+        }
     }
 
     /// <summary>

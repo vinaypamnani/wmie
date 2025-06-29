@@ -104,6 +104,10 @@ public partial class App : Application
         services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
 
+        // Register UpdateService for GitHub update checks
+        // TODO: Change repo name when ready for public release
+        services.AddSingleton<UpdateService>(provider => new UpdateService("vinaypamnani", "wmie2"));
+
         // Register managers - order matters for dependencies
         services.AddSingleton<ThemeManager>();
         services.AddSingleton<PropertyGridManager>();

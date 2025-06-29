@@ -32,6 +32,10 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71A;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="CheckUpdateIconTemplate">
+        <TextBlock Foreground="{DynamicResource BaseBlueBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="ExecMethodIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE90F;" />
     </DataTemplate>
