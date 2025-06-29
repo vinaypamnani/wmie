@@ -45,6 +45,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     private readonly UpdateService _updateService;
 
     [ObservableProperty]
+    private string _versionText = WmiExplorer.VersionInfo.AppVersion;
+
+    [ObservableProperty]
     private MainWindowPosition _windowPosition;
 
     public MainViewModel(
@@ -165,10 +168,15 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         if (isUpdateAvailable)
         {
             Log.Information($"Update available! Current: {currentVersion}, Latest: {latestVersion}");
+            VersionText = $"Update available! Current: {currentVersion}, Latest: {latestVersion}";
         }
         else
         {
             Log.Information($"No update available. Current version: {currentVersion}, Latest version: {latestVersion}");
+            VersionText = $"No update available. Current version: {currentVersion}";
+            // Wait 60 seconds before resetting VersionText
+            await Task.Delay(60000);
+            VersionText = VersionInfo.AppVersion; // Reset to current version text
         }
     }
 

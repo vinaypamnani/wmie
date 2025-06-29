@@ -69,7 +69,7 @@
             <MenuItem helpers:MenuItemHelper.IsHyperlinkMenuItem="True">
                 <MenuItem.Header>
                     <Hyperlink>
-                        <Run Text="{x:Static local:VersionInfo.AppVersion}" />
+                        <Run Text="{Binding VersionText}" />
                     </Hyperlink>
                 </MenuItem.Header>
             </MenuItem>
