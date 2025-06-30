@@ -219,7 +219,7 @@ public partial class UpdateManager : ObservableObject
     // Returns the correct asset name and temp path for both download and install
     private (string assetName, string tempPath) GetUpdateAssetInfo()
     {
-        string assetName = IsPortable ? "WmiExplorer.Portable.exe" : "WmiExplorer_2.0.0.2.zip";
+        string assetName = IsPortable ? "WmiExplorer.Portable.exe" : "WmiExplorer.exe";
         string tempPath = Path.Combine(Path.GetTempPath(), assetName);
         return (assetName, tempPath);
     }
