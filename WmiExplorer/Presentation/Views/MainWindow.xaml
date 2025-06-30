@@ -60,7 +60,7 @@
                 </MenuItem>
                 <MenuItem Header="Check for Updates on Startup"
                           IsCheckable="True"
-                          IsChecked="{Binding CheckForUpdateOnStartup, Mode=TwoWay}"
+                          IsChecked="{Binding AutoUpdateSettings.CheckOnStartup, Mode=TwoWay}"
                           ToolTip="Enable or disable automatic update checks on application startup.">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource CheckUpdateStartupIconTemplate}" />

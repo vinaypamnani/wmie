@@ -53,21 +53,23 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         InitializeDefaults();
         LoadSettings();
 
+        // Subscribe to property changes for all nested ObservableObject settings here if needed
+        SubscribeToNestedSettings(null, AutoUpdateSettings);
+
         Log.Information("Settings initialized with {SettingCount} settings. Settings file: {FilePath}", _settingsProperties.Count, _filePath);
     }
 
-    [Setting(true)]
-    public bool CheckForUpdateOnStartup
+    // Example for AutoUpdateSettings
+    [Setting]
+    public AutoUpdateSettings AutoUpdateSettings
     {
-        get => GetValue<bool>();
-        set => SetValue(value);
-    }
-
-    [Setting(7)]
-    public int CheckForUpdatesIntervalDays
-    {
-        get => GetValue<int>();
-        set => SetValue(value);
+        get => GetValue<AutoUpdateSettings>() ?? new AutoUpdateSettings();
+        set
+        {
+            var current = GetValue<AutoUpdateSettings>();
+            SubscribeToNestedSettings(current, value);
+            SetValue(value);
+        }
     }
 
     [Setting(WmiClassEnumerationFlags.None)]
@@ -97,13 +99,6 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
     public bool EnableConfigMgrMode
     {
         get => GetValue<bool>();
-        set => SetValue(value);
-    }
-
-    [Setting(null)]
-    public DateTime? LastAutoUpdateCheckTime
-    {
-        get => GetValue<DateTime?>();
         set => SetValue(value);
     }
 
@@ -299,6 +294,22 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         }
     }
 
+    // Generic handler for nested ObservableObject settings
+    private void NestedSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        var settingsType = sender?.GetType().Name ?? "UnknownSettings";
+        var propertyName = e.PropertyName ?? string.Empty;
+        object? value = null;
+        if (sender != null && !string.IsNullOrEmpty(propertyName))
+        {
+            var prop = sender.GetType().GetProperty(propertyName);
+            if (prop != null)
+                value = prop.GetValue(sender);
+        }
+        Log.Information("Setting {SettingsType}.{PropertyName} changed to {Value}", settingsType, propertyName, value ?? "<null>");
+        SaveSettings();
+    }
+
     private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -309,6 +320,9 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         if (propertyName == null) return;
 
         var currentValue = GetValue<T>(propertyName);
+
+        // NOTE: This equality check only works for top-level settings properties.
+        // For nested settings (e.g., ObservableObject-based), property changes are handled via change notification.
         if (EqualityComparer<T>.Default.Equals(currentValue, value))
             return;
 
@@ -325,5 +339,14 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
 
         // Auto-save settings after any change
         SaveSettings();
+    }
+
+    // Helper to subscribe/unsubscribe to nested ObservableObject settings
+    private void SubscribeToNestedSettings(INotifyPropertyChanged? oldValue, INotifyPropertyChanged? newValue)
+    {
+        if (oldValue != null)
+            oldValue.PropertyChanged -= NestedSettings_PropertyChanged;
+        if (newValue != null)
+            newValue.PropertyChanged += NestedSettings_PropertyChanged;
     }
 }

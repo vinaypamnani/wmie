@@ -6,13 +6,9 @@ namespace WmiExplorer.Services;
 public interface ISettingsService
 {
     /// <summary>
-    /// Indicates if the application should check for updates on startup.
+    /// Auto-update related settings.
     /// </summary>
-    bool CheckForUpdateOnStartup { get; set; }
-    /// <summary>
-    /// The interval in days for automatic update checks.
-    /// </summary>
-    int CheckForUpdatesIntervalDays { get; set; }
+    AutoUpdateSettings AutoUpdateSettings { get; set; }
     /// <summary>
     /// Class filter for WMI class enumeration.
     /// </summary>
@@ -25,10 +21,6 @@ public interface ISettingsService
     /// Enables or disables ConfigMgr mode.
     /// </summary>
     bool EnableConfigMgrMode { get; set; }
-    /// <summary>
-    /// The last time an automatic update check was performed.
-    /// </summary>
-    DateTime? LastAutoUpdateCheckTime { get; set; }
     /// <summary>
     /// The logging level for the application.
     /// </summary>

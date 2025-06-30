@@ -95,13 +95,13 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets whether the application should check for updates on startup.
-    /// Proxy for ISettingsService.CheckForUpdateOnStartup.
+    /// Gets or sets auto-update related settings.
+    /// Proxy for ISettingsService.AutoUpdateSettings.
     /// </summary>
-    public bool CheckForUpdateOnStartup
+    public AutoUpdateSettings AutoUpdateSettings
     {
-        get => _settingsService.CheckForUpdateOnStartup;
-        set => _settingsService.CheckForUpdateOnStartup = value;
+        get => _settingsService.AutoUpdateSettings;
+        set => _settingsService.AutoUpdateSettings = value;
     }
 
     /// <summary>
@@ -268,16 +268,15 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void PerformAutoUpdateCheckOnStartup()
     {
-        if (CheckForUpdateOnStartup)
+        if (AutoUpdateSettings.CheckOnStartup)
         {
             var now = DateTime.UtcNow;
-            var lastCheck = _settingsService.LastAutoUpdateCheckTime;
-            var intervalDays = _settingsService.CheckForUpdatesIntervalDays;
+            var lastCheck = AutoUpdateSettings.LastCheckTime;
+            var intervalDays = AutoUpdateSettings.IntervalDays;
             if (!lastCheck.HasValue || (now - lastCheck.Value).TotalDays >= intervalDays)
             {
                 UpdateManager.CheckForUpdatesAsync().ConfigureAwait(false);
-                _settingsService.LastAutoUpdateCheckTime = now;
-                _settingsService.SaveSettings();
+                AutoUpdateSettings.LastCheckTime = now;
             }
             else
             {
