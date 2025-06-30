@@ -12,6 +12,12 @@ namespace WmiExplorer.Services;
 public class UpdateService
 {
     private const string GitHubApiLatestReleaseUrl = "https://api.github.com/repos/{0}/{1}/releases/latest";
+    private const string GitHubLatestReleaseUrl = "https://github.com/{0}/{1}/releases/latest";
+    private const string GitHubReleaseUrl = "https://github.com/{0}/{1}/releases";
+
+    public readonly string GitApiReleaseUrl;
+    public readonly string GitLatestReleaseUrl;
+    public readonly string GitReleaseUrl;
 
     /// <summary>
     /// Indicates if the current executable is considered portable (file size over 25MB).
@@ -38,6 +44,10 @@ public class UpdateService
         _repo = repo;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("WmiExplorerUpdateService");
+
+        GitApiReleaseUrl = string.Format(GitHubApiLatestReleaseUrl, _owner, _repo);
+        GitLatestReleaseUrl = string.Format(GitHubLatestReleaseUrl, _owner, _repo);
+        GitReleaseUrl = string.Format(GitHubReleaseUrl, _owner, _repo);
         IsPortable = IsCurrentExePortable();
     }
 
@@ -180,8 +190,7 @@ public class UpdateService
             return _latestReleaseJson;
         try
         {
-            var url = string.Format(GitHubApiLatestReleaseUrl, _owner, _repo);
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(GitApiReleaseUrl);
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
             _latestReleaseJson?.Dispose();

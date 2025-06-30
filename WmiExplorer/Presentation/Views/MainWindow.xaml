@@ -67,12 +67,18 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem helpers:MenuItemHelper.IsHyperlinkMenuItem="True">
-                <MenuItem.Header>
-                    <Hyperlink>
-                        <Run Text="{Binding VersionText}" />
-                    </Hyperlink>
-                </MenuItem.Header>
+            <MenuItem helpers:MenuItemHelper.IsHyperlinkMenuItem="True"
+                      Command="{Binding UpdateManager.OpenReleaseUrlCommand}"
+                      Header="{Binding VersionText}"
+                      ToolTip="Open release page in browser">
+                <MenuItem.HeaderTemplate>
+                    <DataTemplate>
+                        <TextBlock Cursor="Hand"
+                                   Foreground="{DynamicResource SecondaryAccentBrush}"
+                                   Text="{Binding}"
+                                   TextDecorations="Underline" />
+                    </DataTemplate>
+                </MenuItem.HeaderTemplate>
             </MenuItem>
 
             <!--  Toggle Theme  -->
@@ -104,18 +110,26 @@
 
         <!--  Update Notification Bar (now in its own row)  -->
         <Border Grid.Row="1"
-                Padding="4"
+                Margin="4,0"
+                Padding="16,8"
                 Background="{DynamicResource PrimaryAccentBrush}"
                 BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="0,0,0,2"
-                CornerRadius="0"
+                BorderThickness="0,0,0,0"
+                CornerRadius="3"
                 Visibility="{Binding UpdateManager.IsUpdateNotificationVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                 <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding UpdateManager.UpdateNotificationMessage}" />
                 <Button Margin="16,0,0,0"
+                        Command="{Binding UpdateManager.ShowChangelogCommand}"
+                        Style="{StaticResource FlatNotificationButton}"
+                        Visibility="{Binding UpdateManager.ShowUpdateDownloadButton, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8BC;" />
+                        <TextBlock Margin="4,0,0,0" Text="Changelog" />
+                    </StackPanel>
+                </Button>
+                <Button Margin="16,0,0,0"
                         Command="{Binding UpdateManager.DownloadUpdateCommand}"
-                        Focusable="True"
-                        IsHitTestVisible="True"
                         Style="{StaticResource FlatNotificationButton}"
                         Visibility="{Binding UpdateManager.ShowUpdateDownloadButton, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Orientation="Horizontal">
@@ -123,10 +137,8 @@
                         <TextBlock Margin="4,0,0,0" Text="Download" />
                     </StackPanel>
                 </Button>
-                <Button Margin="8,0,0,0"
+                <Button Margin="16,0,0,0"
                         Command="{Binding UpdateManager.RelaunchAndInstallUpdateCommand}"
-                        Focusable="True"
-                        IsHitTestVisible="True"
                         Style="{StaticResource FlatNotificationButton}"
                         Visibility="{Binding UpdateManager.ShowRelaunchButton, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Orientation="Horizontal">
@@ -134,14 +146,10 @@
                         <TextBlock Margin="4,0,0,0" Text="Relaunch" />
                     </StackPanel>
                 </Button>
-                <Button Margin="8,0,0,0"
-                        Command="{Binding UpdateManager.DismissUpdateNotificationCommand}"
-                        Focusable="True"
-                        IsHitTestVisible="True"
-                        Style="{StaticResource FlatNotificationButton}">
+                <Button Margin="16,0,0,0" Command="{Binding UpdateManager.DismissUpdateNotificationCommand}" Style="{StaticResource FlatNotificationButton}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA39;" />
-                        <TextBlock Margin="4,0,0,0" Text="Dismiss" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding UpdateManager.DismissButtonText}" />
                     </StackPanel>
                 </Button>
             </StackPanel>

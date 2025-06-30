@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.IO;
+using System.Windows.Threading;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Services;
 
@@ -11,8 +12,18 @@ namespace WmiExplorer.Presentation.ViewModels.Shared;
 /// </summary>
 public partial class UpdateManager : ObservableObject
 {
+    private const int DefaultDismissSeconds = 10;
+
     [ObservableProperty]
     private string _changelog = string.Empty;
+
+    [ObservableProperty]
+    private string _dismissButtonText = "Dismiss";
+
+    private int _dismissCountdownSeconds;
+
+    // Countdown timer for auto-dismiss
+    private DispatcherTimer? _dismissTimer;
 
     [ObservableProperty]
     private bool _isUpdateNotificationVisible;
@@ -53,15 +64,15 @@ public partial class UpdateManager : ObservableObject
             UpdateNotificationMessage = $"A new version ({latestVersion}) is available!";
             ShowUpdateDownloadButton = true;
             IsUpdateNotificationVisible = true;
+            StopDismissTimer();
         }
         else
         {
             Log.Information($"No update available. Current version: {currentVersion}, Latest version: {latestVersion}");
-            UpdateNotificationMessage = "No update available. You are up to date.";
+            UpdateNotificationMessage = "No update available. You are up to date!";
             ShowUpdateDownloadButton = false;
             IsUpdateNotificationVisible = true;
-            await Task.Delay(5000);
-            IsUpdateNotificationVisible = false;
+            StartDismissTimer(DefaultDismissSeconds);
         }
     }
 
@@ -69,6 +80,7 @@ public partial class UpdateManager : ObservableObject
     public void DismissUpdateNotification()
     {
         IsUpdateNotificationVisible = false;
+        StopDismissTimer();
         if (_updateDownloaded)
         {
             var (_, tempPath) = GetUpdateAssetInfo();
@@ -110,6 +122,32 @@ public partial class UpdateManager : ObservableObject
     }
 
     [RelayCommand]
+    public void OpenReleaseUrl()
+    {
+        try
+        {
+            var url = _updateService.GitReleaseUrl;
+            if (!string.IsNullOrEmpty(url))
+            {
+                // Open the release URL in the default browser
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                Log.Warning("GitReleaseUrl is null or empty. Cannot open release page.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to launch release URL.");
+        }
+    }
+
+    [RelayCommand]
     public async Task RelaunchAndInstallUpdateAsync()
     {
         ShowRelaunchButton = false;
@@ -131,11 +169,77 @@ public partial class UpdateManager : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void ShowChangelog()
+    {
+        try
+        {
+            var url = _updateService.GitLatestReleaseUrl;
+            if (!string.IsNullOrEmpty(url))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                Log.Warning("GitReleaseUrl is null or empty. Cannot open changelog.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to launch changelog URL.");
+        }
+    }
+
+    private void DismissTimer_Tick(object? sender, EventArgs e)
+    {
+        _dismissCountdownSeconds--;
+        UpdateDismissButtonText();
+        if (_dismissCountdownSeconds <= 0)
+        {
+            StopDismissTimer();
+            IsUpdateNotificationVisible = false;
+        }
+    }
+
     // Returns the correct asset name and temp path for both download and install
     private (string assetName, string tempPath) GetUpdateAssetInfo()
     {
         string assetName = IsPortable ? "WmiExplorer.Portable.exe" : "WmiExplorer_2.0.0.2.zip";
         string tempPath = Path.Combine(Path.GetTempPath(), assetName);
         return (assetName, tempPath);
+    }
+
+    // Start the countdown timer for auto-dismiss
+    private void StartDismissTimer(int seconds)
+    {
+        StopDismissTimer();
+        _dismissCountdownSeconds = seconds;
+        UpdateDismissButtonText();
+        _dismissTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _dismissTimer.Tick += DismissTimer_Tick;
+        _dismissTimer.Start();
+    }
+
+    private void StopDismissTimer()
+    {
+        if (_dismissTimer != null)
+        {
+            _dismissTimer.Stop();
+            _dismissTimer.Tick -= DismissTimer_Tick;
+            _dismissTimer = null;
+        }
+        DismissButtonText = "Dismiss";
+    }
+
+    private void UpdateDismissButtonText()
+    {
+        if (_dismissCountdownSeconds > 0)
+            DismissButtonText = $"Dismiss ({_dismissCountdownSeconds})";
+        else
+            DismissButtonText = "Dismiss";
     }
 }
