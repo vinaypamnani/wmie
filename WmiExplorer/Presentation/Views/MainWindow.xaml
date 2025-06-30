@@ -50,6 +50,14 @@
             </MenuItem>
 
             <MenuItem Header="_Options">
+                <MenuItem Header="Enable ConfigMgr Mode"
+                          IsCheckable="True"
+                          IsChecked="{Binding EnableConfigMgrMode, Mode=TwoWay}"
+                          ToolTip="Enable or disable Configuration Manager Mode.">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource ConfigMgrModeIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Check for Updates on Startup"
                           IsCheckable="True"
                           IsChecked="{Binding CheckForUpdateOnStartup, Mode=TwoWay}"

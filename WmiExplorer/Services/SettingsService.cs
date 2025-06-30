@@ -93,6 +93,13 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         }
     }
 
+    [Setting(true)]
+    public bool EnableConfigMgrMode
+    {
+        get => GetValue<bool>();
+        set => SetValue(value);
+    }
+
     [Setting(null)]
     public DateTime? LastAutoUpdateCheckTime
     {

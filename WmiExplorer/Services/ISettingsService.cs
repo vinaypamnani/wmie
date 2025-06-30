@@ -22,6 +22,10 @@ public interface ISettingsService
     /// </summary>
     string CurrentTheme { get; set; }
     /// <summary>
+    /// Enables or disables ConfigMgr mode.
+    /// </summary>
+    bool EnableConfigMgrMode { get; set; }
+    /// <summary>
     /// The last time an automatic update check was performed.
     /// </summary>
     DateTime? LastAutoUpdateCheckTime { get; set; }

@@ -34,6 +34,10 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xF570;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="ConfigMgrModeIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE975;" />
+    </DataTemplate>
+
     <!--  Update related icons  -->
 
     <DataTemplate x:Key="CheckUpdateStartupIconTemplate">

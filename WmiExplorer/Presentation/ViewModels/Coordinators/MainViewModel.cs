@@ -117,6 +117,16 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Gets or sets whether the application should enable ConfigMgr mode.
+    /// Proxy for ISettingsService.EnableConfigMgrMode.
+    /// </summary>
+    public bool EnableConfigMgrMode
+    {
+        get => _settingsService.EnableConfigMgrMode;
+        set => _settingsService.EnableConfigMgrMode = value;
+    }
+
+    /// <summary>
     /// Gets the header text for the Log tab with entries count
     /// </summary>
     public string LogTabHeader
