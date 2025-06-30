@@ -47,13 +47,27 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         _settingsProperties = GetType()
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.GetCustomAttribute<SettingAttribute>() != null)
+            .OrderBy(p => p.GetCustomAttribute<SettingAttribute>()?.Key ?? p.Name)
             .ToDictionary(p => GetSettingKey(p), p => p);
 
         InitializeDefaults();
         LoadSettings();
 
-        Log.Information("Settings initialized with {SettingCount} settings at {FilePath}",
-            _settingsProperties.Count, _filePath);
+        Log.Information("Settings initialized with {SettingCount} settings. Settings file: {FilePath}", _settingsProperties.Count, _filePath);
+    }
+
+    [Setting(true)]
+    public bool CheckForUpdateOnStartup
+    {
+        get => GetValue<bool>();
+        set => SetValue(value);
+    }
+
+    [Setting(7)]
+    public int CheckForUpdatesIntervalDays
+    {
+        get => GetValue<int>();
+        set => SetValue(value);
     }
 
     [Setting(WmiClassEnumerationFlags.None)]
@@ -79,6 +93,13 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         }
     }
 
+    [Setting(null)]
+    public DateTime? LastAutoUpdateCheckTime
+    {
+        get => GetValue<DateTime?>();
+        set => SetValue(value);
+    }
+
     [Setting(LogLevel.Information)]
     public LogLevel LogLevel
     {
@@ -93,17 +114,17 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         set => SetValue(value);
     }
 
-    [Setting(false)]
-    public bool ShowSystemClasses
-    {
-        get => GetValue<bool>();
-        set => SetValue(value);
-    }
-
     [Setting(WmiOperationMode.Asynchronous)]
     public WmiOperationMode OperationMode
     {
         get => GetValue<WmiOperationMode>();
+        set => SetValue(value);
+    }
+
+    [Setting(false)]
+    public bool ShowSystemClasses
+    {
+        get => GetValue<bool>();
         set => SetValue(value);
     }
 
@@ -124,6 +145,8 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
                 _messengerService.Send(new SettingChangedMessage(key, oldValue, newValue));
             }
         }
+
+        Log.Information("Settings reloaded from {FilePath}", _filePath);
     }
 
     public void ResetToDefaults()
@@ -159,7 +182,7 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
             var json = JsonSerializer.Serialize(settingsData, options);
             File.WriteAllText(_filePath, json);
 
-            Log.Information("Saved {SettingCount} settings to {FilePath}", settingsData.Count, _filePath);
+            Log.Debug("Saved {SettingCount} settings to {FilePath}", settingsData.Count, _filePath);
         }
         catch (Exception ex)
         {
@@ -262,8 +285,6 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
                     }
                 }
             }
-
-            Log.Information("Loaded settings from {FilePath}", _filePath);
         }
         catch (Exception ex)
         {

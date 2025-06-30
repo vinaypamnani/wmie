@@ -13,8 +13,13 @@
     </Style>
 
     <!--  Menu Bar Icons  -->
+
     <DataTemplate x:Key="ExitIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE711;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="InfoIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE946;" />
     </DataTemplate>
 
     <DataTemplate x:Key="BrightnessIconTemplate">
@@ -27,6 +32,16 @@
 
     <DataTemplate x:Key="ColorOffIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xF570;" />
+    </DataTemplate>
+
+    <!--  Update related icons  -->
+
+    <DataTemplate x:Key="CheckUpdateStartupIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA6A;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CheckUpdateIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
     </DataTemplate>
 
     <!--  Connection icons  -->
@@ -100,12 +115,6 @@
 
     <DataTemplate x:Key="SelectAllIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8B3;" />
-    </DataTemplate>
-
-    <!--  Update related icons  -->
-
-    <DataTemplate x:Key="CheckUpdateIconTemplate">
-        <TextBlock Foreground="{DynamicResource BaseBlueBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
     </DataTemplate>
 
 </ResourceDictionary>

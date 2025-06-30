@@ -87,8 +87,21 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         // Test logging
         Log.Information("Application started successfully. IsPortable: {IsPortable}", UpdateManager.IsPortable);
 
+        // Check for updates on startup if enabled and interval has elapsed
+        PerformAutoUpdateCheckOnStartup();
+
         // Demonstrate different log levels for testing
         // DemonstrateLogging();
+    }
+
+    /// <summary>
+    /// Gets or sets whether the application should check for updates on startup.
+    /// Proxy for ISettingsService.CheckForUpdateOnStartup.
+    /// </summary>
+    public bool CheckForUpdateOnStartup
+    {
+        get => _settingsService.CheckForUpdateOnStartup;
+        set => _settingsService.CheckForUpdateOnStartup = value;
     }
 
     /// <summary>
@@ -238,6 +251,29 @@ public partial class MainViewModel : SelectionAwareViewModelBase
             SelectionManager.PropertyGrid.ClearPropertyGrid();
         else
             SelectionManager.SetSelectedObject(SelectionManager.SelectedNamespace, updatePropertyGrid: true);
+    }
+
+    /// <summary>
+    /// Checks for updates on startup if enabled and interval has elapsed.
+    /// </summary>
+    private void PerformAutoUpdateCheckOnStartup()
+    {
+        if (CheckForUpdateOnStartup)
+        {
+            var now = DateTime.UtcNow;
+            var lastCheck = _settingsService.LastAutoUpdateCheckTime;
+            var intervalDays = _settingsService.CheckForUpdatesIntervalDays;
+            if (!lastCheck.HasValue || (now - lastCheck.Value).TotalDays >= intervalDays)
+            {
+                UpdateManager.CheckForUpdatesAsync().ConfigureAwait(false);
+                _settingsService.LastAutoUpdateCheckTime = now;
+                _settingsService.SaveSettings();
+            }
+            else
+            {
+                Log.Debug("Skipping update check - last check was {LastCheck} (interval: {IntervalDays} days)", lastCheck.Value, intervalDays);
+            }
+        }
     }
 
     /// <summary>

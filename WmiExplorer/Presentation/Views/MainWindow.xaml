@@ -37,13 +37,8 @@
                     <DockPanel HorizontalAlignment="Stretch" />
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
+
             <MenuItem Header="_File">
-                <MenuItem Header="Load..." IsCheckable="True" IsChecked="True">
-                    <MenuItem.Icon>
-                        <ContentControl ContentTemplate="{StaticResource ExitIconTemplate}" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Save..." InputGestureText="Ctrl+S" />
                 <MenuItem Command="{Binding ExitCommand}"
                           Header="E_xit"
                           InputGestureText="Ctrl+Q"
@@ -54,10 +49,29 @@
                 </MenuItem>
             </MenuItem>
 
+            <MenuItem Header="_Options">
+                <MenuItem Header="Check for Updates on Startup"
+                          IsCheckable="True"
+                          IsChecked="{Binding CheckForUpdateOnStartup, Mode=TwoWay}"
+                          ToolTip="Enable or disable automatic update checks on application startup.">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource CheckUpdateStartupIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
             <MenuItem Header="_Help">
                 <MenuItem Command="{Binding ResetThemeCommand}" Header="Reset Theme..." ToolTip="Resets default theme colors in themes.json file but preserves accent colors. Use this if the themes.json is corrupted or outdated.">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource ColorOffIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem Header="_About">
+                <MenuItem Header="About WmiExplorer" ToolTip="Show information about WmiExplorer">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource InfoIconTemplate}" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Command="{Binding UpdateManager.CheckForUpdatesCommand}" Header="Check for Updates..." ToolTip="Check for the latest version on GitHub.">
@@ -66,6 +80,7 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
+
 
             <MenuItem helpers:MenuItemHelper.IsHyperlinkMenuItem="True"
                       Command="{Binding UpdateManager.OpenReleaseUrlCommand}"
