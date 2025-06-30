@@ -106,12 +106,13 @@ public partial class App : Application
 
         // Register UpdateService for GitHub update checks
         // TODO: Change repo name when ready for public release
-        services.AddSingleton<UpdateService>(provider => new UpdateService("vinaypamnani", "wmie2"));
+        services.AddSingleton(provider => new UpdateService("vinaypamnani", "wmie2"));
 
         // Register managers - order matters for dependencies
         services.AddSingleton<ThemeManager>();
         services.AddSingleton<PropertyGridManager>();
         services.AddSingleton<SelectionManager>();
+        services.AddSingleton<UpdateManager>();
 
         // Register MainWindow for DI
         services.AddSingleton<MainWindow>();

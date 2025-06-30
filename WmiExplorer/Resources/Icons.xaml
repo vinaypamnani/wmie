@@ -12,6 +12,7 @@
         <Setter Property="FontSize" Value="16" />
     </Style>
 
+    <!--  Menu Bar Icons  -->
     <DataTemplate x:Key="ExitIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE711;" />
     </DataTemplate>
@@ -28,13 +29,23 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xF570;" />
     </DataTemplate>
 
-    <DataTemplate x:Key="StopIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71A;" />
+    <!--  Connection icons  -->
+
+    <DataTemplate x:Key="ConnectionOptionsIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE703;" />
     </DataTemplate>
 
-    <DataTemplate x:Key="CheckUpdateIconTemplate">
-        <TextBlock Foreground="{DynamicResource BaseBlueBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
+    <DataTemplate x:Key="DisconnectIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA14;" />
     </DataTemplate>
+
+    <!--  Special icons  -->
+
+    <DataTemplate x:Key="KeyIconTemplate">
+        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE8D7;" />
+    </DataTemplate>
+
+    <!--  Class/Instance Icons  -->
 
     <DataTemplate x:Key="ExecMethodIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE90F;" />
@@ -44,24 +55,25 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A7;" />
     </DataTemplate>
 
-    <DataTemplate x:Key="ShowResultsIconTemplate" x:Shared="False">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8BC;" />
-    </DataTemplate>
-
-    <DataTemplate x:Key="KeyIconTemplate">
-        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE8D7;" />
+    <DataTemplate x:Key="LoadIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71D;" />
     </DataTemplate>
 
     <DataTemplate x:Key="JumpToIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE73F;" />
     </DataTemplate>
 
-    <DataTemplate x:Key="ConnectionOptionsIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE703;" />
+    <DataTemplate x:Key="StopIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71A;" />
     </DataTemplate>
 
     <DataTemplate x:Key="EditIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE70F;" />
+    </DataTemplate>
+
+    <!--  Mof Icons  -->
+    <DataTemplate x:Key="ShowResultsIconTemplate" x:Shared="False">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8BC;" />
     </DataTemplate>
 
     <DataTemplate x:Key="CopyMofIconTemplate">
@@ -72,9 +84,7 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A5;" />
     </DataTemplate>
 
-    <DataTemplate x:Key="LoadIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71D;" />
-    </DataTemplate>
+    <!--  Text action icons  -->
 
     <DataTemplate x:Key="CopyIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8C8;" />
@@ -92,7 +102,10 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8B3;" />
     </DataTemplate>
 
-    <DataTemplate x:Key="DisconnectIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA14;" />
+    <!--  Update related icons  -->
+
+    <DataTemplate x:Key="CheckUpdateIconTemplate">
+        <TextBlock Foreground="{DynamicResource BaseBlueBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
     </DataTemplate>
+
 </ResourceDictionary>

@@ -42,7 +42,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
     private readonly ISettingsService _settingsService;
     private readonly ThemeManager _themeManager;
-    private readonly UpdateService _updateService;
+
+    [ObservableProperty]
+    private UpdateManager _updateManager;
 
     [ObservableProperty]
     private string _versionText = WmiExplorer.VersionInfo.AppVersion;
@@ -58,14 +60,14 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         NamespacesViewModel namespacesViewModel,
         OptionsViewModel optionsViewModel,
         LogTabViewModel logTabViewModel,
-        UpdateService updateService) : base(messengerService, selectionManager)
+        UpdateManager updateManager) : base(messengerService, selectionManager)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
-        _updateService = updateService ?? throw new ArgumentNullException(nameof(updateService));
+        UpdateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
         // Initialize window position from settings
         _windowPosition = _settingsService.MainWindowPosition;
@@ -83,7 +85,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         StrongSubscribe<TabCountChangedMessage>(_ => UpdateTabHeaders());
 
         // Test logging
-        Log.Information("Application started successfully");
+        Log.Information("Application started successfully. IsPortable: {IsPortable}", UpdateManager.IsPortable);
 
         // Demonstrate different log levels for testing
         // DemonstrateLogging();
@@ -155,29 +157,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
     {
         UpdateTabHeaders();
-    }
-
-    /// <summary>
-    /// Command to check for updates via GitHub releases
-    /// </summary>
-    [RelayCommand]
-    private async Task CheckForUpdatesAsync()
-    {
-        var currentVersion = WmiExplorer.VersionInfo.AppVersion;
-        var (isUpdateAvailable, latestVersion, changelog) = await _updateService.CheckForUpdateAsync(currentVersion);
-        if (isUpdateAvailable)
-        {
-            Log.Information($"Update available! Current: {currentVersion}, Latest: {latestVersion}");
-            VersionText = $"Update available! Current: {currentVersion}, Latest: {latestVersion}";
-        }
-        else
-        {
-            Log.Information($"No update available. Current version: {currentVersion}, Latest version: {latestVersion}");
-            VersionText = $"No update available. Current version: {currentVersion}";
-            // Wait 60 seconds before resetting VersionText
-            await Task.Delay(60000);
-            VersionText = VersionInfo.AppVersion; // Reset to current version text
-        }
     }
 
     /// <summary>

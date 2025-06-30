@@ -17,10 +17,11 @@
         Icon="/Resources/AppIcon.ico"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
-    <!--  Window resources removed - using global converters from App.xaml  -->
     <Grid Name="MainGrid">
         <Grid.RowDefinitions>
             <!--  Menu  -->
+            <RowDefinition Height="Auto" />
+            <!--  Notification Bar  -->
             <RowDefinition Height="Auto" />
             <!--  Options  -->
             <RowDefinition Height="Auto" />
@@ -59,7 +60,7 @@
                         <ContentControl ContentTemplate="{StaticResource ColorOffIconTemplate}" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Command="{Binding CheckForUpdatesCommand}" Header="Check for Updates..." ToolTip="Check for the latest version on GitHub.">
+                <MenuItem Command="{Binding UpdateManager.CheckForUpdatesCommand}" Header="Check for Updates..." ToolTip="Check for the latest version on GitHub.">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource CheckUpdateIconTemplate}" />
                     </MenuItem.Icon>
@@ -101,14 +102,59 @@
             </MenuItem>
         </Menu>
 
+        <!--  Update Notification Bar (now in its own row)  -->
         <Border Grid.Row="1"
+                Padding="4"
+                Background="{DynamicResource PrimaryAccentBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,2"
+                CornerRadius="0"
+                Visibility="{Binding UpdateManager.IsUpdateNotificationVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding UpdateManager.UpdateNotificationMessage}" />
+                <Button Margin="16,0,0,0"
+                        Command="{Binding UpdateManager.DownloadUpdateCommand}"
+                        Focusable="True"
+                        IsHitTestVisible="True"
+                        Style="{StaticResource FlatNotificationButton}"
+                        Visibility="{Binding UpdateManager.ShowUpdateDownloadButton, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE78C;" />
+                        <TextBlock Margin="4,0,0,0" Text="Download" />
+                    </StackPanel>
+                </Button>
+                <Button Margin="8,0,0,0"
+                        Command="{Binding UpdateManager.RelaunchAndInstallUpdateCommand}"
+                        Focusable="True"
+                        IsHitTestVisible="True"
+                        Style="{StaticResource FlatNotificationButton}"
+                        Visibility="{Binding UpdateManager.ShowRelaunchButton, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8AB;" />
+                        <TextBlock Margin="4,0,0,0" Text="Relaunch" />
+                    </StackPanel>
+                </Button>
+                <Button Margin="8,0,0,0"
+                        Command="{Binding UpdateManager.DismissUpdateNotificationCommand}"
+                        Focusable="True"
+                        IsHitTestVisible="True"
+                        Style="{StaticResource FlatNotificationButton}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA39;" />
+                        <TextBlock Margin="4,0,0,0" Text="Dismiss" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2"
                 BorderBrush="{DynamicResource SecondaryBackgroundBrush}"
                 BorderThickness="0,0,0,4"
                 CornerRadius="0">
             <main:OptionsView DataContext="{Binding OptionsViewModel}" />
         </Border>
 
-        <Grid Name="ContentGrid" Grid.Row="2">
+        <Grid Name="ContentGrid" Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
                 <ColumnDefinition Width="Auto" />
@@ -160,7 +206,7 @@
         </Grid>
 
         <!--  Status Bar  -->
-        <StatusBar Grid.Row="3">
+        <StatusBar Grid.Row="4">
             <StatusBarItem>
                 <controls:EnhancedStatusIndicator AppState="{Binding CurrentApplicationState.State}" Message="{Binding CurrentApplicationState.Message}" ToolTip="{Binding CurrentApplicationState.Message}" />
             </StatusBarItem>
