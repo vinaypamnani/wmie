@@ -26,6 +26,8 @@ public partial class UpdateManager : ObservableObject
     [ObservableProperty]
     private bool _showUpdateDownloadButton;
 
+    private bool _updateDownloaded = false;
+
     [ObservableProperty]
     private string _updateNotificationMessage = string.Empty;
 
@@ -58,7 +60,7 @@ public partial class UpdateManager : ObservableObject
             UpdateNotificationMessage = "No update available. You are up to date.";
             ShowUpdateDownloadButton = false;
             IsUpdateNotificationVisible = true;
-            await Task.Delay(4000);
+            await Task.Delay(5000);
             IsUpdateNotificationVisible = false;
         }
     }
@@ -67,6 +69,12 @@ public partial class UpdateManager : ObservableObject
     public void DismissUpdateNotification()
     {
         IsUpdateNotificationVisible = false;
+        if (_updateDownloaded)
+        {
+            var (_, tempPath) = GetUpdateAssetInfo();
+            Log.Information($"Update was downloaded to '{tempPath}' but notification was dismissed. Please replace the downloaded file manually if you wish to update.");
+            _updateDownloaded = false;
+        }
     }
 
     [RelayCommand]
@@ -76,26 +84,28 @@ public partial class UpdateManager : ObservableObject
         UpdateNotificationMessage = "Downloading update...";
         try
         {
-            string assetName = GetUpdateAssetName();
-            string tempPath = Path.Combine(Path.GetTempPath(), assetName);
+            var (assetName, tempPath) = GetUpdateAssetInfo();
 
             // Download the update asset
             bool downloadSuccess = await _updateService.DownloadAsync(assetName, tempPath);
             if (!downloadSuccess)
             {
                 UpdateNotificationMessage = "Failed to download update.";
+                _updateDownloaded = false;
                 return;
             }
 
             // After download, prompt user to relaunch
             UpdateNotificationMessage = "Update downloaded. Relaunch application to install update.";
             ShowRelaunchButton = true;
+            _updateDownloaded = true;
             return;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to download update");
             UpdateNotificationMessage = "Failed to download update. See Log for details.";
+            _updateDownloaded = false;
         }
     }
 
@@ -106,9 +116,13 @@ public partial class UpdateManager : ObservableObject
         UpdateNotificationMessage = "Installing update...";
         try
         {
-            string assetName = GetUpdateAssetName();
-            string tempPath = Path.Combine(Path.GetTempPath(), assetName);
-            await _updateService.InstallAsync(tempPath);
+            var (_, tempPath) = GetUpdateAssetInfo();
+            bool installed = await _updateService.InstallAsync(tempPath);
+            if (!installed)
+            {
+                UpdateNotificationMessage = "Failed to install update. Review Logs.";
+                return;
+            }
         }
         catch (Exception ex)
         {
@@ -117,10 +131,11 @@ public partial class UpdateManager : ObservableObject
         }
     }
 
-    // Returns the correct asset name for both download and install based on install type
-    private string GetUpdateAssetName()
+    // Returns the correct asset name and temp path for both download and install
+    private (string assetName, string tempPath) GetUpdateAssetInfo()
     {
-        // return "WmiExplorer_2.0.0.2.zip"; //temporary hardcoded value for testing
-        return IsPortable ? "WmiExplorer.Portable.exe" : "WmiExplorer.exe";
+        string assetName = IsPortable ? "WmiExplorer.Portable.exe" : "WmiExplorer_2.0.0.2.zip";
+        string tempPath = Path.Combine(Path.GetTempPath(), assetName);
+        return (assetName, tempPath);
     }
 }

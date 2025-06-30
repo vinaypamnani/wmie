@@ -142,50 +142,32 @@ public class UpdateService
 
     /// <summary>
     /// Installs the downloaded executable by replacing the current running exe and relaunching the app.
+    /// Uses a direct file move/rename approach, with batch file fallback.
     /// </summary>
     public async Task<bool> InstallAsync(string newExePath)
     {
+        string localCurrentFile = Environment.ProcessPath!;
+
+        // Bail early if in a protected location
+        if (IsProtectedLocation(localCurrentFile))
+        {
+            Log.Error($"Update cannot proceed: application is running from a protected location: '{localCurrentFile}'. Manually update the application by replacing the executable using '{newExePath}'.");
+            return false;
+        }
+
         try
         {
-            var currentExe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
-            if (string.IsNullOrEmpty(currentExe) || !File.Exists(newExePath))
-            {
-                Log.Error($"Current exe or new exe path invalid. currentExe='{currentExe}', newExePath='{newExePath}'");
-                return false;
-            }
-            var backupExe = currentExe + ".remove";
-            var batchPath = Path.Combine(Path.GetTempPath(), $"WmiExplorerUpdater_{Guid.NewGuid()}.bat");
-            // Prepare batch file content
-            var batchContent = $"@echo off\r\n" +
-                ":loop\r\n" +
-                $"tasklist | find /i \"{Path.GetFileName(currentExe)}\" >nul 2>&1\r\n" +
-                "if not errorlevel 1 (\r\n" +
-                "    timeout /t 1 >nul\r\n" +
-                "    goto loop\r\n" +
-                ")\r\n" +
-                $"move /y \"{currentExe}\" \"{backupExe}\"\r\n" +
-                $"move /y \"{newExePath}\" \"{currentExe}\"\r\n" +
-                $"start \"\" \"{currentExe}\"\r\n" +
-                $"del \"{backupExe}\"\r\n" +
-                "del \"%~f0\"\r\n";
-            await File.WriteAllTextAsync(batchPath, batchContent);
-
-            // Launch the batch file and exit
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = batchPath,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            });
-            Log.Information($"Update installed. Current exe will be replaced with '{newExePath}' and application will restart.");
-            Application.Current.MainWindow?.Close(); // Close the main window to allow the batch file to run
-            return true; // This line is not reached, but included for completeness
+            // Try direct file move approach
+            bool directResult = await InstallUsingDirectFileMoveAsync(newExePath, localCurrentFile);
+            if (directResult)
+                return true;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to install update.");
-            return false;
+            Log.Error(ex, "Direct file move update failed, falling back to batch file updater.");
         }
+        // Fallback to batch file approach
+        return await InstallUsingBatchAsync(newExePath);
     }
 
     /// <summary>
@@ -215,6 +197,108 @@ public class UpdateService
     }
 
     /// <summary>
+    /// Installs the update using a batch file as a backup method.
+    /// </summary>
+    private async Task<bool> InstallUsingBatchAsync(string newExePath)
+    {
+        try
+        {
+            var currentExe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+            if (string.IsNullOrEmpty(currentExe) || !File.Exists(newExePath))
+            {
+                Log.Error($"Current exe or new exe path invalid. currentExe='{currentExe}', newExePath='{newExePath}'");
+                return false;
+            }
+
+            var backupExe = currentExe + ".remove";
+            var batchPath = Path.Combine(Path.GetTempPath(), $"WmiExplorerUpdater_{Guid.NewGuid()}.bat");
+            // Prepare batch file content
+            var batchContent = $"@echo off\r\n" +
+                ":loop\r\n" +
+                $"tasklist | find /i \"{Path.GetFileName(currentExe)}\" >nul 2>&1\r\n" +
+                "if not errorlevel 1 (\r\n" +
+                "    timeout /t 1 >nul\r\n" +
+                "    goto loop\r\n" +
+                ")\r\n" +
+                $"move /y \"{currentExe}\" \"{backupExe}\"\r\n" +
+                $"move /y \"{newExePath}\" \"{currentExe}\"\r\n" +
+                $"start \"\" \"{currentExe}\"\r\n" +
+                $"del \"{backupExe}\"\r\n" +
+                "del \"%~f0\"\r\n";
+            await File.WriteAllTextAsync(batchPath, batchContent);
+
+            // Launch the batch file and exit
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = batchPath,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            Log.Information($"Update installed using batch file. Current exe will be replaced with '{newExePath}' and application will restart.");
+            Application.Current.MainWindow?.Close();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to install update using batch file.");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Performs the direct file move/rename update logic.
+    /// </summary>
+    private Task<bool> InstallUsingDirectFileMoveAsync(string newExePath, string localCurrentFile)
+    {
+        string localStageFile = localCurrentFile + ".stage";
+        string localDeleteFile = localCurrentFile + ".delete";
+
+        // Clean up any leftover delete file
+        if (File.Exists(localDeleteFile))
+            File.Delete(localDeleteFile);
+
+        // Clean up any leftover stage file
+        if (File.Exists(localStageFile))
+            File.Delete(localStageFile);
+
+        // Move the new exe to stage file
+        File.Move(newExePath, localStageFile, overwrite: true);
+
+        // Rename running .exe to .exe.delete
+        File.Move(localCurrentFile, localDeleteFile, overwrite: true);
+        System.Threading.Thread.Sleep(200);
+
+        // If for some reason the current exe still exists, try again
+        if (File.Exists(localCurrentFile))
+        {
+            File.Move(localCurrentFile, localDeleteFile, overwrite: true);
+            System.Threading.Thread.Sleep(200);
+        }
+
+        // Rename .exe.stage to .exe
+        File.Move(localStageFile, localCurrentFile, overwrite: true);
+
+        // If for some reason the stage file still exists, try again after a short wait
+        if (File.Exists(localStageFile))
+        {
+            System.Threading.Thread.Sleep(1000);
+            File.Move(localStageFile, localCurrentFile, overwrite: true);
+        }
+
+        // Relaunch the application
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = localCurrentFile,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        });
+
+        Log.Information($"Update installed using direct file move. Relaunching application.");
+        Application.Current.MainWindow?.Close();
+        return Task.FromResult(true);
+    }
+
+    /// <summary>
     /// Checks if the current executable is considered portable based on its file size.
     /// A portable executable contains full .NET runtime and is larger than 50MB.
     /// </summary>
@@ -227,5 +311,30 @@ public class UpdateService
             return fileSize > 50 * 1024 * 1024; // 50MB in bytes
         }
         return false;
+    }
+
+    /// <summary>
+    /// Checks if the given path is in a protected system location by testing write access.
+    /// </summary>
+    private bool IsProtectedLocation(string exePath)
+    {
+        if (string.IsNullOrEmpty(exePath))
+            return true;
+        try
+        {
+            string dir = Path.GetDirectoryName(exePath)!;
+            string testFile = Path.Combine(dir, $".__writetest_{Guid.NewGuid()}.tmp");
+            using (FileStream fs = File.Create(testFile))
+            {
+                // Write a single byte to ensure write access
+                fs.WriteByte(0);
+            }
+            File.Delete(testFile);
+            return false; // Write succeeded
+        }
+        catch
+        {
+            return true; // Write failed, treat as protected
+        }
     }
 }
