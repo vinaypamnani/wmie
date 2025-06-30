@@ -54,22 +54,33 @@ public partial class UpdateManager : ObservableObject
     [RelayCommand]
     public async Task CheckForUpdatesAsync()
     {
-        var currentVersion = WmiExplorer.VersionInfo.AppVersion;
-        var (isUpdateAvailable, latestVersion, changelog) = await _updateService.CheckForUpdateAsync(currentVersion);
-        LatestVersion = latestVersion;
-        Changelog = changelog;
-        if (isUpdateAvailable)
+        try
         {
-            Log.Information($"Update available! Current: {currentVersion}, Latest: {latestVersion}");
-            UpdateNotificationMessage = $"A new version ({latestVersion}) is available!";
-            ShowUpdateDownloadButton = true;
-            IsUpdateNotificationVisible = true;
-            StopDismissTimer();
+            var currentVersion = WmiExplorer.VersionInfo.AppVersion;
+            var (isUpdateAvailable, latestVersion, changelog) = await _updateService.CheckForUpdateAsync(currentVersion);
+            LatestVersion = latestVersion;
+            Changelog = changelog;
+            if (isUpdateAvailable)
+            {
+                Log.Information($"Update available! Current: {currentVersion}, Latest: {latestVersion}");
+                UpdateNotificationMessage = $"A new version ({latestVersion}) is available!";
+                ShowUpdateDownloadButton = true;
+                IsUpdateNotificationVisible = true;
+                StopDismissTimer();
+            }
+            else
+            {
+                Log.Information($"No update available. Current version: {currentVersion}, Latest version: {latestVersion}");
+                UpdateNotificationMessage = "No update available. You are up to date!";
+                ShowUpdateDownloadButton = false;
+                IsUpdateNotificationVisible = true;
+                StartDismissTimer(DefaultDismissSeconds);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Log.Information($"No update available. Current version: {currentVersion}, Latest version: {latestVersion}");
-            UpdateNotificationMessage = "No update available. You are up to date!";
+            Log.Error(ex, "Failed to check for updates");
+            UpdateNotificationMessage = "Failed to check for updates. See Log for details.";
             ShowUpdateDownloadButton = false;
             IsUpdateNotificationVisible = true;
             StartDismissTimer(DefaultDismissSeconds);

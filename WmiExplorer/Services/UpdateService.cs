@@ -56,54 +56,37 @@ public class UpdateService
     /// </summary>
     public async Task<(bool isUpdateAvailable, string latestVersion, string changelog)> CheckForUpdateAsync(string currentVersion)
     {
-        try
+        // Let exceptions bubble up to the caller for proper error handling in the UI
+        _releaseDoc = await GetLatestReleaseJsonAsync();
+        if (_releaseDoc == null)
         {
-            _releaseDoc = await GetLatestReleaseJsonAsync();
-            if (_releaseDoc == null)
-            {
-                Log.Error("Failed to retrieve latest release info.");
-                return (false, string.Empty, string.Empty);
-            }
+            Log.Error("Failed to retrieve latest release info.");
+            throw new InvalidOperationException("Failed to retrieve latest release info.");
+        }
 
-            // Extract the tag name and changelog from the JSON response
-            var tag = _releaseDoc.RootElement.GetProperty("tag_name").GetString();
-            // Remove leading 'v' if present in tag
-            var latestVersion = !string.IsNullOrEmpty(tag) && tag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
-                ? tag.Substring(1)
-                : tag;
-            var changelog = _releaseDoc.RootElement.GetProperty("body").GetString();
-            // Compare versions using Version.TryParse for proper semantic comparison
-            bool isUpdateAvailable = false;
-            if (!string.IsNullOrEmpty(currentVersion) && !string.IsNullOrEmpty(latestVersion))
+        // Extract the tag name and changelog from the JSON response
+        var tag = _releaseDoc.RootElement.GetProperty("tag_name").GetString();
+        // Remove leading 'v' if present in tag
+        var latestVersion = !string.IsNullOrEmpty(tag) && tag.StartsWith("v", StringComparison.OrdinalIgnoreCase)
+            ? tag.Substring(1)
+            : tag;
+        var changelog = _releaseDoc.RootElement.GetProperty("body").GetString();
+        // Compare versions using Version.TryParse for proper semantic comparison
+        bool isUpdateAvailable = false;
+        if (!string.IsNullOrEmpty(currentVersion) && !string.IsNullOrEmpty(latestVersion))
+        {
+            if (Version.TryParse(currentVersion, out var current) && Version.TryParse(latestVersion, out var latest))
             {
-                if (Version.TryParse(currentVersion, out var current) && Version.TryParse(latestVersion, out var latest))
-                {
-                    isUpdateAvailable = latest > current;
-                }
-                else
-                {
-                    // Fallback to string comparison if parsing fails
-                    Log.Warning($"Version parse failed, falling back to string comparison. currentVersion='{currentVersion}', latestVersion='{latestVersion}'");
-                    isUpdateAvailable = !string.Equals(currentVersion, latestVersion, StringComparison.OrdinalIgnoreCase);
-                }
+                isUpdateAvailable = latest > current;
             }
-            return (isUpdateAvailable, latestVersion ?? string.Empty, changelog ?? string.Empty);
+            else
+            {
+                // Fallback to string comparison if parsing fails
+                Log.Warning($"Version parse failed, falling back to string comparison. currentVersion='{currentVersion}', latestVersion='{latestVersion}'");
+                isUpdateAvailable = !string.Equals(currentVersion, latestVersion, StringComparison.OrdinalIgnoreCase);
+            }
         }
-        catch (HttpRequestException ex)
-        {
-            Log.Error(ex, "HTTP request failed during update check");
-            return (false, string.Empty, string.Empty);
-        }
-        catch (JsonException ex)
-        {
-            Log.Error(ex, "JSON parsing failed during update check");
-            return (false, string.Empty, string.Empty);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Exception occurred during update check");
-            return (false, string.Empty, string.Empty);
-        }
+        return (isUpdateAvailable, latestVersion ?? string.Empty, changelog ?? string.Empty);
     }
 
     /// <summary>
