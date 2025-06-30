@@ -107,7 +107,7 @@
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Margin" Value="{DynamicResource MarginHorizontalMedium}" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Background" Value="{DynamicResource SecondaryAccentBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
@@ -141,14 +141,14 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="SwitchTrack" Property="Background" Value="{DynamicResource SecondaryAccentBrush}" />
-                            <Setter TargetName="SwitchTrack" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+                            <Setter TargetName="SwitchTrack" Property="Background" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+                            <Setter TargetName="SwitchTrack" Property="BorderBrush" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
                             <Setter TargetName="SwitchThumb" Property="Fill" Value="{DynamicResource SecondaryBackgroundBrush}" />
                             <Setter TargetName="SwitchThumb" Property="HorizontalAlignment" Value="Right" />
                             <!-- <Setter TargetName="SwitchThumb" Property="Margin" Value="0,2,1,2" /> -->
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="SwitchTrack" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+                            <Setter TargetName="SwitchTrack" Property="BorderBrush" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="SwitchTrack" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
