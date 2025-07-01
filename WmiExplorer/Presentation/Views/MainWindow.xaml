@@ -52,7 +52,7 @@
             <MenuItem Header="_Options">
                 <MenuItem Header="Enable ConfigMgr Mode"
                           IsCheckable="True"
-                          IsChecked="{Binding EnableConfigMgrMode, Mode=TwoWay}"
+                          IsChecked="{Binding ConfigMgrSettings.ConfigMgrModeEnabled, Mode=TwoWay}"
                           ToolTip="Enable or disable Configuration Manager Mode.">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource ConfigMgrModeIconTemplate}" />

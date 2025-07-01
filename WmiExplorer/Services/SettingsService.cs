@@ -53,17 +53,13 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         InitializeDefaults();
         LoadSettings();
 
-        // Subscribe to property changes for all nested ObservableObject settings here if needed
-        SubscribeToNestedSettings(null, AutoUpdateSettings);
-
         Log.Information("Settings initialized with {SettingCount} settings. Settings file: {FilePath}", _settingsProperties.Count, _filePath);
     }
 
-    // Example for AutoUpdateSettings
     [Setting]
     public AutoUpdateSettings AutoUpdateSettings
     {
-        get => GetValue<AutoUpdateSettings>() ?? new AutoUpdateSettings();
+        get => GetOrCreateObjectSetting<AutoUpdateSettings>();
         set
         {
             var current = GetValue<AutoUpdateSettings>();
@@ -77,6 +73,18 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
     {
         get => GetValue<WmiClassEnumerationFlags>();
         set => SetValue(value);
+    }
+
+    [Setting]
+    public ConfigMgrSettings ConfigMgrSettings
+    {
+        get => GetOrCreateObjectSetting<ConfigMgrSettings>();
+        set
+        {
+            var current = GetValue<ConfigMgrSettings>();
+            SubscribeToNestedSettings(current, value);
+            SetValue(value);
+        }
     }
 
     [Setting("Dark")]
@@ -95,13 +103,6 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         }
     }
 
-    [Setting(true)]
-    public bool EnableConfigMgrMode
-    {
-        get => GetValue<bool>();
-        set => SetValue(value);
-    }
-
     [Setting(LogLevel.Information)]
     public LogLevel LogLevel
     {
@@ -112,6 +113,8 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
     [Setting]
     public MainWindowPosition MainWindowPosition
     {
+        // Don't use GetOrCreateObjectSetting here, as MainWindowPosition is a simple struct and doesn't implement INotifyPropertyChanged and doesn't need nested change tracking.
+        // We rely on saving settings on app exit.
         get => GetValue<MainWindowPosition>() ?? new MainWindowPosition();
         set => SetValue(value);
     }
@@ -213,6 +216,20 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         {
             return null;
         }
+    }
+
+    // Helper to get or create, store, and subscribe to a settings object
+    private T GetOrCreateObjectSetting<T>([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    where T : class, INotifyPropertyChanged, new()
+    {
+        var value = GetValue<T>(propertyName);
+        if (value == null)
+        {
+            value = new T();
+            SubscribeToNestedSettings(null, value);
+            SetValue(value, propertyName);
+        }
+        return value;
     }
 
     private static string GetSettingKey(PropertyInfo property)
@@ -346,6 +363,8 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
     {
         if (oldValue != null)
             oldValue.PropertyChanged -= NestedSettings_PropertyChanged;
+        if (newValue != null)
+            newValue.PropertyChanged -= NestedSettings_PropertyChanged; // Ensure no duplicate subscription
         if (newValue != null)
             newValue.PropertyChanged += NestedSettings_PropertyChanged;
     }

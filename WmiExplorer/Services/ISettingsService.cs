@@ -18,9 +18,9 @@ public interface ISettingsService
     /// </summary>
     string CurrentTheme { get; set; }
     /// <summary>
-    /// Enables or disables ConfigMgr mode.
+    /// Configuration Manager related settings.
     /// </summary>
-    bool EnableConfigMgrMode { get; set; }
+    ConfigMgrSettings ConfigMgrSettings { get; set; }
     /// <summary>
     /// The logging level for the application.
     /// </summary>

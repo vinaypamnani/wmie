@@ -117,13 +117,13 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets whether the application should enable ConfigMgr mode.
-    /// Proxy for ISettingsService.EnableConfigMgrMode.
+    /// Gets or sets Configuration Manager related settings.
+    /// Proxy for ISettingsService.ConfigMgrSettings.
     /// </summary>
-    public bool EnableConfigMgrMode
+    public ConfigMgrSettings ConfigMgrSettings
     {
-        get => _settingsService.EnableConfigMgrMode;
-        set => _settingsService.EnableConfigMgrMode = value;
+        get => _settingsService.ConfigMgrSettings;
+        set => _settingsService.ConfigMgrSettings = value;
     }
 
     /// <summary>
