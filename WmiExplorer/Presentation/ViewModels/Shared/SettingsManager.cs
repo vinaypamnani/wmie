@@ -51,8 +51,7 @@ public partial class SettingsManager : ObservableObject
         set
         {
             _settingsService.LogLevel = value;
-            // Sync Serilog's global minimum level
-            Log.SetMinimumLevel(value);
+            Log.SetMinimumLevel(value); // Keep Serilog's global minimum level in sync
         }
     }
 
