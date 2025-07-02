@@ -20,79 +20,61 @@ public partial class SettingsManager : ObservableObject
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
     }
 
-    public AutoUpdateSettings? AutoUpdateSettings
+    // Strongly-typed property forwarding for all settings
+    public AutoUpdateSettings AutoUpdateSettings
     {
-        get => Get<AutoUpdateSettings>(nameof(AutoUpdateSettings));
-        set => Set(nameof(AutoUpdateSettings), value);
+        get => _settingsService.AutoUpdateSettings;
+        set => _settingsService.AutoUpdateSettings = value;
     }
 
     public WmiClassEnumerationFlags ClassEnumerationFilter
     {
-        get => Get<WmiClassEnumerationFlags>(nameof(ClassEnumerationFilter));
-        set => Set(nameof(ClassEnumerationFilter), value);
+        get => _settingsService.ClassEnumerationFilter;
+        set => _settingsService.ClassEnumerationFilter = value;
     }
 
-    public ConfigMgrSettings? ConfigMgrSettings
+    public ConfigMgrSettings ConfigMgrSettings
     {
-        get => Get<ConfigMgrSettings>(nameof(ConfigMgrSettings));
-        set => Set(nameof(ConfigMgrSettings), value);
+        get => _settingsService.ConfigMgrSettings;
+        set => _settingsService.ConfigMgrSettings = value;
     }
 
-    public string? CurrentTheme
+    public string CurrentTheme
     {
-        get => Get<string>(nameof(CurrentTheme));
-        set => Set(nameof(CurrentTheme), value);
+        get => _settingsService.CurrentTheme;
+        set => _settingsService.CurrentTheme = value ?? "Dark";
     }
 
     public LogLevel LogLevel
     {
-        get => Get<LogLevel>(nameof(LogLevel));
+        get => _settingsService.LogLevel;
         set
         {
-            Set(nameof(LogLevel), value);
-
+            _settingsService.LogLevel = value;
             // Sync Serilog's global minimum level
             Log.SetMinimumLevel(value);
         }
     }
 
-    public MainWindowPosition? MainWindowPosition
+    public MainWindowPosition MainWindowPosition
     {
-        get => Get<MainWindowPosition>(nameof(MainWindowPosition));
-        set => Set(nameof(MainWindowPosition), value);
+        get => _settingsService.MainWindowPosition;
+        set => _settingsService.MainWindowPosition = value;
     }
 
     public WmiOperationMode OperationMode
     {
-        get => Get<WmiOperationMode>(nameof(OperationMode));
+        get => _settingsService.OperationMode;
         set
         {
-            Set(nameof(OperationMode), value);
+            _settingsService.OperationMode = value;
             _wmiService.OperationMode = value; // Keep WmiService in sync
         }
     }
 
-    // Proxy properties for all ISettingsService settings
     public bool ShowSystemClasses
     {
-        get => Get<bool>(nameof(ShowSystemClasses));
-        set => Set(nameof(ShowSystemClasses), value);
-    }
-
-    // Generic proxy getter/setter for settings
-    private T? Get<T>(string propertyName)
-    {
-        var prop = _settingsService.GetType().GetProperty(propertyName);
-        return prop != null ? (T?)prop.GetValue(_settingsService) : default;
-    }
-
-    private void Set<T>(string propertyName, T value)
-    {
-        var prop = _settingsService.GetType().GetProperty(propertyName);
-        if (prop != null && !Equals(prop.GetValue(_settingsService), value))
-        {
-            prop.SetValue(_settingsService, value);
-            //OnPropertyChanged(propertyName);
-        }
+        get => _settingsService.ShowSystemClasses;
+        set => _settingsService.ShowSystemClasses = value;
     }
 }
