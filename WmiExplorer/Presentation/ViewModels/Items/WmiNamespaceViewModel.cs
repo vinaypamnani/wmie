@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Management;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
@@ -342,11 +343,15 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             PublishBusyState($"Loading classes for {NamespacePath}...");
 
             var classTypeFilter = _settingsService.ClassEnumerationFilter;
+            var queryString = BuildClassQueryFromFilter(classTypeFilter);
 
             // Use the ViewModel's ManagementScope for the service call.
-            var wmiClasses = await _wmiService.GetClassesAsync(
+            var wmiClasses = await _wmiService.ExecuteWmiQueryAsync(
                 ManagementScope,
-                classTypeFilter,
+                queryString,
+                directRead: false,
+                useAmendedQualifiers: true,
+                cacheResults: true, // Ensure class metadata is cached for this namespace
                 _cts.Token);
 
             if (_cts.IsCancellationRequested)
@@ -419,6 +424,32 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             _classFilterHelper.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Builds a WQL query string based on the class type filter
+    /// </summary>
+    private static string BuildClassQueryFromFilter(WmiClassEnumerationFlags classTypeFilter)
+    {
+        // For All filter, use the simplest possible query
+        if (classTypeFilter == WmiClassEnumerationFlags.All)
+            return "SELECT * FROM meta_class";
+
+        // Start with a simple base query without the problematic LIKE '%'
+        string query = "SELECT * FROM meta_class WHERE __Class LIKE '%'";
+
+        // Remove System class filtering here; always return system classes
+        // Only filter CIM, MSFT, Perf
+        if ((classTypeFilter & WmiClassEnumerationFlags.CIM) != WmiClassEnumerationFlags.CIM)
+            query += " AND NOT __Class LIKE \"CIM[_]%\"";
+
+        if ((classTypeFilter & WmiClassEnumerationFlags.MSFT) != WmiClassEnumerationFlags.MSFT)
+            query += " AND NOT __Class LIKE \"MSFT[_]%\"";
+
+        if ((classTypeFilter & WmiClassEnumerationFlags.Perf) != WmiClassEnumerationFlags.Perf)
+            query += " AND NOT __Class LIKE \"Win32_Perf%\"";
+
+        return query;
     }
 
     private bool ClassFilterPredicate(WmiClassViewModel classVm, string filter)

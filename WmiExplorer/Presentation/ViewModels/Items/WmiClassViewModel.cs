@@ -327,10 +327,15 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             LoadState = InstanceLoadState.Loading;
             PublishBusyState($"Loading instances for {ClassName}");
 
-            // Use our own cancellation token
-            var wmiInstances = await _wmiService.GetInstancesAsync(
+            // Build WQL query for instances of this class
+            string wqlQuery = $"SELECT * FROM {ClassName}";
+
+            // Execute the WQL query using the service
+            var wmiInstances = await _wmiService.ExecuteWmiQueryAsync(
                 ParentNamespaceViewModel.ManagementScope,
-                ClassName,
+                wqlQuery,
+                false, // directRead: false for instance enumeration
+                false, // useAmendedQualifiers: false for instances
                 _cts.Token);
 
             // Map ManagementObject to WmiInstance and create view models for all instances at once.

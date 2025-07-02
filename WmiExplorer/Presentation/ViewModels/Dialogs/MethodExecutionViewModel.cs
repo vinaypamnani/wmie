@@ -254,7 +254,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
             if (_instance != null)
             {
                 // Execute instance method
-                outParams = await _wmiService.ExecuteMethodAsync(
+                outParams = await _wmiService.ExecuteInstanceMethodAsync(
                     _instance.ActualObject,
                     _method!.Name,
                     inParams,
@@ -263,7 +263,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
             else
             {
                 // Execute static method
-                outParams = await _wmiService.ExecuteStaticMethodAsync(
+                outParams = await _wmiService.ExecuteClassMethodAsync(
                     _class!.ActualClass,
                     _method!.Name,
                     inParams,

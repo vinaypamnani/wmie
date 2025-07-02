@@ -226,13 +226,20 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
             ReferenceLoadState = ReferenceValueLoadState.Loading;
 
             // Extract the reference class name from the CimType
-            // CimType for references typically looks like "ref:ClassName" or just "ClassName"
             var referenceClassName = TargetClassName;
             if (string.IsNullOrEmpty(referenceClassName))
                 return;
 
-            // Load instances of the reference class
-            var instances = await _wmiService.GetInstancesAsync(_managementScope, referenceClassName, _referenceValuesCts.Token);
+            // Build WQL query for instances of the reference class
+            string wqlQuery = $"SELECT * FROM {referenceClassName}";
+
+            // Execute the WQL query using the service
+            var instances = await _wmiService.ExecuteWmiQueryAsync(
+                _managementScope,
+                wqlQuery,
+                false, // directRead: false for instance enumeration
+                false, // useAmendedQualifiers: false for instances
+                _referenceValuesCts.Token);
 
             // Convert instances to string representations for the ComboBox
             var referenceStrings = new List<string>();
@@ -241,7 +248,6 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
                 try
                 {
                     // Try to get a meaningful string representation
-                    // Common patterns: use __PATH, __RELPATH, or key properties
                     var path = instance.Path?.RelativePath;
                     if (!string.IsNullOrEmpty(path))
                     {

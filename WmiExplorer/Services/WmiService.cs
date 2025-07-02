@@ -12,12 +12,6 @@ public class WmiService : IWmiService, IDisposable
     private readonly ICacheService _cacheService;
     private readonly List<IDisposable> _disposables = new();
 
-    private readonly EnumerationOptions _enumOptions = new EnumerationOptions
-    {
-        UseAmendedQualifiers = true,
-        EnumerateDeep = true
-    };
-
     // Cache for provider CLSIDs to avoid repeated WMI queries
     private readonly Dictionary<string, string?> _providerClsidCache = new();
 
@@ -45,14 +39,29 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Executes a WMI method asynchronously on an instance
+    /// Executes a static WMI method asynchronously on a class
     /// </summary>
-    public async Task<ManagementBaseObject?> ExecuteMethodAsync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default)
+    public async Task<ManagementBaseObject?> ExecuteClassMethodAsync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default)
     {
         if (OperationMode == WmiOperationMode.Synchronous)
-            return await ExecuteSyncWithTimeout(() => ExecuteMethodSync(instance, methodName, inputParameters, cancellationToken), cancellationToken);
+            return await ExecuteSyncWithTimeout(() => ExecuteClassMethodSync(managementClass, methodName, inputParameters, cancellationToken), cancellationToken);
         else
-            return await ExecuteMethodAsyncInternal(instance, methodName, inputParameters, cancellationToken);
+            return await ExecuteWmiMethodAsync(
+                observer => managementClass.InvokeMethod(observer, methodName, inputParameters, null),
+                cancellationToken);
+    }
+
+    /// <summary>
+    /// Executes a WMI method asynchronously on an instance
+    /// </summary>
+    public async Task<ManagementBaseObject?> ExecuteInstanceMethodAsync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default)
+    {
+        if (OperationMode == WmiOperationMode.Synchronous)
+            return await ExecuteSyncWithTimeout(() => ExecuteInstanceMethodSync(instance, methodName, inputParameters, cancellationToken), cancellationToken);
+        else
+            return await ExecuteWmiMethodAsync(
+                observer => instance.InvokeMethod(observer, methodName, inputParameters, null),
+                cancellationToken);
     }
 
     /// <summary>
@@ -70,12 +79,16 @@ public class WmiService : IWmiService, IDisposable
         return Task.Run(async () =>
         {
             EnsureScopeConnected(scope);
-            var results = new List<(object match, ManagementBaseObject parent)>();            // Search in the current namespace
+            var results = new List<(object match, ManagementBaseObject parent)>();
+
+            // Search in the current namespace
             var currentNamespace = scope.Path?.Path ?? "root";
             var friendlyNamespace = FormatNamespaceForDisplay(currentNamespace);
             var failureCount = 0;
             progressCallback?.Invoke($"Searching namespace: {friendlyNamespace}", failureCount);
-            await SearchInNamespaceAsync(scope, searchType, searchText, results, cancellationToken);            // If recursive search is enabled, search in child namespaces
+            await SearchInNamespaceAsync(scope, searchType, searchText, results, cancellationToken);
+
+            // If recursive search is enabled, search in child namespaces
             if (recursive && !cancellationToken.IsCancellationRequested)
             {
                 failureCount = await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, cancellationToken, progressCallback, failureCount);
@@ -86,23 +99,13 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Executes a static WMI method asynchronously on a class
-    /// </summary>
-    public async Task<ManagementBaseObject?> ExecuteStaticMethodAsync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default)
-    {
-        if (OperationMode == WmiOperationMode.Synchronous)
-            return await ExecuteSyncWithTimeout(() => ExecuteStaticMethodSync(managementClass, methodName, inputParameters, cancellationToken), cancellationToken);
-        else
-            return await ExecuteStaticMethodAsyncInternal(managementClass, methodName, inputParameters, cancellationToken);
-    }
-
-    /// <summary>
     /// Executes a WMI query asynchronously, using the specified query string.
     /// </summary>
     public async Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(
         ManagementScope scope,
         string queryString,
-        bool directRead, bool useAmendedQualifiers,
+        bool directRead,
+        bool useAmendedQualifiers,
         CancellationToken cancellationToken = default)
     {
         Log.Debug("Executing WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
@@ -113,8 +116,9 @@ public class WmiService : IWmiService, IDisposable
             var userProvidedEnumOptions = new EnumerationOptions
             {
                 DirectRead = directRead,
-                UseAmendedQualifiers = useAmendedQualifiers
-
+                UseAmendedQualifiers = useAmendedQualifiers,
+                EnsureLocatable = true,
+                EnumerateDeep = true
             };
 
             IEnumerable<ManagementObject> results;
@@ -139,61 +143,35 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Asynchronously gets child namespaces for a given WMI namespace
+    /// Executes a WMI query asynchronously, with optional caching of class metadata if cacheResults is true.
+    /// </summary>
+    public async Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(
+        ManagementScope scope,
+        string queryString,
+        bool directRead,
+        bool useAmendedQualifiers,
+        bool cacheResults,
+        CancellationToken cancellationToken = default)
+    {
+        var results = await ExecuteWmiQueryAsync(scope, queryString, directRead, useAmendedQualifiers, cancellationToken);
+        if (cacheResults && scope?.Path?.Path is string nsPath && !string.IsNullOrWhiteSpace(nsPath))
+        {
+            await CacheNamespaceClassMetadata(nsPath, results);
+        }
+        return results;
+    }
+
+    /// <summary>
+    /// Executes a WMI query to enumerate child namespaces (instances of __namespace).
     /// </summary>
     public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
     {
-        var namespacePath = scope.Path?.Path ?? "Unknown";
-        Log.Debug("Getting child namespaces for: {NamespacePath}", namespacePath);
-
-        try
-        {
-            EnsureScopeConnected(scope);
-
-            // Always use sync for child namespaces, even in async mode
-            // return await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
-
-            IEnumerable<ManagementObject> results;
-            if (OperationMode == WmiOperationMode.Synchronous)
-                results = await ExecuteSyncWithTimeout(() => GetChildNamespacesSync(scope, cancellationToken), cancellationToken);
-            else
-                results = await GetChildNamespacesAsyncInternal(scope, cancellationToken);
-
-            var childCount = results.Count();
-            Log.Debug("Found {ChildCount} child namespaces for: {NamespacePath}", childCount, namespacePath);
-
-            return results;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error getting child namespaces for: {NamespacePath}", namespacePath);
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Asynchronously gets classes for a given WMI namespace
-    /// </summary>
-    public async Task<IEnumerable<ManagementObject>> GetClassesAsync(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter = WmiClassEnumerationFlags.All, CancellationToken cancellationToken = default)
-    {
-        EnsureScopeConnected(scope);
-        if (OperationMode == WmiOperationMode.Synchronous)
-            return await ExecuteSyncWithTimeout(() => GetClassesSync(scope, classTypeFilter, cancellationToken), cancellationToken);
-        else
-            return await GetClassesAsyncInternal(scope, classTypeFilter, cancellationToken);
-    }
-
-    /// <summary>
-    /// Asynchronously gets instances for a given WMI class
-    /// </summary>
-    public async Task<IEnumerable<ManagementObject>> GetInstancesAsync(ManagementScope scope, string className, CancellationToken cancellationToken = default)
-    {
-        EnsureScopeConnected(scope);
-        if (OperationMode == WmiOperationMode.Synchronous)
-            // Instance loading can take longer, especially for classes with many instances like Win32_Directory
-            return await ExecuteSyncWithTimeout(() => GetInstancesSync(scope, className, cancellationToken), cancellationToken, 60000);
-        else
-            return await GetInstancesAsyncInternal(scope, className, cancellationToken);
+        return await ExecuteWmiQueryAsync(
+            scope,
+            "SELECT * FROM __namespace",
+            directRead: false,
+            useAmendedQualifiers: false,
+            cancellationToken);
     }
 
     /// <summary>
@@ -253,7 +231,7 @@ public class WmiService : IWmiService, IDisposable
         try
         {
             // Always use sync for root namespace, even in async mode
-            var result = await Task.Run(() => GetRootNamespaceSync(namespacePath, connectionOptions, cancellationToken), cancellationToken);
+            var result = await Task.Run(() => GetManagementObject(namespacePath, connectionOptions, cancellationToken), cancellationToken);
 
             if (result != null)
             {
@@ -279,32 +257,6 @@ public class WmiService : IWmiService, IDisposable
     ~WmiService()
     {
         Dispose(false);
-    }
-
-    /// <summary>
-    /// Builds a WQL query string based on the class type filter
-    /// </summary>
-    private string BuildClassQueryFromFilter(WmiClassEnumerationFlags classTypeFilter)
-    {
-        // For All filter, use the simplest possible query
-        if (classTypeFilter == WmiClassEnumerationFlags.All)
-            return "SELECT * FROM meta_class";
-
-        // Start with a simple base query without the problematic LIKE '%'
-        string query = "SELECT * FROM meta_class WHERE __Class LIKE '%'";
-
-        // Remove System class filtering here; always return system classes
-        // Only filter CIM, MSFT, Perf
-        if ((classTypeFilter & WmiClassEnumerationFlags.CIM) != WmiClassEnumerationFlags.CIM)
-            query += " AND NOT __Class LIKE \"CIM[_]%\"";
-
-        if ((classTypeFilter & WmiClassEnumerationFlags.MSFT) != WmiClassEnumerationFlags.MSFT)
-            query += " AND NOT __Class LIKE \"MSFT[_]%\"";
-
-        if ((classTypeFilter & WmiClassEnumerationFlags.Perf) != WmiClassEnumerationFlags.Perf)
-            query += " AND NOT __Class LIKE \"Win32_Perf%\"";
-
-        return query;
     }
 
     /// <summary>
@@ -427,168 +379,9 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Executes a WMI method asynchronously on an instance using ManagementOperationObserver
-    /// </summary>
-    private async Task<ManagementBaseObject?> ExecuteMethodAsyncInternal(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
-    {
-        var tcs = new TaskCompletionSource<ManagementBaseObject?>();
-        var observer = new ManagementOperationObserver();
-        var cancelCalled = false;
-
-        observer.ObjectReady += (sender, e) =>
-        {
-            if (e.NewObject is ManagementBaseObject result)
-            {
-                _disposables.Add(result);
-                tcs.TrySetResult(result);
-            }
-            else
-            {
-                tcs.TrySetResult(null);
-            }
-        };
-
-        observer.Completed += (sender, e) =>
-        {
-            if (e.Status == ManagementStatus.NoError)
-            {
-                // Result already set in ObjectReady if applicable
-                if (!tcs.Task.IsCompleted)
-                    tcs.TrySetResult(null);
-            }
-            else if (e.Status == ManagementStatus.CallCanceled || e.Status == ManagementStatus.OperationCanceled)
-            {
-                tcs.TrySetCanceled(cancellationToken);
-            }
-            else
-            {
-                tcs.TrySetException(new ManagementException($"WMI async method execution failed: {e.Status}"));
-            }
-        };
-
-        using (cancellationToken.Register(() =>
-        {
-            if (!cancelCalled)
-            {
-                cancelCalled = true;
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        observer.Cancel();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "Error canceling WMI method observer");
-                    }
-                });
-            }
-        }))
-        {
-            try
-            {
-                instance.InvokeMethod(observer, methodName, inputParameters, null);
-            }
-            catch (Exception ex)
-            {
-                tcs.TrySetException(ex);
-            }
-            return await tcs.Task.ConfigureAwait(false);
-        }
-    }
-
-    /// <summary>
-    /// Executes a WMI method synchronously on an instance
-    /// </summary>
-    private ManagementBaseObject? ExecuteMethodSync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
-            return instance.InvokeMethod(methodName, inputParameters, null);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error executing WMI instance method '{MethodName}' on instance", methodName);
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Executes a static WMI method asynchronously on a class using ManagementOperationObserver
-    /// </summary>
-    private async Task<ManagementBaseObject?> ExecuteStaticMethodAsyncInternal(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
-    {
-        var tcs = new TaskCompletionSource<ManagementBaseObject?>();
-        var observer = new ManagementOperationObserver();
-        var cancelCalled = false;
-
-        observer.ObjectReady += (sender, e) =>
-        {
-            if (e.NewObject is ManagementBaseObject result)
-            {
-                _disposables.Add(result);
-                tcs.TrySetResult(result);
-            }
-            else
-            {
-                tcs.TrySetResult(null);
-            }
-        };
-
-        observer.Completed += (sender, e) =>
-        {
-            if (e.Status == ManagementStatus.NoError)
-            {
-                // Result already set in ObjectReady if applicable
-                if (!tcs.Task.IsCompleted)
-                    tcs.TrySetResult(null);
-            }
-            else if (e.Status == ManagementStatus.CallCanceled || e.Status == ManagementStatus.OperationCanceled)
-            {
-                tcs.TrySetCanceled(cancellationToken);
-            }
-            else
-            {
-                tcs.TrySetException(new ManagementException($"WMI async static method execution failed: {e.Status}"));
-            }
-        };
-
-        using (cancellationToken.Register(() =>
-        {
-            if (!cancelCalled)
-            {
-                cancelCalled = true;
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        observer.Cancel();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "Error canceling WMI static method observer");
-                    }
-                });
-            }
-        }))
-        {
-            try
-            {
-                managementClass.InvokeMethod(observer, methodName, inputParameters, null);
-            }
-            catch (Exception ex)
-            {
-                tcs.TrySetException(ex);
-            }
-            return await tcs.Task.ConfigureAwait(false);
-        }
-    }
-
-    /// <summary>
     /// Executes a static WMI method synchronously on a class
     /// </summary>
-    private ManagementBaseObject? ExecuteStaticMethodSync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
+    private ManagementBaseObject? ExecuteClassMethodSync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
@@ -598,6 +391,23 @@ public class WmiService : IWmiService, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Error executing WMI static method '{MethodName}' on class", methodName);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Executes a WMI method synchronously on an instance
+    /// </summary>
+    private ManagementBaseObject? ExecuteInstanceMethodSync(ManagementObject instance, string methodName, ManagementBaseObject? inputParameters, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            return instance.InvokeMethod(methodName, inputParameters, null);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error executing WMI instance method '{MethodName}' on instance", methodName);
             throw;
         }
     }
@@ -638,6 +448,72 @@ public class WmiService : IWmiService, IDisposable
                 throw ex.InnerException ?? ex;
             }
         }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Generalized async WMI method execution for both instance and static methods.
+    /// </summary>
+    private async Task<ManagementBaseObject?> ExecuteWmiMethodAsync(
+        Action<ManagementOperationObserver> invokeMethod,
+        CancellationToken cancellationToken)
+    {
+        var tcs = new TaskCompletionSource<ManagementBaseObject?>();
+        var observer = new ManagementOperationObserver();
+        var cancelCalled = false;
+
+        observer.ObjectReady += (sender, e) =>
+        {
+            if (e.NewObject is ManagementBaseObject result)
+            {
+                _disposables.Add(result);
+                tcs.TrySetResult(result);
+            }
+            else
+            {
+                tcs.TrySetResult(null);
+            }
+        };
+
+        observer.Completed += (sender, e) =>
+        {
+            if (e.Status == ManagementStatus.NoError)
+            {
+                if (!tcs.Task.IsCompleted)
+                    tcs.TrySetResult(null);
+            }
+            else if (e.Status == ManagementStatus.CallCanceled || e.Status == ManagementStatus.OperationCanceled)
+            {
+                tcs.TrySetCanceled(cancellationToken);
+            }
+            else
+            {
+                tcs.TrySetException(new ManagementException($"WMI async method execution failed: {e.Status}"));
+            }
+        };
+
+        using (cancellationToken.Register(() =>
+        {
+            if (!cancelCalled)
+            {
+                cancelCalled = true;
+                Task.Run(() =>
+                {
+                    try { observer.Cancel(); }
+                    catch (Exception ex) { Log.Warning(ex, "Error canceling WMI method observer"); }
+                });
+            }
+        }))
+        {
+            try
+            {
+                invokeMethod(observer);
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+            }
+            return await tcs.Task.ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -714,131 +590,10 @@ public class WmiService : IWmiService, IDisposable
         return namespacePath;
     }
 
-    private async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsyncInternal(ManagementScope scope, CancellationToken cancellationToken)
-    {
-        var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
-        _disposables.Add(nsClass);
-        return await PerformWmiOperationAsync(obs => nsClass.GetInstances(obs), cancellationToken);
-    }
-
-    private IEnumerable<ManagementObject> GetChildNamespacesSync(ManagementScope scope, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var result = new List<ManagementObject>();
-        var nsClass = new ManagementClass(scope, new ManagementPath("__namespace"), null);
-        _disposables.Add(nsClass);
-
-        // Get the collection with periodic cancellation checks
-        ManagementObjectCollection? instances = null;
-        try
-        {
-            instances = nsClass.GetInstances();
-            _disposables.Add(instances);
-
-            foreach (ManagementObject m in instances)
-            {
-                // Check for cancellation between each namespace
-                cancellationToken.ThrowIfCancellationRequested();
-                _disposables.Add(m);
-                result.Add(m);
-            }
-        }
-        finally
-        {
-            instances?.Dispose();
-        }
-
-        return result;
-    }
-
-    private async Task<IEnumerable<ManagementObject>> GetClassesAsyncInternal(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter, CancellationToken cancellationToken)
-    {
-        string queryString = BuildClassQueryFromFilter(classTypeFilter);
-        var query = new ObjectQuery(queryString);
-        var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
-        _disposables.Add(searcher);
-        var result = await PerformWmiOperationAsync(obs => searcher.Get(obs), cancellationToken);
-        // Fire-and-forget cache update
-        try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); }
-        catch { Log.Warning("Error updating class metadata cache for namespace: {NamespacePath}", scope.Path?.Path ?? "Unknown"); }
-        return result;
-    }
-
-    private IEnumerable<ManagementObject> GetClassesSync(ManagementScope scope, WmiClassEnumerationFlags classTypeFilter, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var result = new List<ManagementObject>();
-        string queryString = BuildClassQueryFromFilter(classTypeFilter);
-        var query = new ObjectQuery(queryString);
-        var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
-        _disposables.Add(searcher);
-
-        // Get the collection with periodic cancellation checks
-        ManagementObjectCollection? collection = null;
-        try
-        {
-            collection = searcher.Get();
-            _disposables.Add(collection);
-
-            foreach (ManagementObject classObject in collection)
-            {
-                // Check for cancellation between each class
-                cancellationToken.ThrowIfCancellationRequested();
-                _disposables.Add(classObject);
-                result.Add(classObject);
-            }
-        }
-        finally
-        {
-            collection?.Dispose();
-        }
-
-        // Fire-and-forget cache update
-        try { _ = Task.Run(() => CacheNamespaceClassMetadata(scope.Path?.Path ?? string.Empty, result)); }
-        catch { Log.Warning("Error updating class metadata cache for namespace: {NamespacePath}", scope.Path?.Path ?? "Unknown"); }
-        return result;
-    }
-
-    private async Task<IEnumerable<ManagementObject>> GetInstancesAsyncInternal(ManagementScope scope, string className, CancellationToken cancellationToken)
-    {
-        var query = new ObjectQuery($"SELECT * FROM {className}");
-        var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
-        _disposables.Add(searcher);
-        return await PerformWmiOperationAsync(obs => searcher.Get(obs), cancellationToken);
-    }
-
-    private IEnumerable<ManagementObject> GetInstancesSync(ManagementScope scope, string className, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var result = new List<ManagementObject>();
-        var query = new ObjectQuery($"SELECT * FROM {className}");
-        var searcher = new ManagementObjectSearcher(scope, query, _enumOptions);
-        _disposables.Add(searcher);
-
-        // Get the collection with periodic cancellation checks
-        ManagementObjectCollection? collection = null;
-        try
-        {
-            collection = searcher.Get();
-            _disposables.Add(collection);
-
-            foreach (ManagementObject instanceObject in collection)
-            {
-                // Check for cancellation between each instance
-                cancellationToken.ThrowIfCancellationRequested();
-                _disposables.Add(instanceObject);
-                result.Add(instanceObject);
-            }
-        }
-        finally
-        {
-            collection?.Dispose();
-        }
-
-        return result;
-    }
-
-    private ManagementObject? GetRootNamespaceSync(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Gets a ManagementObject for a given namespace path (synchronous helper)
+    /// </summary>
+    private ManagementObject? GetManagementObject(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
@@ -852,7 +607,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error getting root namespace: {NamespacePath}", namespacePath);
+            Log.Error(ex, "Error getting management object: {NamespacePath}", namespacePath);
             throw;
         }
     }
@@ -1023,11 +778,19 @@ public class WmiService : IWmiService, IDisposable
     {
         await Task.Run(() =>
         {
+            EnumerationOptions enumOptions = new EnumerationOptions
+            {
+                UseAmendedQualifiers = true,
+                DirectRead = false,
+                EnsureLocatable = true,
+                EnumerateDeep = true
+            };
+
             switch (searchType)
             {
                 case WmiSearchType.Class:
                     var classQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, classQuery, _enumOptions))
+                    using (var searcher = new ManagementObjectSearcher(scope, classQuery, enumOptions))
                     {
                         foreach (ManagementClass wmiClass in searcher.Get())
                         {
@@ -1044,7 +807,7 @@ public class WmiService : IWmiService, IDisposable
 
                 case WmiSearchType.Method:
                     var methodClassQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, methodClassQuery, _enumOptions))
+                    using (var searcher = new ManagementObjectSearcher(scope, methodClassQuery, enumOptions))
                     {
                         foreach (ManagementClass wmiClass in searcher.Get())
                         {
@@ -1063,7 +826,7 @@ public class WmiService : IWmiService, IDisposable
 
                 case WmiSearchType.Property:
                     var propertyClassQuery = new SelectQuery("meta_class");
-                    using (var searcher = new ManagementObjectSearcher(scope, propertyClassQuery, _enumOptions))
+                    using (var searcher = new ManagementObjectSearcher(scope, propertyClassQuery, enumOptions))
                     {
                         foreach (ManagementClass wmiClass in searcher.Get())
                         {
