@@ -34,7 +34,7 @@
                     <TextBlock VerticalAlignment="Center" Text="Application Log Level:" />
                     <ComboBox Width="120"
                               ItemsSource="{Binding AvailableLogLevels}"
-                              SelectedItem="{Binding MinimumLogLevel}"
+                              SelectedItem="{Binding SettingsManager.LogLevel, Mode=TwoWay}"
                               ToolTip="Sets the minimum log level that will be captured by the application" />
 
                     <CheckBox VerticalAlignment="Center" Content="Auto-scroll" IsChecked="{Binding AutoScroll}" />

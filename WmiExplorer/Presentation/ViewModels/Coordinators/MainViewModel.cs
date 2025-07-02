@@ -40,7 +40,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     [ObservableProperty]
     private int _selectedTabIndex;
 
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsManager _settingsManager;
     private readonly ThemeManager _themeManager;
 
     [ObservableProperty]
@@ -49,28 +49,22 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     [ObservableProperty]
     private string _versionText = WmiExplorer.VersionInfo.AppVersion;
 
-    [ObservableProperty]
-    private MainWindowPosition _windowPosition;
-
     public MainViewModel(
         IMessengerService messengerService,
-        ISettingsService settingsService,
         ThemeManager themeManager,
         SelectionManager selectionManager,
+        SettingsManager settingsManager,
+        UpdateManager updateManager,
         NamespacesViewModel namespacesViewModel,
         OptionsViewModel optionsViewModel,
-        LogTabViewModel logTabViewModel,
-        UpdateManager updateManager) : base(messengerService, selectionManager)
+        LogTabViewModel logTabViewModel) : base(messengerService, selectionManager)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
-        UpdateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
-
-        // Initialize window position from settings
-        _windowPosition = _settingsService.MainWindowPosition;
+        _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+        _updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
         // Initialize the theme properties
         UpdateThemeProperties();
@@ -95,16 +89,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Gets or sets auto-update related settings.
-    /// Proxy for ISettingsService.AutoUpdateSettings.
-    /// </summary>
-    public AutoUpdateSettings AutoUpdateSettings
-    {
-        get => _settingsService.AutoUpdateSettings;
-        set => _settingsService.AutoUpdateSettings = value;
-    }
-
-    /// <summary>
     /// Gets the header text for the Classes tab with count
     /// </summary>
     public string ClassesTabHeader
@@ -114,16 +98,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
             var count = SelectionManager.SelectedNamespace?.Classes?.Count ?? 0;
             return count > 0 ? $"Classes [{count}]" : "Classes";
         }
-    }
-
-    /// <summary>
-    /// Gets or sets Configuration Manager related settings.
-    /// Proxy for ISettingsService.ConfigMgrSettings.
-    /// </summary>
-    public ConfigMgrSettings ConfigMgrSettings
-    {
-        get => _settingsService.ConfigMgrSettings;
-        set => _settingsService.ConfigMgrSettings = value;
     }
 
     /// <summary>
@@ -161,6 +135,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
             return count > 0 ? $"Search [{count}]" : "Search";
         }
     }
+
+    public SettingsManager SettingsManager => _settingsManager;
 
     /// <summary>
     /// Gets the header text for the Watcher tab with events count
@@ -268,15 +244,15 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     private void PerformAutoUpdateCheckOnStartup()
     {
-        if (AutoUpdateSettings.CheckOnStartup)
+        if (_settingsManager.AutoUpdateSettings?.CheckOnStartup == true)
         {
             var now = DateTime.UtcNow;
-            var lastCheck = AutoUpdateSettings.LastCheckTime;
-            var intervalDays = AutoUpdateSettings.IntervalDays;
+            var lastCheck = _settingsManager.AutoUpdateSettings?.LastCheckTime;
+            var intervalDays = _settingsManager.AutoUpdateSettings?.IntervalDays ?? 0;
             if (!lastCheck.HasValue || (now - lastCheck.Value).TotalDays >= intervalDays)
             {
                 UpdateManager.CheckForUpdatesAsync().ConfigureAwait(false);
-                AutoUpdateSettings.LastCheckTime = now;
+                _settingsManager.AutoUpdateSettings!.LastCheckTime = now;
             }
             else
             {

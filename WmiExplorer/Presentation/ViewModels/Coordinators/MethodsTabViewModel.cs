@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -30,20 +29,10 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
     [ObservableProperty]
     private WmiParameter? _selectedMethodParameter;
 
-    private readonly ISettingsService _settingsService;
-
-    [ObservableProperty]
-    private MainWindowPosition _windowPosition;
-
     public MethodsTabViewModel(
            IMessengerService messengerService,
-           ISettingsService settingsService,
            SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
-
-        // Initialize window position from settings
-        _windowPosition = _settingsService.MainWindowPosition;
     }
 
     /// <summary>

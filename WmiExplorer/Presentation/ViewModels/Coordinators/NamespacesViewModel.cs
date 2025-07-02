@@ -1,11 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -22,17 +20,13 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     private readonly ICacheService _cacheService;
     private readonly ClassesTabViewModel _classesTabViewModel;
     private readonly CancellationTokenSource _cts = new();
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsManager _settingsManager;
     private readonly WatcherTabViewModel _watcherTabViewModel;
-
-    [ObservableProperty]
-    private MainWindowPosition _windowPosition;
-
     private readonly IWmiService _wmiService;
 
     public NamespacesViewModel(
               IMessengerService messengerService,
-              ISettingsService settingsService,
+              SettingsManager settingsManager,
               IWmiService wmiService,
               IApplicationService applicationService,
               ICacheService cacheService,
@@ -40,7 +34,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
               WatcherTabViewModel watcherTabViewModel,
               SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
@@ -51,9 +45,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
         StrongSubscribe<DisconnectNamespaceMessage>(HandleDisconnectNamespaceMessage);
-
-        // Initialize window position from settings
-        _windowPosition = _settingsService.MainWindowPosition;
     }
 
     /// <summary>
@@ -65,6 +56,11 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     /// Collection of WMI namespaces in the tree
     /// </summary>
     public ObservableCollection<WmiNamespaceViewModel> Namespaces { get; } = new();
+
+    /// <summary>
+    /// Gets the SettingsManager
+    /// </summary>
+    public SettingsManager SettingsManager => _settingsManager;
 
     /// <summary>
     /// Gets the view model for the WMI Event Watcher
@@ -131,7 +127,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
                 _wmiService,
                 _messengerService,
                 _applicationService,
-                _settingsService,
+                _settingsManager,
                 _cacheService,
                 SelectionManager,
                 _cts.Token);

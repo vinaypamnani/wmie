@@ -101,7 +101,7 @@ public partial class App : Application
         services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<ISettingsService, SettingsService>(provider => new SettingsService(provider.GetRequiredService<IMessengerService>()));
         services.AddSingleton<ICacheService, CacheService>();
-        services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>()));
+        services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>(), provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
 
         // Register UpdateService for GitHub update checks
@@ -112,6 +112,7 @@ public partial class App : Application
         services.AddSingleton<ThemeManager>();
         services.AddSingleton<PropertyGridManager>();
         services.AddSingleton<SelectionManager>();
+        services.AddSingleton<SettingsManager>();
         services.AddSingleton<UpdateManager>();
 
         // Register MainWindow for DI

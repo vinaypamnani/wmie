@@ -17,7 +17,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="{Binding WindowPosition.ClassesColumnGridLength, Mode=TwoWay}" />
+            <ColumnDefinition Width="{Binding SettingsManager.MainWindowPosition.ClassesColumnGridLength, Mode=TwoWay}" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
@@ -29,25 +29,68 @@
                       BorderThickness="0"
                       ExpandDirection="Right"
                       Header="Classes"
-                      IsExpanded="{Binding WindowPosition.IsClassesExpanded, Mode=TwoWay}"
+                      IsExpanded="{Binding SettingsManager.MainWindowPosition.IsClassesExpanded, Mode=TwoWay}"
                       Style="{StaticResource VerticalHeaderExpanderStyle}">
                 <Expander.Content>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <CheckBox Grid.Row="0"
+                        <GroupBox Grid.Row="0"
+                                  Margin="4,0,0,4"
+                                  HorizontalContentAlignment="Stretch"
+                                  Background="{DynamicResource SecondaryBackgroundBrush}"
+                                  Header="SMS Provider Filters">
+                            <GroupBox.Visibility>
+                                <MultiBinding Converter="{StaticResource MultiBooleanAndToVisibilityConverter}">
+                                    <Binding Path="SelectionManager.SelectedNamespace.IsSmsProviderNamespace" />
+                                    <Binding Converter="{StaticResource NullToBoolConverter}" Path="SelectionManager.SelectedNamespace" />
+                                </MultiBinding>
+                            </GroupBox.Visibility>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <CheckBox Grid.Row="0"
+                                          Grid.Column="0"
+                                          HorizontalAlignment="Left"
+                                          Content="Include Collection Classes"
+                                          IsChecked="{Binding SettingsManager.ConfigMgrSettings.IncludeCollectionClasses, Mode=TwoWay}"
+                                          ToolTip="{DynamicResource Tooltip.ClassesTab.IncludeCollectionClasses}" />
+                                <CheckBox Grid.Row="1"
+                                          Grid.Column="0"
+                                          HorizontalAlignment="Left"
+                                          Content="Include Inventory Classes"
+                                          IsChecked="{Binding SettingsManager.ConfigMgrSettings.IncludeInventoryClasses, Mode=TwoWay}"
+                                          ToolTip="{DynamicResource Tooltip.ClassesTab.IncludeInventoryClasses}" />
+                                <Button Grid.Row="0"
+                                        Grid.Column="1"
+                                        Grid.ColumnSpan="2"
+                                        Margin="{DynamicResource MarginLeftSmall}"
+                                        Command="{Binding SelectionManager.SelectedNamespace.LoadClassesCommand}"
+                                        Content="Reload"
+                                        ToolTip="{DynamicResource Tooltip.ClassesTab.ReloadClasses}" />
+                            </Grid>
+                        </GroupBox>
+                        <CheckBox Grid.Row="1"
                                   HorizontalAlignment="Right"
                                   Content="Show System Classes"
-                                  IsChecked="{Binding SelectionManager.SelectedNamespace.ShowSystemClasses, Mode=TwoWay}" />
-                        <TextBox Grid.Row="1"
+                                  IsChecked="{Binding SettingsManager.ShowSystemClasses, Mode=TwoWay}"
+                                  ToolTip="{DynamicResource Tooltip.ClassesTab.ShowSystemClasses}" />
+                        <TextBox Grid.Row="2"
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"
                                  Tag="Filter Classes..."
                                  Text="{Binding SelectionManager.SelectedNamespace.ClassFilterText, UpdateSourceTrigger=PropertyChanged}" />
-                        <ListView Grid.Row="2"
+                        <ListView Grid.Row="3"
                                   behaviors:ListViewAutoScrollBehavior.AutoScroll="False"
                                   behaviors:ListViewAutoScrollBehavior.SelectedItemMonitor="{Binding SelectionManager.SelectedNamespace.SelectedClass}"
                                   behaviors:ListViewSortBehavior.DefaultSortProperty="ClassName"
@@ -191,7 +234,7 @@
         <GridSplitter Grid.Row="0"
                       Grid.Column="1"
                       Margin="0,4,0,0"
-                      Visibility="{Binding WindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                      Visibility="{Binding SettingsManager.MainWindowPosition.IsClassesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
         <Border Grid.Column="2"
                 Margin="{DynamicResource MarginLeftSmall}"

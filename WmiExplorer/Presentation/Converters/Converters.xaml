@@ -15,4 +15,5 @@
     <conv:DebugConverter x:Key="DebugConverter" />
     <conv:TopLevelMenuIconColumnWidthConverter x:Key="TopLevelMenuIconColumnWidthConverter" />
     <conv:SafePropertyValueConverter x:Key="SafePropertyValueConverter" />
+    <conv:MultiBooleanAndToVisibilityConverter x:Key="MultiBooleanAndToVisibilityConverter" />
 </ResourceDictionary>

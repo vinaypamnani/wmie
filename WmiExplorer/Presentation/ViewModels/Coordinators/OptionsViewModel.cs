@@ -39,32 +39,24 @@ public partial class OptionsViewModel : MessagingViewModelBase
     };
 
     private readonly NamespacesViewModel _namespacesViewModel;
-
-    [ObservableProperty]
-    private WmiOperationMode _operationMode;
-
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsManager _settingsManager;
     private readonly ThemeManager _themeManager;
     private readonly IWmiService _wmiService;
 
     public OptionsViewModel(
            IMessengerService messengerService,
-           ISettingsService settingsService,
+           SettingsManager settingsManager,
            ThemeManager themeManager,
            IWmiService wmiService,
            NamespacesViewModel namespacesViewModel) : base(messengerService)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
 
-        // Initialize the operation mode from the settings service
-        _operationMode = _settingsService.OperationMode;
-        _wmiService.OperationMode = _operationMode;
-
         // Initialize the class type filter from the settings
-        _classTypeFilter = _settingsService.ClassEnumerationFilter;
+        _classTypeFilter = _settingsManager.ClassEnumerationFilter;
 
         // Subscribe to messages
         StrongSubscribe<ThemeChangedMessage>(HandleThemeChangedMessage);
@@ -77,6 +69,8 @@ public partial class OptionsViewModel : MessagingViewModelBase
     /// Gets the current theme object
     /// </summary>
     public Theme CurrentTheme => _themeManager.CurrentTheme!;
+
+    public SettingsManager SettingsManager => _settingsManager;
 
     /// <summary>
     /// Command to connect to a WMI namespace
@@ -127,7 +121,7 @@ public partial class OptionsViewModel : MessagingViewModelBase
     partial void OnClassTypeFilterChanged(WmiClassEnumerationFlags value)
     {
         // Process the value for flag operations
-        var currentValue = _settingsService.ClassEnumerationFilter;
+        var currentValue = _settingsManager.ClassEnumerationFilter;
         var newValue = value;
 
         // Check if the incoming value is actually a negative flag value from our converter
@@ -144,8 +138,8 @@ public partial class OptionsViewModel : MessagingViewModelBase
             // Update the property with the processed value (avoiding infinite recursion)
             _classTypeFilter = newValue;
 
-            // Also update the service immediately
-            _settingsService.ClassEnumerationFilter = newValue;
+            // Also update the manager immediately
+            _settingsManager.ClassEnumerationFilter = newValue;
 
             // Publish the message to notify other components
             PublishMessage(new ClassEnumFilterChangedMessage(newValue));
@@ -163,36 +157,22 @@ public partial class OptionsViewModel : MessagingViewModelBase
             {
                 _classTypeFilter = newValue;
 
-                // Also update the service immediately
-                _settingsService.ClassEnumerationFilter = newValue;
+                // Also update the manager immediately
+                _settingsManager.ClassEnumerationFilter = newValue;
 
                 // Publish the message to notify other components
                 PublishMessage(new ClassEnumFilterChangedMessage(newValue));
 
                 return;
             }
-        }        // Only update the service if the value is different
-        if (_settingsService.ClassEnumerationFilter != newValue)
+        }        // Only update the manager if the value is different
+        if (_settingsManager.ClassEnumerationFilter != newValue)
         {
-            // Update the setting without triggering notifications from the service
-            _settingsService.ClassEnumerationFilter = newValue;
+            // Update the setting without triggering notifications from the manager
+            _settingsManager.ClassEnumerationFilter = newValue;
 
             // Publish the message ourselves to notify other components
             PublishMessage(new ClassEnumFilterChangedMessage(newValue));
-        }
-    }
-
-    // Partial method that will be called when OperationMode changes
-    partial void OnOperationModeChanged(WmiOperationMode value)
-    {
-        // Sync the value with the WMI service and persist to settings
-        if (_wmiService.OperationMode != value)
-        {
-            _wmiService.OperationMode = value;
-        }
-        if (_settingsService.OperationMode != value)
-        {
-            _settingsService.OperationMode = value;
         }
     }
 

@@ -9,6 +9,7 @@ using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.ViewModels.Helpers;
@@ -69,7 +70,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private WmiClassViewModel? _selectedClass;
 
     private readonly SelectionManager _selectionManager;
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsManager _settingsManager;
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
 
@@ -78,7 +79,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
            IWmiService wmiService,
            IMessengerService messengerService,
            IApplicationService applicationService,
-           ISettingsService settingsService,
+           SettingsManager settingsManager,
            ICacheService cacheService,
            SelectionManager selectionManager,
            WmiNamespaceViewModel? parentNamespaceViewModel = null) : base(messengerService)
@@ -87,7 +88,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         _wmiNamespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
@@ -110,7 +111,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             throw new InvalidOperationException("Failed to resolve QueryTabViewModel from service provider");
 
         // Subscribe to settings property changes for ShowSystemClasses
-        if (_settingsService is INotifyPropertyChanged npc)
+        if (_settingsManager is INotifyPropertyChanged npc)
         {
             npc.PropertyChanged += SettingsService_PropertyChanged;
         }
@@ -132,6 +133,15 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     /// Indicates whether this namespace is a root namespace (can be disconnected)
     /// </summary>
     public bool IsRoot => _wmiNamespace.IsRoot;
+
+    public bool IsSmsProviderNamespace
+    {
+        get
+        {
+            // Checks if the namespace path contains the SMS Provider pattern
+            return NamespacePath != null && NamespacePath.ToUpperInvariant().Contains("ROOT\\SMS\\SITE_");
+        }
+    }
 
     public LoadState LoadState
     {
@@ -171,21 +181,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     public string NamespacePath => _wmiNamespace.NamespacePath;
     public QueryTabViewModel QueryTabViewModel => _queryTabViewModel;
     public SearchTabViewModel SearchTabViewModel => _searchTabViewModel;
-
-    // Proxy property for ShowSystemClasses
-    public bool ShowSystemClasses
-    {
-        get => _settingsService.ShowSystemClasses;
-        set
-        {
-            if (_settingsService.ShowSystemClasses != value)
-            {
-                _settingsService.ShowSystemClasses = value;
-                // PropertyChanged will be raised by the service event handler
-            }
-        }
-    }
-
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
@@ -194,7 +189,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
            IWmiService wmiService,
            IMessengerService messengerService,
            IApplicationService applicationService,
-           ISettingsService settingsService,
+           SettingsManager settingsManager,
            ICacheService cacheService,
            SelectionManager selectionManager,
            WmiNamespaceViewModel? parentNamespaceViewModel = null)
@@ -216,7 +211,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 wmiService,
                 messengerService,
                 applicationService,
-                settingsService,
+                settingsManager,
                 cacheService,
                 selectionManager,
                 parentNamespaceViewModel);
@@ -236,7 +231,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         IWmiService wmiService,
         IMessengerService messengerService,
         IApplicationService applicationService,
-        ISettingsService settingsService,
+        SettingsManager settingsManager,
         ICacheService cacheService,
         SelectionManager selectionManager,
         CancellationToken cancellationToken = default)
@@ -251,7 +246,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             wmiService,
             messengerService,
             applicationService,
-            settingsService,
+            settingsManager,
             cacheService,
             selectionManager);
 
@@ -291,7 +286,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _wmiService,
                 _messengerService,
                 _applicationService,
-                _settingsService,
+                _settingsManager,
                 _cacheService,
                 _selectionManager,
                 this);
@@ -342,8 +337,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             ClassLoadState = ClassLoadState.Loading;
             PublishBusyState($"Loading classes for {NamespacePath}...");
 
-            var classTypeFilter = _settingsService.ClassEnumerationFilter;
-            var queryString = BuildClassQueryFromFilter(classTypeFilter);
+            var queryString = BuildClassQueryFromFilter(_settingsManager.ClassEnumerationFilter);
+            if (IsSmsProviderNamespace)
+                queryString = BuildSmsProviderQueryFromFilter(queryString, _settingsManager.ConfigMgrSettings!);
 
             // Use the ViewModel's ManagementScope for the service call.
             var wmiClasses = await _wmiService.ExecuteWmiQueryAsync(
@@ -452,10 +448,34 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         return query;
     }
 
+    /// <summary>
+    /// Builds a WQL query string for SMS Provider namespaces, applying additional filters for collections and inventory classes.
+    /// </summary>
+    private static string BuildSmsProviderQueryFromFilter(string baseQuery, ConfigMgrSettings configMgrSettings)
+    {
+        var queryString = baseQuery;
+
+        // Exclude collection classes if not included
+        if (!configMgrSettings.IncludeCollectionClasses)
+        {
+            queryString += " AND NOT __Class LIKE \"SMS_CM_RES_COLL_%\"";
+        }
+
+        // Exclude inventory classes if not included
+        if (!configMgrSettings.IncludeInventoryClasses)
+        {
+            queryString += " AND NOT __Class LIKE \"SMS_G_System%\"";
+            queryString += " AND NOT __Class LIKE \"SMS_GH_System%\"";
+            queryString += " AND NOT __Class LIKE \"SMS_GEH_System%\"";
+        }
+
+        return queryString;
+    }
+
     private bool ClassFilterPredicate(WmiClassViewModel classVm, string filter)
     {
         bool isSystemClass = classVm.ClassName.StartsWith("__");
-        if (isSystemClass && !ShowSystemClasses)
+        if (isSystemClass && !_settingsManager.ShowSystemClasses)
             return false;
         if (!string.IsNullOrWhiteSpace(filter))
             return classVm.ClassName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
@@ -582,10 +602,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     private void SettingsService_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ISettingsService.ShowSystemClasses))
+        if (e.PropertyName == nameof(SettingsManager.ShowSystemClasses))
         {
-            // Raise property changed for ShowSystemClasses so bindings update
-            OnPropertyChanged(nameof(ShowSystemClasses));
             // Refresh the filter view
             _classFilterHelper.CollectionView.Refresh();
             if (IsSelected)

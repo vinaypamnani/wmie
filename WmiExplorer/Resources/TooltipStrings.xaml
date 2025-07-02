@@ -18,6 +18,12 @@
     <sys:String x:Key="Tooltip.ConnectionOptions.ClearContext">Clear all context items</sys:String>
     <sys:String x:Key="Tooltip.ConnectionOptions.Reset">Reset all options to default values</sys:String>
 
+    <!--  Classes Tab Tooltips  -->
+    <sys:String x:Key="Tooltip.ClassesTab.IncludeCollectionClasses">Indicates whether SMS_CM_RES_COLL_* classes should be enumerated. These classes are used for collections in ConfigMgr.</sys:String>
+    <sys:String x:Key="Tooltip.ClassesTab.IncludeInventoryClasses">Indicates whether SMS_G_System_*, SMS_GH_System_* and SMS_GEH_System_* classes should be enumerated. These classes are used for inventory data in ConfigMgr.</sys:String>
+    <sys:String x:Key="Tooltip.ClassesTab.ShowSystemClasses">Indicates whether system classes (beginning with __) should be included in the class enumeration. These classes provide core system information.</sys:String>
+    <sys:String x:Key="Tooltip.ClassesTab.ReloadClasses">Reload the WMI class list for the selected namespace with the current filter settings.</sys:String>
+
     <!--  Watcher Tab Tooltips  -->
     <sys:String x:Key="Tooltip.Watcher.Start">Start</sys:String>
     <sys:String x:Key="Tooltip.Watcher.Stop">Stop</sys:String>

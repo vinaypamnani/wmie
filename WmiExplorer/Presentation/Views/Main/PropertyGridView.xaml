@@ -15,7 +15,7 @@
                   BorderThickness="0"
                   ExpandDirection="Left"
                   Header="Properties"
-                  IsExpanded="{Binding WindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
+                  IsExpanded="{Binding SettingsManager.MainWindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
                   Style="{StaticResource VerticalHeaderExpanderStyle}">
             <Expander.Content>
                 <!--  Border around both header and property grid  -->

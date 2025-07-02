@@ -72,7 +72,7 @@ public partial class MainWindow : Window
         {
             // Update the view model's window position with current window dimensions
             // while preserving the expander states and column widths
-            _mainViewModel.WindowPosition.UpdatePosition(
+            _settingsService.MainWindowPosition.UpdatePosition(
                 left: Left,
                 top: Top,
                 width: Width,
@@ -80,9 +80,7 @@ public partial class MainWindow : Window
             );
 
             // Set IsWindowMaximized property based on current window state
-            _mainViewModel.WindowPosition.IsWindowMaximized = WindowState == WindowState.Maximized;
-
-            _settingsService.MainWindowPosition = _mainViewModel.WindowPosition;
+            _settingsService.MainWindowPosition.IsWindowMaximized = WindowState == WindowState.Maximized;
 
             // Explicitly save all settings
             _settingsService.SaveSettings();

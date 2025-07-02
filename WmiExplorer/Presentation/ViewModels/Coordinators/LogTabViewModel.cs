@@ -8,6 +8,7 @@ using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
+using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -29,29 +30,25 @@ public partial class LogTabViewModel : MessagingViewModelBase
     private readonly object _logEntriesLock = new();
 
     [ObservableProperty]
-    private LogLevel _minimumLogLevel;
-
-    [ObservableProperty]
     private string _searchText = string.Empty;
 
     [ObservableProperty]
     private LogEntry? _selectedLogEntry;
 
-    private readonly ISettingsService _settingsService;
+    private readonly SettingsManager _settingsManager;
 
     /// <summary>
     /// Initializes a new instance of the LogTabViewModel class
     /// </summary>
     /// <param name="messengerService">The messenger service</param>
-    /// <param name="settingsService">The settings service</param>
-    public LogTabViewModel(IMessengerService messengerService, ISettingsService settingsService)
+    /// <param name="settingsManager">The settings manager</param>
+    public LogTabViewModel(IMessengerService messengerService, SettingsManager settingsManager)
         : base(messengerService)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
 
-        // Initialize minimum log level from settings
-        _minimumLogLevel = _settingsService.LogLevel;
-        _filterLogLevel = _minimumLogLevel;
+        // Initialize filter log level from settings
+        _filterLogLevel = _settingsManager.LogLevel;
 
         LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
 
@@ -94,6 +91,9 @@ public partial class LogTabViewModel : MessagingViewModelBase
     /// Gets the collection of log entries
     /// </summary>
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
+
+    // Add a property for direct binding if needed
+    public SettingsManager SettingsManager => _settingsManager;
 
     /// <summary>
     /// Disposes the LogTabViewModel and cleans up resources
@@ -213,18 +213,6 @@ public partial class LogTabViewModel : MessagingViewModelBase
         {
             AddLogEntry(logEntry);
         }
-    }
-
-    /// <summary>
-    /// Called when MinimumLogLevel property changes
-    /// </summary>
-    partial void OnMinimumLogLevelChanged(LogLevel value)
-    {
-        // Update Serilog's global minimum level
-        Log.SetMinimumLevel(value);
-
-        // Update the setting value
-        _settingsService.LogLevel = value;
     }
 
     /// <summary>

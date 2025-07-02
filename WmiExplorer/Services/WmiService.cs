@@ -15,9 +15,13 @@ public class WmiService : IWmiService, IDisposable
     // Cache for provider CLSIDs to avoid repeated WMI queries
     private readonly Dictionary<string, string?> _providerClsidCache = new();
 
-    public WmiService(ICacheService cacheService)
+    private readonly ISettingsService _settingsService;
+
+    public WmiService(ICacheService cacheService, ISettingsService settingsService)
     {
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        OperationMode = _settingsService.OperationMode;
         Log.Information("WmiService initialized with operation mode: {OperationMode}", OperationMode);
     }
 
@@ -132,12 +136,12 @@ public class WmiService : IWmiService, IDisposable
             }
 
             var resultCount = results.Count();
-            Log.Information("WMI query completed successfully. Returned {ResultCount} objects", resultCount);
+            Log.Information("[{OperationMode}] WMI query completed successfully. Returned {ResultCount} objects", OperationMode, resultCount);
             return results;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to execute WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
+            Log.Error(ex, "[{OperationMode}] Failed to execute WMI query: {Query} on scope: {Scope}", OperationMode, queryString, scope.Path?.Path ?? "Unknown");
             throw;
         }
     }

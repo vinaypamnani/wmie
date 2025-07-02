@@ -15,7 +15,7 @@
                   BorderThickness="0"
                   ExpandDirection="Right"
                   Header="Namespaces"
-                  IsExpanded="{Binding WindowPosition.IsNamespacesExpanded, Mode=TwoWay}"
+                  IsExpanded="{Binding SettingsManager.MainWindowPosition.IsNamespacesExpanded, Mode=TwoWay}"
                   Style="{StaticResource VerticalHeaderExpanderStyle}">
 
             <TreeView Name="WmiNamespaces"
@@ -82,7 +82,7 @@
                                     </Style>
                                 </ContentControl.Style>
                             </ContentControl>
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>

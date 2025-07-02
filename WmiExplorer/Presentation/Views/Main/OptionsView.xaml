@@ -61,8 +61,8 @@
         </GroupBox>
         <GroupBox Grid.Column="1" Header="Mode" Style="{DynamicResource CompactGroupBoxStyle}">
             <StackPanel Orientation="Horizontal">
-                <RadioButton Content="Asynchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.AsynchronousMode}" />
-                <RadioButton Content="Synchronous" IsChecked="{Binding OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.SynchronousMode}" />
+                <RadioButton Content="Asynchronous" IsChecked="{Binding SettingsManager.OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.AsynchronousMode}" />
+                <RadioButton Content="Synchronous" IsChecked="{Binding SettingsManager.OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.SynchronousMode}" />
             </StackPanel>
         </GroupBox>
         <GroupBox Grid.Column="2" Header="Class Enumeration" Style="{DynamicResource CompactGroupBoxStyle}">

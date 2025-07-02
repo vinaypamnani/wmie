@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -25,20 +24,17 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     [ObservableProperty]
     private int _selectedTabIndex;
 
-    private readonly ISettingsService _settingsService;
-
-    [ObservableProperty]
-    private MainWindowPosition _windowPosition;
+    private readonly SettingsManager _settingsManager;
 
     public ClassesTabViewModel(
                  IMessengerService messengerService,
-                 ISettingsService settingsService,
                  SelectionManager selectionManager,
+                 SettingsManager settingsManager,
                  InstancesTabViewModel instancesTabViewModel,
                  MethodsTabViewModel methodsTabViewModel,
                  PropertiesTabViewModel propertiesTabViewModel) : base(messengerService, selectionManager)
     {
-        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
         _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
         _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
@@ -46,9 +42,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         // Subscribe to messages
         StrongSubscribe<InstancesFilteredMessage>(HandleInstancesFilteredMessage);
         StrongSubscribe<TabCountChangedMessage>(message => UpdateTabHeaders());
-
-        // Initialize window position from settings
-        _windowPosition = _settingsService.MainWindowPosition;
     }
 
     /// <summary>
@@ -117,6 +110,8 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     /// Gets the PropertiesTabViewModel
     /// </summary>
     public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
+
+    public SettingsManager SettingsManager => _settingsManager;
 
     /// <summary>
     /// Called when the selected class changes. Override from SelectionAwareViewModelBase.

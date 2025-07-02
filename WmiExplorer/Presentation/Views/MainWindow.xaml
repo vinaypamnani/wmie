@@ -52,7 +52,7 @@
             <MenuItem Header="_Options">
                 <MenuItem Header="Enable ConfigMgr Mode"
                           IsCheckable="True"
-                          IsChecked="{Binding ConfigMgrSettings.ConfigMgrModeEnabled, Mode=TwoWay}"
+                          IsChecked="{Binding SettingsManager.ConfigMgrSettings.ConfigMgrModeEnabled, Mode=TwoWay}"
                           ToolTip="Enable or disable Configuration Manager Mode.">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource ConfigMgrModeIconTemplate}" />
@@ -60,7 +60,7 @@
                 </MenuItem>
                 <MenuItem Header="Check for Updates on Startup"
                           IsCheckable="True"
-                          IsChecked="{Binding AutoUpdateSettings.CheckOnStartup, Mode=TwoWay}"
+                          IsChecked="{Binding SettingsManager.AutoUpdateSettings.CheckOnStartup, Mode=TwoWay}"
                           ToolTip="Enable or disable automatic update checks on application startup.">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource CheckUpdateStartupIconTemplate}" />
@@ -187,18 +187,18 @@
 
         <Grid Name="ContentGrid" Grid.Row="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding WindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
+                <ColumnDefinition Width="{Binding SettingsManager.MainWindowPosition.NamespaceColumnGridLength, Mode=TwoWay}" />
                 <ColumnDefinition Width="Auto" />
                 <!--  GridSplitter - Giving it fixed width makes it easier to grab  -->
-                <ColumnDefinition Width="{Binding WindowPosition.ContentColumnStarGridLength, Mode=TwoWay}" />
+                <ColumnDefinition Width="{Binding SettingsManager.MainWindowPosition.ContentColumnStarGridLength, Mode=TwoWay}" />
                 <ColumnDefinition Width="Auto" />
                 <!--  GridSplitter - Giving it fixed width makes it easier to grab  -->
-                <ColumnDefinition Width="{Binding WindowPosition.PropertyGridColumnStarGridLength, Mode=TwoWay}" />
+                <ColumnDefinition Width="{Binding SettingsManager.MainWindowPosition.PropertyGridColumnStarGridLength, Mode=TwoWay}" />
             </Grid.ColumnDefinitions>
 
             <!--  Namespace View  -->
             <main:NamespacesView Grid.Column="0" DataContext="{Binding NamespacesViewModel}" />
-            <GridSplitter Grid.Column="1" Visibility="{Binding WindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <GridSplitter Grid.Column="1" Visibility="{Binding SettingsManager.MainWindowPosition.IsNamespacesExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
             <!--  Classes Tab  -->
             <Border Grid.Column="2"
@@ -230,7 +230,7 @@
             </Border>
 
             <!--  Property Grid View  -->
-            <GridSplitter Grid.Column="3" Margin="4,0,0,0" Visibility="{Binding WindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <GridSplitter Grid.Column="3" Margin="4,0,0,0" Visibility="{Binding SettingsManager.MainWindowPosition.IsPropertyGridExpanded, Converter={StaticResource BoolToVisibilityConverter}}" />
 
             <main:PropertyGridView Grid.Column="4" DataContext="{Binding}" />
 
