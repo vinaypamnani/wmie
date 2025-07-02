@@ -226,9 +226,9 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         if (value == null)
         {
             value = new T();
-            SubscribeToNestedSettings(null, value);
             SetValue(value, propertyName);
         }
+        SubscribeToNestedSettings(null, value);
         return value;
     }
 
