@@ -39,12 +39,6 @@ public partial class SettingsManager : ObservableObject
         set => _settingsService.ConfigMgrSettings = value;
     }
 
-    public string CurrentTheme
-    {
-        get => _settingsService.CurrentTheme;
-        set => _settingsService.CurrentTheme = value ?? "Dark";
-    }
-
     public LogLevel LogLevel
     {
         get => _settingsService.LogLevel;
