@@ -113,10 +113,13 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
     [Setting]
     public MainWindowPosition MainWindowPosition
     {
-        // Don't use GetOrCreateObjectSetting here, as MainWindowPosition is a simple struct and doesn't implement INotifyPropertyChanged and doesn't need nested change tracking.
-        // We rely on saving settings on app exit.
-        get => GetValue<MainWindowPosition>() ?? new MainWindowPosition();
-        set => SetValue(value);
+        get => GetOrCreateObjectSetting<MainWindowPosition>();
+        set
+        {
+            var current = GetValue<MainWindowPosition>();
+            SubscribeToNestedSettings(current, value);
+            SetValue(value);
+        }
     }
 
     [Setting(WmiOperationMode.Asynchronous)]
