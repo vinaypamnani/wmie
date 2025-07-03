@@ -183,13 +183,36 @@
                                                                 <Setter.Value>
                                                                     <DataTemplate>
                                                                         <!--  Default: TextBox for non-complex types  -->
-                                                                        <TextBox HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}" Text="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}">
-                                                                            <TextBox.Style>
-                                                                                <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
-                                                                                    <Setter Property="Tag" Value="Enter value..." />
-                                                                                </Style>
-                                                                            </TextBox.Style>
-                                                                        </TextBox>
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="Auto" />
+                                                                            </Grid.ColumnDefinitions>
+
+                                                                            <!--  Value Input  -->
+                                                                            <TextBox Grid.Column="0" HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}">
+                                                                                <TextBox.Style>
+                                                                                    <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
+                                                                                        <Setter Property="Tag" Value="Enter value..." />
+                                                                                        <Setter Property="Text" Value="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                                                                                        <Style.Triggers>
+                                                                                            <!--  Use DisplayValue for integer types  -->
+                                                                                            <DataTrigger Binding="{Binding DataContext.IsInteger, RelativeSource={RelativeSource AncestorType=ContentControl}}" Value="True">
+                                                                                                <Setter Property="Text" Value="{Binding DataContext.DisplayValue, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBox.Style>
+                                                                            </TextBox>
+
+                                                                            <!--  Hex Checkbox for Integer Types  -->
+                                                                            <CheckBox Grid.Column="1"
+                                                                                      Margin="8,0,0,0"
+                                                                                      Content="Hex"
+                                                                                      IsChecked="{Binding DataContext.IsHexadecimal, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                      IsEnabled="{Binding IsEnabled}"
+                                                                                      Visibility="{Binding DataContext.IsInteger, RelativeSource={RelativeSource AncestorType=ContentControl}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                                        </Grid>
                                                                     </DataTemplate>
                                                                 </Setter.Value>
                                                             </Setter>

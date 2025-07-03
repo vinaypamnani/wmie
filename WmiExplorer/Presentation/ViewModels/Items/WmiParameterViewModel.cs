@@ -12,6 +12,12 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 
 public partial class WmiParameterViewModel : DisposableObservableObject, IDisposable
 {
+    /// <summary>
+    /// Gets or sets whether integer values should be displayed in hexadecimal format
+    /// </summary>
+    [ObservableProperty]
+    private bool _isHexadecimal;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEnabled))]
     private bool _isSelected = false;
@@ -44,15 +50,34 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
         _wmiService = wmiService;
         _managementScope = managementScope;
 
+        // Initialize hex display for large values (> 0x80000000)
+        InitializeHexDisplay();
+
         // Initialize the display text
         UpdateObjectDisplayText();
     }
 
     public string? CimType => _wmiParameter.CimType;
     public string? Description => _wmiParameter.Description;
+
+    /// <summary>
+    /// Gets the display value (formatted as hex or decimal based on IsHexadecimal)
+    /// </summary>
+    public string DisplayValue
+    {
+        get => GetDisplayValue();
+        set => SetDisplayValue(value);
+    }
+
     public int Id => _wmiParameter.Id;
     public bool IsArray => _wmiParameter.IsArray;
     public bool IsEnabled => IsSelected;
+
+    /// <summary>
+    /// Gets whether this parameter is an integer type that supports hex/decimal display
+    /// </summary>
+    public bool IsInteger => IsIntegerType(CimType);
+
     public bool IsObject => string.Equals(Type, "object", StringComparison.OrdinalIgnoreCase);
     public bool IsReference => string.Equals(Type, "reference", StringComparison.OrdinalIgnoreCase);
     public string? Name => _wmiParameter.Name;
@@ -77,6 +102,25 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     private bool CancelLoadReferenceValuesCanExecute()
     {
         return ReferenceLoadState == ReferenceValueLoadState.Loading;
+    }
+
+    /// <summary>
+    /// Converts a long value to the appropriate target type based on CimType
+    /// </summary>
+    private object ConvertToTargetType(long value)
+    {
+        return CimType?.ToLowerInvariant() switch
+        {
+            "uint8" => (byte)value,
+            "sint8" => (sbyte)value,
+            "uint16" => (ushort)value,
+            "sint16" => (short)value,
+            "uint32" => (uint)value,
+            "sint32" => (int)value,
+            "uint64" => (ulong)value,
+            "sint64" => value,
+            _ => value
+        };
     }
 
     /// <summary>
@@ -108,6 +152,29 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     private bool EditObjectCanExecute()
     {
         return IsObject && !string.IsNullOrEmpty(TargetClassName) && _managementScope != null;
+    }
+
+    /// <summary>
+    /// Gets the display value formatted as hex or decimal based on IsHexadecimal setting
+    /// </summary>
+    private string GetDisplayValue()
+    {
+        if (!IsInteger || Value == null)
+            return Value?.ToString() ?? string.Empty;
+
+        if (!IsHexadecimal)
+            return Value.ToString() ?? string.Empty;
+
+        // Format as hexadecimal
+        try
+        {
+            var longValue = Convert.ToInt64(Value);
+            return $"0x{longValue:X}";
+        }
+        catch
+        {
+            return Value.ToString() ?? string.Empty;
+        }
     }
 
     /// <summary>
@@ -178,6 +245,30 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     }
 
     /// <summary>
+    /// Initializes the hex display setting based on the current value
+    /// Defaults to hex if the value is larger than 0x80000000
+    /// </summary>
+    private void InitializeHexDisplay()
+    {
+        if (!IsInteger || Value == null)
+        {
+            IsHexadecimal = false;
+            return;
+        }
+
+        try
+        {
+            var longValue = Convert.ToInt64(Value);
+            // Default to hex for values larger than 0x80000000 (2147483648)
+            IsHexadecimal = longValue >= 0x80000000;
+        }
+        catch
+        {
+            IsHexadecimal = false;
+        }
+    }
+
+    /// <summary>
     /// Initializes a parameter object for editing using WmiObjectFactory.
     /// </summary>
     private void InitializeParameterObject()
@@ -206,6 +297,24 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
             ObjectDisplayText = $"Error initializing {TargetClassName} object: {ex.Message}";
             Log.Error(ex, "Error initializing parameter object for {ClassName}", TargetClassName ?? "Unknown");
         }
+    }
+
+    /// <summary>
+    /// Determines if the given CIM type is an integer type that supports hex/decimal display
+    /// </summary>
+    private static bool IsIntegerType(string? cimType)
+    {
+        if (string.IsNullOrEmpty(cimType))
+            return false;
+
+        return cimType.Equals("uint8", StringComparison.OrdinalIgnoreCase) ||
+               cimType.Equals("sint8", StringComparison.OrdinalIgnoreCase) ||
+               cimType.Equals("uint16", StringComparison.OrdinalIgnoreCase) ||
+               cimType.Equals("sint16", StringComparison.OrdinalIgnoreCase) ||
+               cimType.Equals("uint32", StringComparison.OrdinalIgnoreCase) ||
+               cimType.Equals("sint32", StringComparison.OrdinalIgnoreCase) ||
+               cimType.Equals("uint64", StringComparison.OrdinalIgnoreCase) ||
+               cimType.Equals("sint64", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -295,6 +404,14 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     }
 
     /// <summary>
+    /// Handles property change for IsHexadecimal to notify UI that DisplayValue has changed
+    /// </summary>
+    partial void OnIsHexadecimalChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DisplayValue));
+    }
+
+    /// <summary>
     /// Handles property change for IsSelected to initialize object wrapper if needed
     /// </summary>
     partial void OnIsSelectedChanged(bool value)
@@ -315,6 +432,47 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
         if (IsObject)
         {
             UpdateObjectDisplayText();
+        }
+    }
+
+    /// <summary>
+    /// Sets the display value, parsing from hex or decimal format
+    /// </summary>
+    private void SetDisplayValue(string displayValue)
+    {
+        if (!IsInteger)
+        {
+            // For non-integer types, set the value directly
+            Value = displayValue;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(displayValue))
+        {
+            Value = null;
+            return;
+        }
+
+        try
+        {
+            // Try to parse as hex if it starts with 0x
+            if (displayValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                var hexValue = displayValue.Substring(2);
+                var longValue = Convert.ToInt64(hexValue, 16);
+                Value = ConvertToTargetType(longValue);
+            }
+            else
+            {
+                // Parse as decimal
+                var longValue = Convert.ToInt64(displayValue);
+                Value = ConvertToTargetType(longValue);
+            }
+        }
+        catch
+        {
+            // If parsing fails, keep the original string value
+            Value = displayValue;
         }
     }
 
