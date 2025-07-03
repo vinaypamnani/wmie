@@ -45,6 +45,12 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
         StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
         StrongSubscribe<DisconnectNamespaceMessage>(HandleDisconnectNamespaceMessage);
+
+        // Subscribe to settings property changes for ShowSystemClasses
+        if (_settingsManager is System.ComponentModel.INotifyPropertyChanged npc)
+        {
+            npc.PropertyChanged += SettingsManager_PropertyChanged;
+        }
     }
 
     /// <summary>
@@ -379,6 +385,15 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
                 else
                     PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
                 break;
+        }
+    }
+
+    private void SettingsManager_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsManager.ShowSystemClasses))
+        {
+            // Only update the currently selected namespace
+            SelectionManager.SelectedNamespace?.OnShowSystemClassesChanged();
         }
     }
 }

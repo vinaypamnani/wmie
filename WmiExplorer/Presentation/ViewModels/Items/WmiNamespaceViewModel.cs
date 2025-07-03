@@ -109,12 +109,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             throw new InvalidOperationException("Failed to resolve WmiSearchViewModel from service provider");
         _queryTabViewModel = App.ServiceProvider?.GetRequiredService<QueryTabViewModel>() ??
             throw new InvalidOperationException("Failed to resolve QueryTabViewModel from service provider");
-
-        // Subscribe to settings property changes for ShowSystemClasses
-        if (_settingsManager is INotifyPropertyChanged npc)
-        {
-            npc.PropertyChanged += SettingsService_PropertyChanged;
-        }
     }
 
     /// <summary>
@@ -600,15 +594,14 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
     }
 
-    private void SettingsService_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    /// <summary>
+    /// Call this when ShowSystemClasses changes to refresh the filter view.
+    /// </summary>
+    public void OnShowSystemClassesChanged()
     {
-        if (e.PropertyName == nameof(SettingsManager.ShowSystemClasses))
-        {
-            // Refresh the filter view
-            _classFilterHelper.CollectionView.Refresh();
-            if (IsSelected)
-                PublishMessage(new ClassesFilteredMessage(this));
-        }
+        _classFilterHelper.CollectionView.Refresh();
+        if (IsSelected)
+            PublishMessage(new ClassesFilteredMessage(this));
     }
 }
 

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Models;
@@ -18,6 +19,12 @@ public partial class SettingsManager : ObservableObject
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+
+        // Relay property changed events from the underlying settings service
+        if (_settingsService is INotifyPropertyChanged npc)
+        {
+            npc.PropertyChanged += (s, e) => OnPropertyChanged(e.PropertyName);
+        }
     }
 
     // Strongly-typed property forwarding for all settings
