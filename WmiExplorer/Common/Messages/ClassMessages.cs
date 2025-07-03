@@ -1,20 +1,6 @@
-using WmiExplorer.Common.Enums;
 using WmiExplorer.Presentation.ViewModels.Items;
 
 namespace WmiExplorer.Common.Messages;
-
-/// <summary>
-/// Message sent when class type filter changes
-/// </summary>
-public class ClassEnumFilterChangedMessage : MessageBase
-{
-    public ClassEnumFilterChangedMessage(WmiClassEnumerationFlags classTypeFilter)
-    {
-        ClassTypeFilter = classTypeFilter;
-    }
-
-    public WmiClassEnumerationFlags ClassTypeFilter { get; }
-}
 
 /// <summary>
 /// Message sent when classes are filtered in a namespace (e.g., quick filter or type filter changes)

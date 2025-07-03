@@ -70,17 +70,17 @@
                 <CheckBox Grid.Row="0"
                           Grid.Column="1"
                           Content="Include CIM Classes"
-                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}"
+                          IsChecked="{Binding Path=SettingsManager.ClassEnumerationFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=CIM}"
                           ToolTip="{StaticResource Tooltip.Options.IncludeCimClasses}" />
                 <CheckBox Grid.Row="1"
                           Grid.Column="0"
                           Content="Include MSFT Classes"
-                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}"
+                          IsChecked="{Binding Path=SettingsManager.ClassEnumerationFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=MSFT}"
                           ToolTip="{StaticResource Tooltip.Options.IncludeMsftClasses}" />
                 <CheckBox Grid.Row="1"
                           Grid.Column="1"
                           Content="Include Perf Classes"
-                          IsChecked="{Binding Path=ClassTypeFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}"
+                          IsChecked="{Binding Path=SettingsManager.ClassEnumerationFilter, Converter={StaticResource EnumFlagsToBooleanConverter}, ConverterParameter=Perf}"
                           ToolTip="{StaticResource Tooltip.Options.IncludePerfClasses}" />
                 <Button Grid.Row="0"
                         Grid.RowSpan="2"

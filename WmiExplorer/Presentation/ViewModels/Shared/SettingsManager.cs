@@ -37,7 +37,36 @@ public partial class SettingsManager : ObservableObject
     public WmiClassEnumerationFlags ClassEnumerationFilter
     {
         get => _settingsService.ClassEnumerationFilter;
-        set => _settingsService.ClassEnumerationFilter = value;
+        set
+        {
+            // Handle flag operations from EnumFlagsToBooleanConverter
+            var currentValue = _settingsService.ClassEnumerationFilter;
+            var newValue = value;
+
+            // Check if the incoming value is actually a negative flag value from the converter
+            // Negative values indicate a flag needs to be cleared
+            if ((int)value < 0)
+            {
+                // This is a signal from the converter that we need to clear a flag
+                // Convert the negative value back to a positive flag by taking its complement
+                var flagToClear = (WmiClassEnumerationFlags)(~(int)value);
+
+                // Clear the specific flag while preserving all other flags
+                newValue = currentValue & ~flagToClear;
+            }
+            else if ((int)value > 0 && (int)value <= (int)WmiClassEnumerationFlags.All)
+            {
+                // This is a positive flag value coming from the converter when a checkbox is checked
+                // Set this flag while preserving all other flags
+                newValue = currentValue | value;
+            }
+
+            // Only update if the value actually changed
+            if (_settingsService.ClassEnumerationFilter != newValue)
+            {
+                _settingsService.ClassEnumerationFilter = newValue;
+            }
+        }
     }
 
     public ConfigMgrSettings ConfigMgrSettings

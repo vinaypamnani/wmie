@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using System.Management;
 using System.Windows;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.Themes;
 using WmiExplorer.Presentation.ViewModels.Shared;
@@ -18,10 +17,6 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 /// </summary>
 public partial class OptionsViewModel : MessagingViewModelBase
 {
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ReloadClassesCommand))]
-    private WmiClassEnumerationFlags _classTypeFilter;
-
     [ObservableProperty]
     private string _computerName = Environment.MachineName;
 
@@ -41,22 +36,16 @@ public partial class OptionsViewModel : MessagingViewModelBase
     private readonly NamespacesViewModel _namespacesViewModel;
     private readonly SettingsManager _settingsManager;
     private readonly ThemeManager _themeManager;
-    private readonly IWmiService _wmiService;
 
     public OptionsViewModel(
            IMessengerService messengerService,
            SettingsManager settingsManager,
            ThemeManager themeManager,
-           IWmiService wmiService,
            NamespacesViewModel namespacesViewModel) : base(messengerService)
     {
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
-        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
-
-        // Initialize the class type filter from the settings
-        _classTypeFilter = _settingsManager.ClassEnumerationFilter;
 
         // Subscribe to messages
         StrongSubscribe<ThemeChangedMessage>(HandleThemeChangedMessage);
@@ -115,65 +104,6 @@ public partial class OptionsViewModel : MessagingViewModelBase
     {
         // Notify the UI that the CurrentTheme property has changed
         OnPropertyChanged(nameof(CurrentTheme));
-    }
-
-    // Partial method that will be called when ClassTypeFilter changes
-    partial void OnClassTypeFilterChanged(WmiClassEnumerationFlags value)
-    {
-        // Process the value for flag operations
-        var currentValue = _settingsManager.ClassEnumerationFilter;
-        var newValue = value;
-
-        // Check if the incoming value is actually a negative flag value from our converter
-        // Negative values indicate a flag needs to be cleared
-        if ((int)value < 0)
-        {
-            // This is a signal from our converter that we need to clear a flag
-            // Convert the negative value back to a positive flag by taking its complement again
-            var flagToClear = (WmiClassEnumerationFlags)(~(int)value);
-
-            // Clear the specific flag while preserving all other flags
-            newValue = currentValue & ~flagToClear;
-
-            // Update the property with the processed value (avoiding infinite recursion)
-            _classTypeFilter = newValue;
-
-            // Also update the manager immediately
-            _settingsManager.ClassEnumerationFilter = newValue;
-
-            // Publish the message to notify other components
-            PublishMessage(new ClassEnumFilterChangedMessage(newValue));
-
-            return;
-        }
-        else if ((int)value > 0 && (int)value <= (int)WmiClassEnumerationFlags.All)
-        {
-            // This is a positive flag value coming from the converter when a checkbox is checked
-            // Set this flag while preserving all other flags
-            newValue = currentValue | value;
-
-            // If we're setting a compound value, update the property (avoiding infinite recursion)
-            if (newValue != value)
-            {
-                _classTypeFilter = newValue;
-
-                // Also update the manager immediately
-                _settingsManager.ClassEnumerationFilter = newValue;
-
-                // Publish the message to notify other components
-                PublishMessage(new ClassEnumFilterChangedMessage(newValue));
-
-                return;
-            }
-        }        // Only update the manager if the value is different
-        if (_settingsManager.ClassEnumerationFilter != newValue)
-        {
-            // Update the setting without triggering notifications from the manager
-            _settingsManager.ClassEnumerationFilter = newValue;
-
-            // Publish the message ourselves to notify other components
-            PublishMessage(new ClassEnumFilterChangedMessage(newValue));
-        }
     }
 
     /// <summary>
