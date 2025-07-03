@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
     <ResourceDictionary.MergedDictionaries>
         <!--  Include all of our modular style files  -->
+        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/Icons.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/TextControlStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ButtonStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ComboBoxStyle.xaml" />
@@ -8,7 +9,6 @@
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/MenuStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/NavigationStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/LayoutStyles.xaml" />
-        <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/IndicatorStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/TooltipStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ScrollBarStyles.xaml" />
         <ResourceDictionary Source="pack://application:,,,/WmiExplorer;component/Presentation/Styles/ModernListViewStyle.xaml" />

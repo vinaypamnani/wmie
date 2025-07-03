@@ -11,9 +11,6 @@
                 <!--  Converters  -->
                 <ResourceDictionary Source="Presentation/Converters/Converters.xaml" />
 
-                <!--  Add the new Icons.xaml resource dictionary  -->
-                <ResourceDictionary Source="Resources/Icons.xaml" />
-
                 <!--  String resources  -->
                 <ResourceDictionary Source="Resources/TooltipStrings.xaml" />
 

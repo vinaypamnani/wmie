@@ -31,6 +31,23 @@
         </Style.Triggers>
     </Style>
 
+    <!--  Letter Icon Template for reusable icon indicators  -->
+    <ControlTemplate x:Key="LetterIconTemplate" TargetType="ContentControl">
+        <Border Width="16"
+                Height="16"
+                Background="{TemplateBinding Background}"
+                CornerRadius="2">
+            <!--  Uses PrimaryBackgroundBrush for Foreground intentionally to inverse for better contrast  -->
+            <TextBlock HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontFamily="Segoe UI"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource PrimaryBackgroundBrush}"
+                       Text="{TemplateBinding Content}" />
+        </Border>
+    </ControlTemplate>
+
     <!--  Menu Bar Icons  -->
 
     <DataTemplate x:Key="ExitIconTemplate">
