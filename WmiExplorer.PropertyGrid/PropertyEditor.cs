@@ -83,6 +83,51 @@ public class PropertyEditor : ContentControl
     }
 
     /// <summary>
+    /// Creates an integer editor with hex/decimal display option
+    /// </summary>
+    private Grid CreateIntegerEditor(PropertyHierarchyItem propertyItem)
+    {
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        // Create TextBox
+        var textBox = new TextBox
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(3, 0, 0, 0),
+            Width = 120,
+            MaxWidth = 200,
+        };
+
+        // Create CheckBox
+        var checkBox = new CheckBox
+        {
+            Content = "Hex",
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(8, 0, 8, 0)
+        };
+
+        // Set grid positions
+        Grid.SetColumn(textBox, 0);
+        Grid.SetColumn(checkBox, 1);
+
+        // Add to grid
+        grid.Children.Add(textBox);
+        grid.Children.Add(checkBox);
+
+        // Initialize hex display based on value
+        bool isHexadecimal = ShouldDefaultToHex(propertyItem.Value);
+        checkBox.IsChecked = isHexadecimal;
+
+        // Set up data binding and event handling
+        SetupIntegerEditorBinding(textBox, checkBox, propertyItem);
+
+        return grid;
+    }
+
+    /// <summary>
     /// Formats an array value for text editing
     /// </summary>
     private string FormatArrayValueForEditing(object? value)
@@ -177,6 +222,41 @@ public class PropertyEditor : ContentControl
         return array;
     }
 
+    /// <summary>
+    /// Sets up binding and event handling for integer editor
+    /// </summary>
+    private void SetupIntegerEditorBinding(TextBox textBox, CheckBox checkBox, PropertyHierarchyItem propertyItem)
+    {
+        // Update display format when checkbox changes
+        checkBox.Checked += (s, e) => UpdateIntegerDisplay(textBox, propertyItem, true);
+        checkBox.Unchecked += (s, e) => UpdateIntegerDisplay(textBox, propertyItem, false);
+
+        // Handle text changes
+        textBox.LostFocus += (s, e) => UpdatePropertyFromIntegerText(textBox, checkBox, propertyItem);
+
+        // Initialize display
+        UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
+    }
+
+    /// <summary>
+    /// Determines if a value should default to hexadecimal display
+    /// </summary>
+    private static bool ShouldDefaultToHex(object? value)
+    {
+        if (value == null) return false;
+
+        try
+        {
+            var longValue = Convert.ToInt64(value);
+            // Default to hex for values larger than 0x80000000 (2147483648)
+            return longValue > 0x80000000;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private void UpdateEditor(PropertyHierarchyItem? propertyItem)
     {
         // Exit if property is read-only or null
@@ -241,10 +321,21 @@ public class PropertyEditor : ContentControl
             comboBox.SetBinding(ComboBox.SelectedItemProperty, binding);
             Content = comboBox;
         }
-        else if (propertyType == typeof(int) || propertyType == typeof(double) ||
-                propertyType == typeof(float) || propertyType == typeof(decimal))
+        else if (propertyType == typeof(int) || propertyType == typeof(int?) ||
+                propertyType == typeof(long) || propertyType == typeof(long?) ||
+                propertyType == typeof(uint) || propertyType == typeof(uint?) ||
+                propertyType == typeof(ulong) || propertyType == typeof(ulong?) ||
+                propertyType == typeof(short) || propertyType == typeof(short?) ||
+                propertyType == typeof(ushort) || propertyType == typeof(ushort?) ||
+                propertyType == typeof(byte) || propertyType == typeof(byte?) ||
+                propertyType == typeof(sbyte) || propertyType == typeof(sbyte?))
         {
-            // Use a TextBox with numeric validation for numeric types
+            // Create hex/decimal editor for integer types
+            Content = CreateIntegerEditor(propertyItem);
+        }
+        else if (propertyType == typeof(double) || propertyType == typeof(float) || propertyType == typeof(decimal))
+        {
+            // Use a TextBox with numeric validation for non-integer numeric types
             var textBox = new TextBox
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -330,6 +421,86 @@ public class PropertyEditor : ContentControl
             };
 
             Content = textBox;
+        }
+    }
+
+    /// <summary>
+    /// Updates the integer display format
+    /// </summary>
+    private void UpdateIntegerDisplay(TextBox textBox, PropertyHierarchyItem propertyItem, bool isHexadecimal)
+    {
+        if (propertyItem.Value == null)
+        {
+            textBox.Text = string.Empty;
+            return;
+        }
+
+        try
+        {
+            var longValue = Convert.ToInt64(propertyItem.Value);
+            textBox.Text = isHexadecimal ? $"0x{longValue:X}" : longValue.ToString();
+        }
+        catch
+        {
+            textBox.Text = propertyItem.Value.ToString() ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Updates the property value from integer text input
+    /// </summary>
+    private void UpdatePropertyFromIntegerText(TextBox textBox, CheckBox checkBox, PropertyHierarchyItem propertyItem)
+    {
+        var text = textBox.Text?.Trim();
+        if (string.IsNullOrEmpty(text))
+        {
+            propertyItem.Value = null;
+            return;
+        }
+
+        try
+        {
+            long longValue;
+
+            // Parse hex or decimal
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                var hexValue = text.Substring(2);
+                longValue = Convert.ToInt64(hexValue, 16);
+            }
+            else
+            {
+                longValue = Convert.ToInt64(text);
+            }
+
+            // Convert to target type
+            var targetType = propertyItem.PropertyType;
+            if (targetType == typeof(int) || targetType == typeof(int?))
+                propertyItem.Value = (int)longValue;
+            else if (targetType == typeof(uint) || targetType == typeof(uint?))
+                propertyItem.Value = (uint)longValue;
+            else if (targetType == typeof(long) || targetType == typeof(long?))
+                propertyItem.Value = longValue;
+            else if (targetType == typeof(ulong) || targetType == typeof(ulong?))
+                propertyItem.Value = (ulong)longValue;
+            else if (targetType == typeof(short) || targetType == typeof(short?))
+                propertyItem.Value = (short)longValue;
+            else if (targetType == typeof(ushort) || targetType == typeof(ushort?))
+                propertyItem.Value = (ushort)longValue;
+            else if (targetType == typeof(byte) || targetType == typeof(byte?))
+                propertyItem.Value = (byte)longValue;
+            else if (targetType == typeof(sbyte) || targetType == typeof(sbyte?))
+                propertyItem.Value = (sbyte)longValue;
+            else
+                propertyItem.Value = longValue;
+
+            // Update display to show the correctly formatted value
+            UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
+        }
+        catch (Exception)
+        {
+            // If parsing fails, revert to original display
+            UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
         }
     }
 }
