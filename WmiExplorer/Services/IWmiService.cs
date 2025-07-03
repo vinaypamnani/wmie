@@ -94,7 +94,7 @@ public interface IWmiService
     /// Gets the CLSID for a WMI provider by name (synchronous, returns null if not found or error)
     /// </summary>
     string? GetProviderClsid(ManagementScope scope, string providerName);
-    
+
     /// <summary>
     /// Gets a root ManagementObject for a given namespace path
     /// </summary>
@@ -103,4 +103,9 @@ public interface IWmiService
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A ManagementObject</returns>
     Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Attempts to get a ManagementClass for a given class name in the specified namespace. Returns null if not found or not accessible.
+    /// </summary>
+    Task<ManagementClass?> TryGetManagementClassAsync(string namespacePath, ConnectionOptions options, string className, CancellationToken cancellationToken = default);
 }

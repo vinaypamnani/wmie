@@ -34,8 +34,14 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xF570;" />
     </DataTemplate>
 
+    <!--  ConfigMgr icons  -->
+
     <DataTemplate x:Key="ConfigMgrModeIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE975;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ConfigMgrClientIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE977;" />
     </DataTemplate>
 
     <!--  Update related icons  -->

@@ -9,7 +9,6 @@ using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.ViewModels.Helpers;
@@ -128,14 +127,15 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     /// </summary>
     public bool IsRoot => _wmiNamespace.IsRoot;
 
-    public bool IsSmsProviderNamespace
-    {
-        get
-        {
-            // Checks if the namespace path contains the SMS Provider pattern
-            return NamespacePath != null && NamespacePath.ToUpperInvariant().Contains("ROOT\\SMS\\SITE_");
-        }
-    }
+    /// <summary>
+    /// Indicates whether this namespace is an SMS Client namespace. Overridden in derived class.
+    /// </summary>
+    public virtual bool IsSmsClientNamespace => false;
+
+    /// <summary>
+    /// Indicates whether this namespace is an SMS Provider namespace. Overridden in derived class.
+    /// </summary>
+    public virtual bool IsSmsProviderNamespace => false;
 
     public LoadState LoadState
     {
@@ -195,20 +195,49 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
         foreach (var mo in mboCollection)
         {
-            // Throws if the ManagementObject does not have a valid name or scope path.
             if (!(mo.Properties["Name"]?.Value is string name) || mo.Scope?.Path == null)
                 throw new InvalidOperationException("Unable to determine child namespace path from ManagementObject.");
 
             string nsPath = $"{mo.Scope.Path.Path}\\{name}";
-            var wmiNamespace = new WmiNamespace(mo, nsPath, parentNamespaceModel); var vm = new WmiNamespaceViewModel(
-                wmiNamespace,
-                wmiService,
-                messengerService,
-                applicationService,
-                settingsManager,
-                cacheService,
-                selectionManager,
-                parentNamespaceViewModel);
+            var wmiNamespace = new WmiNamespace(mo, nsPath, parentNamespaceModel);
+            WmiNamespaceViewModel vm;
+            // Debug.WriteLine($"Creating WmiNamespaceViewModel for path: {nsPath}");
+            if (ConfigMgr.SmsClientNamespaceViewModel.IsSmsClientNamespacePath(wmiNamespace.RelativePath))
+            {
+                vm = new ConfigMgr.SmsClientNamespaceViewModel(
+                    wmiNamespace,
+                    wmiService,
+                    messengerService,
+                    applicationService,
+                    settingsManager,
+                    cacheService,
+                    selectionManager,
+                    parentNamespaceViewModel);
+            }
+            else if (ConfigMgr.SmsProviderNamespaceViewModel.IsSmsProviderNamespacePath(wmiNamespace.RelativePath))
+            {
+                vm = new ConfigMgr.SmsProviderNamespaceViewModel(
+                    wmiNamespace,
+                    wmiService,
+                    messengerService,
+                    applicationService,
+                    settingsManager,
+                    cacheService,
+                    selectionManager,
+                    parentNamespaceViewModel);
+            }
+            else
+            {
+                vm = new WmiNamespaceViewModel(
+                    wmiNamespace,
+                    wmiService,
+                    messengerService,
+                    applicationService,
+                    settingsManager,
+                    cacheService,
+                    selectionManager,
+                    parentNamespaceViewModel);
+            }
 
             if (mo.Scope?.Path != null)
                 vm.ComputerName = mo.Scope.Path.Server;
@@ -235,14 +264,41 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
         var rootMbo = await wmiService.GetRootNamespaceAsync(namespacePath, connectionOptions, cancellationToken);
         var rootNamespace = new WmiNamespace(rootMbo!, namespacePath, connectionOptions);
-        var rootViewModel = new WmiNamespaceViewModel(
-            rootNamespace,
-            wmiService,
-            messengerService,
-            applicationService,
-            settingsManager,
-            cacheService,
-            selectionManager);
+        WmiNamespaceViewModel rootViewModel;
+        string nsPath = namespacePath;
+        if (ConfigMgr.SmsClientNamespaceViewModel.IsSmsClientNamespacePath(rootNamespace.RelativePath))
+        {
+            rootViewModel = new ConfigMgr.SmsClientNamespaceViewModel(
+                rootNamespace,
+                wmiService,
+                messengerService,
+                applicationService,
+                settingsManager,
+                cacheService,
+                selectionManager);
+        }
+        else if (ConfigMgr.SmsProviderNamespaceViewModel.IsSmsProviderNamespacePath(rootNamespace.RelativePath))
+        {
+            rootViewModel = new ConfigMgr.SmsProviderNamespaceViewModel(
+                rootNamespace,
+                wmiService,
+                messengerService,
+                applicationService,
+                settingsManager,
+                cacheService,
+                selectionManager);
+        }
+        else
+        {
+            rootViewModel = new WmiNamespaceViewModel(
+                rootNamespace,
+                wmiService,
+                messengerService,
+                applicationService,
+                settingsManager,
+                cacheService,
+                selectionManager);
+        }
 
         if (rootMbo?.Scope?.Path != null)
             rootViewModel.ComputerName = rootMbo.Scope.Path.Server;
@@ -332,8 +388,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             PublishBusyState($"Loading classes for {NamespacePath}...");
 
             var queryString = BuildClassQueryFromFilter(_settingsManager.ClassEnumerationFilter);
-            if (IsSmsProviderNamespace)
-                queryString = BuildSmsProviderQueryFromFilter(queryString, _settingsManager.ConfigMgrSettings!);
+            if (IsSmsProviderNamespace && this is ConfigMgr.SmsProviderNamespaceViewModel smsVm)
+            {
+                // Use derived class method if available
+                queryString = ConfigMgr.SmsProviderNamespaceViewModel.BuildSmsProviderQueryFromFilter(queryString, _settingsManager.ConfigMgrSettings!);
+            }
 
             // Use the ViewModel's ManagementScope for the service call.
             var wmiClasses = await _wmiService.ExecuteWmiQueryAsync(
@@ -401,6 +460,16 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
     }
 
+    /// <summary>
+    /// Call this when ShowSystemClasses changes to refresh the filter view.
+    /// </summary>
+    public void OnShowSystemClassesChanged()
+    {
+        _classFilterHelper.CollectionView.Refresh();
+        if (IsSelected)
+            PublishMessage(new ClassesFilteredMessage(this));
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -440,30 +509,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             query += " AND NOT __Class LIKE \"Win32_Perf%\"";
 
         return query;
-    }
-
-    /// <summary>
-    /// Builds a WQL query string for SMS Provider namespaces, applying additional filters for collections and inventory classes.
-    /// </summary>
-    private static string BuildSmsProviderQueryFromFilter(string baseQuery, ConfigMgrSettings configMgrSettings)
-    {
-        var queryString = baseQuery;
-
-        // Exclude collection classes if not included
-        if (!configMgrSettings.IncludeCollectionClasses)
-        {
-            queryString += " AND NOT __Class LIKE \"SMS_CM_RES_COLL_%\"";
-        }
-
-        // Exclude inventory classes if not included
-        if (!configMgrSettings.IncludeInventoryClasses)
-        {
-            queryString += " AND NOT __Class LIKE \"SMS_G_System%\"";
-            queryString += " AND NOT __Class LIKE \"SMS_GH_System%\"";
-            queryString += " AND NOT __Class LIKE \"SMS_GEH_System%\"";
-        }
-
-        return queryString;
     }
 
     private bool ClassFilterPredicate(WmiClassViewModel classVm, string filter)
@@ -592,16 +637,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _isUpdatingSelection = false;
             }
         }
-    }
-
-    /// <summary>
-    /// Call this when ShowSystemClasses changes to refresh the filter view.
-    /// </summary>
-    public void OnShowSystemClassesChanged()
-    {
-        _classFilterHelper.CollectionView.Refresh();
-        if (IsSelected)
-            PublishMessage(new ClassesFilteredMessage(this));
     }
 }
 

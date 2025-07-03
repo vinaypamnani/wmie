@@ -256,6 +256,28 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Tries to get a ManagementClass for the specified class name, returning null if not found.
+    /// </summary>
+    public Task<ManagementClass?> TryGetManagementClassAsync(string namespacePath, ConnectionOptions options, string className, CancellationToken cancellationToken = default)
+    {
+        return Task.Run(() =>
+        {
+            try
+            {
+                var scope = CreateManagementScope(namespacePath, options);
+                var managementClass = new ManagementClass(scope, new ManagementPath(className), null);
+                // Try to access properties to verify existence
+                var _ = managementClass.Properties;
+                return managementClass;
+            }
+            catch
+            {
+                return null;
+            }
+        }, cancellationToken);
+    }
+
+    /// <summary>
     /// Finalizer to ensure resources are cleaned up
     /// </summary>
     ~WmiService()

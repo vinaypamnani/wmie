@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:WmiExplorer.Presentation.ViewModels.Helpers"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              d:DesignHeight="450"
              d:DesignWidth="300"
@@ -45,6 +46,36 @@
                                         <MenuItem.Icon>
                                             <ContentControl ContentTemplate="{StaticResource DisconnectIconTemplate}" />
                                         </MenuItem.Icon>
+                                    </MenuItem>
+                                    <!--  ConfigMgr Client Actions context menu, only for SMS Client namespaces and if installed  -->
+                                    <MenuItem Header="ConfigMgr Client Actions" Visibility="{Binding IsSmsClientInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <MenuItem.ItemsSource>
+                                            <Binding Path="GroupedClientActions" />
+                                        </MenuItem.ItemsSource>
+                                        <MenuItem.Icon>
+                                            <ContentControl ContentTemplate="{StaticResource ConfigMgrClientIconTemplate}" />
+                                        </MenuItem.Icon>
+                                        <MenuItem.ItemContainerStyle>
+                                            <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
+                                                <Setter Property="Header" Value="{Binding Path=Key}" />
+                                                <Setter Property="ItemsSource" Value="{Binding}" />
+                                                <Setter Property="helpers:LetterIconHelper.LetterIcon" Value="G" />
+                                                <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource BaseGreenBrush}" />
+                                                <Setter Property="helpers:LetterIconHelper.LetterIconToolTip" Value="Client Action Group" />
+                                                <Setter Property="ItemContainerStyle">
+                                                    <Setter.Value>
+                                                        <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
+                                                            <Setter Property="Header" Value="{Binding DisplayName}" />
+                                                            <Setter Property="Command" Value="{Binding DataContext.TriggerClientActionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                                            <Setter Property="CommandParameter" Value="{Binding}" />
+                                                            <Setter Property="helpers:LetterIconHelper.LetterIcon" Value="A" />
+                                                            <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource BaseBlueBrush}" />
+                                                            <Setter Property="helpers:LetterIconHelper.LetterIconToolTip" Value="Client Action" />
+                                                        </Style>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </MenuItem.ItemContainerStyle>
                                     </MenuItem>
                                 </ContextMenu>
                             </Setter.Value>
