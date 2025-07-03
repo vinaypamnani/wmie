@@ -59,21 +59,34 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
                     <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
                         <Border x:Name="HeaderBorder"
+                                Grid.ColumnSpan="2"
                                 Padding="{TemplateBinding Padding}"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                        </Border>
+                                BorderThickness="{TemplateBinding BorderThickness}" />
 
+                        <!--  Content area with reserved space for sort arrow and grippers  -->
+                        <ContentPresenter Grid.Column="0"
+                                          Margin="4,0,4,0"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+
+                        <!--  Sort arrow in dedicated column  -->
                         <Path x:Name="SortArrow"
-                              Width="10"
-                              Height="10"
-                              Margin="{DynamicResource MarginRightMedium}"
-                              HorizontalAlignment="Right"
+                              Grid.Column="1"
+                              Width="8"
+                              Height="8"
+                              Margin="4,0,4,0"
+                              HorizontalAlignment="Center"
                               VerticalAlignment="Center"
-                              Data="M 0,0 L 5,5 L 10,0"
+                              Data="M 0,0 L 4,4 L 8,0"
                               Fill="{TemplateBinding Foreground}"
                               Opacity="0.7"
                               RenderTransformOrigin="0.5,0.5"
@@ -83,7 +96,9 @@
 
                         <!--  Left gripper for column resizing  -->
                         <Thumb x:Name="PART_LeftHeaderGripper"
-                               Width="8"
+                               Grid.ColumnSpan="2"
+                               Width="6"
+                               Margin="2,0,0,0"
                                HorizontalAlignment="Left"
                                Background="Transparent"
                                Cursor="SizeWE">
@@ -96,7 +111,9 @@
 
                         <!--  Right gripper for column resizing  -->
                         <Thumb x:Name="PART_RightHeaderGripper"
-                               Width="8"
+                               Grid.ColumnSpan="2"
+                               Width="6"
+                               Margin="0,0,2,0"
                                HorizontalAlignment="Right"
                                Background="Transparent"
                                Cursor="SizeWE">
