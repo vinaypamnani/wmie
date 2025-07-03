@@ -4,6 +4,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <!--  Local Context Menu for TextBox  -->
+        <ContextMenu x:Key="LocalTextBoxContextMenu">
+            <MenuItem Command="ApplicationCommands.Cut" Header="Cut" />
+            <MenuItem Command="ApplicationCommands.Copy" Header="Copy" />
+            <MenuItem Command="ApplicationCommands.Paste" Header="Paste" />
+            <MenuItem Command="ApplicationCommands.SelectAll" Header="Select All" />
+        </ContextMenu>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -31,26 +42,35 @@
             </TextBlock.Style>
         </TextBlock>
 
-        <!--  Content TextBlock  -->
-        <TextBlock Name="ContentTextBlock"
-                   Grid.Column="1"
-                   FontSize="12"
-                   FontWeight="Normal"
-                   Foreground="{Binding TextForeground, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                   Text="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                   ToolTip="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}}">
-            <TextBlock.Style>
-                <Style TargetType="TextBlock">
+        <!--  Content TextBox (replaces TextBlock for copy support)  -->
+        <TextBox Name="ContentTextBox"
+                 Grid.Column="1"
+                 Padding="0"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 ContextMenu="{StaticResource LocalTextBoxContextMenu}"
+                 FontSize="12"
+                 FontWeight="Normal"
+                 Foreground="{Binding TextForeground, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 HorizontalScrollBarVisibility="Disabled"
+                 IsReadOnly="True"
+                 Text="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 VerticalScrollBarVisibility="Disabled">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
                     <Setter Property="TextWrapping" Value="Wrap" />
+                    <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
                             <Setter Property="MaxHeight" Value="19" />
-                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
                             <Setter Property="TextWrapping" Value="NoWrap" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                            <Setter Property="ToolTip" Value="{x:Null}" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
-            </TextBlock.Style>
-        </TextBlock>
+            </TextBox.Style>
+        </TextBox>
     </Grid>
 </UserControl>
