@@ -48,7 +48,7 @@
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <!--  ConfigMgr Client Actions context menu, only for SMS Client namespaces and if installed  -->
-                                    <MenuItem Header="ConfigMgr Client Actions" Visibility="{Binding IsSmsClientInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <MenuItem Header="ConfigMgr Client Actions" Visibility="{Binding IsSmsClientNamespace, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <MenuItem.ItemsSource>
                                             <Binding Path="GroupedClientActions" />
                                         </MenuItem.ItemsSource>

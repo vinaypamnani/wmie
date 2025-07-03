@@ -55,7 +55,7 @@ public partial class SmsClientNamespaceViewModel : WmiNamespaceViewModel
     /// <summary>
     /// Always true for this derived type.
     /// </summary>
-    public override bool IsSmsClientNamespace => true;
+    public override bool IsSmsClientNamespace => IsSmsClientInstalled;
 
     /// <summary>
     /// Command to trigger a ConfigMgr Client Action.
