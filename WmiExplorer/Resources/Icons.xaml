@@ -12,6 +12,25 @@
         <Setter Property="FontSize" Value="16" />
     </Style>
 
+    <!-- Style for icons with LoadState-based coloring -->
+    <Style x:Key="LoadStateIconTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource IconTextBlockStyle}">
+        <Setter Property="Foreground" Value="{DynamicResource TertiaryForegroundBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding LoadState}" Value="Loading">
+                <Setter Property="Foreground" Value="{DynamicResource BaseBlueBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding LoadState}" Value="Success">
+                <Setter Property="Foreground" Value="{DynamicResource BaseGreenBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding LoadState}" Value="Warning">
+                <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding LoadState}" Value="Failed">
+                <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
     <!--  Menu Bar Icons  -->
 
     <DataTemplate x:Key="ExitIconTemplate">
@@ -34,6 +53,28 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xF570;" />
     </DataTemplate>
 
+    <!--  Namespace Icons with LoadState-based coloring  -->
+
+    <!-- ConfigMgr Provider icon with LoadState-based coloring -->
+    <DataTemplate x:Key="ConfigMgrProviderIconWithStateTemplate">
+        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE82D;" />
+    </DataTemplate>
+
+    <!-- ConfigMgr Client icon with LoadState-based coloring -->
+    <DataTemplate x:Key="ConfigMgrClientIconWithStateTemplate">
+        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE70C;" />
+    </DataTemplate>
+
+    <!-- Root namespace icon with LoadState-based coloring -->
+    <DataTemplate x:Key="RootNamespaceIconWithStateTemplate">
+        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE977;" />
+    </DataTemplate>
+
+    <!-- Regular namespace circle icon with LoadState-based coloring -->
+    <DataTemplate x:Key="CircleIconWithStateTemplate">
+        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xEDB0;" />
+    </DataTemplate>
+
     <!--  ConfigMgr icons  -->
 
     <DataTemplate x:Key="ConfigMgrModeIconTemplate">
@@ -41,7 +82,7 @@
     </DataTemplate>
 
     <DataTemplate x:Key="ConfigMgrClientIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE977;" />
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE70C;" />
     </DataTemplate>
 
     <!--  Update related icons  -->
@@ -97,6 +138,7 @@
     </DataTemplate>
 
     <!--  Mof Icons  -->
+
     <DataTemplate x:Key="ShowResultsIconTemplate" x:Shared="False">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8BC;" />
     </DataTemplate>

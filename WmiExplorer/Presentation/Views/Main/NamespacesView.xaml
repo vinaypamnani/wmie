@@ -92,29 +92,29 @@
                                             Content="{Binding}">
                                 <ContentControl.Style>
                                     <Style TargetType="ContentControl">
-                                        <Setter Property="ContentTemplate" Value="{DynamicResource StatusIndicatorStyle}" />
+                                        <!--  Default to namespace icon with state-based coloring  -->
+                                        <Setter Property="ContentTemplate" Value="{DynamicResource CircleIconWithStateTemplate}" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsRoot}" Value="True">
-                                                <Setter Property="ContentTemplate" Value="{DynamicResource ConnectionOptionsIconTemplate}" />
-                                                <Setter Property="Margin" Value="0,0,4,0" />
+                                            <!--  ConfigMgr Provider Namespace  -->
+                                            <DataTrigger Binding="{Binding IsSmsProviderNamespace}" Value="True">
+                                                <Setter Property="ContentTemplate" Value="{DynamicResource ConfigMgrProviderIconWithStateTemplate}" />
+                                                <Setter Property="ToolTip" Value="ConfigMgr Provider Namespace. Use extra options in the Classes Tab to include/exclude Collection and Inventory classes." />
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding IsRoot}" Value="False">
-                                                <Setter Property="ContentTemplate">
-                                                    <Setter.Value>
-                                                        <DataTemplate>
-                                                            <Ellipse Width="10"
-                                                                     Height="10"
-                                                                     RenderTransformOrigin="0.5,0.5"
-                                                                     Style="{DynamicResource StatusIndicatorStyle}" />
-                                                        </DataTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
+                                            <!--  ConfigMgr Client Namespace  -->
+                                            <DataTrigger Binding="{Binding IsSmsClientNamespace}" Value="True">
+                                                <Setter Property="ContentTemplate" Value="{DynamicResource ConfigMgrClientIconWithStateTemplate}" />
+                                                <Setter Property="ToolTip" Value="ConfigMgr Client Namespace. Right click on this namesapce to see extra options to trigger common client actions." />
+                                            </DataTrigger>
+                                            <!--  Root namespace  -->
+                                            <DataTrigger Binding="{Binding IsRoot}" Value="True">
+                                                <Setter Property="ContentTemplate" Value="{DynamicResource RootNamespaceIconWithStateTemplate}" />
+                                                <Setter Property="ToolTip" Value="Root namespace for this connection" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </ContentControl.Style>
                             </ContentControl>
-                            <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+                            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" Text="{Binding Name}" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
