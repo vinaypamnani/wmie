@@ -125,10 +125,16 @@ public partial class SmsClientNamespaceViewModel : WmiNamespaceViewModel
                 PublishErrorState($"Failed to trigger action: {action.DisplayName}. Output was null.");
             }
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            // Handle access denied errors explicitly and suggest running as administrator
+            Log.Error(ex, $"Failed to trigger action: {action.DisplayName}. Error: {ex.Message}. Try running the application with elevated permissions.");
+            PublishErrorState($"Failed to trigger action: {action.DisplayName}. Error: {ex.Message}. Try running as administrator.");
+        }
         catch (Exception ex)
         {
-            Log.Error(ex, $"Failed to trigger action: {action?.DisplayName}");
-            PublishErrorState($"Exception while triggering action: {action?.DisplayName}");
+            Log.Error(ex, $"Failed to trigger action: {action.DisplayName}");
+            PublishErrorState($"Exception while triggering action: {action.DisplayName}. Error: {ex.Message}");
         }
     }
 }
