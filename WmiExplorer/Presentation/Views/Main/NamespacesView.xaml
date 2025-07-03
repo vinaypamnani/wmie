@@ -57,7 +57,8 @@
                             <ContentControl x:Name="IconContent"
                                             Width="16"
                                             Height="16"
-                                            VerticalAlignment="Center">
+                                            VerticalAlignment="Center"
+                                            Content="{Binding}">
                                 <ContentControl.Style>
                                     <Style TargetType="ContentControl">
                                         <Setter Property="ContentTemplate" Value="{DynamicResource StatusIndicatorStyle}" />
