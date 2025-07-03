@@ -50,7 +50,7 @@ public static class Log
         _logFilePath = Path.Combine(logDirectory, "WmiExplorer.log");
 
         // Create the logging level switch for dynamic level control
-        _levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
+        _levelSwitch = new LoggingLevelSwitch(LogEventLevel.Information);
 
         // Create the in-memory sink for UI integration
         var inMemoryLogSink = new InMemoryLogSink(OnLogEntryAdded, maxEntries: MaxInMemoryLogEntries);

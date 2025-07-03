@@ -65,8 +65,13 @@ public partial class App : Application
         Log.ConfigureLogging();
 
         // Then configure services
-        ConfigureServices(); if (ServiceProvider == null)
+        ConfigureServices();
+        if (ServiceProvider == null)
             throw new InvalidOperationException("ServiceProvider is not initialized.");
+
+        // Set the minimum log level from settings
+        var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
+        Log.SetMinimumLevel(settingsService.LogLevel);
 
         // Initialize theme
         var themeManager = ServiceProvider.GetRequiredService<ThemeManager>();
