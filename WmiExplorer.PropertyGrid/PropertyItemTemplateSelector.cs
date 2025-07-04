@@ -18,7 +18,7 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
     /// <summary>
     /// Gets or sets the template for property items when using card-style display.
     /// </summary>
-    public DataTemplate? PropertyItemCardTemplate { get; set; }
+    public DataTemplate? PropertyEditorCardTemplate { get; set; }
 
     /// <summary>
     /// Gets or sets the template for standard property items in the hierarchy.
@@ -47,7 +47,7 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                 {
                     if (ancestor is PropertyGrid propertyGrid)
                     {
-                        useCardStyle = propertyGrid.UseCardStyle;
+                        useCardStyle = propertyGrid.UseCardStyleEditor;
                         break;
                     }
                     ancestor = VisualTreeHelper.GetParent(ancestor);
@@ -61,7 +61,7 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                     {
                         if (ancestor is PropertyGrid propertyGrid)
                         {
-                            useCardStyle = propertyGrid.UseCardStyle;
+                            useCardStyle = propertyGrid.UseCardStyleEditor;
                             break;
                         }
                         ancestor = LogicalTreeHelper.GetParent(ancestor);
@@ -69,9 +69,9 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                 }
 
                 // Select appropriate property template
-                if (useCardStyle && PropertyItemCardTemplate != null)
+                if (useCardStyle && PropertyEditorCardTemplate != null)
                 {
-                    return PropertyItemCardTemplate;
+                    return PropertyEditorCardTemplate;
                 }
                 if (PropertyItemTemplate != null)
                 {
@@ -87,7 +87,7 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                 // Try card template first if card style is enabled
                 if (useCardStyle)
                 {
-                    var cardTemplate = element.TryFindResource("PropertyItemCardTemplate") as DataTemplate;
+                    var cardTemplate = element.TryFindResource("PropertyEditorCardTemplate") as DataTemplate;
                     if (cardTemplate != null)
                         return cardTemplate;
                 }

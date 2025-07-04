@@ -123,7 +123,7 @@
                             <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedBackgroundBrush}" />
                         </MultiTrigger>
                         <!--  Disable selection highlighting for card view items  -->
-                        <DataTrigger Binding="{Binding UseCardStyle, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" Value="True">
+                        <DataTrigger Binding="{Binding UseCardStyleEditor, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" Value="True">
                             <Setter TargetName="OuterBd" Property="Background" Value="Transparent" />
                         </DataTrigger>
                     </ControlTemplate.Triggers>
@@ -251,7 +251,7 @@
     </HierarchicalDataTemplate>
 
     <!--  Property Item Card Template (Full-Width Card Layout)  -->
-    <HierarchicalDataTemplate x:Key="PropertyItemCardTemplate" ItemsSource="{Binding Children}">
+    <HierarchicalDataTemplate x:Key="PropertyEditorCardTemplate" ItemsSource="{Binding Children}">
         <Grid Margin="0,1,0,1" HorizontalAlignment="Stretch">
             <Grid.ContextMenu>
                 <ContextMenu>
@@ -324,6 +324,6 @@
     <!--  Property Item Template Selector  -->
     <local:PropertyItemTemplateSelector x:Key="PropertyItemTemplateSelector"
                                         CategoryItemTemplate="{StaticResource CategoryItemTemplate}"
-                                        PropertyItemCardTemplate="{StaticResource PropertyItemCardTemplate}"
+                                        PropertyEditorCardTemplate="{StaticResource PropertyEditorCardTemplate}"
                                         PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
 </ResourceDictionary>

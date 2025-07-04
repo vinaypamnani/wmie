@@ -243,7 +243,7 @@
                                 </Style>
                             </TreeView.Resources>
                             <TreeView.ItemTemplateSelector>
-                                <local:PropertyItemTemplateSelector CategoryItemTemplate="{StaticResource CategoryItemTemplate}" PropertyItemCardTemplate="{StaticResource PropertyItemCardTemplate}" PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
+                                <local:PropertyItemTemplateSelector CategoryItemTemplate="{StaticResource CategoryItemTemplate}" PropertyEditorCardTemplate="{StaticResource PropertyEditorCardTemplate}" PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
                             </TreeView.ItemTemplateSelector>
                             <TreeView.ItemContainerStyle>
                                 <Style BasedOn="{StaticResource PropertyTreeViewItemStyle}" TargetType="TreeViewItem">

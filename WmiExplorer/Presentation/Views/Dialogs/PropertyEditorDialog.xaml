@@ -68,7 +68,7 @@
                                  ShowOptions="True"
                                  ShowSearchBox="True"
                                  ShowWmiOptions="False"
-                                 UseCardStyle="True">
+                                 UseCardStyleEditor="True">
                     <pg:PropertyGrid.FilterOptions>
                         <pg:PropertyFilterOptions IncludeNullValues="True" IncludeReadOnlyProperties="False" IncludeSystemProperties="True" />
                     </pg:PropertyGrid.FilterOptions>

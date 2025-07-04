@@ -175,9 +175,9 @@ public partial class PropertyGrid : Control
     /// <summary>
     /// Whether to use card-style display for property editors.
     /// </summary>
-    public static readonly DependencyProperty UseCardStyleProperty =
+    public static readonly DependencyProperty UseCardStyleEditorProperty =
         DependencyProperty.Register(
-            nameof(UseCardStyle),
+            nameof(UseCardStyleEditor),
             typeof(bool),
             typeof(PropertyGrid),
             new PropertyMetadata(false));
@@ -351,10 +351,10 @@ public partial class PropertyGrid : Control
     /// <summary>
     /// Gets or sets whether to use card-style display for property editors.
     /// </summary>
-    public bool UseCardStyle
+    public bool UseCardStyleEditor
     {
-        get => (bool)GetValue(UseCardStyleProperty);
-        set => SetValue(UseCardStyleProperty, value);
+        get => (bool)GetValue(UseCardStyleEditorProperty);
+        set => SetValue(UseCardStyleEditorProperty, value);
     }
 
     /// <summary>
