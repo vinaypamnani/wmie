@@ -164,6 +164,24 @@
         </Setter>
     </Style>
 
+    <!--  Style for the CardPropertyEditor  -->
+    <Style TargetType="{x:Type local:CardPropertyEditor}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:CardPropertyEditor}">
+                    <Border Padding="{TemplateBinding Padding}" Background="Transparent" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--  Style for DatePickerTextBox control  -->
     <Style TargetType="DatePickerTextBox">
         <Setter Property="Background" Value="{DynamicResource PropertyGridBackgroundBrush}" />

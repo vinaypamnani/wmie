@@ -233,10 +233,7 @@
                     <!--  When PropertyGrid is NOT readonly, show either PropertyEditor or read-only ContentPresenter based on property  -->
                     <Grid Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}, Converter={StaticResource BooleanNotToVisibilityConverter}}">
                         <!--  Editable PropertyEditor (visible when property is writable)  -->
-                        <local:PropertyEditor Margin="5,0,0,0"
-                                              PropertyItem="{Binding}"
-                                              UseCardStyle="False"
-                                              Visibility="{Binding IsReadOnly, Converter={StaticResource BooleanNotToVisibilityConverter}}" />
+                        <local:PropertyEditor Margin="5,0,0,0" PropertyItem="{Binding}" Visibility="{Binding IsReadOnly, Converter={StaticResource BooleanNotToVisibilityConverter}}" />
 
                         <!--  Read-only ContentPresenter (visible when property is readonly)  -->
                         <ContentPresenter Margin="5,0,0,0" Visibility="{Binding IsReadOnly, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -288,7 +285,7 @@
             </Grid.ContextMenu>
 
             <!--  Full-width card layout  -->
-            <local:PropertyEditor PropertyItem="{Binding}" UseCardStyle="True" />
+            <local:CardPropertyEditor PropertyItem="{Binding}" />
         </Grid>
     </HierarchicalDataTemplate>
 
