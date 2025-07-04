@@ -82,8 +82,10 @@ public static class ItemSelectionBehavior
 
     private static void OnItemMouseUp(object sender, MouseButtonEventArgs e)
     {
-        // Only process left-click events - ignore right-clicks and other buttons
-        if (e.ChangedButton != MouseButton.Left || e.ClickCount != 1)
+
+
+        // Process left-click and right-click (single click only)
+        if ((e.ChangedButton != MouseButton.Left && e.ChangedButton != MouseButton.Right) || e.ClickCount != 1)
             return;
 
         var control = (FrameworkElement)sender;
@@ -98,10 +100,13 @@ public static class ItemSelectionBehavior
             // SelectionManager will handle IsSelected properties first, then optionally PropertyGrid update
             _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid);
 
-            // Only mark as handled after we've actually processed a left-click
+            // Only mark as handled for left-clicks to allow right-click context menus to work properly
             // This prevents event bubbling to parent TreeViewItems for left-clicks
             // while allowing right-click context menus to work properly
-            e.Handled = true;
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                e.Handled = true;
+            }
         }
     }
 }
