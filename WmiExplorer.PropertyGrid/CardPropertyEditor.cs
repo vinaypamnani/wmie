@@ -40,6 +40,7 @@ public class CardPropertyEditor : PropertyEditor
             Margin = new Thickness(-12, 2, 4, 2), // Negative left margin for TreeView alignment
             Padding = new Thickness(8, 6, 8, 6),
             CornerRadius = new CornerRadius(4),
+            BorderThickness = new Thickness(6, 1, 1, 1),
             HorizontalAlignment = HorizontalAlignment.Stretch,
             MinHeight = 30
         };
@@ -117,10 +118,6 @@ public class CardPropertyEditor : PropertyEditor
         // Selection highlighting
         var selectionBinding = new Binding("IsSelected") { Source = propertyItem };
 
-        var borderThicknessConverter = new SelectionBorderThicknessConverter();
-        cardBorder.SetBinding(Border.BorderThicknessProperty,
-            new Binding("IsSelected") { Source = propertyItem, Converter = borderThicknessConverter });
-
         var borderBrushConverter = new SelectionBorderBrushConverter();
         cardBorder.SetBinding(Border.BorderBrushProperty,
             new Binding("IsSelected") { Source = propertyItem, Converter = borderBrushConverter });
@@ -155,26 +152,6 @@ public class SelectionBorderBrushConverter : IValueConverter
         {
             return System.Windows.Media.Brushes.LightGray;
         }
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-/// <summary>
-/// Converter for border thickness based on selection state
-/// </summary>
-public class SelectionBorderThicknessConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        if (value is bool isSelected && isSelected)
-        {
-            return new Thickness(4, 1, 1, 1); // 4px left border when selected
-        }
-        return new Thickness(1); // 1px all around when not selected
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
