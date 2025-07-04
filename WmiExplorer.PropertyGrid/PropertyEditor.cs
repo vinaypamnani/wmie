@@ -5,6 +5,33 @@ using System.Windows.Data;
 namespace WmiExplorer.PropertyGrid;
 
 /// <summary>
+/// Converter to calculate MaxWidth for controls based on available space
+/// </summary>
+public class MaxWidthConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        if (value is double actualWidth && actualWidth > 0)
+        {
+            // Parse the parameter as the width to subtract (column0 width + margins/padding)
+            double widthToSubtract = 2.0; // Default fallback
+            if (parameter != null && double.TryParse(parameter.ToString(), out double paramValue))
+            {
+                widthToSubtract = paramValue;
+            }
+
+            return Math.Max(100, actualWidth - widthToSubtract); // Minimum 100px
+        }
+        return 300.0; // Fallback width
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
 /// Provides a content control that displays an appropriate editor for a property based on its type.
 /// This is the base implementation focused on core editing functionality.
 /// </summary>
@@ -33,6 +60,31 @@ public class PropertyEditor : ContentControl
     {
         get => (PropertyHierarchyItem)GetValue(PropertyItemProperty);
         set => SetValue(PropertyItemProperty, value);
+    }
+
+    /// <summary>
+    /// Applies MaxWidth constraint to any FrameworkElement based on parent container
+    /// </summary>
+    protected void ApplyMaxWidthConstraint(FrameworkElement element, FrameworkElement? parentContainer = null, double widthToSubtract = 20, bool forceApply = false)
+    {
+        // Check if element already has a MaxWidth binding (to avoid double-binding)
+        if (!forceApply && BindingOperations.GetBinding(element, FrameworkElement.MaxWidthProperty) != null)
+        {
+            return; // Already has a MaxWidth binding, don't override
+        }
+
+        if (parentContainer != null)
+        {
+            var maxWidthConverter = new MaxWidthConverter();
+            element.SetBinding(FrameworkElement.MaxWidthProperty,
+                new Binding("ActualWidth") { Source = parentContainer, Converter = maxWidthConverter, ConverterParameter = widthToSubtract });
+        }
+        else
+        {
+            // If no parent container, try to use this PropertyEditor as the container
+            element.SetBinding(FrameworkElement.MaxWidthProperty,
+                new Binding("ActualWidth") { Source = this, Converter = new MaxWidthConverter(), ConverterParameter = widthToSubtract });
+        }
     }
 
     /// <summary>
@@ -111,9 +163,11 @@ public class PropertyEditor : ContentControl
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Margin = CONTROL_MARGIN_STANDARD,
             TextWrapping = TextWrapping.NoWrap,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-            MaxWidth = double.PositiveInfinity
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
         };
+
+        // Apply MaxWidth constraint using the generic method
+        ApplyMaxWidthConstraint(textBox);
 
         if (!string.IsNullOrEmpty(initialText))
         {
@@ -261,6 +315,9 @@ public class PropertyEditor : ContentControl
             MinWidth = 180
         };
 
+        // Apply MaxWidth constraint
+        ApplyMaxWidthConstraint(datePicker);
+
         var binding = new Binding("Value")
         {
             Source = propertyItem,
@@ -326,6 +383,9 @@ public class PropertyEditor : ContentControl
             MinWidth = 100
         };
 
+        // Apply MaxWidth constraint
+        ApplyMaxWidthConstraint(comboBox);
+
         var binding = new Binding("Value")
         {
             Source = propertyItem,
@@ -346,6 +406,9 @@ public class PropertyEditor : ContentControl
         };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        // Apply MaxWidth constraint to the grid
+        ApplyMaxWidthConstraint(grid);
 
         var textBox = CreateStandardTextBox(null, "Enter number (decimal or 0xHEX)", propertyItem);
 

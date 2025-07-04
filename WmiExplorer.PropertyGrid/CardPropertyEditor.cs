@@ -128,33 +128,6 @@ public class CardPropertyEditor : PropertyEditor
 }
 
 /// <summary>
-/// Converter to calculate MaxWidth for TextBoxes based on available space
-/// </summary>
-public class MaxWidthConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        if (value is double actualWidth && actualWidth > 0)
-        {
-            // Parse the parameter as the width to subtract (column0 width + margins/padding)
-            double widthToSubtract = 2.0; // Default fallback
-            if (parameter != null && double.TryParse(parameter.ToString(), out double paramValue))
-            {
-                widthToSubtract = paramValue;
-            }
-
-            return Math.Max(100, actualWidth - widthToSubtract); // Minimum 100px
-        }
-        return 300.0; // Fallback width
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-/// <summary>
 /// Converter for border brush based on selection state
 /// </summary>
 public class SelectionBorderBrushConverter : IValueConverter
