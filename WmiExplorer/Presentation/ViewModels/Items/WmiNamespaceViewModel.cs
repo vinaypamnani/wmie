@@ -175,6 +175,24 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     public string NamespacePath => _wmiNamespace.NamespacePath;
     public QueryTabViewModel QueryTabViewModel => _queryTabViewModel;
     public SearchTabViewModel SearchTabViewModel => _searchTabViewModel;
+
+    /// <summary>
+    /// Gets the count of system classes (class names starting with "__") in this namespace.
+    /// </summary>
+    [ObservableProperty]
+    private int _systemClassesCount;
+
+    /// <summary>
+    /// Updates the SystemClassesCount property based on the current Classes collection.
+    /// </summary>
+    private void UpdateSystemClassesCount()
+    {
+        lock (_collectionLock)
+        {
+            SystemClassesCount = _classes.Count(c => c.ClassName != null && c.ClassName.StartsWith("__"));
+        }
+    }
+
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
@@ -419,6 +437,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _applicationService,
                 _selectionManager);
 
+
             await RunOnUIThreadAsync(() =>
             {
                 ClearAndDisposeClasses();
@@ -430,6 +449,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                     }
                 }
 
+                UpdateSystemClassesCount();
                 ClassesView.Refresh();
                 return Task.CompletedTask;
             });
@@ -551,7 +571,10 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private void ClearAndDisposeClasses()
     {
         if (_classes.Count == 0)
+        {
+            UpdateSystemClassesCount();
             return;
+        }
 
         List<WmiClassViewModel> toDispose;
         lock (_collectionLock)
@@ -571,6 +594,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             }
         }
 
+        UpdateSystemClassesCount();
         Log.Debug("Cleared and disposed all classes for namespace: {NamespacePath}", NamespacePath);
     }
 

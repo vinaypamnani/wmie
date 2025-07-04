@@ -82,9 +82,21 @@
                         </GroupBox>
                         <CheckBox Grid.Row="1"
                                   HorizontalAlignment="Right"
-                                  Content="Show System Classes"
                                   IsChecked="{Binding SettingsManager.ShowSystemClasses, Mode=TwoWay}"
-                                  ToolTip="{DynamicResource Tooltip.ClassesTab.ShowSystemClasses}" />
+                                  ToolTip="{DynamicResource Tooltip.ClassesTab.ShowSystemClasses}">
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Show System Classes" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectionManager.SelectedNamespace.SystemClassesCount, Converter={StaticResource NullToBoolConverter}}" Value="True">
+                                                <Setter Property="Text" Value="{Binding SelectionManager.SelectedNamespace.SystemClassesCount, StringFormat='Show System Classes [{0}]'}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </CheckBox>
                         <TextBox Grid.Row="2"
                                  VerticalAlignment="Center"
                                  Style="{StaticResource TextBoxWithClearButton}"
