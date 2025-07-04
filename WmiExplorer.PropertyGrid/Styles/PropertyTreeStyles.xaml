@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:conv="clr-namespace:WmiExplorer.PropertyGrid.Converters"
                     xmlns:local="clr-namespace:WmiExplorer.PropertyGrid">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="PropertyGridStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
     <!--  Converters  -->
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
     <conv:NewlineToSpaceSingleConverter x:Key="NewlineToSpaceSingleConverter" />
@@ -9,24 +13,6 @@
     <conv:TextHighlightConverter x:Key="TextHighlightConverter" />
     <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <conv:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />
-
-    <!--  Icons from SegoeFluentIcons  -->
-    <!--  Reference: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font  -->
-    <Style x:Key="PropertyGridIconStyle" TargetType="TextBlock">
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
-        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
-        <Setter Property="FontSize" Value="16" />
-    </Style>
-
-    <!--  Common style for property text  -->
-    <Style x:Key="PropertyTextBlockStyle" TargetType="TextBlock">
-        <Setter Property="Margin" Value="0,2" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
-        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-    </Style>
 
     <!--  Common template for property description tooltips  -->
     <DataTemplate x:Key="PropertyDescriptionTooltip">
@@ -136,6 +122,10 @@
                             </MultiTrigger.Conditions>
                             <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedBackgroundBrush}" />
                         </MultiTrigger>
+                        <!--  Disable selection highlighting for card view items  -->
+                        <DataTrigger Binding="{Binding UseCardStyle, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" Value="True">
+                            <Setter TargetName="OuterBd" Property="Background" Value="Transparent" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -152,7 +142,7 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
-    <!--  Property Item Template  -->
+    <!--  Property Item Template (Traditional Column Layout)  -->
     <HierarchicalDataTemplate x:Key="PropertyItemTemplate" ItemsSource="{Binding Children}">
         <Grid>
             <Grid.ContextMenu>
@@ -213,18 +203,6 @@
             </Border>
 
             <!--  Key icon - directly in column 1  -->
-            <!-- <Path Grid.Column="1"
-                  Width="14"
-                  Height="14"
-                  HorizontalAlignment="Left"
-                  VerticalAlignment="Center"
-                  Data="M6,0 L7.5,4.5 L12,4.5 L8.5,7.5 L10,12 L6,9 L2,12 L3.5,7.5 L0,4.5 L4.5,4.5 Z"
-                  Fill="{DynamicResource PropertyGridKeyHighlightBrush}"
-                  Stretch="Uniform"
-                  ToolTip="Key Property"
-                  Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />-->
-
-            <!--  Key icon - directly in column 1  -->
             <TextBlock Grid.Column="1"
                        Margin="0,0,8,0"
                        HorizontalAlignment="Center"
@@ -255,7 +233,10 @@
                     <!--  When PropertyGrid is NOT readonly, show either PropertyEditor or read-only ContentPresenter based on property  -->
                     <Grid Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}, Converter={StaticResource BooleanNotToVisibilityConverter}}">
                         <!--  Editable PropertyEditor (visible when property is writable)  -->
-                        <local:PropertyEditor Margin="5,0,0,0" PropertyItem="{Binding}" Visibility="{Binding IsReadOnly, Converter={StaticResource BooleanNotToVisibilityConverter}}" />
+                        <local:PropertyEditor Margin="5,0,0,0"
+                                              PropertyItem="{Binding}"
+                                              UseCardStyle="False"
+                                              Visibility="{Binding IsReadOnly, Converter={StaticResource BooleanNotToVisibilityConverter}}" />
 
                         <!--  Read-only ContentPresenter (visible when property is readonly)  -->
                         <ContentPresenter Margin="5,0,0,0" Visibility="{Binding IsReadOnly, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -269,6 +250,45 @@
                     </Grid>
                 </Grid>
             </Border>
+        </Grid>
+    </HierarchicalDataTemplate>
+
+    <!--  Property Item Card Template (Full-Width Card Layout)  -->
+    <HierarchicalDataTemplate x:Key="PropertyItemCardTemplate" ItemsSource="{Binding Children}">
+        <Grid Margin="0,1,0,1" HorizontalAlignment="Stretch">
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" Header="Copy Name &amp; Value">
+                        <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource NameValueToStringConverter}">
+                                <Binding Path="Name" />
+                                <Binding Path="FormattedValue" />
+                            </MultiBinding>
+                        </MenuItem.CommandParameter>
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE90C;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" Header="Copy Name">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8F3;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" Header="Copy Value">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8C8;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" Header="Copy Description">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8A4;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Grid.ContextMenu>
+
+            <!--  Full-width card layout  -->
+            <local:PropertyEditor PropertyItem="{Binding}" UseCardStyle="True" />
         </Grid>
     </HierarchicalDataTemplate>
 
@@ -305,5 +325,8 @@
     </HierarchicalDataTemplate>
 
     <!--  Property Item Template Selector  -->
-    <local:PropertyItemTemplateSelector x:Key="PropertyItemTemplateSelector" CategoryItemTemplate="{StaticResource CategoryItemTemplate}" PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
+    <local:PropertyItemTemplateSelector x:Key="PropertyItemTemplateSelector"
+                                        CategoryItemTemplate="{StaticResource CategoryItemTemplate}"
+                                        PropertyItemCardTemplate="{StaticResource PropertyItemCardTemplate}"
+                                        PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
 </ResourceDictionary>

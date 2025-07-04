@@ -172,6 +172,16 @@ public partial class PropertyGrid : Control
     public static readonly RoutedUICommand ToggleCategoryCommand = new RoutedUICommand(
         "Toggle Category", "ToggleCategory", typeof(PropertyGrid));
 
+    /// <summary>
+    /// Whether to use card-style display for property editors.
+    /// </summary>
+    public static readonly DependencyProperty UseCardStyleProperty =
+        DependencyProperty.Register(
+            nameof(UseCardStyle),
+            typeof(bool),
+            typeof(PropertyGrid),
+            new PropertyMetadata(false));
+
     private TextBlock? _helpTextBlock;
     private double _lastHelpPaneHeight = 90.0;
     private string _pendingSearchText = string.Empty;
@@ -336,6 +346,15 @@ public partial class PropertyGrid : Control
     {
         get => (bool)GetValue(ShowWmiOptionsProperty);
         set => SetValue(ShowWmiOptionsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether to use card-style display for property editors.
+    /// </summary>
+    public bool UseCardStyle
+    {
+        get => (bool)GetValue(UseCardStyleProperty);
+        set => SetValue(UseCardStyleProperty, value);
     }
 
     /// <summary>

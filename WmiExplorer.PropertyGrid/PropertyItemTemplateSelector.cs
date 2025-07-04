@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace WmiExplorer.PropertyGrid;
 
@@ -13,6 +14,11 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
     /// Gets or sets the template for category items in the hierarchy.
     /// </summary>
     public DataTemplate? CategoryItemTemplate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the template for property items when using card-style display.
+    /// </summary>
+    public DataTemplate? PropertyItemCardTemplate { get; set; }
 
     /// <summary>
     /// Gets or sets the template for standard property items in the hierarchy.
@@ -31,15 +37,61 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                 {
                     return CategoryItemTemplate;
                 }
+
+                // Check if we should use card style by looking for PropertyGrid ancestor
+                bool useCardStyle = false;
+                var ancestor = container;
+
+                // First try visual tree traversal
+                while (ancestor != null)
+                {
+                    if (ancestor is PropertyGrid propertyGrid)
+                    {
+                        useCardStyle = propertyGrid.UseCardStyle;
+                        break;
+                    }
+                    ancestor = VisualTreeHelper.GetParent(ancestor);
+                }
+
+                // If visual tree didn't work, try logical tree
+                if (ancestor == null)
+                {
+                    ancestor = container;
+                    while (ancestor != null)
+                    {
+                        if (ancestor is PropertyGrid propertyGrid)
+                        {
+                            useCardStyle = propertyGrid.UseCardStyle;
+                            break;
+                        }
+                        ancestor = LogicalTreeHelper.GetParent(ancestor);
+                    }
+                }
+
+                // Select appropriate property template
+                if (useCardStyle && PropertyItemCardTemplate != null)
+                {
+                    return PropertyItemCardTemplate;
+                }
                 if (PropertyItemTemplate != null)
                 {
                     return PropertyItemTemplate;
                 }
+
                 // Fall back to resource lookup based on type
                 if (hierarchyItem.IsCategory)
                 {
                     return element.TryFindResource("CategoryItemTemplate") as DataTemplate;
                 }
+
+                // Try card template first if card style is enabled
+                if (useCardStyle)
+                {
+                    var cardTemplate = element.TryFindResource("PropertyItemCardTemplate") as DataTemplate;
+                    if (cardTemplate != null)
+                        return cardTemplate;
+                }
+
                 return element.TryFindResource("PropertyItemTemplate") as DataTemplate;
             }
         }

@@ -161,7 +161,7 @@
     <!--  CUSTOM PROPERTY GRID TEMPLATE  -->
     <!--  ================================================================  -->
     <ControlTemplate x:Key="PropertyGridTemplate" TargetType="local:PropertyGrid">
-        <Border Padding="5"
+        <Border Padding="4"
                 Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}">
@@ -220,6 +220,7 @@
                     <!--  TreeView Mode  -->
                     <ScrollViewer x:Name="PART_TreeScrollViewer"
                                   Grid.Row="1"
+                                  HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Auto"
                                   Visibility="Visible">
                         <TreeView x:Name="PART_PropertiesTree"
@@ -237,9 +238,12 @@
                                 <Style TargetType="Border">
                                     <Setter Property="HorizontalAlignment" Value="Stretch" />
                                 </Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                </Style>
                             </TreeView.Resources>
                             <TreeView.ItemTemplateSelector>
-                                <local:PropertyItemTemplateSelector CategoryItemTemplate="{StaticResource CategoryItemTemplate}" PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
+                                <local:PropertyItemTemplateSelector CategoryItemTemplate="{StaticResource CategoryItemTemplate}" PropertyItemCardTemplate="{StaticResource PropertyItemCardTemplate}" PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
                             </TreeView.ItemTemplateSelector>
                             <TreeView.ItemContainerStyle>
                                 <Style BasedOn="{StaticResource PropertyTreeViewItemStyle}" TargetType="TreeViewItem">
