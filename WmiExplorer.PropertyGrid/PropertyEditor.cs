@@ -43,7 +43,6 @@ public class PropertyEditor : ContentControl
 
     // Margin constants for consistent spacing
     protected static readonly Thickness CHECKBOX_HEX_MARGIN = new Thickness(6, 0, 3, 0);
-
     protected static readonly Thickness CONTROL_MARGIN_STANDARD = new Thickness(4, 2, 4, 2);
     protected static readonly Thickness TIP_TEXT_MARGIN = new Thickness(3, 3, 3, 3);
 
@@ -155,13 +154,13 @@ public class PropertyEditor : ContentControl
     /// <summary>
     /// Creates a standardized TextBox for property editing
     /// </summary>
-    protected TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null)
+    protected TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null, Thickness? margin = null)
     {
         var textBox = new TextBox
         {
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            Margin = CONTROL_MARGIN_STANDARD,
+            Margin = margin ?? CONTROL_MARGIN_STANDARD,
             TextWrapping = TextWrapping.NoWrap,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
         };
@@ -402,7 +401,8 @@ public class PropertyEditor : ContentControl
     {
         var grid = new Grid
         {
-            HorizontalAlignment = HorizontalAlignment.Stretch
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = CONTROL_MARGIN_STANDARD  // Apply margin to the grid
         };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -410,7 +410,8 @@ public class PropertyEditor : ContentControl
         // Apply MaxWidth constraint to the grid
         ApplyMaxWidthConstraint(grid);
 
-        var textBox = CreateStandardTextBox(null, "Enter number (decimal or 0xHEX)", propertyItem);
+        // Create TextBox with no margin since the parent Grid has the margin
+        var textBox = CreateStandardTextBox(null, "Enter number (decimal or 0xHEX)", propertyItem, new Thickness(0));
 
         var checkBox = new CheckBox
         {
@@ -426,10 +427,13 @@ public class PropertyEditor : ContentControl
         grid.Children.Add(textBox);
         grid.Children.Add(checkBox);
 
-        bool isHexadecimal = ShouldDefaultToHex(propertyItem.Value);
+        bool isHexadecimal = ShouldDefaultToHex(propertyItem?.Value);
         checkBox.IsChecked = isHexadecimal;
 
-        SetupIntegerEditorBinding(textBox, checkBox, propertyItem);
+        if (propertyItem != null)
+        {
+            SetupIntegerEditorBinding(textBox, checkBox, propertyItem);
+        }
 
         return grid;
     }
