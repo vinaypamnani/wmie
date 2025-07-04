@@ -83,6 +83,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         // Parse the input to determine what type of connection we're making
         string effectivePath;
 
+
         try
         {
             // Normalize the input and determine the path type
@@ -141,6 +142,9 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
             // Load initial children
             await rootViewModel.ExpandAsync();
 
+            // Clear any existing selections
+            SelectionManager.ClearSelections();
+
             // Add to the UI collection
             await RunOnUIThreadAsync(() =>
             {
@@ -148,6 +152,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
                 rootViewModel.IsSelected = true;
                 return Task.CompletedTask;
             });
+
 
             PublishSuccessState($"Connected to {effectivePath}");
         }
@@ -185,12 +190,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
 
     private void DisconnectRoot(WmiNamespaceViewModel namespaceToRemove)
     {
-        // Clear selection if the namespace being removed is currently selected
-        if (SelectionManager.SelectedNamespace == namespaceToRemove)
-        {
-            SelectionManager.ClearSelections();
-        }
-
         // Remove the namespace from the collection
         RunOnUIThread(() =>
         {
