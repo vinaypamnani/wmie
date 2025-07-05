@@ -76,14 +76,20 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
     /// <summary>
     /// Handles SelectionChangedMessage to force refresh scenarios (re-selection of same item).
     /// This ensures that selection handlers are called even when the same item is selected again.
+    /// Only triggers when the selected object is the SAME as the previous selection (re-selection scenario).
     /// </summary>
     private void OnSelectionChangedMessage(SelectionChangedMessage message)
     {
         if (message?.SelectionManager == null) return;
 
-        // Force call the handlers even if the property values haven't changed
-        // This handles re-selection of the same item
+        // Only handle re-selection scenarios where the same object is selected again
+        // This prevents duplicate calls when the selection actually changes (handled by PropertyChanged)
         var selectedObject = message.SelectionManager.SelectedObject;
+        var previousObject = message.SelectionManager.PreviousObject;
+
+        // Only proceed if this is a re-selection of the same object
+        if (!ReferenceEquals(selectedObject, previousObject))
+            return;
 
         switch (selectedObject)
         {
