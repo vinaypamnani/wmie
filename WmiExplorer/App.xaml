@@ -21,7 +21,7 @@
                 <!--  Control styles  -->
                 <ResourceDictionary Source="Presentation/Styles/AvalonEditCompletionStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Controls/ColorPicker/ColorPickerTheme.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGrid.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

@@ -23,7 +23,7 @@ Add a project reference to `WmiExplorer.PropertyGrid` in your WPF application.
 In your `App.xaml` (or merged dictionaries), add:
 
 ```xml
-<ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGridTheme.xaml" />
+<ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGrid.xaml" />
 ```
 
 ### 3. Define Required Brushes/Resources
