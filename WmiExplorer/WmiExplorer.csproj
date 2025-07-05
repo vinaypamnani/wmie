@@ -12,10 +12,10 @@
     <!-- <WarningsAsErrors>nullable</WarningsAsErrors> -->
 
     <!-- Single file publishing settings -->
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile>false</PublishSingleFile>
     <SelfContained>false</SelfContained>
     <!-- <RuntimeIdentifier>win-x64</RuntimeIdentifier> -->
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRun>false</PublishReadyToRun>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>embedded</DebugType>
 
