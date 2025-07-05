@@ -388,8 +388,9 @@ public class WmiService : IWmiService, IDisposable
             }
             catch (ManagementException mex)
             {
-                Log.Error(mex, "WMI ManagementException while connecting to scope: {ScopePath}", scope?.Path?.Path ?? "Unknown");
-                throw;
+                var errorMessage = ExtractWmiErrorMessage(mex);
+                Log.Error("WMI ManagementException while connecting to scope '{ScopePath}': {ErrorMessage}", scope?.Path?.Path ?? "Unknown", errorMessage);
+                throw new ManagementException(errorMessage, mex);
             }
             catch (UnauthorizedAccessException uex)
             {
@@ -414,6 +415,12 @@ public class WmiService : IWmiService, IDisposable
         {
             return managementClass.InvokeMethod(methodName, inputParameters, null);
         }
+        catch (ManagementException mex)
+        {
+            var errorMessage = ExtractWmiErrorMessage(mex);
+            Log.Error("Error executing WMI static method '{MethodName}' on class: {ErrorMessage}", methodName, errorMessage);
+            throw new ManagementException(errorMessage, mex);
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Error executing WMI static method '{MethodName}' on class", methodName);
@@ -430,6 +437,12 @@ public class WmiService : IWmiService, IDisposable
         try
         {
             return instance.InvokeMethod(methodName, inputParameters, null);
+        }
+        catch (ManagementException mex)
+        {
+            var errorMessage = ExtractWmiErrorMessage(mex);
+            Log.Error("Error executing WMI instance method '{MethodName}' on instance: {ErrorMessage}", methodName, errorMessage);
+            throw new ManagementException(errorMessage, mex);
         }
         catch (Exception ex)
         {
@@ -467,6 +480,12 @@ public class WmiService : IWmiService, IDisposable
             catch (AggregateException ex) when (ex.InnerException is OperationCanceledException)
             {
                 throw ex.InnerException;
+            }
+            catch (AggregateException ex) when (ex.InnerException is ManagementException mex)
+            {
+                // Extract meaningful error information from ManagementException
+                var errorMessage = ExtractWmiErrorMessage(mex);
+                throw new ManagementException(errorMessage, mex);
             }
             catch (AggregateException ex)
             {
@@ -513,7 +532,8 @@ public class WmiService : IWmiService, IDisposable
             }
             else
             {
-                tcs.TrySetException(new ManagementException($"WMI async method execution failed: {e.Status}"));
+                var errorMessage = ExtractWmiErrorMessage(e.StatusObject, e.Status);
+                tcs.TrySetException(new ManagementException(errorMessage));
             }
         };
 
@@ -593,6 +613,69 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Extracts meaningful error information from WMI StatusObject
+    /// </summary>
+    /// <param name="statusObject">The WMI status object containing error details</param>
+    /// <param name="defaultStatus">The default status to use if no detailed information is available</param>
+    /// <returns>A formatted error message with available details</returns>
+    private static string ExtractWmiErrorMessage(ManagementBaseObject? statusObject, ManagementStatus defaultStatus)
+    {
+        var baseMessage = $"Status: {defaultStatus}";
+
+        if (statusObject?.Properties == null)
+            return baseMessage;
+
+        try
+        {
+            var messageId = statusObject.Properties["MessageID"]?.Value?.ToString();
+            var message = statusObject.Properties["Message"]?.Value?.ToString();
+            var windowsErrorMessage = statusObject.Properties["error_WindowsErrorMessage"]?.Value?.ToString();
+
+            var errorDetails = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(messageId))
+                errorDetails.Add($"MessageID: {messageId}");
+
+            if (!string.IsNullOrWhiteSpace(windowsErrorMessage))
+                errorDetails.Add($"Windows Error: {windowsErrorMessage}");
+
+            if (!string.IsNullOrWhiteSpace(message))
+                errorDetails.Add($"Message: {message}");
+
+            if (errorDetails.Any())
+                return $"{baseMessage} - {string.Join(", ", errorDetails)}";
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("Error extracting WMI status object details: {Exception}", ex.Message);
+        }
+
+        return baseMessage;
+    }
+
+    /// <summary>
+    /// Extracts meaningful error information from ManagementException
+    /// </summary>
+    /// <param name="managementException">The ManagementException containing error details</param>
+    /// <returns>A formatted error message with available details</returns>
+    private static string ExtractWmiErrorMessage(ManagementException managementException)
+    {
+        if (managementException?.ErrorInformation != null)
+        {
+            return ExtractWmiErrorMessage(managementException.ErrorInformation, managementException.ErrorCode);
+        }
+
+        var baseMessage = $"Status: {managementException?.ErrorCode ?? ManagementStatus.Failed}";
+
+        if (!string.IsNullOrWhiteSpace(managementException?.Message))
+        {
+            return $"{baseMessage} - {managementException.Message}";
+        }
+
+        return baseMessage;
+    }
+
+    /// <summary>
     /// Formats a namespace path for user-friendly display
     /// </summary>
     /// <param name="namespacePath">The full namespace path (e.g., \\.\root\cimv2)</param>
@@ -630,6 +713,12 @@ public class WmiService : IWmiService, IDisposable
             var oOptions = new ObjectGetOptions();
             var mObject = new ManagementObject(mScope, mPath, oOptions);
             return mObject;
+        }
+        catch (ManagementException mex)
+        {
+            var errorMessage = ExtractWmiErrorMessage(mex);
+            Log.Error("Error getting management object for '{NamespacePath}': {ErrorMessage}", namespacePath, errorMessage);
+            throw new ManagementException(errorMessage, mex);
         }
         catch (Exception ex)
         {
@@ -670,7 +759,8 @@ public class WmiService : IWmiService, IDisposable
             }
             else
             {
-                tcs.TrySetException(new ManagementException($"WMI async query failed: {e.Status}"));
+                var errorMessage = ExtractWmiErrorMessage(e.StatusObject, e.Status);
+                tcs.TrySetException(new ManagementException(errorMessage));
             }
         };
 
