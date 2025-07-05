@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using WmiExplorer.PropertyGrid.Converters;
 
 namespace WmiExplorer.PropertyGrid;
 
@@ -50,7 +51,17 @@ public class CardPropertyEditor : PropertyEditor
 
         // Two-column grid layout
         var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) }); // Fixed name column
+
+        // Name column - bind width to PropertyGrid's NameColumnWidth
+        var nameColumn = new ColumnDefinition();
+        nameColumn.SetBinding(ColumnDefinition.WidthProperty,
+            new Binding("NameColumnWidth")
+            {
+                RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(PropertyGrid), 1),
+                Converter = new DoubleToGridLengthConverter()
+            });
+        grid.ColumnDefinitions.Add(nameColumn);
+
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Stretching editor column
 
         // Property name and type column
@@ -84,12 +95,20 @@ public class CardPropertyEditor : PropertyEditor
             fe.VerticalAlignment = VerticalAlignment.Center;
             fe.HorizontalAlignment = HorizontalAlignment.Stretch;
 
-            // Calculate width to subtract: column0 width (150) + fe margin (8) + card padding (8*2) + border/spacing buffer (8)
-            double widthToSubtract = 150 + 8 + 16 + 8; // = 182
+            // Calculate width to subtract: column0 width (dynamic) + fe margin (8) + card padding (8*2) + border/spacing buffer (8)
+            // We'll create a multi-binding to subtract the name column width + fixed spacing
+            var multiBinding = new MultiBinding
+            {
+                Converter = new WidthCalculationConverter()
+            };
 
-            // Apply MaxWidthConverter to constrain width to card's width
-            fe.SetBinding(FrameworkElement.MaxWidthProperty,
-                new Binding("ActualWidth") { Source = grid, Converter = maxWidthConverter, ConverterParameter = widthToSubtract });
+            multiBinding.Bindings.Add(new Binding("ActualWidth") { Source = grid });
+            multiBinding.Bindings.Add(new Binding("NameColumnWidth")
+            {
+                RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(PropertyGrid), 1)
+            });
+
+            fe.SetBinding(FrameworkElement.MaxWidthProperty, multiBinding);
         }
 
         Grid.SetColumn(content, 1);
@@ -155,6 +174,33 @@ public class SelectionBorderBrushConverter : IValueConverter
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converter for calculating the maximum width of the editor column
+/// </summary>
+public class WidthCalculationConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        if (values.Length >= 2 &&
+            values[0] is double gridWidth &&
+            values[1] is double nameColumnWidth)
+        {
+            // Calculate width to subtract: nameColumnWidth + fe margin (8) + card padding (8*2) + border/spacing buffer (8)
+            double widthToSubtract = nameColumnWidth + 8 + 16 + 8;
+            double maxWidth = gridWidth - widthToSubtract;
+
+            return Math.Max(maxWidth, 50); // Ensure minimum width of 50
+        }
+
+        return 200.0; // Fallback width
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
     {
         throw new NotImplementedException();
     }
