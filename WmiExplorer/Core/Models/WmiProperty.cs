@@ -10,10 +10,8 @@ namespace WmiExplorer.Core.Models;
 /// </summary>
 public class WmiProperty
 {
-    private NameValueCollection? _cachedPossibleValues;
     private readonly ManagementClass? _parentClass;
     private readonly PropertyData _propertyData;
-    private static readonly NameValueCollection EmptyCollection = new();
 
     public WmiProperty(PropertyData propertyData, ManagementClass? parentClass = null)
     {
@@ -97,24 +95,12 @@ public class WmiProperty
     /// <summary>
     /// Gets the possible enumeration values for this property, if available.
     /// </summary>
-    [Category("Help")]
+    [Category("Enumeration")]
     public NameValueCollection? PossibleValues
     {
         get
         {
-            // Use sentinel pattern: EmptyCollection means "evaluated but no values found"
-            if (_cachedPossibleValues == EmptyCollection)
-                return null;
-
-            // Return cached result if already evaluated and has values
-            if (_cachedPossibleValues != null)
-                return _cachedPossibleValues;
-
-            // Evaluate and cache the result
-            _cachedPossibleValues = BuildPossibleValues() ?? EmptyCollection;
-
-            // Return null if no values were found (EmptyCollection sentinel)
-            return _cachedPossibleValues == EmptyCollection ? null : _cachedPossibleValues;
+            return BuildPossibleValues();
         }
     }
 
@@ -181,9 +167,9 @@ public class WmiProperty
     /// <summary>
     /// Creates a NameValueCollection from the values and optional value map.
     /// </summary>
-    private static NameValueCollection CreateNameValueCollection(object values, object? valueMap)
+    private static NameValueCollection? CreateNameValueCollection(object values, object? valueMap)
     {
-        var result = new NameValueCollection();
+        var tempItems = new List<(string Name, string Value, int? SortKey)>();
 
         switch (values)
         {
@@ -191,7 +177,10 @@ public class WmiProperty
                 // Paired values and map
                 for (int i = 0; i < valueArray.Length; i++)
                 {
-                    result.Add(valueArray[i], mapArray[i]);
+                    var name = valueArray[i];
+                    var value = mapArray[i];
+                    var sortKey = int.TryParse(value, out int intVal) ? intVal : (int?)null;
+                    tempItems.Add((name, value, sortKey));
                 }
                 break;
 
@@ -200,16 +189,17 @@ public class WmiProperty
                 for (int i = 0; i < valueArray.Length; i++)
                 {
                     var value = valueArray[i];
-                    result.Add(value, value);
+                    var sortKey = int.TryParse(value, out int intVal) ? intVal : (int?)null;
+                    tempItems.Add((value, value, sortKey));
                 }
                 break;
 
             case int[] intArray:
-                // Integer values
+                // Integer values - these have natural sort order
                 for (int i = 0; i < intArray.Length; i++)
                 {
                     var value = intArray[i].ToString();
-                    result.Add(value, value);
+                    tempItems.Add((value, value, intArray[i]));
                 }
                 break;
 
@@ -221,12 +211,28 @@ public class WmiProperty
                     var value = splitValues[i].Trim();
                     if (!string.IsNullOrEmpty(value))
                     {
-                        result.Add(value, value);
+                        var sortKey = int.TryParse(value, out int intVal) ? intVal : (int?)null;
+                        tempItems.Add((value, value, sortKey));
                     }
                 }
                 break;
         }
 
-        return result.Count > 0 ? result : null!;
+        if (tempItems.Count == 0)
+            return null;
+
+        // Sort items: numeric values first by numeric value, then string values alphabetically
+        var sortedItems = tempItems
+            .OrderBy(item => item.SortKey.HasValue ? 0 : 1) // Numeric items first
+            .ThenBy(item => item.SortKey ?? int.MaxValue)    // Sort numeric items by value
+            .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase); // Sort string items alphabetically
+
+        var result = new NameValueCollection();
+        foreach (var (name, value, _) in sortedItems)
+        {
+            result.Add(name, value);
+        }
+
+        return result;
     }
 }
