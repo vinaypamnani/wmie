@@ -178,18 +178,40 @@
                     <!--  Help text row  -->
                     <RowDefinition Height="{Binding HelpPaneHeight, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Converter={StaticResource DoubleToGridLengthConverter}}" />
                 </Grid.RowDefinitions>
-                <!--  ===== OPTIONS PANEL (for checkboxes) =====  -->
-                <StackPanel Grid.Row="0" Margin="0,4" Orientation="Horizontal">
+                <!--  ===== OPTIONS PANEL (for checkboxes and slider) =====  -->
+                <StackPanel Grid.Row="0" Margin="0,4" Orientation="Vertical">
 
-                    <!--  ShowOptions checkboxes - Using FilterOptions for cleaner property management  -->
-                    <StackPanel Orientation="Horizontal" Visibility="{Binding ShowOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <CheckBox Margin="0,0,0,0" Content="Show null values" IsChecked="{Binding FilterOptions.IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
-                        <CheckBox Margin="4,0,0,0" Content="Show read-only properties" IsChecked="{Binding FilterOptions.IncludeReadOnlyProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                    <!--  Top row: Checkboxes  -->
+                    <StackPanel Orientation="Horizontal">
+                        <!--  ShowOptions checkboxes - Using FilterOptions for cleaner property management  -->
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ShowOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <CheckBox Margin="0,0,0,0" Content="Show null values" IsChecked="{Binding FilterOptions.IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                            <CheckBox Margin="4,0,0,0" Content="Show read-only properties" IsChecked="{Binding FilterOptions.IncludeReadOnlyProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <!--  ShowWmiOptions checkboxes - Using FilterOptions for cleaner property management  -->
+                        <StackPanel Margin="4,0,0,0" Orientation="Horizontal" Visibility="{Binding ShowWmiOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <CheckBox Content="Show System Properties" IsChecked="{Binding FilterOptions.IncludeSystemProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                        </StackPanel>
                     </StackPanel>
 
-                    <!--  ShowWmiOptions checkboxes - Using FilterOptions for cleaner property management  -->
-                    <StackPanel Margin="4,0,0,0" Orientation="Horizontal" Visibility="{Binding ShowWmiOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <CheckBox Content="Show System Properties" IsChecked="{Binding FilterOptions.IncludeSystemProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                    <!--  Bottom row: Column Width Slider  -->
+                    <StackPanel Margin="0,4,0,0" VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Margin="0,0,4,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource PropertyGridForegroundBrush}"
+                                   Text="Name Width:" />
+                        <Slider Width="100"
+                                VerticalAlignment="Center"
+                                Maximum="400"
+                                Minimum="100"
+                                Style="{StaticResource PropertyGridSliderStyle}"
+                                ToolTip="Adjust property name column width"
+                                Value="{Binding NameColumnWidth, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                        <TextBlock Margin="4,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource PropertyGridForegroundBrush}"
+                                   Text="{Binding NameColumnWidth, RelativeSource={RelativeSource TemplatedParent}, StringFormat={}{0:F0}}" />
                     </StackPanel>
 
                 </StackPanel>
