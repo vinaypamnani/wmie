@@ -140,16 +140,59 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Command to execute the auto-generated query
+    /// Executes the auto-generated query by requesting a tab switch, setting the query, and executing it.
     /// </summary>
     [RelayCommand(CanExecute = nameof(ExecuteAutoQueryCanExecute))]
-    private void ExecuteAutoQuery()
+    private async Task ExecuteAutoQuery()
     {
         if (string.IsNullOrWhiteSpace(AutoQueryText))
             return;
 
-        // Log the query execution
-        PublishWarningState($"[Not implemented] Executing query: {AutoQueryText}");
+        try
+        {
+            // Define the index for the Query tab (update if needed)
+            const int QueryTabIndex = 2;
+
+            // Request MainViewModel to switch to the Query tab via message
+            _messengerService.Send(new SwitchMainTabMessage(QueryTabIndex));
+
+            // Get the QueryTabViewModel for the currently selected namespace
+            var selectedNamespace = SelectionManager.SelectedNamespace;
+            if (selectedNamespace == null)
+            {
+                PublishErrorState("No namespace selected.");
+                return;
+            }
+
+            var queryTabViewModel = selectedNamespace.QueryTabViewModel;
+            if (queryTabViewModel == null)
+            {
+                PublishErrorState("Query tab is not available for the selected namespace.");
+                return;
+            }
+
+            // Set the query text
+            queryTabViewModel.QueryText = AutoQueryText;
+
+            // Execute the query if possible
+            if (queryTabViewModel.ExecuteQueryCommand.CanExecute(null))
+            {
+                // Await the async command execution if possible
+                var executionTask = queryTabViewModel.ExecuteQueryCommand.ExecuteAsync(null);
+                if (executionTask != null)
+                {
+                    await executionTask;
+                }
+            }
+            else
+            {
+                PublishWarningState("Query cannot be executed at this time. ExecuteQueryCommand.CanExecute() returned false.");
+            }
+        }
+        catch (Exception ex)
+        {
+            PublishErrorState("Failed to execute auto-query.", ex);
+        }
     }
 
     /// <summary>

@@ -81,6 +81,19 @@ public class SettingChangedMessage<T> : MessageBase
 }
 
 /// <summary>
+/// Message to request switching to a specific main tab (by index)
+/// </summary>
+public class SwitchMainTabMessage : MessageBase
+{
+    public SwitchMainTabMessage(int tabIndex)
+    {
+        TabIndex = tabIndex;
+    }
+
+    public int TabIndex { get; }
+}
+
+/// <summary>
 /// Message sent when any collection count changes that affects tab headers
 /// </summary>
 public class TabCountChangedMessage : MessageBase

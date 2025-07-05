@@ -78,6 +78,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         // Subscribe to events that affect tab headers
         StrongSubscribe<TabCountChangedMessage>(_ => UpdateTabHeaders());
 
+        // Subscribe to SwitchMainTabMessage to handle tab switching requests
+        StrongSubscribe<SwitchMainTabMessage>(HandleSwitchMainTabMessage);
+
         // Test logging
         Log.Information("Application started successfully. IsPortable: {IsPortable}", UpdateManager.IsPortable);
 
@@ -226,6 +229,14 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
         // Switch to Classes tab (assume tab index 0 is Classes)
         SelectedTabIndex = 0;
+    }
+
+    /// <summary>
+    /// Handles requests to switch the main tab (from other viewmodels)
+    /// </summary>
+    private void HandleSwitchMainTabMessage(SwitchMainTabMessage message)
+    {
+        SelectedTabIndex = message.TabIndex;
     }
 
     /// <summary>
