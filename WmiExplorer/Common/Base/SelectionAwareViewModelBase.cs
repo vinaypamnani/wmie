@@ -12,6 +12,12 @@ namespace WmiExplorer.Common.Base;
 /// </summary>
 public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBase
 {
+    private object? _lastProcessedClass;
+    private object? _lastProcessedInstance;
+
+    // Track the last processed selections to prevent duplicate processing
+    private object? _lastProcessedNamespace;
+
     /// <summary>
     /// The centralized SelectionManager exposed as ObservableProperty for XAML binding
     /// </summary>
@@ -74,46 +80,52 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
     }
 
     /// <summary>
-    /// Handles SelectionChangedMessage to force refresh scenarios (re-selection of same item).
-    /// This ensures that selection handlers are called even when the same item is selected again.
-    /// Only triggers when the selected object is the SAME as the previous selection (re-selection scenario).
+    /// Handles SelectionChangedMessage for both new selections and re-selections.
+    /// This ensures that selection handlers are called reliably, serving as a backup
+    /// to PropertyChanged events and handling force refresh scenarios.
+    /// Uses tracking to prevent duplicate processing.
     /// </summary>
     private void OnSelectionChangedMessage(SelectionChangedMessage message)
     {
         if (message?.SelectionManager == null) return;
 
-        // Only handle re-selection scenarios where the same object is selected again
-        // This prevents duplicate calls when the selection actually changes (handled by PropertyChanged)
         var selectedObject = message.SelectionManager.SelectedObject;
-        var previousObject = message.SelectionManager.PreviousObject;
-
-        // Only proceed if this is a re-selection of the same object
-        if (!ReferenceEquals(selectedObject, previousObject))
-            return;
 
         switch (selectedObject)
         {
             case WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel namespaceVm:
-                // Only call if this is actually a re-selection of the current namespace
-                if (SelectionManager.SelectedNamespace == namespaceVm)
+                // Only process if this is different from last processed or if it's a re-selection
+                var currentNamespace = SelectionManager.SelectedNamespace;
+                if (currentNamespace == namespaceVm && !ReferenceEquals(_lastProcessedNamespace, namespaceVm))
+                {
+                    _lastProcessedNamespace = namespaceVm;
                     OnSelectedNamespaceChanged(namespaceVm);
+                }
                 break;
             case WmiExplorer.Presentation.ViewModels.Items.WmiClassViewModel classVm:
-                // Only call if this is actually a re-selection of the current class
-                if (SelectionManager.GetSelectedClass() == classVm)
+                // Only process if this is different from last processed or if it's a re-selection
+                var currentClass = SelectionManager.GetSelectedClass();
+                if (currentClass == classVm && !ReferenceEquals(_lastProcessedClass, classVm))
+                {
+                    _lastProcessedClass = classVm;
                     OnSelectedClassChanged(classVm);
+                }
                 break;
-
             case WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel instanceVm:
-                // Only call if this is actually a re-selection of the current instance
-                if (SelectionManager.GetSelectedInstance() == instanceVm)
+                // Only process if this is different from last processed or if it's a re-selection
+                var currentInstance = SelectionManager.GetSelectedInstance();
+                if (currentInstance == instanceVm && !ReferenceEquals(_lastProcessedInstance, instanceVm))
+                {
+                    _lastProcessedInstance = instanceVm;
                     OnSelectedInstanceChanged(instanceVm);
+                }
                 break;
         }
     }
 
     /// <summary>
     /// Handles SelectionManager property changes. Routes to specific virtual methods based on the property name.
+    /// Uses tracking to prevent duplicate processing.
     /// Override the specific On*Changed methods in derived classes instead of this method.
     /// </summary>
     private void OnSelectionManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -121,13 +133,28 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
         switch (e.PropertyName)
         {
             case nameof(SelectionManager.SelectedNamespace):
-                OnSelectedNamespaceChanged(SelectionManager.SelectedNamespace);
+                var selectedNamespace = SelectionManager.SelectedNamespace;
+                if (!ReferenceEquals(_lastProcessedNamespace, selectedNamespace))
+                {
+                    _lastProcessedNamespace = selectedNamespace;
+                    OnSelectedNamespaceChanged(selectedNamespace);
+                }
                 break;
             case nameof(SelectionManager.SelectedClass):
-                OnSelectedClassChanged(SelectionManager.GetSelectedClass());
+                var selectedClass = SelectionManager.GetSelectedClass();
+                if (!ReferenceEquals(_lastProcessedClass, selectedClass))
+                {
+                    _lastProcessedClass = selectedClass;
+                    OnSelectedClassChanged(selectedClass);
+                }
                 break;
             case nameof(SelectionManager.SelectedInstance):
-                OnSelectedInstanceChanged(SelectionManager.GetSelectedInstance());
+                var selectedInstance = SelectionManager.GetSelectedInstance();
+                if (!ReferenceEquals(_lastProcessedInstance, selectedInstance))
+                {
+                    _lastProcessedInstance = selectedInstance;
+                    OnSelectedInstanceChanged(selectedInstance);
+                }
                 break;
         }
     }
