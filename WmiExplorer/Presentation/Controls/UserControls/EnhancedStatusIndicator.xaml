@@ -82,7 +82,8 @@
                 </Ellipse>
 
                 <!--  Error Indicator (Red)  -->
-                <Ellipse Width="14"
+                <Ellipse x:Name="ErrorEllipse"
+                         Width="14"
                          Height="14"
                          HorizontalAlignment="Center"
                          Fill="{DynamicResource BaseRedBrush}">
