@@ -94,7 +94,7 @@ public static class ItemSelectionBehavior
         var control = (FrameworkElement)sender;
         var dataContext = control.DataContext;
 
-        // Determine which mouse buttons to process based on control type
+        // Determine which mouse buttons to process for selectionbased on control type
         bool processLeftClick = e.ChangedButton == MouseButton.Left;
         bool processRightClick = e.ChangedButton == MouseButton.Right && control is not TreeViewItem;
 
@@ -110,9 +110,8 @@ public static class ItemSelectionBehavior
             // SelectionManager will handle IsSelected properties first, then optionally PropertyGrid update
             _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid);
 
-            // Handle left-clicks for all controls to prevent bubbling
-            // Handle right-clicks only for non-TreeViewItems (ListView/DataGrid)
-            if (processLeftClick || processRightClick)
+            // Only Handle left-clicks for all controls to prevent bubbling and allow right-click context menus
+            if (processLeftClick)
             {
                 e.Handled = true;
             }
