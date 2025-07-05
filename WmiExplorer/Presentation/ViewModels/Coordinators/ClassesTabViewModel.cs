@@ -255,7 +255,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
                     PublishWarningState($"Showing partial results for class {selectedClass.ClassName}.");
                     break;
                 case InstanceLoadState.Failed:
-                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click the class to try again.");
+                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click the class to try again.", selectedClass.LoadException);
                     break;
                 case InstanceLoadState.Success:
                     var count = selectedClass.InstancesView.Cast<object>().Count();

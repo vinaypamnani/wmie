@@ -32,6 +32,9 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     [ObservableProperty]
     private bool _isSelected;
 
+    [ObservableProperty]
+    private Exception? _loadException;
+
     private bool _isUpdatingSelection = false;
 
     [ObservableProperty]
@@ -373,6 +376,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             }
             else
             {
+                LoadException = null;
                 LoadState = InstanceLoadState.Success;
                 Log.Information("Successfully loaded {InstanceCount} instances for {ClassName}", instanceViewModels.Count, ClassName);
                 PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
@@ -407,6 +411,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         catch (Exception ex)
         {
             Log.Error(ex, "Error loading instances for class: {ClassName}", ClassName);
+            LoadException = ex;
             LoadState = InstanceLoadState.Failed;
             PublishErrorState($"Error loading instances for {ClassName}: {ex.Message}", ex);
         }

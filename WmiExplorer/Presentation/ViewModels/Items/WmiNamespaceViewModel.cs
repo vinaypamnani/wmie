@@ -52,6 +52,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [ObservableProperty]
     private bool _isSelected;
 
+    [ObservableProperty]
+    private Exception? _loadException;
+
     private bool _isUpdatingSelection = false;
     private ManagementScope? _managementScope;
 
@@ -378,6 +381,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
             HasLoadedChildren = true;
             IsExpanded = true;
+            LoadException = null;
             NamespaceLoadState = NamespaceLoadState.Success;
             PublishSuccessState($"Loaded child namespaces for {NamespacePath}");
         }
@@ -390,6 +394,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         catch (Exception ex)
         {
             Log.Error(ex, "Error loading child namespaces for {NamespacePath}", NamespacePath);
+            LoadException = ex;
             NamespaceLoadState = NamespaceLoadState.Failed;
             PublishErrorState($"Error loading child namespaces for {NamespacePath}: {ex.Message}", ex);
         }
@@ -454,6 +459,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 return Task.CompletedTask;
             });
 
+            LoadException = null;
             ClassLoadState = ClassLoadState.Success;
             Log.Information("Successfully loaded {ClassCount} classes for {NamespacePath}", _classes.Count, NamespacePath);
 
@@ -475,6 +481,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         catch (Exception ex)
         {
             ClassLoadState = ClassLoadState.Failed;
+            LoadException = ex;
             Log.Error(ex, "Error loading classes for {NamespacePath}", NamespacePath);
             PublishErrorState($"Error loading classes for {NamespacePath}: {ex.Message}", ex);
         }

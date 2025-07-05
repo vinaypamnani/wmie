@@ -351,17 +351,38 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         return SelectionManager.SelectedNamespace != null && SelectionManager.SelectedNamespace.LoadClassesCommand.CanExecute(null);
     }
 
+    private void SettingsManager_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsManager.ShowSystemClasses))
+        {
+            // Only update the currently selected namespace
+            SelectionManager.SelectedNamespace?.OnShowSystemClassesChanged();
+        }
+    }
+
     /// <summary>
     /// Updates the status bar message based on the selected namespace state
     /// </summary>
     private void UpdateStatusBar()
     {
         // If no namespace is selected, do nothing
-        if (SelectionManager.SelectedNamespace == null || SelectionManager.SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
+        if (SelectionManager.SelectedNamespace == null)
+            return;
+
+        var ns = SelectionManager.SelectedNamespace;
+
+        // Handle namespace loading failures first
+        if (ns.NamespaceLoadState == NamespaceLoadState.Failed)
+        {
+            PublishErrorState($"Failed to load namespace {ns.NamespacePath}.", ns.LoadException);
+            return;
+        }
+
+        // If namespace is not successfully loaded, return (loading state, etc.)
+        if (ns.NamespaceLoadState != NamespaceLoadState.Success)
             return;
 
         // Otherwise, show status based on namespace class load state
-        var ns = SelectionManager.SelectedNamespace;
         switch (ns.ClassLoadState)
         {
             case ClassLoadState.Unknown:
@@ -374,7 +395,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
                 PublishBusyState($"Showing partial results for {ns.NamespacePath}.");
                 break;
             case ClassLoadState.Failed:
-                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click the namespace to try again.");
+                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click the namespace to try again.", ns.LoadException);
                 break;
             case ClassLoadState.Success when ns.NamespaceLoadState == NamespaceLoadState.Success:
                 var count = ns.ClassesView.Cast<object>().Count();
@@ -384,15 +405,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
                 else
                     PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
                 break;
-        }
-    }
-
-    private void SettingsManager_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(SettingsManager.ShowSystemClasses))
-        {
-            // Only update the currently selected namespace
-            SelectionManager.SelectedNamespace?.OnShowSystemClassesChanged();
         }
     }
 }
