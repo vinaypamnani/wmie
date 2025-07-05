@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Management;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.PropertyGrid;
 
 namespace WmiExplorer.Core.Models;
@@ -10,7 +11,10 @@ namespace WmiExplorer.Core.Models;
 /// </summary>
 public class WmiProperty
 {
+    private object? _cachedValueMap;
+    private object? _cachedValues;
     private readonly ManagementClass? _parentClass;
+    private bool _possibleValuesComputed;
     private readonly PropertyData _propertyData;
 
     public WmiProperty(PropertyData propertyData, ManagementClass? parentClass = null)
@@ -101,7 +105,19 @@ public class WmiProperty
     {
         get
         {
-            return BuildPossibleValues();
+            if (!_possibleValuesComputed)
+            {
+                BuildAndCachePossibleValues();
+                _possibleValuesComputed = true;
+            }
+
+            // Always create a fresh NameValueCollection from cached data or else PropertyGrid doesn't update on reselection
+            if (_cachedValues != null)
+            {
+                return CreateNameValueCollection(_cachedValues, _cachedValueMap);
+            }
+
+            return null;
         }
     }
 
@@ -118,16 +134,13 @@ public class WmiProperty
     public override string ToString() => $"Property: {Name} ({Type})";
 
     /// <summary>
-    /// Builds the possible values collection from WMI qualifiers.
+    /// Builds and caches the possible values data from WMI qualifiers.
     /// </summary>
-    private NameValueCollection? BuildPossibleValues()
+    private void BuildAndCachePossibleValues()
     {
         var qualifiers = _propertyData.Qualifiers;
         if (qualifiers == null || qualifiers.Count == 0)
-            return null;
-
-        object? values = null;
-        object? valueMap = null;
+            return;
 
         // Use a more efficient lookup for qualifiers
         try
@@ -142,26 +155,21 @@ public class WmiProperty
                     string.Equals(name, "bitvalues", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(name, "bits", StringComparison.OrdinalIgnoreCase))
                 {
-                    values = qualifier.Value;
-                    if (valueMap != null) break; // Both found, exit early
+                    _cachedValues = qualifier.Value;
+                    if (_cachedValueMap != null) break; // Both found, exit early
                 }
                 else if (string.Equals(name, "valuemap", StringComparison.OrdinalIgnoreCase) ||
                          string.Equals(name, "bitmap", StringComparison.OrdinalIgnoreCase))
                 {
-                    valueMap = qualifier.Value;
-                    if (values != null) break; // Both found, exit early
+                    _cachedValueMap = qualifier.Value;
+                    if (_cachedValues != null) break; // Both found, exit early
                 }
             }
-
-            // Early return if no values found
-            if (values == null)
-                return null;
-
-            return CreateNameValueCollection(values, valueMap);
         }
-        catch
+        catch (Exception ex)
         {
-            return null;
+            // Log the exception for debugging
+            Log.Warning(ex, "Error building possible values for property '{Name}' in Class '{ClassName}'", Name, ClassName);
         }
     }
 
