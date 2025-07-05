@@ -12,6 +12,11 @@ namespace WmiExplorer.Presentation.Behaviors;
 /// Uses dependency injection pattern similar to AvalonEdit behaviors.
 /// Supports: TreeViewItem, ListViewItem, and DataGridRow.
 ///
+/// Selection behavior:
+/// - Left-click: Triggers selection for all supported control types
+/// - Right-click: Triggers selection only for ListViewItem and DataGridRow (not TreeViewItem)
+///   This prevents right-click selection bubbling issues in TreeView hierarchies
+///
 /// Note: IsSelected property management is handled by SelectionManager to ensure
 /// proper order of operations (local OnIsSelectedChanged actions before PropertyGrid updates).
 /// </summary>
@@ -82,14 +87,19 @@ public static class ItemSelectionBehavior
 
     private static void OnItemMouseUp(object sender, MouseButtonEventArgs e)
     {
-
-
-        // Process left-click and right-click (single click only)
-        if ((e.ChangedButton != MouseButton.Left && e.ChangedButton != MouseButton.Right) || e.ClickCount != 1)
+        // Single click only
+        if (e.ClickCount != 1)
             return;
 
         var control = (FrameworkElement)sender;
         var dataContext = control.DataContext;
+
+        // Determine which mouse buttons to process based on control type
+        bool processLeftClick = e.ChangedButton == MouseButton.Left;
+        bool processRightClick = e.ChangedButton == MouseButton.Right && control is not TreeViewItem;
+
+        if (!processLeftClick && !processRightClick)
+            return;
 
         // Check if PropertyGrid should be updated
         bool updatePropertyGrid = GetUpdatePropertyGrid(control);
@@ -100,10 +110,9 @@ public static class ItemSelectionBehavior
             // SelectionManager will handle IsSelected properties first, then optionally PropertyGrid update
             _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid);
 
-            // Only mark as handled for left-clicks to allow right-click context menus to work properly
-            // This prevents event bubbling to parent TreeViewItems for left-clicks
-            // while allowing right-click context menus to work properly
-            if (e.ChangedButton == MouseButton.Left)
+            // Handle left-clicks for all controls to prevent bubbling
+            // Handle right-clicks only for non-TreeViewItems (ListView/DataGrid)
+            if (processLeftClick || processRightClick)
             {
                 e.Handled = true;
             }
