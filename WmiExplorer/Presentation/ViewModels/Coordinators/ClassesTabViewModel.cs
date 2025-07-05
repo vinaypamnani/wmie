@@ -40,7 +40,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
 
         // Subscribe to messages
-        StrongSubscribe<InstancesFilteredMessage>(HandleInstancesFilteredMessage);
         StrongSubscribe<TabCountChangedMessage>(message => UpdateTabHeaders());
     }
 
@@ -119,7 +118,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
     {
         UpdateTabHeaders();
-        UpdateStatusBar();
         UpdateAutoQueryText(selectedClass!);
     }
 
@@ -200,18 +198,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     private bool ExecuteAutoQueryCanExecute() => !string.IsNullOrWhiteSpace(AutoQueryText);
 
-    /// <summary>
-    /// Handles the instances filtered message
-    /// </summary>
-    private void HandleInstancesFilteredMessage(InstancesFilteredMessage message)
-    {
-        if (message?.ClassViewModel != null && message.ClassViewModel == SelectionManager.GetSelectedClass())
-        {
-            UpdateStatusBar();
-            UpdateTabHeaders();
-        }
-    }
-
     partial void OnAutoQueryTextChanged(string value)
     {
         // Notify that the CanExecute state of ExecuteAutoQueryCommand may have changed
@@ -270,46 +256,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         else
         {
             AutoQueryText = string.Empty;
-        }
-    }
-
-    /// <summary>
-    /// Updates the status bar message based on the selected namespace or class load states
-    /// </summary>
-    private void UpdateStatusBar()
-    {
-        // If no namespace is selected, do nothing
-        if (SelectionManager.SelectedNamespace == null || SelectionManager.SelectedNamespace.NamespaceLoadState != NamespaceLoadState.Success)
-            return;
-
-        // If a class is selected, show status based on class load state
-        var selectedClass = SelectionManager.GetSelectedClass();
-        if (selectedClass != null)
-        {
-            switch (selectedClass.LoadState)
-            {
-                case InstanceLoadState.Unknown:
-                    PublishSuccessState($"Selected class {selectedClass.ClassName}. Double-click the class to load instances.");
-                    break;
-                case InstanceLoadState.Loading:
-                    PublishBusyState($"Loading instances for class {selectedClass.ClassName}...");
-                    break;
-                case InstanceLoadState.Warning:
-                    PublishWarningState($"Showing partial results for class {selectedClass.ClassName}.");
-                    break;
-                case InstanceLoadState.Failed:
-                    PublishErrorState($"Failed to load instances for class {selectedClass.ClassName}. Double-click the class to try again.", selectedClass.LoadException);
-                    break;
-                case InstanceLoadState.Success:
-                    var count = selectedClass.InstancesView.Cast<object>().Count();
-                    var total = selectedClass.Instances.Count;
-                    if (count < total)
-                        PublishSuccessState($"Showing {count} of {total} instances for class {selectedClass.ClassName}.");
-                    else
-                        PublishSuccessState($"Showing {count} instances for class {selectedClass.ClassName}.");
-                    break;
-            }
-            return;
         }
     }
 

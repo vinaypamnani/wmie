@@ -43,7 +43,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
-        StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
         StrongSubscribe<DisconnectNamespaceMessage>(HandleDisconnectNamespaceMessage);
 
         // Subscribe to settings property changes for ShowSystemClasses
@@ -183,9 +182,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     {
         // Notify command state changes
         ReloadClassesCommand.NotifyCanExecuteChanged();
-
-        // Update the status bar based on the selected namespace
-        UpdateStatusBar();
     }
 
     private void DisconnectRoot(WmiNamespaceViewModel namespaceToRemove)
@@ -263,17 +259,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
 
         // Recursively continue down the specific path
         return await FindOrExpandNamespaceByPathAsync(targetChild, target);
-    }
-
-    /// <summary>
-    /// Handles when classes are filtered in the selected namespace to update the status bar
-    /// </summary>
-    private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
-    {
-        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectionManager.SelectedNamespace)
-        {
-            UpdateStatusBar();
-        }
     }
 
     /// <summary>
@@ -357,54 +342,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         {
             // Only update the currently selected namespace
             SelectionManager.SelectedNamespace?.OnShowSystemClassesChanged();
-        }
-    }
-
-    /// <summary>
-    /// Updates the status bar message based on the selected namespace state
-    /// </summary>
-    private void UpdateStatusBar()
-    {
-        // If no namespace is selected, do nothing
-        if (SelectionManager.SelectedNamespace == null)
-            return;
-
-        var ns = SelectionManager.SelectedNamespace;
-
-        // Handle namespace loading failures first
-        if (ns.NamespaceLoadState == NamespaceLoadState.Failed)
-        {
-            PublishErrorState($"Failed to load child namespaces for {ns.NamespacePath}: {ns.LoadException?.Message}", ns.LoadException);
-            return;
-        }
-
-        // If namespace is not successfully loaded, return (loading state, etc.)
-        if (ns.NamespaceLoadState != NamespaceLoadState.Success)
-            return;
-
-        // Otherwise, show status based on namespace class load state
-        switch (ns.ClassLoadState)
-        {
-            case ClassLoadState.Unknown:
-                PublishSuccessState($"Selected {ns.NamespacePath} Double-click the namespace to load classes.");
-                break;
-            case ClassLoadState.Loading:
-                PublishBusyState($"Loading classes for {ns.NamespacePath}...");
-                break;
-            case ClassLoadState.Warning:
-                PublishBusyState($"Showing partial results for {ns.NamespacePath}.");
-                break;
-            case ClassLoadState.Failed:
-                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click the namespace to try again.", ns.LoadException);
-                break;
-            case ClassLoadState.Success when ns.NamespaceLoadState == NamespaceLoadState.Success:
-                var count = ns.ClassesView.Cast<object>().Count();
-                var total = ns.Classes.Count;
-                if (count < total)
-                    PublishSuccessState($"Showing {count} of {total} classes for {ns.NamespacePath}.");
-                else
-                    PublishSuccessState($"Showing {count} classes for {ns.NamespacePath}");
-                break;
         }
     }
 }

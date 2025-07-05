@@ -74,6 +74,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
         StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
+        StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
+        StrongSubscribe<InstancesFilteredMessage>(HandleInstancesFilteredMessage);
 
         // Subscribe to events that affect tab headers
         StrongSubscribe<TabCountChangedMessage>(_ => UpdateTabHeaders());
@@ -154,11 +156,28 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
+    {
+        UpdateStatusBarForSelection(SelectionManager);
+    }
+
+    /// <summary>
+    /// Called when the selected instance changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedInstanceChanged(WmiInstanceViewModel? selectedInstance)
+    {
+        UpdateStatusBarForSelection(SelectionManager);
+    }
+
+    /// <summary>
     /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
     /// </summary>
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
     {
         UpdateTabHeaders();
+        UpdateStatusBarForSelection(SelectionManager);
     }
 
     /// <summary>
@@ -208,6 +227,18 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Handles classes filtered messages to update the status bar with filtered counts
+    /// </summary>
+    private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
+    {
+        // Only update status bar if the filtered namespace is the currently selected one
+        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectionManager.SelectedNamespace)
+        {
+            UpdateStatusBarForNamespace(message.NamespaceViewModel);
+        }
+    }
+
+    /// <summary>
     /// Handles elapsed time messages for long-running operations
     /// </summary>
     private void HandleElapsedTimeMessage(ElapsedTimeMessage message)
@@ -217,6 +248,18 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         {
             ElapsedTimeMessage = message.Message;
         });
+    }
+
+    /// <summary>
+    /// Handles instances filtered messages to update the status bar with filtered counts
+    /// </summary>
+    private void HandleInstancesFilteredMessage(InstancesFilteredMessage message)
+    {
+        // Only update status bar if the filtered class is the currently selected one
+        if (message?.ClassViewModel != null && message.ClassViewModel == SelectionManager.GetSelectedClass())
+        {
+            UpdateStatusBarForClass(message.ClassViewModel);
+        }
     }
 
     /// <summary>
@@ -297,6 +340,143 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     {
         _themeManager.ToggleTheme(); // Theme change message will trigger UpdateThemeProperties via subscription
         Log.Debug("Changed Current theme to: {ThemeName}", _themeManager.CurrentTheme?.ThemeName ?? "Unknown");
+    }
+
+    /// <summary>
+    /// Updates status bar for class selection
+    /// </summary>
+    private void UpdateStatusBarForClass(WmiClassViewModel wmiClass)
+    {
+        var ns = wmiClass.ParentNamespaceViewModel;
+
+        switch (wmiClass.LoadState)
+        {
+            case InstanceLoadState.Unknown:
+                PublishSuccessState($"Selected class '{wmiClass.ClassName}' in {ns.NamespacePath}. Double-click to load instances.");
+                break;
+            case InstanceLoadState.Loading:
+                PublishBusyState($"Loading instances for class '{wmiClass.ClassName}' in {ns.NamespacePath}...");
+                break;
+            case InstanceLoadState.Warning:
+                var partialCount = wmiClass.InstancesView.Cast<object>().Count();
+                PublishWarningState($"Showing partial results ({partialCount} instances) for class '{wmiClass.ClassName}' in {ns.NamespacePath}.");
+                break;
+            case InstanceLoadState.Success:
+                var instanceCount = wmiClass.InstancesView.Cast<object>().Count();
+                var totalInstances = wmiClass.Instances.Count;
+                if (instanceCount < totalInstances)
+                    PublishSuccessState($"Selected class '{wmiClass.ClassName}' - showing {instanceCount} of {totalInstances} instances in {ns.NamespacePath}.");
+                else
+                    PublishSuccessState($"Selected class '{wmiClass.ClassName}' - {instanceCount} instances in {ns.NamespacePath}.");
+                break;
+            case InstanceLoadState.Failed:
+                PublishErrorState($"Failed to load instances for class '{wmiClass.ClassName}' in {ns.NamespacePath}. Double-click to try again.", wmiClass.LoadException);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates status bar for instance selection
+    /// </summary>
+    private void UpdateStatusBarForInstance(WmiInstanceViewModel instance)
+    {
+        var ns = instance.ParentNamespace;
+        var wmiClass = instance.ParentClass;
+
+        if (ns == null || wmiClass == null)
+        {
+            PublishSuccessState($"Selected instance: {instance.InstanceName}");
+            return;
+        }
+
+        switch (instance.LoadState)
+        {
+            case WmiInstanceViewModel.InstanceState.Success:
+                PublishSuccessState($"Selected instance '{instance.InstanceName}' from class '{wmiClass.ClassName}' in {ns.NamespacePath}");
+                break;
+            case WmiInstanceViewModel.InstanceState.Failed:
+                PublishErrorState($"Failed to load instance '{instance.InstanceName}' from class '{wmiClass.ClassName}'");
+                break;
+            case WmiInstanceViewModel.InstanceState.Unknown:
+            default:
+                PublishSuccessState($"Selected instance '{instance.InstanceName}' from class '{wmiClass.ClassName}' in {ns.NamespacePath}");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates status bar for namespace selection
+    /// </summary>
+    private void UpdateStatusBarForNamespace(WmiNamespaceViewModel ns)
+    {
+        // Handle namespace loading failures first
+        if (ns.NamespaceLoadState == NamespaceLoadState.Failed)
+        {
+            PublishErrorState($"Failed to load child namespaces for {ns.NamespacePath}: {ns.LoadException?.Message}", ns.LoadException);
+            return;
+        }
+
+        // If namespace is not successfully loaded, show loading or other state
+        if (ns.NamespaceLoadState == NamespaceLoadState.Loading)
+        {
+            PublishBusyState($"Loading child namespaces for {ns.NamespacePath}...");
+            return;
+        }
+
+        if (ns.NamespaceLoadState != NamespaceLoadState.Success)
+            return;
+
+        // Show status based on namespace class load state
+        switch (ns.ClassLoadState)
+        {
+            case ClassLoadState.Unknown:
+                PublishSuccessState($"Selected namespace {ns.NamespacePath}. Double-click to load classes.");
+                break;
+            case ClassLoadState.Loading:
+                PublishBusyState($"Loading classes for {ns.NamespacePath}...");
+                break;
+            case ClassLoadState.Warning:
+                var partialClassCount = ns.ClassesView.Cast<object>().Count();
+                PublishWarningState($"Showing partial results ({partialClassCount} classes) for {ns.NamespacePath}.");
+                break;
+            case ClassLoadState.Failed:
+                PublishErrorState($"Failed to load classes for {ns.NamespacePath}. Double-click to try again.", ns.LoadException);
+                break;
+            case ClassLoadState.Success:
+                var count = ns.ClassesView.Cast<object>().Count();
+                var total = ns.Classes.Count;
+                if (count < total)
+                    PublishSuccessState($"Selected namespace {ns.NamespacePath} - showing {count} of {total} classes.");
+                else
+                    PublishSuccessState($"Selected namespace {ns.NamespacePath} - {count} classes.");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates the status bar based on the most recently selected object and its state.
+    /// Provides consistent status messaging patterns across different selection types.
+    /// </summary>
+    private void UpdateStatusBarForSelection(SelectionManager selectionManager)
+    {
+        var selectedObject = selectionManager.SelectedObject;
+
+        switch (selectedObject)
+        {
+            case WmiInstanceViewModel instance:
+                UpdateStatusBarForInstance(instance);
+                break;
+            case WmiClassViewModel wmiClass:
+                UpdateStatusBarForClass(wmiClass);
+                break;
+            case WmiNamespaceViewModel ns:
+                UpdateStatusBarForNamespace(ns);
+                break;
+            default:
+                // No selection or unknown selection type - show ready state
+                PublishReadyState("Ready");
+                break;
+        }
     }
 
     /// <summary>
