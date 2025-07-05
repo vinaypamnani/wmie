@@ -36,32 +36,52 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
         // Handle NameObjectCollectionBase (NameValueCollection, ManagementNamedValueCollection, etc.)
         if (value is NameObjectCollectionBase nameObjectCollection)
         {
-            // Use Keys property and indexer to access name-value pairs
             var keys = nameObjectCollection.Keys;
             for (int i = 0; i < nameObjectCollection.Count; i++)
             {
                 string? key = keys[i];
-                string displayKey = key ?? $"[{i}]"; // Handle null keys
+                string displayKey = key ?? $"[{i}]";
                 yield return new NameObjectCollectionPropertyDescriptor(nameObjectCollection, i, displayKey, parentCategory);
             }
             yield break;
         }
 
-        // Handle arrays
+        // Handle array of KeyValuePair<string, object> (for PossibleValues)
         if (valueType.IsArray)
         {
-            Array array = (Array)value;
+            var elementType = valueType.GetElementType();
+            if (elementType != null && elementType.IsGenericType && elementType.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+            {
+                var keyProp = elementType.GetProperty("Key");
+                var valueProp = elementType.GetProperty("Value");
+                var kvpArray = (Array)value;
+                var descriptors = new List<KeyValuePairPropertyDescriptor>();
+                for (int i = 0; i < kvpArray.Length; i++)
+                {
+                    var item = kvpArray.GetValue(i);
+                    if (item != null && keyProp != null && valueProp != null)
+                    {
+                        var key = keyProp.GetValue(item)?.ToString() ?? $"[{i}]";
+                        var val = valueProp.GetValue(item);
+                        descriptors.Add(new KeyValuePairPropertyDescriptor(key, val, parentCategory));
+                    }
+                }
+                foreach (var desc in descriptors)
+                {
+                    yield return desc;
+                }
+                yield break;
+            }
 
             // Special handling for string arrays with pipe-separated values
+            var array = (Array)value;
             if (array.GetType().GetElementType() == typeof(string) && array.Length == 1)
             {
                 var singleValue = array.GetValue(0) as string;
                 if (!string.IsNullOrEmpty(singleValue) && singleValue.Contains('|'))
                 {
-                    // Split pipe-separated values into individual items
                     var splitValues = singleValue.Split('|', StringSplitOptions.RemoveEmptyEntries)
                         .Select(v => v.Trim()).ToArray();
-
                     for (int i = 0; i < splitValues.Length; i++)
                     {
                         yield return new PipeSeparatedValueDescriptor(splitValues, i, $"[{i}]", $"[{i}]", parentCategory);
@@ -216,7 +236,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Property descriptor for collection items
     /// </summary>
-    private class CollectionItemPropertyDescriptor : IPropertyDescriptor
+    internal class CollectionItemPropertyDescriptor : IPropertyDescriptor
     {
         private readonly object _collection;
         private readonly int _index;
@@ -255,7 +275,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Property descriptor for dictionary entries
     /// </summary>
-    private class DictionaryEntryPropertyDescriptor : IPropertyDescriptor
+    internal class DictionaryEntryPropertyDescriptor : IPropertyDescriptor
     {
         private readonly DictionaryEntry _entry;
         private readonly int _index;
@@ -294,7 +314,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Property descriptor for array and collection indexed items
     /// </summary>
-    private class IndexedPropertyDescriptor : IPropertyDescriptor
+    internal class IndexedPropertyDescriptor : IPropertyDescriptor
     {
         private readonly Array _array;
         private readonly int _index;
@@ -333,9 +353,35 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
     }
 
     /// <summary>
+    /// Property descriptor for KeyValuePair (used for PossibleValues)
+    /// </summary>
+    internal class KeyValuePairPropertyDescriptor : IPropertyDescriptor
+    {
+        public KeyValuePairPropertyDescriptor(string key, object? value, string category)
+        {
+            Name = key;
+            DisplayName = key;
+            Category = category;
+            Value = value;
+        }
+
+        public string Category { get; }
+        public string Description => $"Key-value pair: {Name}";
+        public string DisplayName { get; }
+        public bool IsKey => false;
+        public bool IsReadOnly => true;
+        public string Name { get; }
+        public Type? PropertyType => Value?.GetType() ?? typeof(object);
+        public object Source => this;
+        public object? Value { get; }
+
+        public bool SetValue(object? value) => false;
+    }
+
+    /// <summary>
     /// Property descriptor for NameObjectCollectionBase entries (ManagementNamedValueCollection, NameValueCollection, etc.)
     /// </summary>
-    private class NameObjectCollectionPropertyDescriptor : IPropertyDescriptor
+    internal class NameObjectCollectionPropertyDescriptor : IPropertyDescriptor
     {
         private readonly NameObjectCollectionBase _collection;
         private readonly int _index;
@@ -369,13 +415,27 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
             {
                 try
                 {
+                    // For NameValueCollection, use the string indexer to get the first value
+                    if (_collection is NameValueCollection nvc)
+                    {
+                        return nvc[_key];
+                    }
+
                     // Use reflection to access the protected BaseGet method
                     var baseGetMethod = typeof(NameObjectCollectionBase).GetMethod("BaseGet",
                         BindingFlags.NonPublic | BindingFlags.Instance,
                         null,
                         new[] { typeof(int) },
                         null);
-                    return baseGetMethod?.Invoke(_collection, new object[] { _index });
+                    var result = baseGetMethod?.Invoke(_collection, new object[] { _index });
+
+                    // If result is an array with one element, return just that element
+                    if (result is Array arr && arr.Length == 1)
+                    {
+                        return arr.GetValue(0);
+                    }
+
+                    return result;
                 }
                 catch
                 {
@@ -432,7 +492,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Property descriptor for pipe-separated values within a single string array element
     /// </summary>
-    private class PipeSeparatedValueDescriptor : IPropertyDescriptor
+    internal class PipeSeparatedValueDescriptor : IPropertyDescriptor
     {
         private readonly int _index;
         private readonly string[] _values;
