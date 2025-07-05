@@ -95,7 +95,8 @@ public class WmiProperty
     /// <summary>
     /// Gets the possible enumeration values for this property, if available.
     /// </summary>
-    [Category("Enumeration")]
+    [Category("Value Map")]
+    [ShowChildrenAsParent]
     public NameValueCollection? PossibleValues
     {
         get
@@ -169,7 +170,7 @@ public class WmiProperty
     /// </summary>
     private static NameValueCollection? CreateNameValueCollection(object values, object? valueMap)
     {
-        var tempItems = new List<(string Name, string Value, int? SortKey)>();
+        var result = new NameValueCollection();
 
         switch (values)
         {
@@ -177,10 +178,7 @@ public class WmiProperty
                 // Paired values and map
                 for (int i = 0; i < valueArray.Length; i++)
                 {
-                    var name = valueArray[i];
-                    var value = mapArray[i];
-                    var sortKey = int.TryParse(value, out int intVal) ? intVal : (int?)null;
-                    tempItems.Add((name, value, sortKey));
+                    result.Add(valueArray[i], mapArray[i]);
                 }
                 break;
 
@@ -188,51 +186,33 @@ public class WmiProperty
                 // Only values available, use value as both name and value
                 for (int i = 0; i < valueArray.Length; i++)
                 {
-                    var value = valueArray[i];
-                    var sortKey = int.TryParse(value, out int intVal) ? intVal : (int?)null;
-                    tempItems.Add((value, value, sortKey));
+                    result.Add(valueArray[i], valueArray[i]);
                 }
                 break;
 
             case int[] intArray:
-                // Integer values - these have natural sort order
+                // Integer values
                 for (int i = 0; i < intArray.Length; i++)
                 {
                     var value = intArray[i].ToString();
-                    tempItems.Add((value, value, intArray[i]));
+                    result.Add(value, value);
                 }
                 break;
 
             case string str when !string.IsNullOrEmpty(str):
                 // Comma-separated string
                 var splitValues = str.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < splitValues.Length; i++)
+                foreach (var splitValue in splitValues)
                 {
-                    var value = splitValues[i].Trim();
+                    var value = splitValue.Trim();
                     if (!string.IsNullOrEmpty(value))
                     {
-                        var sortKey = int.TryParse(value, out int intVal) ? intVal : (int?)null;
-                        tempItems.Add((value, value, sortKey));
+                        result.Add(value, value);
                     }
                 }
                 break;
         }
 
-        if (tempItems.Count == 0)
-            return null;
-
-        // Sort items: numeric values first by numeric value, then string values alphabetically
-        var sortedItems = tempItems
-            .OrderBy(item => item.SortKey.HasValue ? 0 : 1) // Numeric items first
-            .ThenBy(item => item.SortKey ?? int.MaxValue)    // Sort numeric items by value
-            .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase); // Sort string items alphabetically
-
-        var result = new NameValueCollection();
-        foreach (var (name, value, _) in sortedItems)
-        {
-            result.Add(name, value);
-        }
-
-        return result;
+        return result.Count > 0 ? result : null;
     }
 }
