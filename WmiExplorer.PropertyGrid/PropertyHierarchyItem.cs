@@ -195,11 +195,36 @@ public partial class PropertyHierarchyItem : ObservableObject
     public virtual void LoadChildren(PropertyFilterOptions? filterOptions = null)
     {
         if (Value == null || !HasItems)
-            return;        // Use provided filter options or current filter options
-        filterOptions ??= _filterOptions; try
+            return;
+
+        // Use provided filter options or current filter options
+        filterOptions ??= _filterOptions;
+        try
         {
             var registry = PropertyTypeProviderRegistry.Instance;
-            var childDescriptors = registry.GetChildItems(Value, Name, Category).OrderBy(cd => cd.DisplayName, new ArrayIndexComparer()).ToList();
+            var childDescriptors = registry.GetChildItems(Value, Name, Category).ToList();
+
+            // Sort by Value for NameValueCollection, otherwise sort by DisplayName
+            if (Value is System.Collections.Specialized.NameValueCollection)
+            {
+                // Check if all values can be parsed as integers for numeric sorting
+                var allIntValues = childDescriptors.All(cd =>
+                    cd.Value != null && int.TryParse(cd.Value.ToString(), out _));
+
+                if (allIntValues)
+                {
+                    childDescriptors = childDescriptors.OrderBy(cd =>
+                        int.TryParse(cd.Value?.ToString(), out int intValue) ? intValue : int.MaxValue).ToList();
+                }
+                else
+                {
+                    childDescriptors = childDescriptors.OrderBy(cd => cd.Value?.ToString() ?? string.Empty, StringComparer.OrdinalIgnoreCase).ToList();
+                }
+            }
+            else
+            {
+                childDescriptors = childDescriptors.OrderBy(cd => cd.DisplayName, new ArrayIndexComparer()).ToList();
+            }
 
             // Filter child descriptors based on filter options
             childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly)).ToList();

@@ -398,7 +398,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
         }
 
         public string Category { get; }
-        public string Description => $"Name-value pair: '{_key}' at index {_index}";
+        public string Description => $"Name-value pair: '{_key}'";
         public string DisplayName { get; }
         public bool IsKey => false;
         public bool IsReadOnly => true;
