@@ -374,7 +374,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         // Handle namespace loading failures first
         if (ns.NamespaceLoadState == NamespaceLoadState.Failed)
         {
-            PublishErrorState($"Failed to load namespace {ns.NamespacePath}.", ns.LoadException);
+            PublishErrorState($"Failed to load child namespaces for {ns.NamespacePath}: {ns.LoadException?.Message}", ns.LoadException);
             return;
         }
 
