@@ -113,7 +113,7 @@ public class WmiService : IWmiService, IDisposable
         bool useAmendedQualifiers,
         CancellationToken cancellationToken = default)
     {
-        Log.Debug("Executing WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
+        // Log.Debug("Executing WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
 
         try
         {
@@ -137,7 +137,7 @@ public class WmiService : IWmiService, IDisposable
             }
 
             var resultCount = results.Count();
-            Log.Information("[{OperationMode}] WMI query completed successfully. Returned {ResultCount} objects", OperationMode, resultCount);
+            Log.Debug("[{OperationMode}] WMI query '{Query}' completed successfully. Returned {ResultCount} objects", OperationMode, queryString, resultCount);
             return results;
         }
         catch (Exception ex)

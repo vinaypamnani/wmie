@@ -52,10 +52,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [ObservableProperty]
     private bool _isSelected;
 
+    private bool _isUpdatingSelection = false;
+
     [ObservableProperty]
     private Exception? _loadException;
 
-    private bool _isUpdatingSelection = false;
     private ManagementScope? _managementScope;
 
     [ObservableProperty]
@@ -73,6 +74,13 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     private readonly SelectionManager _selectionManager;
     private readonly SettingsManager _settingsManager;
+
+    /// <summary>
+    /// Gets the count of system classes (class names starting with "__") in this namespace.
+    /// </summary>
+    [ObservableProperty]
+    private int _systemClassesCount;
+
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
 
@@ -178,24 +186,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     public string NamespacePath => _wmiNamespace.NamespacePath;
     public QueryTabViewModel QueryTabViewModel => _queryTabViewModel;
     public SearchTabViewModel SearchTabViewModel => _searchTabViewModel;
-
-    /// <summary>
-    /// Gets the count of system classes (class names starting with "__") in this namespace.
-    /// </summary>
-    [ObservableProperty]
-    private int _systemClassesCount;
-
-    /// <summary>
-    /// Updates the SystemClassesCount property based on the current Classes collection.
-    /// </summary>
-    private void UpdateSystemClassesCount()
-    {
-        lock (_collectionLock)
-        {
-            SystemClassesCount = _classes.Count(c => c.ClassName != null && c.ClassName.StartsWith("__"));
-        }
-    }
-
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
@@ -340,6 +330,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         try
         {
             PublishBusyState($"Loading child namespaces for {NamespacePath}...");
+            Log.Debug("Loading child namespaces for {NamespacePath}", NamespacePath);
             NamespaceLoadState = NamespaceLoadState.Loading;
 
             // Use the ViewModel's ManagementScope for the service call.
@@ -384,6 +375,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             LoadException = null;
             NamespaceLoadState = NamespaceLoadState.Success;
             PublishSuccessState($"Loaded child namespaces for {NamespacePath}");
+            Log.Information("Successfully loaded {ChildCount} child namespaces for {NamespacePath}", _children.Count, NamespacePath);
         }
         catch (OperationCanceledException)
         {
@@ -403,7 +395,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [RelayCommand]
     public async Task LoadClassesAsync()
     {
-        Log.Debug("Starting to load classes for {NamespacePath}", NamespacePath);
+        Log.Debug("Loading classes for {NamespacePath}", NamespacePath);
         using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", _messengerService);
         try
         {
@@ -667,6 +659,17 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             {
                 _isUpdatingSelection = false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Updates the SystemClassesCount property based on the current Classes collection.
+    /// </summary>
+    private void UpdateSystemClassesCount()
+    {
+        lock (_collectionLock)
+        {
+            SystemClassesCount = _classes.Count(c => c.ClassName != null && c.ClassName.StartsWith("__"));
         }
     }
 }

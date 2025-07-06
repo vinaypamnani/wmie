@@ -153,7 +153,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to load instance data for: {InstanceName}", InstanceName);
+            Log.Error(ex, "Failed to load instance data for: {InstanceName}", InstanceName);
             LoadState = InstanceState.Failed;
         }
     }
@@ -302,7 +302,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Error loading methods for instance: {InstanceName}", InstanceName);
+            Log.Error(ex, "Error loading methods for instance: {InstanceName}", InstanceName);
         }
     }
 

@@ -32,10 +32,10 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     [ObservableProperty]
     private bool _isSelected;
 
+    private bool _isUpdatingSelection = false;
+
     [ObservableProperty]
     private Exception? _loadException;
-
-    private bool _isUpdatingSelection = false;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CancelInstanceLoadCommand))]
@@ -242,7 +242,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         if (TryGetClassMof(useAmendedQualifiers, out var mof) && mof != null)
         {
             _applicationService.CopyToClipboard(mof);
-            Log.Information("Class MOF copied to clipboard for {ClassName} (amended qualifiers: {UseAmended})", ClassName, useAmendedQualifiers);
             PublishSuccessState($"Class MOF copied to clipboard (amended qualifiers: {useAmendedQualifiers})");
         }
     }
@@ -258,7 +257,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             return;
 
         _applicationService.CopyToClipboard(classPath);
-        Log.Information("Class path copied to clipboard for {ClassName}: {ClassPath}", ClassName, classPath);
         PublishSuccessState($"Copied class path: {classPath}");
     }
 
@@ -318,7 +316,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         if (LoadState == InstanceLoadState.Loading)
             return;
 
-        Log.Debug("Starting to load instances for class {ClassName}", ClassName);
+        Log.Debug("Loading instances for class {ClassName}", ClassName);
 
         // Create a new CTS for this operation
         _cts?.Dispose();
@@ -424,7 +422,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadMethods()
     {
-        Log.Debug("Loading methods for class: {ClassName}", ClassName);
+        // Log.Debug("Loading methods for class: {ClassName}", ClassName);
         _methods = new ObservableCollection<WmiMethod>();
         StaticMethods = new ObservableCollection<WmiMethod>();
 
@@ -446,11 +444,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                         StaticMethods.Add(method);
                     }
                 }
-                Log.Information("Loaded {MethodCount} methods for class: {ClassName}", methods.Count, ClassName);
+                Log.Debug("Loaded {MethodCount} methods for class: {ClassName}", methods.Count, ClassName);
             }
             else
             {
-                Log.Information("No methods found for class: {ClassName}", ClassName);
+                Log.Debug("No methods found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
@@ -464,7 +462,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadProperties()
     {
-        Log.Debug("Loading properties for class: {ClassName}", ClassName);
+        // Log.Debug("Loading properties for class: {ClassName}", ClassName);
         Properties = new ObservableCollection<WmiProperty>();
 
         try
@@ -479,11 +477,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     // Add all properties to the properties collection
                     Properties.Add(new WmiProperty(property, _wmiClass.ActualClass));
                 }
-                Log.Information("Loaded {PropertyCount} properties for class: {ClassName}", properties.Count, ClassName);
+                Log.Debug("Loaded {PropertyCount} properties for class: {ClassName}", properties.Count, ClassName);
             }
             else
             {
-                Log.Information("No properties found for class: {ClassName}", ClassName);
+                Log.Debug("No properties found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
