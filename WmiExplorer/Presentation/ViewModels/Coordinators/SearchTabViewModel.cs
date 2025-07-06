@@ -17,6 +17,12 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     private CancellationTokenSource? _cts;
 
     [ObservableProperty]
+    private bool _excludeLDAP = true;
+
+    [ObservableProperty]
+    private bool _excludeLdapEnabled;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ExecuteSearchCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelSearchCommand))]
     private bool _isSearching;
@@ -45,6 +51,9 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
            SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+
+        // Initialize LDAP enabled state
+        UpdateExcludeLdapEnabled();
     }
 
     // Clear results for the current search type only
@@ -68,6 +77,11 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             _cts?.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    protected override void OnSelectedNamespaceChanged(WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel? selectedNamespace)
+    {
+        UpdateExcludeLdapEnabled();
     }
 
     protected override bool ResultsFilterPredicate(WmiSearchResult result, string filter)
@@ -181,6 +195,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
                 SearchType,
                 SearchQuery,
                 Recursive,
+                ExcludeLDAP,
                 _cts.Token,
                 (progressMessage, currentFailureCount) =>
                 {
@@ -244,6 +259,12 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private bool JumpToClassCanExecute() => SelectedResult != null;
 
+    // Override property setter to update LDAP enabled state when Recursive changes
+    partial void OnRecursiveChanged(bool value)
+    {
+        UpdateExcludeLdapEnabled();
+    }
+
     /// <summary>
     /// Called when SearchType property changes
     /// </summary>
@@ -277,6 +298,28 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             SearchQuery = state.SearchQuery;
         }
         _resultsView?.Refresh();
+    }
+
+    private void UpdateExcludeLdapEnabled()
+    {
+        var selectedNamespace = SelectionManager.SelectedNamespace;
+        if (selectedNamespace == null)
+        {
+            ExcludeLdapEnabled = false;
+            return;
+        }
+
+        var namespacePath = selectedNamespace.WmiNamespace?.RelativePath?.ToLowerInvariant();
+
+        // Show the checkbox only when LDAP namespace would actually be in scope:
+        // 1. We're at root level AND Recursive is enabled (would search root\directory\ldap)
+        // 2. We're at root\directory level AND Recursive is enabled (would search ldap)
+        // The LDAP namespace is only included when recursive search would reach it
+
+        bool isAtRootWithRecursive = (string.IsNullOrEmpty(namespacePath) || namespacePath == "root") && Recursive;
+        bool isAtDirectoryWithRecursive = namespacePath == "root\\directory" && Recursive;
+
+        ExcludeLdapEnabled = isAtRootWithRecursive || isAtDirectoryWithRecursive;
     }
 
     private class SearchTypeState

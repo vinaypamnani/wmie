@@ -77,6 +77,7 @@ public class WmiService : IWmiService, IDisposable
         WmiSearchType searchType,
         string searchText,
         bool recursive,
+        bool excludeLDAP = true,
         CancellationToken cancellationToken = default,
         Action<string, int>? progressCallback = null)
     {
@@ -95,7 +96,7 @@ public class WmiService : IWmiService, IDisposable
             // If recursive search is enabled, search in child namespaces
             if (recursive && !cancellationToken.IsCancellationRequested)
             {
-                failureCount = await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, cancellationToken, progressCallback, failureCount);
+                failureCount = await SearchInChildNamespacesRecursivelyAsync(scope, searchType, searchText, results, excludeLDAP, cancellationToken, progressCallback, failureCount);
             }
 
             return (IEnumerable<(object, ManagementBaseObject)>)results;
@@ -826,6 +827,7 @@ public class WmiService : IWmiService, IDisposable
         WmiSearchType searchType,
         string searchText,
         List<(object match, ManagementBaseObject parent)> results,
+        bool excludeLDAP,
         CancellationToken cancellationToken,
         Action<string, int>? progressCallback = null,
         int currentFailureCount = 0)
@@ -851,18 +853,31 @@ public class WmiService : IWmiService, IDisposable
                     var parentPath = parentScope.Path?.Path ?? string.Empty;
                     var childNamespacePath = $"{parentPath}\\{namespaceName}";
 
+                    // Format the namespace for display/exclusion check (used for both purposes)
+                    var friendlyChildNamespace = FormatNamespaceForDisplay(childNamespacePath);
+
+                    // Skip the specific LDAP namespace if excludeLDAP is enabled
+                    if (excludeLDAP)
+                    {
+                        var relativePath = friendlyChildNamespace.ToLowerInvariant();
+                        if (relativePath == "root\\directory\\ldap")
+                        {
+                            Log.Warning("Skipping LDAP namespace: {NamespacePath}", friendlyChildNamespace);
+                            continue;
+                        }
+                    }
+
                     // Create a new scope for the child namespace
                     var childScope = CreateManagementScope(childNamespacePath, parentScope.Options);
 
                     // Report progress for the child namespace being searched
-                    var friendlyChildNamespace = FormatNamespaceForDisplay(childNamespacePath);
                     progressCallback?.Invoke($"Searching namespace: {friendlyChildNamespace}", failureCount);
 
                     // Search in the child namespace
                     await SearchInNamespaceAsync(childScope, searchType, searchText, results, cancellationToken);
 
                     // Recursively search in grandchild namespaces
-                    failureCount = await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, cancellationToken, progressCallback, failureCount);
+                    failureCount = await SearchInChildNamespacesRecursivelyAsync(childScope, searchType, searchText, results, excludeLDAP, cancellationToken, progressCallback, failureCount);
                 }
                 catch (Exception ex)
                 {

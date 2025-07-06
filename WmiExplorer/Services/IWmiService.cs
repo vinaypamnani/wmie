@@ -53,6 +53,7 @@ public interface IWmiService
         WmiSearchType searchType,
         string searchText,
         bool recursive,
+        bool excludeLDAP = true,
         CancellationToken cancellationToken = default,
         Action<string, int>? progressCallback = null);
 
