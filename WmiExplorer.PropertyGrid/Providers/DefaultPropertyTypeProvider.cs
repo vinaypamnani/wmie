@@ -26,7 +26,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Gets child items for an expandable property value (collection or complex object).
     /// </summary>
-    public IEnumerable<IPropertyDescriptor> GetChildItems(object value, string parentName, string parentCategory)
+    public IEnumerable<IPropertyDescriptor> GetChildItems(object value, string parentName, string parentCategory, IPropertyGridContext? propertyGridContext = null)
     {
         if (value == null)
             yield break;
@@ -143,7 +143,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
             valueType != typeof(decimal) &&
             valueType != typeof(Guid))
         {
-            foreach (var property in GetProperties(value))
+            foreach (var property in GetProperties(value, propertyGridContext))
             {
                 yield return property;
             }
@@ -153,7 +153,7 @@ public class DefaultPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Gets all property descriptors for the specified object.
     /// </summary>
-    public IEnumerable<IPropertyDescriptor> GetProperties(object obj)
+    public IEnumerable<IPropertyDescriptor> GetProperties(object obj, IPropertyGridContext? propertyGridContext = null)
     {
         if (obj == null)
             yield break;

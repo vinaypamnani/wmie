@@ -40,7 +40,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Gets child items for an expandable property value (collection or complex object).
     /// </summary>
-    public IEnumerable<IPropertyDescriptor> GetChildItems(object? value, string parentName, string parentCategory)
+    public IEnumerable<IPropertyDescriptor> GetChildItems(object? value, string parentName, string parentCategory, IPropertyGridContext? propertyGridContext = null)
     {
         if (value == null)
             yield break;
@@ -48,7 +48,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         // Special handling for PropertyDataCollection and QualifierDataCollection
         if (value is PropertyDataCollection propertyCollection)
         {
-            foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, value, true)))
+            foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, value, true, propertyGridContext)))
                 yield return desc;
             yield break;
         }
@@ -63,7 +63,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         // Special handling for embedded ManagementBaseObject
         if (value is ManagementBaseObject mbo)
         {
-            foreach (var desc in ProcessWmiCollection<PropertyData>(mbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, mbo, false)))
+            foreach (var desc in ProcessWmiCollection<PropertyData>(mbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, mbo, false, propertyGridContext)))
                 yield return desc;
             yield break;
         }
@@ -72,8 +72,8 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         {
             foreach (var embeddedMbo in mboArray)
             {
-                foreach (var desc in ProcessWmiCollection<PropertyData>(embeddedMbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, embeddedMbo, false)))
-                    yield return desc;
+            foreach (var desc in ProcessWmiCollection<PropertyData>(embeddedMbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, embeddedMbo, false, propertyGridContext)))
+                yield return desc;
             }
             yield break;
         }
@@ -85,12 +85,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Gets all property descriptors for the specified WMI object.
     /// </summary>
-    public IEnumerable<IPropertyDescriptor> GetProperties(object? obj)
-    {
-        return GetProperties(obj, null);
-    }
-
-    public IEnumerable<IPropertyDescriptor> GetProperties(object? obj, object? source = null)
+    public IEnumerable<IPropertyDescriptor> GetProperties(object? obj, IPropertyGridContext? propertyGridContext = null)
     {
         if (obj == null)
             yield break;
@@ -100,7 +95,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         {
             foreach (PropertyData property in managementObject.Properties)
             {
-                yield return new WmiPropertyDescriptor(property, managementObject, "Properties");
+                yield return new WmiPropertyDescriptor(property, managementObject, "Properties", false, propertyGridContext);
             }
             yield break;
         }
@@ -117,7 +112,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
                 var propertyDataCollection = prop.GetValue(obj) as PropertyDataCollection;
                 if (propertyDataCollection != null)
                 {
-                    foreach (var desc in ProcessWmiCollection<PropertyData>(propertyDataCollection, category, (property, cat) => CreatePropertyDataDescriptor(property, cat, obj)))
+                    foreach (var desc in ProcessWmiCollection<PropertyData>(propertyDataCollection, category, (property, cat) => CreatePropertyDataDescriptor(property, cat, obj, false, propertyGridContext)))
                         yield return desc;
                     yieldedSpecial = true;
                     continue;
@@ -160,13 +155,13 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         if (!yieldedSpecial && obj is PropertyDataCollection propertyCollection)
         {
             var category = propertyCollection.GetType().Name;
-            foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, category, (property, cat) => CreatePropertyDataDescriptor(property, cat, source)))
+            foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, category, (property, cat) => CreatePropertyDataDescriptor(property, cat, propertyGridContext)))
                 yield return desc;
         }
         if (!yieldedSpecial && obj is QualifierDataCollection qualifierCollection)
         {
             var category = qualifierCollection.GetType().Name;
-            foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, category, (qualifier, cat) => CreateQualifierDescriptor(qualifier, cat, source)))
+            foreach (var desc in ProcessWmiCollection<QualifierData>(qualifierCollection, category, (qualifier, cat) => CreateQualifierDescriptor(qualifier, cat, propertyGridContext)))
                 yield return desc;
         }
     }
@@ -194,13 +189,13 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     /// <summary>
     /// Creates a property descriptor for PropertyData
     /// </summary>
-    private IPropertyDescriptor CreatePropertyDataDescriptor(PropertyData property, string category, object? source, bool allowExpansion = false)
+    private IPropertyDescriptor CreatePropertyDataDescriptor(PropertyData property, string category, object? source, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null)
     {
         // Use the ActualObject property of WmiInstance if available, otherwise fallback to dummy
         var wmiSource = (source is WmiInstance wmiInstance)
             ? (wmiInstance.ActualObject ?? new ManagementClass())
             : (source as ManagementBaseObject ?? new ManagementClass());
-        return new WmiPropertyDescriptor(property, wmiSource, category, allowExpansion);
+        return new WmiPropertyDescriptor(property, wmiSource, category, allowExpansion, propertyGridContext);
     }
 
     /// <summary>

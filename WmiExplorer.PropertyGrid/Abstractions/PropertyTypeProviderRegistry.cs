@@ -42,14 +42,14 @@ public class PropertyTypeProviderRegistry
     /// <summary>
     /// Gets property descriptors for the child items of an expandable property
     /// </summary>
-    public IEnumerable<IPropertyDescriptor> GetChildItems(object? value, string parentName, string parentCategory)
+    public IEnumerable<IPropertyDescriptor> GetChildItems(object? value, string parentName, string parentCategory, IPropertyGridContext? propertyGridContext = null)
     {
         if (value == null)
             return Enumerable.Empty<IPropertyDescriptor>();
 
         Type objectType = value.GetType();
         var provider = GetProvider(objectType);
-        return provider.GetChildItems(value, parentName, parentCategory);
+        return provider.GetChildItems(value, parentName, parentCategory, propertyGridContext);
     }
 
     /// <summary>
@@ -69,14 +69,14 @@ public class PropertyTypeProviderRegistry
     /// <summary>
     /// Gets property descriptors for all properties of the specified object
     /// </summary>
-    public IEnumerable<IPropertyDescriptor> GetProperties(object? obj)
+    public IEnumerable<IPropertyDescriptor> GetProperties(object? obj, IPropertyGridContext? propertyGridContext = null)
     {
         if (obj == null)
             return Enumerable.Empty<IPropertyDescriptor>();
 
         Type objectType = obj.GetType();
         var provider = GetProvider(objectType);
-        return provider.GetProperties(obj);
+        return provider.GetProperties(obj, propertyGridContext);
     }
 
     /// <summary>
@@ -179,11 +179,11 @@ public class PropertyTypeProviderRegistry
     {
         public bool CanHandle(Type objectType) => true;
 
-        public IEnumerable<IPropertyDescriptor> GetChildItems(object obj, string parentName, string parentCategory)
+        public IEnumerable<IPropertyDescriptor> GetChildItems(object obj, string parentName, string parentCategory, IPropertyGridContext? context = null)
             => Enumerable.Empty<IPropertyDescriptor>();
 
-        public IEnumerable<IPropertyDescriptor> GetProperties(object obj)
-                        => Enumerable.Empty<IPropertyDescriptor>();
+        public IEnumerable<IPropertyDescriptor> GetProperties(object obj, IPropertyGridContext? context = null)
+            => Enumerable.Empty<IPropertyDescriptor>();
 
         public bool IsExpandable(object value, Type valueType) => false;
     }

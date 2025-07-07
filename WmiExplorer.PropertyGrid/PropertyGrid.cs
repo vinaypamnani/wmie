@@ -17,7 +17,7 @@ namespace WmiExplorer.PropertyGrid;
 /// with better dark mode support and improved contrast.
 /// </summary>
 [INotifyPropertyChanged]
-public partial class PropertyGrid : Control
+public partial class PropertyGrid : Control, IPropertyGridContext
 {
     private const string _defaultCategory = "Misc";
 
@@ -261,11 +261,15 @@ public partial class PropertyGrid : Control
     /// <summary>
     /// Gets or sets whether the property grid is read-only.
     /// </summary>
+
     public bool IsPropertyGridReadOnly
     {
         get => (bool)GetValue(IsPropertyGridReadOnlyProperty);
         set => SetValue(IsPropertyGridReadOnlyProperty, value);
     }
+
+    // Implementation of IPropertyGridContext
+    public bool IsReadOnly => IsPropertyGridReadOnly;
 
     /// <summary>
     /// Gets or sets the width of the name column.
@@ -545,7 +549,7 @@ public partial class PropertyGrid : Control
         try
         {
             var registry = PropertyTypeProviderRegistry.Instance;
-            var descriptors = registry.GetProperties(SelectedObject);
+            var descriptors = registry.GetProperties(SelectedObject, this);
 
             // Filter out [Browsable(false)] properties
             descriptors = descriptors.Where(p =>

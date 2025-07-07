@@ -16,6 +16,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     private WmiProperty? _cachedWmiProperty;
 
     private readonly string _category;
+    private readonly IPropertyGridContext? _propertyGridContext;
     private readonly bool _isKey;
     private readonly bool _isReadOnly;
     private readonly PropertyData _propertyData;
@@ -25,12 +26,13 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     /// <summary>
     /// Creates a new WmiPropertyDescriptor instance.
     /// </summary>
-    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false)
+    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null)
     {
         _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
         _source = source; // Allow null source for system properties
         _allowExpansion = allowExpansion;
         _category = category;
+        _propertyGridContext = propertyGridContext;
 
         // Auto-detect read-only status based on context and qualifiers
         _isReadOnly = DetermineReadOnlyStatus();
@@ -101,11 +103,14 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
                 return $"{dt:G} [{s}]";
             }
 
-            // Add enhanced value information if available
-            var enhancedValue = GetEnhancedValueWithPossibleValues(_propertyData.Value);
-            if (enhancedValue != null)
+            // Only compute enhanced value if the property grid is read-only
+            if (_propertyGridContext?.IsReadOnly == true)
             {
-                return enhancedValue;
+                var enhancedValue = GetEnhancedValueWithPossibleValues(_propertyData.Value);
+                if (enhancedValue != null)
+                {
+                    return enhancedValue;
+                }
             }
 
             return rawValue;
@@ -323,6 +328,14 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
                 typeLine += " (Referenced WMI instance)";
             }
         }
+
+        // Add enhanced value information if available
+        var enhancedValue = GetEnhancedValueWithPossibleValues(_propertyData.Value);
+        if (enhancedValue != null)
+        {
+            typeLine += $"; Value: {enhancedValue}";
+        }
+
 
         // Compose the description: type line first, then description if present
         string result = typeLine;
