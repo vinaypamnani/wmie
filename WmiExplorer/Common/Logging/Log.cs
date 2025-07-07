@@ -67,6 +67,8 @@ public static class Log
             // Configure Serilog with our custom CallerEnricher and LoggingLevelSwitch
             // Our CallerEnricher analyzes the stack trace to find actual calling methods,
             // properly skipping our Log wrapper class and framework internals.
+            //
+            // Note: Using rollingInterval instead of rollOnFileSizeLimit.
             var logger = new LoggerConfiguration()
                 .MinimumLevel.ControlledBy(_levelSwitch)
                 .Enrich.FromLogContext()
@@ -74,9 +76,8 @@ public static class Log
                 .Enrich.With<LogLevelEnricher>() // Add our custom enricher to include numeric log level
                 .WriteTo.File(
                     path: _logFilePath,
-                    fileSizeLimitBytes: 5 * 1024 * 1024, // 5MB
-                    rollOnFileSizeLimit: true,
-                    retainedFileCountLimit: 1,
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 7, // Keep 1 week of logs
                     shared: true,
                     outputTemplate: "<![LOG[{Message:lj}{Exception}]LOG]!><time=\"{Timestamp:HH:mm:ss.fff}\" date=\"{Timestamp:MM-dd-yyyy}\" component=\"{Caller}\" context=\"\" type=\"{NumericLevel}\" thread=\"\" file=\"\">{NewLine}")
                 .WriteTo.Sink(inMemoryLogSink)
