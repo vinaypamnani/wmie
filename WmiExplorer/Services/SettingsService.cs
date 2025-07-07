@@ -31,8 +31,15 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private const int SaveDebounceMilliseconds = 500;
+
     private readonly string _filePath;
     private readonly IMessengerService _messengerService;
+
+    // Debounce timer for saving settings
+    private readonly object _saveLock = new();
+
+    private System.Timers.Timer? _saveTimer;
     private readonly Dictionary<string, PropertyInfo> _settingsProperties;
     private readonly Dictionary<string, object?> _values = new();
 
@@ -164,37 +171,27 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         Log.Information("All settings reset to defaults");
     }
 
+    /// <summary>
+    /// Debounced save method. Schedules a save operation after a short delay.
+    /// If called again within the delay, the timer is reset.
+    /// </summary>
     public void SaveSettings()
     {
-        try
+        lock (_saveLock)
         {
-            var settingsData = new Dictionary<string, object?>();
-
-            foreach (var kvp in _settingsProperties)
+            if (_saveTimer == null)
             {
-                var key = kvp.Key;
-                if (_values.TryGetValue(key, out var value))
+                _saveTimer = new System.Timers.Timer(SaveDebounceMilliseconds)
                 {
-                    settingsData[key] = value;
-                }
+                    AutoReset = false
+                };
+                _saveTimer.Elapsed += (s, e) => PerformSaveSettings();
             }
-
-            var dir = Path.GetDirectoryName(_filePath);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            else
             {
-                Directory.CreateDirectory(dir);
-                Log.Information("Created settings directory: {Directory}", dir);
+                _saveTimer.Stop();
             }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(settingsData, options);
-            File.WriteAllText(_filePath, json);
-
-            Log.Debug("Saved {SettingCount} settings to {FilePath}", settingsData.Count, _filePath);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error saving settings");
+            _saveTimer.Start();
         }
     }
 
@@ -326,6 +323,9 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
             if (prop != null)
                 value = prop.GetValue(sender);
         }
+
+        if (propertyName.EndsWith("GridLength")) return;
+
         Log.Information("Setting {SettingsType}.{PropertyName} changed to {Value}", settingsType, propertyName, value ?? "<null>");
         SaveSettings();
     }
@@ -333,6 +333,46 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
     private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    /// <summary>
+    /// Actually writes the settings to disk. Called by the debounce timer.
+    /// </summary>
+    private void PerformSaveSettings()
+    {
+        lock (_saveLock)
+        {
+            try
+            {
+                var settingsData = new Dictionary<string, object?>();
+
+                foreach (var kvp in _settingsProperties)
+                {
+                    var key = kvp.Key;
+                    if (_values.TryGetValue(key, out var value))
+                    {
+                        settingsData[key] = value;
+                    }
+                }
+
+                var dir = Path.GetDirectoryName(_filePath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                    Log.Information("Created settings directory: {Directory}", dir);
+                }
+
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(settingsData, options);
+                File.WriteAllText(_filePath, json);
+
+                Log.Debug("Saved {SettingCount} settings to {FilePath}", settingsData.Count, _filePath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error saving settings");
+            }
+        }
     }
 
     private void SetValue<T>(T value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
