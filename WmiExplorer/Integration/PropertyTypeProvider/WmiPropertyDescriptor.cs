@@ -1,5 +1,6 @@
 using System.Management;
 using WmiExplorer.Common.Logging;
+using WmiExplorer.Core.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
@@ -10,11 +11,16 @@ namespace WmiExplorer.Integration.PropertyTypeProvider;
 public class WmiPropertyDescriptor : IPropertyDescriptor
 {
     private readonly bool _allowExpansion;
+
+    // Cache for WmiProperty to avoid repeated computation
+    private WmiProperty? _cachedWmiProperty;
+
     private readonly string _category;
     private readonly bool _isKey;
     private readonly bool _isReadOnly;
     private readonly PropertyData _propertyData;
     private readonly ManagementBaseObject _source;
+    private bool _wmiPropertyCached;
 
     /// <summary>
     /// Creates a new WmiPropertyDescriptor instance.
@@ -85,12 +91,24 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         {
             if (_allowExpansion)
                 return _propertyData;
-            if (_propertyData.Type == CimType.DateTime && _propertyData.Value is string s && !string.IsNullOrEmpty(s))
+
+            var rawValue = _propertyData.Value;
+
+            // Handle DateTime formatting
+            if (_propertyData.Type == CimType.DateTime && rawValue is string s && !string.IsNullOrEmpty(s))
             {
                 var dt = ManagementDateTimeConverter.ToDateTime(s);
                 return $"{dt:G} [{s}]";
             }
-            return _propertyData.Value;
+
+            // Add enhanced value information if available
+            var enhancedValue = GetEnhancedValueWithPossibleValues(_propertyData.Value);
+            if (enhancedValue != null)
+            {
+                return enhancedValue;
+            }
+
+            return rawValue;
         }
     }
 
@@ -164,6 +182,53 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     }
 
     /// <summary>
+    /// Creates a WmiProperty instance by finding the matching property in the class definition.
+    /// </summary>
+    private WmiProperty? CreateWmiProperty()
+    {
+        try
+        {
+            // Only try this if we have a source and it's not a system property
+            if (_source == null || _propertyData.Origin?.StartsWith("___") == true)
+                return null;
+
+            // Get class name from source
+            var classPath = _source.ClassPath?.Path;
+            if (string.IsNullOrEmpty(classPath))
+                return null;
+
+            // Get the scope from the source if available
+            var scope = _source is ManagementObject mo ? mo.Scope : null;
+
+            // Create options with UseAmendedQualifiers set to true
+            var options = new ObjectGetOptions(null, TimeSpan.MaxValue, true);
+
+            // Get the class definition
+            using var classDefinition = new ManagementClass(scope, new ManagementPath(classPath), options);
+
+            // Find the matching property in the class
+            if (classDefinition.Properties != null)
+            {
+                foreach (PropertyData prop in classDefinition.Properties)
+                {
+                    if (prop.Name.Equals(_propertyData.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Create WmiProperty with the class definition property and parent class
+                        return new WmiProperty(prop, classDefinition);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error creating WmiProperty for property '{PropertyName}' in class '{ClassName}'",
+                _propertyData.Name, _source?.ClassPath?.ClassName ?? "Unknown");
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Determines if the property should be read-only based on qualifiers.
     /// First checks instance qualifiers, then falls back to class definition qualifiers.
     /// </summary>
@@ -185,6 +250,49 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
 
         // Default: For regular WMI instances without explicit qualifiers, properties are generally read-only
         return true;
+    }
+
+    /// <summary>
+    /// Gets an enhanced value display using possible values if available.
+    /// </summary>
+    private object? GetEnhancedValueWithPossibleValues(object? rawValue)
+    {
+        if (rawValue == null)
+            return null;
+
+        // Get the WmiProperty for this property to access PossibleValues
+        var wmiProperty = GetWmiProperty();
+        if (wmiProperty?.PossibleValues == null || wmiProperty.PossibleValues.Count == 0)
+            return null;
+
+        // Convert raw value to string for comparison
+        var valueStr = rawValue.ToString();
+        if (string.IsNullOrEmpty(valueStr))
+            return null;
+
+        // Look for a matching value in possible values
+        var allKeys = wmiProperty.PossibleValues.AllKeys;
+        if (allKeys == null) return null;
+
+        foreach (string? key in allKeys)
+        {
+            if (key == null) continue;
+
+            var possibleValue = wmiProperty.PossibleValues[key];
+            if (string.Equals(possibleValue, valueStr, StringComparison.OrdinalIgnoreCase))
+            {
+                // If we have a mapped value that's different from the key, show both
+                if (!string.IsNullOrEmpty(possibleValue) && !string.Equals(key, possibleValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    return $"{possibleValue} [{key}]";
+                }
+                // If key equals mapped value, we don't need to enhance
+                return null;
+            }
+        }
+
+        // No match found, return null to use raw value
+        return null;
     }
 
     /// <summary>
@@ -222,6 +330,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         {
             result += $"\n{description}";
         }
+
         return result;
     }
 
@@ -380,5 +489,19 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             default:
                 return typeof(object);
         }
+    }
+
+    /// <summary>
+    /// Gets or creates a WmiProperty instance for this property from the class definition.
+    /// </summary>
+    private WmiProperty? GetWmiProperty()
+    {
+        if (!_wmiPropertyCached)
+        {
+            _cachedWmiProperty = CreateWmiProperty();
+            _wmiPropertyCached = true;
+        }
+
+        return _cachedWmiProperty;
     }
 }
