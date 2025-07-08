@@ -195,6 +195,14 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Immediately saves settings to disk, bypassing debounce logic.
+    /// </summary>
+    public void SaveSettingsImmediate()
+    {
+        PerformSaveSettings();
+    }
+
     private static object? DeserializeValue(JsonElement jsonValue, Type targetType)
     {
         try

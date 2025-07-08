@@ -83,7 +83,7 @@ public partial class MainWindow : Window
             _settingsService.MainWindowPosition.IsWindowMaximized = WindowState == WindowState.Maximized;
 
             // Explicitly save all settings
-            _settingsService.SaveSettings();
+            _settingsService.SaveSettingsImmediate();
 
             // Clean up the view model resources
             _mainViewModel?.Dispose();

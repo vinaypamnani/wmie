@@ -43,7 +43,12 @@ public interface ISettingsService
     /// </summary>
     void ReloadSettings();
     /// <summary>
-    /// Saves the current settings to the persistent storage.
+    /// Saves the current settings to the persistent storage (debounced).
     /// </summary>
     void SaveSettings();
+
+    /// <summary>
+    /// Immediately saves the current settings to the persistent storage, bypassing debounce logic.
+    /// </summary>
+    void SaveSettingsImmediate();
 }
