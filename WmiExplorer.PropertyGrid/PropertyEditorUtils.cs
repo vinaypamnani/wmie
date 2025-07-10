@@ -666,6 +666,8 @@ public static class PropertyEditorUtils
         return array;
     }
 
+    public static void SetIsValidating(DependencyObject obj, bool value) => obj.SetValue(IsValidatingProperty, value);
+
     /// <summary>
     /// Determines if a value should default to hexadecimal display
     /// </summary>
@@ -1092,8 +1094,6 @@ public static class PropertyEditorUtils
             _ => Convert.ToInt64(hexValue, 16)
         };
     }
-
-    private static void SetIsValidating(DependencyObject obj, bool value) => obj.SetValue(IsValidatingProperty, value);
 
     /// <summary>
     /// Sets up binding for integer editor components

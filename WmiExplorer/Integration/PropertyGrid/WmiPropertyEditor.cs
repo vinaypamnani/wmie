@@ -167,6 +167,26 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         );
 
         textBox.IsReadOnly = wmiDescriptor.IsReadOnly;
+
+        // Add custom LostFocus handler for WMI DateTime property updates
+        // This bypasses the standard TypeConverter approach which doesn't work for WMI DateTime
+        textBox.LostFocus += (sender, e) =>
+        {
+            if (sender is TextBox tb && !wmiDescriptor.IsReadOnly)
+            {
+                // Set validation flag to prevent the standard LostFocus handler from also running
+                PropertyEditorUtils.SetIsValidating(tb, true);
+                try
+                {
+                    UpdateWmiDateTimeProperty(tb, propertyItem, wmiDescriptor);
+                }
+                finally
+                {
+                    PropertyEditorUtils.SetIsValidating(tb, false);
+                }
+            }
+        };
+
         return textBox;
     }
 
@@ -479,7 +499,72 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     }
 
     /// <summary>
+    /// Updates the WMI property value for DateTime properties.
+    /// This bypasses the standard TypeConverter approach and directly sets the value.
+    /// </summary>
+    private void UpdateWmiDateTimeProperty(TextBox textBox, PropertyHierarchyItem propertyItem, WmiPropertyDescriptor wmiDescriptor)
+    {
+        try
+        {
+            var inputText = textBox.Text?.Trim();
+            var originalValue = propertyItem.Value;
+
+            if (string.IsNullOrEmpty(inputText))
+            {
+                // Set the property item value to empty/null
+                propertyItem.Value = null;
+
+                // Check if the value actually changed
+                bool valueChanged = !AreWmiValuesEqual(originalValue, null);
+                if (valueChanged)
+                {
+                    PropertyEditorUtils.ShowValidationSuccess(textBox, "Value updated successfully");
+                }
+                else
+                {
+                    PropertyEditorUtils.ClearValidationError(textBox);
+                }
+            }
+            else if (IsValidWmiDateTime(inputText))
+            {
+                try
+                {
+                    // For WMI DateTime, set the string value directly
+                    // WMI handles DateTime internally as strings in the specific format
+                    propertyItem.Value = inputText;
+
+                    // Check if the value actually changed
+                    bool valueChanged = !AreWmiValuesEqual(originalValue, inputText);
+                    if (valueChanged)
+                    {
+                        PropertyEditorUtils.ShowValidationSuccess(textBox, "WMI DateTime updated successfully");
+                    }
+                    else
+                    {
+                        PropertyEditorUtils.ClearValidationError(textBox);
+                    }
+                }
+                catch (Exception setValueEx)
+                {
+                    PropertyEditorUtils.ShowValidationError(textBox, $"Failed to set WMI DateTime value: {setValueEx.Message}");
+                }
+            }
+            else
+            {
+                // Input is invalid - show error but don't update the property
+                PropertyEditorUtils.ShowValidationError(textBox, "Invalid WMI DateTime format. Expected format: YYYYMMDDHHMMSS.mmmmmm±UUU (e.g., 20250708120000.000000-000)");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error updating WMI DateTime property '{PropertyName}' to value '{Value}'", wmiDescriptor.Name, textBox.Text);
+            PropertyEditorUtils.ShowValidationError(textBox, $"Error updating WMI DateTime: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Custom validation handler for WMI DateTime properties
+    /// This method provides visual feedback only - property updates are handled separately on LostFocus
     /// </summary>
     private void ValidateWmiDateTime(TextBox textBox, PropertyHierarchyItem propertyItem, System.Windows.Media.Brush originalBorderBrush, object originalToolTip)
     {
@@ -487,21 +572,19 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         {
             var inputText = textBox.Text?.Trim();
 
-            // Store the original value for comparison
+            // Get the original value for comparison
             var originalValue = propertyItem.Value;
 
             if (string.IsNullOrEmpty(inputText))
             {
-                // Empty is valid
-                propertyItem.Value = inputText;
-
-                // Check if the value was actually changed
+                // Empty is valid - only show visual feedback, don't update property here
+                // Property update will happen on LostFocus through the standard mechanism
                 bool valueChanged = !AreWmiValuesEqual(originalValue, inputText);
 
                 if (valueChanged)
                 {
                     // Show success state for modified values
-                    PropertyEditorUtils.ShowValidationSuccess(textBox);
+                    PropertyEditorUtils.ShowValidationSuccess(textBox, "Valid value (will update on focus loss)");
                 }
                 else
                 {
@@ -514,28 +597,18 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             // Try to validate as WMI DateTime format
             if (IsValidWmiDateTime(inputText))
             {
-                try
+                // Value is valid - only show visual feedback, don't update property here
+                bool valueChanged = !AreWmiValuesEqual(originalValue, inputText);
+
+                if (valueChanged)
                 {
-                    // Set the value as string (WMI handles DateTime internally as strings)
-                    propertyItem.Value = inputText;
-
-                    // Check if the value was actually changed
-                    bool valueChanged = !AreWmiValuesEqual(originalValue, inputText);
-
-                    if (valueChanged)
-                    {
-                        // Show success state for modified values
-                        PropertyEditorUtils.ShowValidationSuccess(textBox);
-                    }
-                    else
-                    {
-                        // Clear any previous styling if value unchanged
-                        PropertyEditorUtils.ClearValidationError(textBox, originalBorderBrush, originalToolTip);
-                    }
+                    // Show success state for modified values
+                    PropertyEditorUtils.ShowValidationSuccess(textBox, "Valid WMI DateTime (will update on focus loss)");
                 }
-                catch (Exception setValueEx)
+                else
                 {
-                    PropertyEditorUtils.ShowValidationError(textBox, $"Failed to set WMI DateTime value: {setValueEx.Message}");
+                    // Clear any previous styling if value unchanged
+                    PropertyEditorUtils.ClearValidationError(textBox, originalBorderBrush, originalToolTip);
                 }
             }
             else
