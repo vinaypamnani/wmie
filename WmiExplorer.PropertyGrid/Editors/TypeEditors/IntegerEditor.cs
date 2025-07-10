@@ -175,7 +175,9 @@ public static class IntegerEditor
         // while this handler is only for enabling/disabling the hex checkbox based on validity.
         textBox.TextChanged += (s, e) =>
         {
-            var result = CustomIntegerValidation(textBox.Text, propertyItem.Value);
+            // Ensure propertyItem.Value is not null; pass string.Empty if it is
+            var originalValue = propertyItem.Value ?? string.Empty;
+            var result = CustomIntegerValidation(textBox.Text, originalValue);
             checkBox.IsEnabled = result.IsValid;
         };
         UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);

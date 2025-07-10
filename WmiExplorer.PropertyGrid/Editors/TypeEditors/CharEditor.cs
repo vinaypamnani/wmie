@@ -109,7 +109,9 @@ public static class CharEditor
         // while this handler is only for enabling/disabling the hex checkbox based on validity.
         textBox.TextChanged += (s, e) =>
         {
-            var result = CustomCharValidation(textBox.Text, propertyItem.Value);
+            // Ensure propertyItem.Value is not null; pass string.Empty if it is
+            var originalValue = propertyItem.Value ?? string.Empty;
+            var result = CustomCharValidation(textBox.Text, originalValue);
             checkBox.IsEnabled = result.IsValid;
         };
         UpdateCharDisplay(textBox, propertyItem, checkBox.IsChecked == true);
