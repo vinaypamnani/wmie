@@ -103,6 +103,12 @@ public static class PropertyEditorUtils
         => IntegerEditor.Create(propertyItem);
 
     /// <summary>
+    /// Creates a complete char editor with hex/decimal support
+    /// </summary>
+    public static Grid CreateCharEditor(PropertyHierarchyItem propertyItem)
+        => CharEditor.Create(propertyItem);
+
+    /// <summary>
     /// Creates a read-only TextBlock for displaying property values
     /// </summary>
     public static TextBlock CreateReadOnlyEditor(PropertyHierarchyItem propertyItem)
@@ -117,17 +123,9 @@ public static class PropertyEditorUtils
     /// <summary>
     /// Creates a standardized TextBox for property editing with consistent styling and behavior
     /// </summary>
-    public static TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null, Thickness? margin = null, Action<TextBox, PropertyHierarchyItem, System.Windows.Media.Brush, object>? customValidation = null)
+    public static TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null, Thickness? margin = null, System.Func<string, object, ValidationManager.ValidationResult>? customValidation = null)
     {
-        var textBox = UIHelpers.CreateStandardTextBox(initialText, placeholder, propertyItem, margin);
-
-        // If custom validation is provided, add it (this maintains backward compatibility)
-        if (customValidation != null && propertyItem != null)
-        {
-            ValidationManager.AddValidationBehavior(textBox, propertyItem, customValidation);
-        }
-
-        return textBox;
+        return UIHelpers.CreateStandardTextBox(initialText, placeholder, propertyItem, margin, customValidation);
     }
 
     /// <summary>

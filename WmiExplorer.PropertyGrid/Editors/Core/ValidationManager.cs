@@ -25,10 +25,29 @@ public static class ValidationManager
     private static readonly DependencyProperty OriginalValueProperty =
         DependencyProperty.RegisterAttached("OriginalValue", typeof(object), typeof(ValidationManager), new PropertyMetadata(null));
 
+    public struct ValidationResult
+    {
+        public bool IsValid { get; }
+        public bool IsModified { get; }
+        public object? ParsedValue { get; }
+        public string? ErrorMessage { get; }
+
+        private ValidationResult(bool isValid, bool isModified, object? parsedValue, string? errorMessage)
+        {
+            IsValid = isValid;
+            IsModified = isModified;
+            ParsedValue = parsedValue;
+            ErrorMessage = errorMessage;
+        }
+
+        public static ValidationResult Valid(object? parsedValue, bool isModified) => new ValidationResult(true, isModified, parsedValue, null);
+        public static ValidationResult Error(string errorMessage) => new ValidationResult(false, false, null, errorMessage);
+    }
+
     /// <summary>
     /// Adds validation behavior to a TextBox for property editing
     /// </summary>
-    public static void AddValidationBehavior(TextBox textBox, PropertyHierarchyItem propertyItem, Action<TextBox, PropertyHierarchyItem, Brush, object>? customValidation = null)
+    public static void AddValidationBehavior(TextBox textBox, PropertyHierarchyItem propertyItem, Func<string, object, ValidationResult>? customValidation = null)
     {
         // Store original values for reset functionality
         var originalBorderBrush = textBox.BorderBrush;
@@ -44,8 +63,20 @@ public static class ValidationManager
             {
                 if (customValidation != null)
                 {
-                    // Use custom validation if provided
-                    customValidation(tb, propertyItem, originalBorderBrush, originalToolTip);
+                    var originalValue = GetOriginalValue(tb);
+                    var result = customValidation(tb.Text, originalValue);
+                    if (!result.IsValid)
+                    {
+                        SetValidationError(tb, result.ErrorMessage ?? "Invalid value");
+                    }
+                    else if (result.IsModified)
+                    {
+                        SetValidationModified(tb, "Value modified");
+                    }
+                    else
+                    {
+                        SetValidationNormal(tb);
+                    }
                 }
                 else if (ShouldValidateOnTextChanged(propertyItem))
                 {
@@ -60,7 +91,20 @@ public static class ValidationManager
         {
             if (sender is TextBox tb && !GetIsValidating(tb))
             {
-                UpdatePropertyValueFromText(tb, propertyItem, originalBorderBrush, originalToolTip);
+                if (customValidation != null)
+                {
+                    var originalValue = GetOriginalValue(tb);
+                    var result = customValidation(tb.Text, originalValue);
+                    if (result.IsValid)
+                    {
+                        propertyItem.Value = result.ParsedValue;
+                        // Do not update original value here!
+                    }
+                }
+                else
+                {
+                    UpdatePropertyValueFromText(tb, propertyItem, originalBorderBrush, originalToolTip);
+                }
             }
         };
 

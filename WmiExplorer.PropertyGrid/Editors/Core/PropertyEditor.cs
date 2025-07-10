@@ -94,6 +94,10 @@ public class PropertyEditor : ContentControl, IPropertyEditor
         {
             return PropertyEditorUtils.CreateDateTimeEditor(propertyItem);
         }
+        else if (propertyType == typeof(char) || propertyType == typeof(char?))
+        {
+            return PropertyEditorUtils.CreateCharEditor(propertyItem);
+        }
         else
         {
             return CreateDefaultEditor(propertyItem);

@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using WmiExplorer.PropertyGrid.Editors.Converters;
 using WmiExplorer.PropertyGrid.Editors.Core;
 
@@ -26,10 +25,7 @@ public static class IntegerEditor
 
         UIHelpers.ApplyMaxWidthConstraint(grid);
 
-        var textBox = UIHelpers.CreateStandardTextBox(null, "Enter number (decimal or 0xHEX)", propertyItem, new Thickness(0));
-
-        // Replace the default validation with custom integer validation
-        ValidationManager.AddValidationBehavior(textBox, propertyItem, CustomIntegerValidation);
+        var textBox = UIHelpers.CreateStandardTextBox(null, "Enter number (decimal or 0xHEX)", propertyItem, new Thickness(0), CustomIntegerValidation);
 
         var checkBox = new CheckBox
         {
@@ -57,21 +53,6 @@ public static class IntegerEditor
     }
 
     /// <summary>
-    /// Clears integer validation error state from a TextBox
-    /// </summary>
-    private static void ClearIntegerValidationError(TextBox textBox)
-    {
-        ValidationManager.SetValidationNormal(textBox);
-
-        // Re-enable hex checkbox since error state is cleared
-        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
-        if (hexCheckBox != null)
-        {
-            hexCheckBox.IsEnabled = true;
-        }
-    }
-
-    /// <summary>
     /// Converts a long value to the appropriate target integer type
     /// </summary>
     private static object ConvertToTargetIntegerType(long value, Type targetType)
@@ -90,44 +71,32 @@ public static class IntegerEditor
         };
     }
 
-    /// <summary>
-    /// Custom validation for integer editors with hex checkbox support
-    /// </summary>
-    private static void CustomIntegerValidation(TextBox textBox, PropertyHierarchyItem propertyItem, System.Windows.Media.Brush originalBorderBrush, object originalToolTip)
+    // New-style validation delegate
+    private static ValidationManager.ValidationResult CustomIntegerValidation(string text, object originalValue)
     {
-        // This implements the integer-specific validation logic while integrating with hex checkbox
-        // The actual validation logic is handled in the UpdatePropertyFromIntegerText method
-    }
-
-    /// <summary>
-    /// Finds the hex CheckBox associated with an integer TextBox by traversing the visual tree
-    /// </summary>
-    private static CheckBox? FindAssociatedHexCheckBox(TextBox textBox)
-    {
+        if (string.IsNullOrEmpty(text))
+            return ValidationManager.ValidationResult.Valid(null, !ValidationManager.AreValuesEqual(null, originalValue));
         try
         {
-            // The TextBox should be in column 0 of a Grid, with the CheckBox in column 1
-            if (textBox.Parent is Grid parentGrid)
+            object convertedValue;
+            var targetType = originalValue?.GetType() ?? typeof(int); // Fallback to int if originalValue is null
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                foreach (UIElement child in parentGrid.Children)
-                {
-                    if (child is CheckBox checkBox && Grid.GetColumn(checkBox) == 1)
-                    {
-                        // Additional check to ensure this is the hex checkbox
-                        if (checkBox.Content?.ToString()?.Equals("Hex", StringComparison.OrdinalIgnoreCase) == true)
-                        {
-                            return checkBox;
-                        }
-                    }
-                }
+                var hexValue = text.Substring(2);
+                convertedValue = ParseHexValueForType(hexValue, targetType);
             }
+            else
+            {
+                var longValue = System.Convert.ToInt64(text);
+                convertedValue = ConvertToTargetIntegerType(longValue, targetType);
+            }
+            bool isModified = !ValidationManager.AreValuesEqual(convertedValue, originalValue);
+            return ValidationManager.ValidationResult.Valid(convertedValue, isModified);
         }
-        catch
+        catch (Exception ex)
         {
-            // If anything goes wrong with visual tree traversal, just return null
+            return ValidationManager.ValidationResult.Error($"Invalid number format: {ex.Message}");
         }
-
-        return null;
     }
 
     /// <summary>
@@ -202,9 +171,13 @@ public static class IntegerEditor
     {
         checkBox.Checked += (s, e) => UpdateIntegerDisplayWithValidationPreservation(textBox, checkBox, propertyItem, true);
         checkBox.Unchecked += (s, e) => UpdateIntegerDisplayWithValidationPreservation(textBox, checkBox, propertyItem, false);
-
-        textBox.LostFocus += (s, e) => UpdatePropertyFromIntegerText(textBox, checkBox, propertyItem);
-
+        // It's okay to have a second TextChanged handler here: ValidationManager handles validation/assignment/styling,
+        // while this handler is only for enabling/disabling the hex checkbox based on validity.
+        textBox.TextChanged += (s, e) =>
+        {
+            var result = CustomIntegerValidation(textBox.Text, propertyItem.Value);
+            checkBox.IsEnabled = result.IsValid;
+        };
         UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
     }
 
@@ -224,48 +197,6 @@ public static class IntegerEditor
         {
             return false;
         }
-    }
-
-    /// <summary>
-    /// Shows integer validation error state on a TextBox
-    /// </summary>
-    private static void ShowIntegerValidationError(TextBox textBox, string errorMessage)
-    {
-        ValidationManager.SetValidationError(textBox, errorMessage);
-
-        // Disable hex checkbox to prevent confusing behavior with invalid values
-        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
-        if (hexCheckBox != null)
-        {
-            hexCheckBox.IsEnabled = false;
-        }
-    }
-
-    /// <summary>
-    /// Shows integer validation success state on a TextBox for modified values
-    /// </summary>
-    private static void ShowIntegerValidationSuccess(TextBox textBox, string successMessage = "Value modified")
-    {
-        ValidationManager.SetValidationModified(textBox, successMessage);
-
-        // Re-enable hex checkbox since validation succeeded
-        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
-        if (hexCheckBox != null)
-        {
-            hexCheckBox.IsEnabled = true;
-        }
-    }
-
-    /// <summary>
-    /// Updates integer display while preserving validation state (used for hex/decimal toggle)
-    /// </summary>
-    private static void UpdateIntegerDisplayWithValidationPreservation(TextBox textBox, CheckBox checkBox, PropertyHierarchyItem propertyItem, bool isHexadecimal)
-    {
-        // Update the display
-        UpdateIntegerDisplay(textBox, propertyItem, isHexadecimal);
-        
-        // Apply appropriate validation styling using the centralized ValidationManager
-        ValidationManager.ApplyValidationStyling(textBox, propertyItem);
     }
 
     /// <summary>
@@ -302,86 +233,14 @@ public static class IntegerEditor
     }
 
     /// <summary>
-    /// Updates property value from integer text input with validation
+    /// Updates integer display while preserving validation state (used for hex/decimal toggle)
     /// </summary>
-    private static void UpdatePropertyFromIntegerText(TextBox textBox, CheckBox checkBox, PropertyHierarchyItem propertyItem)
+    private static void UpdateIntegerDisplayWithValidationPreservation(TextBox textBox, CheckBox checkBox, PropertyHierarchyItem propertyItem, bool isHexadecimal)
     {
-        var text = textBox.Text?.Trim();
-        if (string.IsNullOrEmpty(text))
-        {
-            try
-            {
-                propertyItem.Value = null;
-                ClearIntegerValidationError(textBox);
-            }
-            catch (Exception ex)
-            {
-                ShowIntegerValidationError(textBox, ex.Message);
-            }
-            return;
-        }
+        // Update the display
+        UpdateIntegerDisplay(textBox, propertyItem, isHexadecimal);
 
-        try
-        {
-            var targetType = propertyItem.PropertyType;
-            object convertedValue;
-
-            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-            {
-                var hexValue = text.Substring(2);
-                convertedValue = ParseHexValueForType(hexValue, targetType);
-            }
-            else
-            {
-                var longValue = System.Convert.ToInt64(text);
-                convertedValue = ConvertToTargetIntegerType(longValue, targetType);
-            }
-
-            try
-            {
-                // Store the original value for comparison
-                var originalValue = propertyItem.Value;
-
-                propertyItem.Value = convertedValue;
-
-                // Only update display if format needs normalization (avoid unnecessary text changes)
-                var isHexadecimal = checkBox.IsChecked == true;
-                var expectedText = isHexadecimal ?
-                    FormatIntegerAsHex(convertedValue, targetType) :
-                    convertedValue.ToString();
-                if (textBox.Text != expectedText)
-                {
-                    // Format needs correction - update while preserving caret position
-                    CaretPositionHelper.PreserveCaretPosition(textBox, () =>
-                    {
-                        UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
-                    });
-                }
-
-                // Check if the value was actually changed
-                bool valueChanged = !ValidationManager.AreValuesEqual(originalValue, convertedValue);
-
-                if (valueChanged)
-                {
-                    // Show success state for modified values
-                    ShowIntegerValidationSuccess(textBox);
-                }
-                else
-                {
-                    // Clear any previous styling if value unchanged
-                    ClearIntegerValidationError(textBox);
-                }
-            }
-            catch (Exception setValueEx)
-            {
-                ShowIntegerValidationError(textBox, $"Failed to set value: {setValueEx.Message}");
-                // Leave the user's input as-is so they can see what's wrong and fix it
-            }
-        }
-        catch (Exception parseEx)
-        {
-            ShowIntegerValidationError(textBox, $"Invalid number format: {parseEx.Message}");
-            // Leave the user's input as-is so they can see what's wrong and fix it
-        }
+        // Apply appropriate validation styling using the centralized ValidationManager
+        ValidationManager.ApplyValidationStyling(textBox, propertyItem);
     }
 }

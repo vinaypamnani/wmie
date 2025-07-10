@@ -38,7 +38,7 @@ public static class UIHelpers
     /// <summary>
     /// Creates a standardized TextBox for property editing with consistent styling and behavior
     /// </summary>
-    public static TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null, Thickness? margin = null)
+    public static TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null, Thickness? margin = null, System.Func<string, object, ValidationManager.ValidationResult>? customValidation = null)
     {
         var textBox = new TextBox
         {
@@ -75,10 +75,13 @@ public static class UIHelpers
         // Attach selection behavior if property item provided
         EditorInfrastructure.AttachSelectOnFocus(textBox, propertyItem);
 
-        // Add validation behavior if property item provided
+        // Attach validation behavior if property item provided
         if (propertyItem != null)
         {
-            ValidationManager.AddValidationBehavior(textBox, propertyItem);
+            if (customValidation != null)
+                ValidationManager.AddValidationBehavior(textBox, propertyItem, customValidation);
+            else
+                ValidationManager.AddValidationBehavior(textBox, propertyItem);
         }
 
         return textBox;

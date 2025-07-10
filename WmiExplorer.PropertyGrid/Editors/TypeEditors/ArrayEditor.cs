@@ -26,44 +26,11 @@ public static class ArrayEditor
         var textBox = UIHelpers.CreateStandardTextBox(
             FormatArrayValueForEditing(propertyItem.Value),
             $"Enter {EditorInfrastructure.GetFriendlyTypeName(elementType)} values separated by commas or semicolons",
-            propertyItem
-        );
+            propertyItem,
+            null,
+            (text, originalValue) => CustomArrayValidation(text, originalValue, elementType));
 
         textBox.ToolTip = $"Enter {EditorInfrastructure.GetFriendlyTypeName(elementType)} values separated by commas or semicolons";
-
-        textBox.LostFocus += (sender, e) =>
-        {
-            if (sender is TextBox tb)
-            {
-                try
-                {
-                    // Store the original value for comparison
-                    var originalValue = propertyItem.Value;
-
-                    var arrayValue = ParseArrayValueFromText(tb.Text, elementType);
-                    propertyItem.Value = arrayValue;
-
-                    // Check if the array was actually changed
-                    bool arrayChanged = !ValidationManager.AreArraysEqual(originalValue as Array, arrayValue);
-
-                    if (arrayChanged)
-                    {
-                        // Show success state for modified arrays
-                        ValidationManager.SetValidationModified(tb);
-                    }
-                    else
-                    {
-                        // Clear any previous styling if array unchanged
-                        ValidationManager.SetValidationNormal(tb);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ValidationManager.SetValidationError(tb, $"Array parsing error: {ex.Message}");
-                    // Leave the user's input as-is so they can see what's wrong and fix it
-                }
-            }
-        };
 
         var stackPanel = new StackPanel
         {
@@ -145,5 +112,19 @@ public static class ArrayEditor
         }
 
         return array;
+    }
+
+    private static ValidationManager.ValidationResult CustomArrayValidation(string text, object originalValue, Type elementType)
+    {
+        try
+        {
+            var parsedArray = ParseArrayValueFromText(text, elementType);
+            bool isModified = !ValidationManager.AreArraysEqual(parsedArray, originalValue as Array);
+            return ValidationManager.ValidationResult.Valid(parsedArray, isModified);
+        }
+        catch (Exception ex)
+        {
+            return ValidationManager.ValidationResult.Error($"Array parsing error: {ex.Message}");
+        }
     }
 }
