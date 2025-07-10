@@ -13,6 +13,8 @@ namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 /// </summary>
 public partial class PropertyEditorDialogViewModel : ObservableObject
 {
+    private readonly ManagementBaseObject? _clonedObject;
+
     [ObservableProperty]
     private object? _editableObject;
 
@@ -35,8 +37,11 @@ public partial class PropertyEditorDialogViewModel : ObservableObject
         _originalObject = managementObject ?? throw new ArgumentNullException(nameof(managementObject));
 
         Title = title ?? _title;
-        ObjectTypeName = managementObject.ClassPath?.ClassName ?? "Unknown";
-        EditableObject = managementObject;
+        ObjectTypeName = _originalObject.ClassPath?.ClassName ?? "Unknown";
+
+        // Create a clone of the object for editing so changes don't affect the original until OK is clicked
+        _clonedObject = (ManagementBaseObject)_originalObject.Clone();
+        EditableObject = _clonedObject;
     }
 
     /// <summary>
@@ -50,6 +55,40 @@ public partial class PropertyEditorDialogViewModel : ObservableObject
         Result = null;
         _window.DialogResult = false;
         _window.Close();
+    }
+
+    /// <summary>
+    /// Copies property values from the cloned object back to the original object.
+    /// </summary>
+    private void CopyPropertiesFromCloneToOriginal()
+    {
+        if (_originalObject == null || _clonedObject == null)
+            return;
+
+        try
+        {
+            foreach (PropertyData property in _clonedObject.Properties)
+            {
+                try
+                {
+                    // Only copy writable properties
+                    if (!property.IsLocal || property.Value == null)
+                        continue;
+
+                    // Set the property value on the original object
+                    _originalObject.Properties[property.Name].Value = property.Value;
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning($"Failed to copy property '{property.Name}': {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error copying properties from clone to original object");
+            throw; // Re-throw since this is a critical operation
+        }
     }
 
     /// <summary>
@@ -170,11 +209,10 @@ public partial class PropertyEditorDialogViewModel : ObservableObject
                 return; // Don't close the dialog
             }
 
-            // Get the cleaned result based on the object type
-            if (_originalObject != null)
+            // Copy changes from clone back to original and return the original (which is connected to WMI)
+            if (_originalObject != null && _clonedObject != null)
             {
-                // For raw ManagementBaseObjects (instances), return as-is
-                // Could add validation or cleaning logic here if needed
+                CopyPropertiesFromCloneToOriginal();
                 Result = _originalObject;
             }
 
