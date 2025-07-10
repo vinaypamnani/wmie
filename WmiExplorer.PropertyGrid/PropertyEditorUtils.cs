@@ -45,6 +45,10 @@ public static class PropertyEditorUtils
 
     public static readonly Thickness TIP_TEXT_MARGIN = new Thickness(3, 3, 3, 3);
 
+    // Attached property to track if validation is in progress to prevent recursive calls
+    private static readonly DependencyProperty IsValidatingProperty =
+        DependencyProperty.RegisterAttached("IsValidating", typeof(bool), typeof(PropertyEditorUtils), new PropertyMetadata(false));
+
     /// <summary>
     /// Applies MaxWidth constraint to any FrameworkElement based on parent container
     /// </summary>
@@ -110,6 +114,13 @@ public static class PropertyEditorUtils
         textBox.ClearValue(Control.BorderThicknessProperty);
         textBox.ClearValue(Control.ToolTipProperty);
         textBox.ClearValue(Control.BackgroundProperty);
+
+        // Re-enable hex checkbox since error state is cleared
+        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
+        if (hexCheckBox != null)
+        {
+            hexCheckBox.IsEnabled = true;
+        }
     }
 
     /// <summary>
@@ -126,6 +137,13 @@ public static class PropertyEditorUtils
 
         // Clear error background
         textBox.ClearValue(Control.BackgroundProperty);
+
+        // Re-enable hex checkbox if this is an integer field since error state is cleared
+        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
+        if (hexCheckBox != null)
+        {
+            hexCheckBox.IsEnabled = true;
+        }
     }
 
     /// <summary>
@@ -138,6 +156,13 @@ public static class PropertyEditorUtils
         textBox.ClearValue(Control.BorderThicknessProperty);
         textBox.ClearValue(Control.ToolTipProperty);
         textBox.ClearValue(Control.BackgroundProperty);
+
+        // Re-enable hex checkbox if this is an integer field since error state is cleared
+        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
+        if (hexCheckBox != null)
+        {
+            hexCheckBox.IsEnabled = true;
+        }
     }
 
     /// <summary>
@@ -190,8 +215,8 @@ public static class PropertyEditorUtils
                 }
                 catch (Exception ex)
                 {
-                    tb.Text = FormatArrayValueForEditing(propertyItem.Value);
                     ShowValidationError(tb, $"Array parsing error: {ex.Message}");
+                    // Leave the user's input as-is so they can see what's wrong and fix it
                 }
             }
         };
@@ -507,6 +532,43 @@ public static class PropertyEditorUtils
     }
 
     /// <summary>
+    /// Formats an integer value as hexadecimal with appropriate digit count for the type
+    /// </summary>
+    public static string FormatIntegerAsHex(object value, Type propertyType)
+    {
+        if (value == null) return string.Empty;
+
+        try
+        {
+            // Convert to the specific type to get proper two's complement representation
+            return propertyType switch
+            {
+                var t when t == typeof(byte) || t == typeof(byte?) =>
+                    $"0x{Convert.ToByte(value):X2}",
+                var t when t == typeof(sbyte) || t == typeof(sbyte?) =>
+                    $"0x{(byte)Convert.ToSByte(value):X2}",
+                var t when t == typeof(ushort) || t == typeof(ushort?) =>
+                    $"0x{Convert.ToUInt16(value):X4}",
+                var t when t == typeof(short) || t == typeof(short?) =>
+                    $"0x{(ushort)Convert.ToInt16(value):X4}",
+                var t when t == typeof(uint) || t == typeof(uint?) =>
+                    $"0x{Convert.ToUInt32(value):X8}",
+                var t when t == typeof(int) || t == typeof(int?) =>
+                    $"0x{(uint)Convert.ToInt32(value):X8}",
+                var t when t == typeof(ulong) || t == typeof(ulong?) =>
+                    $"0x{Convert.ToUInt64(value):X16}",
+                var t when t == typeof(long) || t == typeof(long?) =>
+                    $"0x{(ulong)Convert.ToInt64(value):X16}",
+                _ => $"0x{Convert.ToInt64(value):X}"
+            };
+        }
+        catch
+        {
+            return value.ToString() ?? string.Empty;
+        }
+    }
+
+    /// <summary>
     /// Gets a friendly display name for a type
     /// </summary>
     public static string GetFriendlyTypeName(Type type)
@@ -631,6 +693,13 @@ public static class PropertyEditorUtils
         textBox.BorderThickness = new Thickness(2);
         textBox.ToolTip = $"❌ Validation Error: {errorMessage}";
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 255, 0, 0));
+
+        // Disable hex checkbox to prevent confusing behavior with invalid values
+        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
+        if (hexCheckBox != null)
+        {
+            hexCheckBox.IsEnabled = false;
+        }
     }
 
     /// <summary>
@@ -642,6 +711,13 @@ public static class PropertyEditorUtils
         textBox.BorderThickness = new Thickness(2);
         textBox.ToolTip = $"✅ {successMessage}\n\nPress Escape to reset to original value.";
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 0, 255, 0));
+
+        // Re-enable hex checkbox since validation succeeded
+        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
+        if (hexCheckBox != null)
+        {
+            hexCheckBox.IsEnabled = true;
+        }
     }
 
     /// <summary>
@@ -658,6 +734,13 @@ public static class PropertyEditorUtils
 
         // Optional: Add background tint to make error more visible
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 255, 0, 0));
+
+        // Disable hex checkbox if this is an integer field to prevent confusing behavior
+        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
+        if (hexCheckBox != null)
+        {
+            hexCheckBox.IsEnabled = false;
+        }
     }
 
     /// <summary>
@@ -674,6 +757,13 @@ public static class PropertyEditorUtils
 
         // Add background tint to make success more visible
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 0, 255, 0));
+
+        // Re-enable hex checkbox if this is an integer field since validation succeeded
+        var hexCheckBox = FindAssociatedHexCheckBox(textBox);
+        if (hexCheckBox != null)
+        {
+            hexCheckBox.IsEnabled = true;
+        }
     }
 
     /// <summary>
@@ -683,18 +773,29 @@ public static class PropertyEditorUtils
     {
         if (propertyItem.Value == null)
         {
-            textBox.Text = string.Empty;
+            CaretPositionHelper.SetTextPreservingCaret(textBox, string.Empty);
             return;
         }
 
         try
         {
-            var longValue = System.Convert.ToInt64(propertyItem.Value);
-            textBox.Text = isHexadecimal ? $"0x{longValue:X}" : longValue.ToString();
+            var newText = isHexadecimal ?
+                FormatIntegerAsHex(propertyItem.Value, propertyItem.PropertyType) :
+                propertyItem.Value.ToString();
+
+            // Only update text if it's actually different to avoid unnecessary caret movement
+            if (textBox.Text != newText)
+            {
+                CaretPositionHelper.SetTextPreservingCaret(textBox, newText);
+            }
         }
         catch
         {
-            textBox.Text = propertyItem.Value.ToString() ?? string.Empty;
+            var newText = propertyItem.Value.ToString() ?? string.Empty;
+            if (textBox.Text != newText)
+            {
+                CaretPositionHelper.SetTextPreservingCaret(textBox, newText);
+            }
         }
     }
 
@@ -720,39 +821,19 @@ public static class PropertyEditorUtils
 
         try
         {
-            long longValue;
+            var targetType = propertyItem.PropertyType;
+            object convertedValue;
 
             if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
                 var hexValue = text.Substring(2);
-                longValue = System.Convert.ToInt64(hexValue, 16);
+                convertedValue = ParseHexValueForType(hexValue, targetType);
             }
             else
             {
-                longValue = System.Convert.ToInt64(text);
+                var longValue = System.Convert.ToInt64(text);
+                convertedValue = ConvertToTargetIntegerType(longValue, targetType);
             }
-
-            var targetType = propertyItem.PropertyType;
-            object convertedValue;
-
-            if (targetType == typeof(int) || targetType == typeof(int?))
-                convertedValue = (int)longValue;
-            else if (targetType == typeof(uint) || targetType == typeof(uint?))
-                convertedValue = (uint)longValue;
-            else if (targetType == typeof(long) || targetType == typeof(long?))
-                convertedValue = longValue;
-            else if (targetType == typeof(ulong) || targetType == typeof(ulong?))
-                convertedValue = (ulong)longValue;
-            else if (targetType == typeof(short) || targetType == typeof(short?))
-                convertedValue = (short)longValue;
-            else if (targetType == typeof(ushort) || targetType == typeof(ushort?))
-                convertedValue = (ushort)longValue;
-            else if (targetType == typeof(byte) || targetType == typeof(byte?))
-                convertedValue = (byte)longValue;
-            else if (targetType == typeof(sbyte) || targetType == typeof(sbyte?))
-                convertedValue = (sbyte)longValue;
-            else
-                convertedValue = longValue;
 
             try
             {
@@ -760,7 +841,20 @@ public static class PropertyEditorUtils
                 var originalValue = propertyItem.Value;
 
                 propertyItem.Value = convertedValue;
-                UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
+
+                // Only update display if format needs normalization (avoid unnecessary text changes)
+                var isHexadecimal = checkBox.IsChecked == true;
+                var expectedText = isHexadecimal ?
+                    FormatIntegerAsHex(convertedValue, targetType) :
+                    convertedValue.ToString();
+                if (textBox.Text != expectedText)
+                {
+                    // Format needs correction - update while preserving caret position
+                    CaretPositionHelper.PreserveCaretPosition(textBox, () =>
+                    {
+                        UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
+                    });
+                }
 
                 // Check if the value was actually changed
                 bool valueChanged = !AreValuesEqual(originalValue, convertedValue);
@@ -779,13 +873,13 @@ public static class PropertyEditorUtils
             catch (Exception setValueEx)
             {
                 ShowIntegerValidationError(textBox, $"Failed to set value: {setValueEx.Message}");
-                UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
+                // Leave the user's input as-is so they can see what's wrong and fix it
             }
         }
         catch (Exception parseEx)
         {
             ShowIntegerValidationError(textBox, $"Invalid number format: {parseEx.Message}");
-            UpdateIntegerDisplay(textBox, propertyItem, checkBox.IsChecked == true);
+            // Leave the user's input as-is so they can see what's wrong and fix it
         }
     }
 
@@ -798,10 +892,10 @@ public static class PropertyEditorUtils
         var originalBorderBrush = textBox.BorderBrush;
         var originalToolTip = textBox.ToolTip;
 
-        // Add TextChanged validation
+        // Add TextChanged validation (visual feedback only, no property updates)
         textBox.TextChanged += (sender, e) =>
         {
-            if (sender is TextBox tb)
+            if (sender is TextBox tb && !GetIsValidating(tb))
             {
                 if (customValidation != null)
                 {
@@ -810,9 +904,18 @@ public static class PropertyEditorUtils
                 }
                 else if (ShouldValidateOnTextChanged(propertyItem))
                 {
-                    // Use default validation for types that use TypeConverter
+                    // Use default validation for types that use TypeConverter (visual feedback only)
                     ValidateTextBoxValue(tb, propertyItem, originalBorderBrush, originalToolTip);
                 }
+            }
+        };
+
+        // Add LostFocus handler to actually update the property value
+        textBox.LostFocus += (sender, e) =>
+        {
+            if (sender is TextBox tb && !GetIsValidating(tb))
+            {
+                UpdatePropertyValueFromText(tb, propertyItem, originalBorderBrush, originalToolTip);
             }
         };
 
@@ -822,7 +925,7 @@ public static class PropertyEditorUtils
             if (e.Key == System.Windows.Input.Key.Escape && sender is TextBox tb)
             {
                 // Reset to original value and clear error state
-                tb.Text = propertyItem.FormattedValue ?? string.Empty;
+                CaretPositionHelper.SetTextPreservingCaret(tb, propertyItem.FormattedValue ?? string.Empty);
                 ClearValidationError(tb, originalBorderBrush, originalToolTip);
                 e.Handled = true;
             }
@@ -898,6 +1001,58 @@ public static class PropertyEditorUtils
     }
 
     /// <summary>
+    /// Converts a long value to the appropriate target integer type
+    /// </summary>
+    private static object ConvertToTargetIntegerType(long value, Type targetType)
+    {
+        return targetType switch
+        {
+            var t when t == typeof(int) || t == typeof(int?) => (int)value,
+            var t when t == typeof(uint) || t == typeof(uint?) => (uint)value,
+            var t when t == typeof(long) || t == typeof(long?) => value,
+            var t when t == typeof(ulong) || t == typeof(ulong?) => (ulong)value,
+            var t when t == typeof(short) || t == typeof(short?) => (short)value,
+            var t when t == typeof(ushort) || t == typeof(ushort?) => (ushort)value,
+            var t when t == typeof(byte) || t == typeof(byte?) => (byte)value,
+            var t when t == typeof(sbyte) || t == typeof(sbyte?) => (sbyte)value,
+            _ => value
+        };
+    }
+
+    /// <summary>
+    /// Finds the hex CheckBox associated with an integer TextBox by traversing the visual tree
+    /// </summary>
+    private static CheckBox? FindAssociatedHexCheckBox(TextBox textBox)
+    {
+        try
+        {
+            // The TextBox should be in column 0 of a Grid, with the CheckBox in column 1
+            if (textBox.Parent is Grid parentGrid)
+            {
+                foreach (UIElement child in parentGrid.Children)
+                {
+                    if (child is CheckBox checkBox && Grid.GetColumn(checkBox) == 1)
+                    {
+                        // Additional check to ensure this is the hex checkbox
+                        if (checkBox.Content?.ToString()?.Equals("Hex", StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            return checkBox;
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // If anything goes wrong with visual tree traversal, just return null
+        }
+
+        return null;
+    }
+
+    private static bool GetIsValidating(DependencyObject obj) => (bool)obj.GetValue(IsValidatingProperty);
+
+    /// <summary>
     /// Checks if a type is numeric
     /// </summary>
     private static bool IsNumericType(Type type)
@@ -909,6 +1064,36 @@ public static class PropertyEditorUtils
                type == typeof(float) || type == typeof(double) ||
                type == typeof(decimal);
     }
+
+    /// <summary>
+    /// Parses a hex string for a specific integer type, handling two's complement properly
+    /// </summary>
+    private static object ParseHexValueForType(string hexValue, Type targetType)
+    {
+        // For signed types, we need to handle two's complement representation correctly
+        return targetType switch
+        {
+            var t when t == typeof(byte) || t == typeof(byte?) =>
+                Convert.ToByte(hexValue, 16),
+            var t when t == typeof(sbyte) || t == typeof(sbyte?) =>
+                (sbyte)Convert.ToByte(hexValue, 16), // Parse as byte, then cast to sbyte for two's complement
+            var t when t == typeof(ushort) || t == typeof(ushort?) =>
+                Convert.ToUInt16(hexValue, 16),
+            var t when t == typeof(short) || t == typeof(short?) =>
+                (short)Convert.ToUInt16(hexValue, 16), // Parse as ushort, then cast to short for two's complement
+            var t when t == typeof(uint) || t == typeof(uint?) =>
+                Convert.ToUInt32(hexValue, 16),
+            var t when t == typeof(int) || t == typeof(int?) =>
+                (int)Convert.ToUInt32(hexValue, 16), // Parse as uint, then cast to int for two's complement
+            var t when t == typeof(ulong) || t == typeof(ulong?) =>
+                Convert.ToUInt64(hexValue, 16),
+            var t when t == typeof(long) || t == typeof(long?) =>
+                (long)Convert.ToUInt64(hexValue, 16), // Parse as ulong, then cast to long for two's complement
+            _ => Convert.ToInt64(hexValue, 16)
+        };
+    }
+
+    private static void SetIsValidating(DependencyObject obj, bool value) => obj.SetValue(IsValidatingProperty, value);
 
     /// <summary>
     /// Sets up binding for integer editor components
@@ -934,12 +1119,14 @@ public static class PropertyEditorUtils
     }
 
     /// <summary>
-    /// Validates the TextBox value using TypeConverter
+    /// Updates the property value from TextBox text on focus loss
     /// </summary>
-    private static void ValidateTextBoxValue(TextBox textBox, PropertyHierarchyItem propertyItem, Brush originalBorderBrush, object originalToolTip)
+    private static void UpdatePropertyValueFromText(TextBox textBox, PropertyHierarchyItem propertyItem, Brush originalBorderBrush, object originalToolTip)
     {
         try
         {
+            SetIsValidating(textBox, true);
+
             var converter = System.ComponentModel.TypeDescriptor.GetConverter(propertyItem.PropertyType);
 
             if (converter != null && converter.CanConvertFrom(typeof(string)))
@@ -949,10 +1136,9 @@ public static class PropertyEditorUtils
                     // Store the original value for comparison
                     var originalValue = propertyItem.Value;
 
-                    // Test conversion - if it succeeds, update the property
+                    // Convert and update the property value
                     var convertedValue = converter.ConvertFromString(textBox.Text);
 
-                    // Try to set the value, but catch any WMI-level errors too
                     try
                     {
                         propertyItem.Value = convertedValue;
@@ -963,7 +1149,7 @@ public static class PropertyEditorUtils
                         if (valueChanged)
                         {
                             // Show success state for modified values
-                            ShowValidationSuccess(textBox);
+                            ShowValidationSuccess(textBox, "Value updated successfully");
                         }
                         else
                         {
@@ -991,6 +1177,170 @@ public static class PropertyEditorUtils
         {
             // Show visual feedback for validation error
             ShowValidationError(textBox, ex.Message);
+        }
+        finally
+        {
+            SetIsValidating(textBox, false);
+        }
+    }
+
+    /// <summary>
+    /// Validates the TextBox value using TypeConverter without updating text (to prevent caret jumping)
+    /// </summary>
+    private static void ValidateTextBoxValue(TextBox textBox, PropertyHierarchyItem propertyItem, Brush originalBorderBrush, object originalToolTip)
+    {
+        // Prevent recursive validation calls
+        if (GetIsValidating(textBox)) return;
+
+        try
+        {
+            SetIsValidating(textBox, true);
+
+            var converter = System.ComponentModel.TypeDescriptor.GetConverter(propertyItem.PropertyType);
+
+            if (converter != null && converter.CanConvertFrom(typeof(string)))
+            {
+                try
+                {
+                    // Test conversion without updating the property value during typing
+                    // This prevents triggering additional TextChanged events that cause caret jumping
+                    var convertedValue = converter.ConvertFromString(textBox.Text);
+
+                    // Only show visual feedback - don't update the property value during typing
+                    // The actual property update happens on LostFocus
+                    if (convertedValue != null)
+                    {
+                        // Value is valid - show success styling only if it would represent a change
+                        var originalValue = propertyItem.Value;
+                        bool valueChanged = !AreValuesEqual(originalValue, convertedValue);
+
+                        if (valueChanged)
+                        {
+                            ShowValidationSuccess(textBox, "Valid value (will update on focus loss)");
+                        }
+                        else
+                        {
+                            // Value is valid but unchanged - clear any error styling
+                            ClearValidationError(textBox, originalBorderBrush, originalToolTip);
+                        }
+                    }
+                    else
+                    {
+                        // Clear any error styling for valid null values
+                        ClearValidationError(textBox, originalBorderBrush, originalToolTip);
+                    }
+                }
+                catch (Exception conversionEx)
+                {
+                    // Show error styling but don't change the text
+                    ShowValidationError(textBox, conversionEx.Message);
+                }
+            }
+            else
+            {
+                ShowValidationError(textBox, "Cannot convert this value to the required type.");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Show visual feedback for validation error without changing text
+            ShowValidationError(textBox, ex.Message);
+        }
+        finally
+        {
+            SetIsValidating(textBox, false);
+        }
+    }
+}
+
+/// <summary>
+/// Helper class to preserve and restore TextBox caret position
+/// </summary>
+internal static class CaretPositionHelper
+{
+    /// <summary>
+    /// Preserves caret position while executing an action that might modify the TextBox text
+    /// </summary>
+    public static void PreserveCaretPosition(TextBox textBox, Action action)
+    {
+        if (textBox == null || action == null) return;
+
+        // Store current caret position and selection
+        int caretIndex = textBox.CaretIndex;
+        int selectionStart = textBox.SelectionStart;
+        int selectionLength = textBox.SelectionLength;
+        string originalText = textBox.Text;
+
+        try
+        {
+            // Execute the action
+            action();
+
+            // Only restore caret position if the text actually changed and the textbox still has focus
+            if (textBox.IsFocused && !string.Equals(originalText, textBox.Text, StringComparison.Ordinal))
+            {
+                RestoreCaretPosition(textBox, caretIndex, selectionStart, selectionLength, originalText.Length);
+            }
+        }
+        catch
+        {
+            // If anything goes wrong, just restore the original position
+            if (textBox.IsFocused)
+            {
+                RestoreCaretPosition(textBox, caretIndex, selectionStart, selectionLength, originalText.Length);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Safely sets TextBox text while preserving caret position
+    /// </summary>
+    public static void SetTextPreservingCaret(TextBox textBox, string newText)
+    {
+        if (textBox == null) return;
+
+        PreserveCaretPosition(textBox, () =>
+        {
+            textBox.Text = newText;
+        });
+    }
+
+    private static void RestoreCaretPosition(TextBox textBox, int originalCaretIndex, int originalSelectionStart, int originalSelectionLength, int originalTextLength)
+    {
+        try
+        {
+            int newTextLength = textBox.Text.Length;
+
+            // Calculate new caret position, ensuring it doesn't exceed the new text length
+            int newCaretIndex = Math.Min(originalCaretIndex, newTextLength);
+
+            // If the text got shorter, move caret to the end
+            if (newTextLength < originalTextLength && originalCaretIndex >= originalTextLength)
+            {
+                newCaretIndex = newTextLength;
+            }
+
+            // Restore caret position
+            textBox.CaretIndex = Math.Max(0, newCaretIndex);
+
+            // Restore selection if it was present and still valid
+            if (originalSelectionLength > 0)
+            {
+                int newSelectionStart = Math.Min(originalSelectionStart, newTextLength);
+                int maxSelectionLength = newTextLength - newSelectionStart;
+                int newSelectionLength = Math.Min(originalSelectionLength, maxSelectionLength);
+
+                if (newSelectionLength > 0)
+                {
+                    textBox.SelectionStart = newSelectionStart;
+                    textBox.SelectionLength = newSelectionLength;
+                }
+            }
+        }
+        catch
+        {
+            // If restoration fails, just set caret to end
+            textBox.CaretIndex = textBox.Text.Length;
         }
     }
 }
