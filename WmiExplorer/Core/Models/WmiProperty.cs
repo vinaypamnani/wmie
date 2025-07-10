@@ -1,7 +1,6 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Management;
-using WmiExplorer.Common.Logging;
 using WmiExplorer.PropertyGrid;
 
 namespace WmiExplorer.Core.Models;
@@ -9,6 +8,7 @@ namespace WmiExplorer.Core.Models;
 /// <summary>
 /// Thin wrapper for a WMI PropertyData object
 /// </summary>
+
 public class WmiProperty
 {
     private object? _cachedValueMap;
@@ -34,16 +34,25 @@ public class WmiProperty
     {
         get
         {
-            try
+            var desc = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "Description");
+            return desc?.ToString() ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Indicates whether this property has possible values (enumeration or value map).
+    /// </summary>
+    [Category("Advanced")]
+    public bool HasValueMap
+    {
+        get
+        {
+            if (!_possibleValuesComputed)
             {
-                if (_propertyData.Qualifiers != null && _propertyData.Qualifiers.Cast<QualifierData>().Any(q => q.Name == "Description"))
-                    return _propertyData.Qualifiers["Description"]?.Value?.ToString() ?? string.Empty;
+                BuildAndCachePossibleValues();
+                _possibleValuesComputed = true;
             }
-            catch
-            {
-                // Optionally log the error
-            }
-            return string.Empty;
+            return _cachedValues != null;
         }
     }
 
@@ -73,7 +82,7 @@ public class WmiProperty
     /// <summary>
     /// Determines if this property is lazy-loaded based on the 'lazy' qualifier
     /// </summary>
-    [Category("Property")]
+    [Category("Advanced")]
     public bool IsLazy
     {
         get
@@ -87,6 +96,32 @@ public class WmiProperty
             {
                 return false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Indicates whether this property is read-only, based on WMI qualifiers.
+    /// </summary>
+
+    [Category("Advanced")]
+    public bool IsReadOnly
+    {
+        get
+        {
+            var writeQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "write");
+            if (writeQualifier is bool writeBool)
+            {
+                return !writeBool;
+            }
+
+            var readOnlyQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "read");
+            if (readOnlyQualifier is bool readBool && readBool)
+            {
+                return true;
+            }
+
+            // Default: For regular WMI instances without explicit qualifiers, properties are generally read-only
+            return true;
         }
     }
 
@@ -129,6 +164,9 @@ public class WmiProperty
     public string Type => _propertyData.Type.ToString();
 
     [Category("Property")]
+    public string CimType => GetQualifierFromClassOrInstance(_propertyData, _parentClass, "cimtype")?.ToString() ?? _propertyData.Type.ToString();
+
+    [Category("Property")]
     public object Value => _propertyData.Value;
 
     public override string ToString() => $"Property: {Name} ({Type})";
@@ -138,39 +176,33 @@ public class WmiProperty
     /// </summary>
     private void BuildAndCachePossibleValues()
     {
-        var qualifiers = _propertyData.Qualifiers;
-        if (qualifiers == null || qualifiers.Count == 0)
-            return;
+        var valueQualifiers = new HashSet<string>(
+            new[] { "values", "enumeration", "stringenumeration", "bitvalues", "bits" },
+            StringComparer.OrdinalIgnoreCase);
+        var valueMapQualifiers = new HashSet<string>(
+            new[] { "valuemap", "bitmap" },
+            StringComparer.OrdinalIgnoreCase);
 
-        // Use a more efficient lookup for qualifiers
-        try
+        object? values = null;
+        foreach (var name in valueQualifiers)
         {
-            // Look for values qualifiers first
-            foreach (QualifierData qualifier in qualifiers)
+            values = GetQualifierFromClassOrInstance(_propertyData, _parentClass, name);
+            if (values != null)
             {
-                var name = qualifier.Name;
-                if (string.Equals(name, "values", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(name, "enumeration", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(name, "stringenumeration", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(name, "bitvalues", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(name, "bits", StringComparison.OrdinalIgnoreCase))
-                {
-                    _cachedValues = qualifier.Value;
-                    if (_cachedValueMap != null) break; // Both found, exit early
-                }
-                else if (string.Equals(name, "valuemap", StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(name, "bitmap", StringComparison.OrdinalIgnoreCase))
-                {
-                    _cachedValueMap = qualifier.Value;
-                    if (_cachedValues != null) break; // Both found, exit early
-                }
+                break;
             }
         }
-        catch (Exception ex)
+        object? valueMap = null;
+        foreach (var name in valueMapQualifiers)
         {
-            // Log the exception for debugging
-            Log.Warning(ex, "Error building possible values for property '{Name}' in Class '{ClassName}'", Name, ClassName);
+            valueMap = GetQualifierFromClassOrInstance(_propertyData, _parentClass, name);
+            if (valueMap != null)
+            {
+                break;
+            }
         }
+        _cachedValues = values;
+        _cachedValueMap = valueMap;
     }
 
     /// <summary>
@@ -222,5 +254,63 @@ public class WmiProperty
         }
 
         return result.Count > 0 ? result : null;
+    }
+
+    /// <summary>
+    /// Helper to get a qualifier value from the class definition using UseAmendedQualifiers.
+    /// </summary>
+    private static object? GetQualifierFromClass(PropertyData propertyData, ManagementClass? parentClass, string qualifierName)
+    {
+        if (parentClass == null)
+            return null;
+
+        try
+        {
+            var classProperty = parentClass.Properties[propertyData.Name];
+            if (classProperty != null && classProperty.Qualifiers != null)
+            {
+                foreach (QualifierData qualifier in classProperty.Qualifiers)
+                {
+                    if (qualifier.Name.Equals(qualifierName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return qualifier.Value;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Ignore errors, just fallback
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Helper to get a qualifier value from the instance, then fall back to the class definition.
+    /// </summary>
+    private static object? GetQualifierFromClassOrInstance(PropertyData propertyData, ManagementClass? parentClass, string qualifierName)
+    {
+        var instanceValue = GetQualifierValue(propertyData, qualifierName);
+        if (instanceValue != null)
+            return instanceValue;
+        return GetQualifierFromClass(propertyData, parentClass, qualifierName);
+    }
+
+    /// <summary>
+    /// Helper method to get a qualifier value by name from specified PropertyData
+    /// </summary>
+    private static object? GetQualifierValue(PropertyData propertyData, string qualifierName)
+    {
+        if (propertyData.Qualifiers == null)
+            return null;
+
+        foreach (QualifierData qualifier in propertyData.Qualifiers)
+        {
+            if (qualifier.Name.Equals(qualifierName, StringComparison.OrdinalIgnoreCase))
+            {
+                return qualifier.Value;
+            }
+        }
+        return null;
     }
 }
