@@ -232,7 +232,7 @@ public partial class PropertyHierarchyItem : ObservableObject
             }
 
             // Filter child descriptors based on filter options
-            childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly)).ToList();
+            childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly, cd.IsKey)).ToList();
 
             foreach (var descriptor in childDescriptors)
             {
@@ -243,7 +243,7 @@ public partial class PropertyHierarchyItem : ObservableObject
                     var grandChildren = registry.GetChildItems(descriptor.Value, descriptor.Name ?? string.Empty, descriptor.Category ?? string.Empty);
 
                     // Filter grandchildren based on filter options
-                    grandChildren = grandChildren.Where(gc => filterOptions.ShouldIncludeProperty(gc.Name, gc.Value, gc.IsReadOnly)).ToList();
+                    grandChildren = grandChildren.Where(gc => filterOptions.ShouldIncludeProperty(gc.Name, gc.Value, gc.IsReadOnly, gc.IsKey)).ToList();
 
                     foreach (var grandChild in grandChildren)
                     {

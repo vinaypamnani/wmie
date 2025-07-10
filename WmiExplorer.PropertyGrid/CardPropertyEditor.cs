@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Converters;
 
@@ -68,12 +69,48 @@ public class CardPropertyEditor : PropertyEditor
         // Property name and type column
         var namePanel = new StackPanel { Orientation = Orientation.Vertical, VerticalAlignment = VerticalAlignment.Center };
 
-        namePanel.Children.Add(new TextBlock
+        // Create horizontal panel for property name with key icon
+        var nameWithIconPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        
+        // Add key icon if this is a key property (BEFORE the property name)
+        if (propertyItem.IsKey)
+        {
+            var keyIcon = new ContentControl
+            {
+                Margin = new Thickness(0, 0, 4, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                ToolTip = "Key Property"
+            };
+            
+            // Set the ContentTemplate to use the KeyIconTemplate
+            try
+            {
+                keyIcon.ContentTemplate = (DataTemplate)Application.Current.FindResource("KeyIconTemplate");
+                keyIcon.Foreground = (Brush)Application.Current.FindResource("PropertyGridKeyHighlightBrush");
+            }
+            catch
+            {
+                // Fallback to simple text icon if KeyIconTemplate is not available
+                keyIcon.Content = new TextBlock
+                {
+                    Text = "🔑",
+                    FontSize = 10,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+            }
+            
+            nameWithIconPanel.Children.Add(keyIcon);
+        }
+
+        nameWithIconPanel.Children.Add(new TextBlock
         {
             Text = propertyItem.DisplayName ?? propertyItem.Name,
             FontWeight = FontWeights.SemiBold,
-            FontSize = 11
+            FontSize = 11,
+            VerticalAlignment = VerticalAlignment.Center
         });
+
+        namePanel.Children.Add(nameWithIconPanel);
 
         namePanel.Children.Add(new TextBlock
         {

@@ -566,7 +566,7 @@ public partial class PropertyGrid : Control, IPropertyGridContext
 
             // Filter properties based on current filter options
             var filterOptions = FilterOptions;
-            descriptors = descriptors.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly)).ToList();
+            descriptors = descriptors.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly, p.IsKey)).ToList();
 
             var categoryGroups = descriptors
                 .GroupBy(p => string.IsNullOrEmpty(p.Category) ? _defaultCategory : p.Category)
@@ -582,7 +582,7 @@ public partial class PropertyGrid : Control, IPropertyGridContext
                 var categoryItem = new PropertyCategoryItem(categoryName);
                 rootItems.Add(categoryItem);                // Only filter out nulls if IncludeNullValues is false
                 IEnumerable<Abstractions.IPropertyDescriptor> filteredProperties = category;
-                filteredProperties = filteredProperties.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly));
+                filteredProperties = filteredProperties.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly, p.IsKey));
 
                 // Sort properties: IsKey properties first, then alphabetically by DisplayName
                 var filteredList = filteredProperties
@@ -598,7 +598,7 @@ public partial class PropertyGrid : Control, IPropertyGridContext
                         // Promote children: add child properties directly to the parent category
                         var childDescriptors = PropertyTypeProviderRegistry.Instance.GetChildItems(descriptor.Value, descriptor.Name, descriptor.Category);
                         // Filter childDescriptors based on filter options
-                        childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly)).ToList();
+                        childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly, cd.IsKey)).ToList();
 
                         foreach (var childDesc in childDescriptors)
                         {

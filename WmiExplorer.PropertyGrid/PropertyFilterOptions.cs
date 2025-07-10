@@ -89,12 +89,17 @@ public partial class PropertyFilterOptions : ObservableObject
     /// <param name="propertyName">The name of the property</param>
     /// <param name="propertyValue">The value of the property</param>
     /// <param name="isReadOnly">Whether the property is read-only</param>
+    /// <param name="isKey">Whether the property is a key property (optional, defaults to false)</param>
     /// <returns>True if the property should be included, false otherwise</returns>
-    public bool ShouldIncludeProperty(string? propertyName, object? propertyValue, bool isReadOnly)
+    public bool ShouldIncludeProperty(string? propertyName, object? propertyValue, bool isReadOnly, bool isKey = false)
     {
         // Filter out null values if not included
         if (!IncludeNullValues && propertyValue == null)
             return false;
+
+        // Always include key properties, even if read-only properties are filtered out
+        if (isKey)
+            return true;
 
         // Filter out read-only properties if not included
         if (!IncludeReadOnlyProperties && isReadOnly)
