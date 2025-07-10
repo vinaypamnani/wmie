@@ -133,7 +133,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             // Only compute enhanced value if the property grid is read-only
             if (_propertyGridContext?.IsReadOnly == true)
             {
-                var enhancedValue = GetEnhancedValueWithPossibleValues(_propertyData.Value);
+                var enhancedValue = GetEnhancedValue(_propertyData.Value);
                 if (enhancedValue != null)
                 {
                     return enhancedValue;
@@ -306,45 +306,100 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     }
 
     /// <summary>
+    /// Formats an integer value as a hexadecimal string, supporting all common integer types.
+    /// </summary>
+    private static string FormatIntegerAsHex(object value, Type propertyType)
+    {
+        if (value == null) return string.Empty;
+
+        try
+        {
+            // Convert to the specific type to get proper two's complement representation
+            return propertyType switch
+            {
+                var t when t == typeof(byte) || t == typeof(byte?) =>
+                    $"0x{Convert.ToByte(value):X2}",
+                var t when t == typeof(sbyte) || t == typeof(sbyte?) =>
+                    $"0x{(byte)Convert.ToSByte(value):X2}",
+                var t when t == typeof(ushort) || t == typeof(ushort?) =>
+                    $"0x{Convert.ToUInt16(value):X4}",
+                var t when t == typeof(short) || t == typeof(short?) =>
+                    $"0x{(ushort)Convert.ToInt16(value):X4}",
+                var t when t == typeof(uint) || t == typeof(uint?) =>
+                    $"0x{Convert.ToUInt32(value):X8}",
+                var t when t == typeof(int) || t == typeof(int?) =>
+                    $"0x{(uint)Convert.ToInt32(value):X8}",
+                var t when t == typeof(ulong) || t == typeof(ulong?) =>
+                    $"0x{Convert.ToUInt64(value):X16}",
+                var t when t == typeof(long) || t == typeof(long?) =>
+                    $"0x{(ulong)Convert.ToInt64(value):X16}",
+                _ => string.Empty
+            };
+        }
+        catch
+        {
+            return value.ToString() ?? string.Empty;
+        }
+    }
+
+    /// <summary>
     /// Gets an enhanced value display using possible values if available.
     /// </summary>
-    private object? GetEnhancedValueWithPossibleValues(object? rawValue)
+    private object? GetEnhancedValue(object? rawValue)
     {
         if (rawValue == null)
             return null;
 
         // Get the WmiProperty for this property to access PossibleValues
         var wmiProperty = GetWmiProperty();
-        if (wmiProperty?.PossibleValues == null || wmiProperty.PossibleValues.Count == 0)
-            return null;
+        bool hasPossibleValues = wmiProperty?.PossibleValues != null && wmiProperty.PossibleValues.Count > 0;
 
         // Convert raw value to string for comparison
         var valueStr = rawValue.ToString();
         if (string.IsNullOrEmpty(valueStr))
             return null;
 
-        // Look for a matching value in possible values
-        var allKeys = wmiProperty.PossibleValues.AllKeys;
-        if (allKeys == null) return null;
-
-        foreach (string? key in allKeys)
+        if (hasPossibleValues)
         {
-            if (key == null) continue;
-
-            var possibleValue = wmiProperty.PossibleValues[key];
-            if (string.Equals(possibleValue, valueStr, StringComparison.OrdinalIgnoreCase))
-            {
-                // If we have a mapped value that's different from the key, show both
-                if (!string.IsNullOrEmpty(possibleValue) && !string.Equals(key, possibleValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    return $"{possibleValue} [{key}]";
-                }
-                // If key equals mapped value, we don't need to enhance
+            // Look for a matching value in possible values
+            var possibleValues = wmiProperty?.PossibleValues;
+            if (possibleValues == null)
                 return null;
+
+            var allKeys = possibleValues.AllKeys;
+            if (allKeys == null)
+                return null;
+
+            foreach (string? key in allKeys)
+            {
+                if (key == null) continue;
+
+                var possibleValue = possibleValues[key];
+                if (string.Equals(possibleValue, valueStr, StringComparison.OrdinalIgnoreCase))
+                {
+                    // If we have a mapped value that's different from the key, show both
+                    if (!string.IsNullOrEmpty(possibleValue) && !string.Equals(key, possibleValue, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return $"{possibleValue} [{key}]";
+                    }
+                    // If key equals mapped value, we don't need to enhance
+                    return null;
+                }
+            }
+            // No match found, return null to use raw value
+            return null;
+        }
+        else
+        {
+            // If no possible values, and value is an integer type, show hex representation
+            var propertyType = PropertyType;
+            var hex = FormatIntegerAsHex(rawValue, propertyType);
+            if (!string.IsNullOrEmpty(hex))
+            {
+                return $"{rawValue} [{hex}]";
             }
         }
 
-        // No match found, return null to use raw value
         return null;
     }
 
@@ -378,7 +433,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         }
 
         // Add enhanced value information if available
-        var enhancedValue = GetEnhancedValueWithPossibleValues(_propertyData.Value);
+        var enhancedValue = GetEnhancedValue(_propertyData.Value);
         if (enhancedValue != null)
         {
             typeLine += $"; Value: {enhancedValue}";
