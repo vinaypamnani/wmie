@@ -4,8 +4,10 @@ using System.Windows.Data;
 using System.Windows.Media;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Converters;
+using WmiExplorer.PropertyGrid.Editors.Converters;
+using WmiExplorer.PropertyGrid.Editors.Core;
 
-namespace WmiExplorer.PropertyGrid;
+namespace WmiExplorer.PropertyGrid.Editors.Specialized;
 
 /// <summary>
 /// A specialized property editor that provides a clean card-style layout.
@@ -71,7 +73,7 @@ public class CardPropertyEditor : PropertyEditor
 
         // Create horizontal panel for property name with key icon
         var nameWithIconPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        
+
         // Add key icon if this is a key property (BEFORE the property name)
         if (propertyItem.IsKey)
         {
@@ -81,7 +83,7 @@ public class CardPropertyEditor : PropertyEditor
                 VerticalAlignment = VerticalAlignment.Center,
                 ToolTip = "Key Property"
             };
-            
+
             // Set the ContentTemplate to use the KeyIconTemplate
             try
             {
@@ -98,7 +100,7 @@ public class CardPropertyEditor : PropertyEditor
                     VerticalAlignment = VerticalAlignment.Center
                 };
             }
-            
+
             nameWithIconPanel.Children.Add(keyIcon);
         }
 

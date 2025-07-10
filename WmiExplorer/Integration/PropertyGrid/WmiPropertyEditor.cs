@@ -7,6 +7,7 @@ using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.PropertyGrid;
 using WmiExplorer.PropertyGrid.Abstractions;
+using WmiExplorer.PropertyGrid.Editors.Core;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Integration.PropertyGrid;
@@ -175,14 +176,14 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             if (sender is TextBox tb && !wmiDescriptor.IsReadOnly)
             {
                 // Set validation flag to prevent the standard LostFocus handler from also running
-                PropertyEditorUtils.SetIsValidating(tb, true);
+                ValidationManager.SetIsValidating(tb, true);
                 try
                 {
                     UpdateWmiDateTimeProperty(tb, propertyItem, wmiDescriptor);
                 }
                 finally
                 {
-                    PropertyEditorUtils.SetIsValidating(tb, false);
+                    ValidationManager.SetIsValidating(tb, false);
                 }
             }
         };

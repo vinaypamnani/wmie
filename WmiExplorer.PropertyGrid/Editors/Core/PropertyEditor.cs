@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using WmiExplorer.PropertyGrid.Abstractions;
 
-namespace WmiExplorer.PropertyGrid;
+namespace WmiExplorer.PropertyGrid.Editors.Core;
 
 /// <summary>
 /// Provides a content control that displays an appropriate editor for a property based on its type.
