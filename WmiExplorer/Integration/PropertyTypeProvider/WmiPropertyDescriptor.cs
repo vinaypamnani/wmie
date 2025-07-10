@@ -16,10 +16,10 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     private WmiProperty? _cachedWmiProperty;
 
     private readonly string _category;
-    private readonly IPropertyGridContext? _propertyGridContext;
     private readonly bool _isKey;
     private readonly bool _isReadOnly;
     private readonly PropertyData _propertyData;
+    private readonly IPropertyGridContext? _propertyGridContext;
     private readonly ManagementBaseObject _source;
     private bool _wmiPropertyCached;
 
@@ -65,9 +65,19 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public bool IsKey => _isKey;
 
     /// <summary>
+    /// Gets whether this property represents an object type.
+    /// </summary>
+    public bool IsObject => _propertyData.Type == CimType.Object;
+
+    /// <summary>
     /// Gets whether the property is read-only.
     /// </summary>
     public bool IsReadOnly => _isReadOnly;
+
+    /// <summary>
+    /// Gets whether this property represents a reference type.
+    /// </summary>
+    public bool IsReference => _propertyData.Type == CimType.Reference;
 
     /// <summary>
     /// Gets the name of the property.
@@ -75,14 +85,31 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public string Name => _propertyData.Name;
 
     /// <summary>
+    /// Gets the underlying PropertyData for this descriptor.
+    /// This is needed by UI components for advanced operations.
+    /// </summary>
+    public PropertyData PropertyData => _propertyData;
+
+    /// <summary>
     /// Gets the type of the property based on CIM type. Allows expansion if _allowExpansion is true (for WmiClass).
     /// </summary>
     public Type PropertyType => _allowExpansion ? typeof(PropertyData) : GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
 
     /// <summary>
+    /// Gets the ManagementScope for this property's source object.
+    /// This is needed by UI components for WMI operations.
+    /// </summary>
+    public ManagementScope? Scope => GetManagementScope();
+
+    /// <summary>
     /// Gets the source object containing this property.
     /// </summary>
     public object Source => _source;
+
+    /// <summary>
+    /// Gets the target WMI class name for object and reference properties.
+    /// </summary>
+    public string? TargetClassName => GetTargetClassName();
 
     /// <summary>
     /// Gets the value of the property. Allows expansion if _allowExpansion is true (for WmiClass).
@@ -97,7 +124,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             var rawValue = _propertyData.Value;
 
             // Handle DateTime formatting
-            if (_propertyData.Type == CimType.DateTime && rawValue is string s && !string.IsNullOrEmpty(s))
+            if (_propertyGridContext?.IsReadOnly == true && _propertyData.Type == CimType.DateTime && rawValue is string s && !string.IsNullOrEmpty(s))
             {
                 var dt = ManagementDateTimeConverter.ToDateTime(s);
                 return $"{dt:G} [{s}]";
@@ -118,10 +145,27 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     }
 
     /// <summary>
+    /// Gets the ManagementScope from the source object.
+    /// </summary>
+    public ManagementScope? GetManagementScope()
+    {
+        if (_source is ManagementObject managementObject)
+        {
+            return managementObject.Scope;
+        }
+        else if (_source is ManagementClass managementClass)
+        {
+            return managementClass.Scope;
+        }
+        return null;
+    }
+
+    /// <summary>
     /// Sets the value of the property if it is writable.
     /// </summary>
     public bool SetValue(object? value)
     {
+        // Check if this is a read-only property or no source
         if (_isReadOnly || _source == null)
         {
             return false;
@@ -139,7 +183,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         }
         catch (Exception ex)
         {
-            Log.Warning($"Failed to set value for property '{_propertyData.Name}' on {_source.ClassPath?.ClassName}: {ex.Message}");
+            Log.Error(ex, "Failed to set value {Value} for property '{PropertyName}' on {ClassName}.", value!, _propertyData?.Name!, _source.ClassPath?.ClassName!);
             return false;
         }
     }
@@ -172,14 +216,17 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
                     CimType.Real32 => float.Parse(stringValue),
                     CimType.Real64 => double.Parse(stringValue),
                     CimType.String => stringValue,
-                    CimType.DateTime => ManagementDateTimeConverter.ToDateTime(stringValue),
+                    CimType.Char16 => stringValue,
+                    CimType.DateTime => stringValue, // WMI handles DateTime as strings internally
                     _ => stringValue
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                // If conversion fails, return the original string
-                return stringValue;
+                // If conversion fails, log and re-throw for validation handling
+                Log.Error("Failed to convert string '{StringValue}' to CIM type '{CimType}' for property '{PropertyName}': {ErrorMessage}",
+                    stringValue, cimType, _propertyData.Name, ex.Message);
+                throw;
             }
         }
 
@@ -254,6 +301,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         }
 
         // Default: For regular WMI instances without explicit qualifiers, properties are generally read-only
+        // However, allow editing with proper validation to handle edge cases
         return true;
     }
 
@@ -441,6 +489,43 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
                 return qualifier.Value;
             }
         }
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the target WMI class name for object and reference properties.
+    /// Handles both object and reference parameter types.
+    /// </summary>
+    private string? GetTargetClassName()
+    {
+        // Look for class information in qualifiers first
+        var cimTypeQualifier = GetQualifierFromClassOrInstance("cimtype")?.ToString();
+        if (!string.IsNullOrEmpty(cimTypeQualifier))
+        {
+            // Handle "object:ClassName" or "ref:ClassName" patterns
+            if (cimTypeQualifier.Contains(':'))
+            {
+                var parts = cimTypeQualifier.Split(':');
+                if (parts.Length > 1)
+                {
+                    return parts[1]; // Return the class name after the colon
+                }
+            }
+
+            // Handle direct class name (but skip generic type names)
+            if (!cimTypeQualifier.Equals("reference", StringComparison.OrdinalIgnoreCase) &&
+                !cimTypeQualifier.Equals("object", StringComparison.OrdinalIgnoreCase))
+            {
+                return cimTypeQualifier;
+            }
+        }
+
+        // For object properties, also check if there's an existing object value
+        if (IsObject && _propertyData.Value is ManagementBaseObject mbo)
+        {
+            return mbo.ClassPath?.ClassName;
+        }
+
         return null;
     }
 

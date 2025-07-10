@@ -6,11 +6,13 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Integration.AvalonEdit.Behaviors;
+using WmiExplorer.Integration.PropertyGrid;
 using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.Presentation.Behaviors;
 using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Presentation.Views;
+using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;
 
@@ -81,6 +83,10 @@ public partial class App : Application
         var wmiService = ServiceProvider.GetRequiredService<IWmiService>();
         ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());
 
+        // Register WMI-specific property editor as singleton for proper disposal
+        var wmiPropertyEditor = ServiceProvider.GetRequiredService<WmiPropertyEditor>();
+        PropertyEditorRegistry.Instance.RegisterEditor(wmiPropertyEditor);
+
         // Set menu drop alignment to false
         SetMenuDropAlignment();
 
@@ -119,6 +125,9 @@ public partial class App : Application
         services.AddSingleton<SelectionManager>();
         services.AddSingleton<SettingsManager>();
         services.AddSingleton<UpdateManager>();
+
+        // Register WMI property editor as singleton for proper disposal
+        services.AddSingleton<WmiPropertyEditor>();
 
         // Register MainWindow for DI
         services.AddSingleton<MainWindow>();

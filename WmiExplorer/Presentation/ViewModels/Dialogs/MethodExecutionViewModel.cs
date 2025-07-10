@@ -41,7 +41,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     [ObservableProperty]
     private WmiBaseObject? _outputParameters;
 
-    private readonly ObservableCollection<WmiParameterViewModel> _parameters = new();
+    private readonly ObservableCollection<WmiPropertyViewModel> _parameters = new();
 
     [ObservableProperty]
     private int _selectedTabIndex;
@@ -131,7 +131,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     /// <summary>
     /// Gets the collection of parameters for the method.
     /// </summary>
-    public ObservableCollection<WmiParameterViewModel> Parameters => _parameters;
+    public ObservableCollection<WmiPropertyViewModel> Parameters => _parameters;
 
     protected override void Dispose(bool disposing)
     {
@@ -150,7 +150,7 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
                 // Unsubscribe event handler if attached
                 if (param.IsReference)
                 {
-                    param.PropertyChanged -= WmiParameterViewModel_PropertyChanged;
+                    param.PropertyChanged -= WmiPropertyViewModel_PropertyChanged;
                 }
                 param.Dispose();
             }
@@ -314,16 +314,44 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
     private void LoadMethodParameters()
     {
         _parameters.Clear();
-        if (_method != null && _method.InParameters.Count > 0)
+        if (_method != null && _class != null)
         {
-            foreach (var param in _method.InParameters.OrderBy(p => p.Id))
+            // Get the method parameters directly from the WMI class
+            var methodParameters = _class.ActualClass.GetMethodParameters(_method.Name);
+            if (methodParameters != null && methodParameters.Properties.Count > 0)
             {
-                var parameterViewModel = new WmiParameterViewModel(param, _wmiService, _managementScope);
-                if (parameterViewModel.IsReference)
+                // Create a list to enable ordering by Id qualifier
+                var parameterList = new List<PropertyData>();
+                foreach (PropertyData propertyData in methodParameters.Properties)
                 {
-                    parameterViewModel.PropertyChanged += WmiParameterViewModel_PropertyChanged;
+                    parameterList.Add(propertyData);
                 }
-                _parameters.Add(parameterViewModel);
+
+                // Order by Id qualifier if present
+                var orderedParameters = parameterList.OrderBy(p =>
+                {
+                    if (p.Qualifiers != null)
+                    {
+                        foreach (QualifierData qualifier in p.Qualifiers)
+                        {
+                            if (qualifier.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) && qualifier.Value is int id)
+                            {
+                                return id;
+                            }
+                        }
+                    }
+                    return int.MaxValue; // Put parameters without Id at the end
+                });
+
+                foreach (var propertyData in orderedParameters)
+                {
+                    var parameterViewModel = new WmiPropertyViewModel(propertyData, _wmiService, _managementScope, isMethodParameter: true);
+                    if (parameterViewModel.IsReference)
+                    {
+                        parameterViewModel.PropertyChanged += WmiPropertyViewModel_PropertyChanged;
+                    }
+                    _parameters.Add(parameterViewModel);
+                }
             }
         }
     }
@@ -343,11 +371,11 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         OutputParameters?.Dispose();
     }
 
-    private void WmiParameterViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void WmiPropertyViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(WmiParameterViewModel.ReferenceLoadState))
+        if (e.PropertyName == nameof(WmiPropertyViewModel.ReferenceLoadState))
         {
-            var param = (WmiParameterViewModel)sender!;
+            var param = (WmiPropertyViewModel)sender!;
 
             // Update status based on reference load state
             switch (param.ReferenceLoadState)

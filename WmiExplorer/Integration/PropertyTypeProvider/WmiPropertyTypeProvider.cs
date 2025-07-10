@@ -72,8 +72,8 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         {
             foreach (var embeddedMbo in mboArray)
             {
-            foreach (var desc in ProcessWmiCollection<PropertyData>(embeddedMbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, embeddedMbo, false, propertyGridContext)))
-                yield return desc;
+                foreach (var desc in ProcessWmiCollection<PropertyData>(embeddedMbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, embeddedMbo, false, propertyGridContext)))
+                    yield return desc;
             }
             yield break;
         }

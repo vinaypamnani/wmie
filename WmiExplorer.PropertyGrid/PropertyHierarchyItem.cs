@@ -66,6 +66,8 @@ public partial class PropertyHierarchyItem : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsExpandable))]
     private bool _isExpanded;
 
+    private bool _isInitializing = true;
+
     [ObservableProperty]
     private bool _isKey;
 
@@ -94,6 +96,7 @@ public partial class PropertyHierarchyItem : ObservableObject
     public PropertyHierarchyItem()
     {
         _filterOptions = PropertyFilterOptions.DefaultWmiOptions;
+        _isInitializing = false; // Initialization complete
     }
 
     /// <summary>
@@ -125,6 +128,8 @@ public partial class PropertyHierarchyItem : ObservableObject
         {
             IsExpanded = true;
         }
+
+        _isInitializing = false; // Initialization complete
     }
 
     /// <summary>
@@ -278,8 +283,12 @@ public partial class PropertyHierarchyItem : ObservableObject
     /// </summary>
     protected virtual void OnPropertyValueChanged()
     {
-        // Update the value in the underlying property descriptor if possible
-        PropertyDescriptor?.SetValue(Value);
+        // Only update the underlying property descriptor for user-initiated changes,
+        // not during initialization or for read-only properties
+        if (PropertyDescriptor != null && !IsReadOnly && !_isInitializing)
+        {
+            PropertyDescriptor.SetValue(Value);
+        }
     }
 
     /// <summary>

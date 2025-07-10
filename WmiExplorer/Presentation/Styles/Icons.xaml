@@ -128,6 +128,10 @@
         <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE8D7;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="WarningIconTemplate">
+        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE7BA;" />
+    </DataTemplate>
+
     <!--  Class/Instance Icons  -->
 
     <DataTemplate x:Key="ExecMethodIconTemplate">

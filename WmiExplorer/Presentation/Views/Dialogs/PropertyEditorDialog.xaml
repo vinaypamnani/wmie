@@ -82,7 +82,7 @@
                     BorderThickness="0,1,0,0">
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                     <Button Margin="0,0,8,0" Command="{Binding CancelCommand}" Content="Cancel" />
-                    <Button Command="{Binding OkCommand}" Content="OK" IsDefault="True" />
+                    <Button Command="{Binding OkCommand}" Content="Save" IsDefault="True" />
                 </StackPanel>
             </Border>
         </Grid>

@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Converters;
 
 namespace WmiExplorer.PropertyGrid;
@@ -25,9 +26,9 @@ public class CardPropertyEditor : PropertyEditor
             return;
         }
 
-        // Get the base editor content and wrap it in a simple card layout
-        var baseContent = CreateCoreEditor(newPropertyItem);
-        Content = CreateCardContent(baseContent, newPropertyItem);
+        // Get the editor content using the registry system and wrap it in a simple card layout
+        var editorContent = GetEditorContent(newPropertyItem);
+        Content = CreateCardContent(editorContent, newPropertyItem);
     }
 
     /// <summary>
@@ -76,7 +77,7 @@ public class CardPropertyEditor : PropertyEditor
 
         namePanel.Children.Add(new TextBlock
         {
-            Text = $"[{GetFriendlyTypeName(propertyItem.PropertyType)}]",
+            Text = $"[{PropertyEditorUtils.GetFriendlyTypeName(propertyItem.PropertyType)}]",
             FontStyle = FontStyles.Italic,
             FontSize = 10,
             Opacity = 0.6
@@ -116,6 +117,24 @@ public class CardPropertyEditor : PropertyEditor
 
         cardBorder.Child = grid;
         return cardBorder;
+    }
+
+    /// <summary>
+    /// Gets the appropriate editor content for the property item using the registry system
+    /// </summary>
+    private UIElement GetEditorContent(PropertyHierarchyItem propertyItem)
+    {
+        // First, try to find a specialized editor using the same logic as base PropertyEditor
+        var specializedEditor = PropertyEditorRegistry.Instance.GetEditor(propertyItem);
+        if (specializedEditor != null && specializedEditor != this)
+        {
+            return specializedEditor.CreateEditor(propertyItem);
+        }
+        else
+        {
+            // Fall back to the core editor
+            return CreateCoreEditor(propertyItem);
+        }
     }
 
     /// <summary>

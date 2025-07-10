@@ -4,19 +4,23 @@ using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
 
-public partial class WmiParameterViewModel : DisposableObservableObject, IDisposable
+/// <summary>
+/// ViewModel for WMI properties and parameters that supports object and reference editing
+/// </summary>
+public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposable
 {
     /// <summary>
     /// Gets or sets whether integer values should be displayed in hexadecimal format
     /// </summary>
     [ObservableProperty]
     private bool _isHexadecimal;
+
+    private readonly bool _isMethodParameter;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEnabled))]
@@ -28,6 +32,7 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     private string _objectDisplayText = string.Empty;
 
     private ManagementObject? _parameterObject;
+    private readonly PropertyData _propertyData;
 
     [ObservableProperty]
     private ReferenceValueLoadState _referenceLoadState = ReferenceValueLoadState.None;
@@ -40,15 +45,15 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     [ObservableProperty]
     private object? _value;
 
-    private WmiParameter _wmiParameter;
     private readonly IWmiService? _wmiService;
 
-    public WmiParameterViewModel(WmiParameter wmiParameter, IWmiService? wmiService = null, ManagementScope? managementScope = null)
+    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false)
     {
-        _wmiParameter = wmiParameter;
-        _value = wmiParameter.Value;
+        _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
+        _value = propertyData.Value;
         _wmiService = wmiService;
         _managementScope = managementScope;
+        _isMethodParameter = isMethodParameter;
 
         // Initialize hex display for large values (> 0x80000000)
         InitializeHexDisplay();
@@ -57,8 +62,43 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
         UpdateObjectDisplayText();
     }
 
-    public string? CimType => _wmiParameter.CimType;
-    public string? Description => _wmiParameter.Description;
+    public string? CimType
+    {
+        get
+        {
+            // First try to get CIMTYPE qualifier which has more detailed info
+            if (_propertyData.Qualifiers != null)
+            {
+                foreach (QualifierData qualifier in _propertyData.Qualifiers)
+                {
+                    if (qualifier.Name.Equals("CIMTYPE", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return qualifier.Value?.ToString();
+                    }
+                }
+            }
+            // Fallback to the basic type
+            return _propertyData.Type.ToString();
+        }
+    }
+
+    public string? Description
+    {
+        get
+        {
+            if (_propertyData.Qualifiers != null)
+            {
+                foreach (QualifierData qualifier in _propertyData.Qualifiers)
+                {
+                    if (qualifier.Name.Equals("Description", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return qualifier.Value?.ToString();
+                    }
+                }
+            }
+            return null;
+        }
+    }
 
     /// <summary>
     /// Gets the display value (formatted as hex or decimal based on IsHexadecimal)
@@ -69,8 +109,7 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
         set => SetDisplayValue(value);
     }
 
-    public int Id => _wmiParameter.Id;
-    public bool IsArray => _wmiParameter.IsArray;
+    public bool IsArray => _propertyData.IsArray;
     public bool IsEnabled => IsSelected;
 
     /// <summary>
@@ -78,17 +117,31 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     /// </summary>
     public bool IsInteger => IsIntegerType(CimType);
 
-    public bool IsObject => string.Equals(Type, "object", StringComparison.OrdinalIgnoreCase);
-    public bool IsReference => string.Equals(Type, "reference", StringComparison.OrdinalIgnoreCase);
-    public string? Name => _wmiParameter.Name;
+    public bool IsObject => _propertyData.Type == System.Management.CimType.Object;
+    public bool IsReference => _propertyData.Type == System.Management.CimType.Reference;
+    public string? Name => _propertyData.Name;
+    public PropertyData PropertyData => _propertyData;
+
+    /// <summary>
+    /// Gets the current reference text value for display and editing.
+    /// </summary>
+    public string ReferenceText
+    {
+        get => _propertyData.Value?.ToString() ?? string.Empty;
+        set
+        {
+            _propertyData.Value = value;
+            Value = value;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>
     /// Gets the target WMI class name for object and reference parameters.
     /// </summary>
     public string? TargetClassName => GetTargetClassName();
 
-    public string? Type => _wmiParameter.Type;
-    public WmiParameter WmiParameter => _wmiParameter;
+    public string? Type => _propertyData.Type.ToString();
 
     /// <summary>
     /// Command to cancel the loading of reference values
@@ -140,11 +193,21 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
             var window = System.Windows.Application.Current.MainWindow;
 
             // Show the PropertyEditorDialog
-            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, _parameterObject, $"Edit {TargetClassName}"); if (result != null)
+            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, _parameterObject, $"Edit {TargetClassName}");
+            if (result != null)
             {
-                // Clean the object using the factory and update the parameter value
-                Value = WmiObjectFactory.CleanParameterObject((ManagementObject)result);
-                Log.Debug("Updated parameter {ParameterName} with edited (clean) object", Name ?? "Unknown");
+                if (_isMethodParameter)
+                {
+                    // For method parameters, clean the object for WMI method calls
+                    Value = WmiObjectFactory.CleanParameterObject((ManagementObject)result);
+                    Log.Debug("Updated {ItemType} {ItemName} with edited and cleaned object for method parameter", GetItemType(), Name ?? "Unknown");
+                }
+                else
+                {
+                    // For property values, store the ManagementObject directly without "cleaning"
+                    Value = (ManagementObject)result;
+                    Log.Debug("Updated {ItemType} {ItemName} with edited object for property value", GetItemType(), Name ?? "Unknown");
+                }
             }
         }
     }
@@ -178,19 +241,57 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     }
 
     /// <summary>
-    /// Extracts the WMI class name from the CimType qualifier.
-    /// </summary>    /// <summary>
-    /// Extracts the target class name from CimType or parameter qualifiers.
-    /// Handles both object and reference parameter types.
+    /// Gets a descriptive name for the type of item for logging
+    /// </summary>
+    private string GetItemType()
+    {
+        return "property";
+    }
+
+    /// <summary>
+    /// Extracts the target class name from qualifiers or existing object value.
     /// </summary>
     private string? GetTargetClassName()
     {
-        // Try to get class name from CimType (handles multiple patterns)
+        // Check the CIMTYPE qualifier which contains the reference class name
+        if (_propertyData.Qualifiers != null)
+        {
+            foreach (QualifierData qualifier in _propertyData.Qualifiers)
+            {
+                if (qualifier.Name.Equals("CIMTYPE", StringComparison.OrdinalIgnoreCase))
+                {
+                    var cimTypeValue = qualifier.Value?.ToString();
+
+                    if (!string.IsNullOrEmpty(cimTypeValue))
+                    {
+                        // Handle "ref:ClassName" or "object:ClassName" patterns
+                        if (cimTypeValue.Contains(':'))
+                        {
+                            var parts = cimTypeValue.Split(':');
+                            if (parts.Length > 1)
+                            {
+                                return parts[1]; // Return the class name after the colon
+                            }
+                        }
+
+                        // Handle direct class name (but skip generic type names)
+                        if (!cimTypeValue.Equals("reference", StringComparison.OrdinalIgnoreCase) &&
+                            !cimTypeValue.Equals("object", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return cimTypeValue;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Fallback: Try to get class name from CimType (handles multiple patterns)
         if (!string.IsNullOrEmpty(CimType))
         {
             var cimType = CimType;
 
-            // Handle "object:ClassName" pattern
+            // Handle "object:ClassName" or "reference:ClassName" pattern
             if (cimType.Contains(':'))
             {
                 var parts = cimType.Split(':');
@@ -208,69 +309,35 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
             }
         }
 
-        // Look for class information in qualifiers
-        if (_wmiParameter.Qualifiers != null)
+        // For object properties, also check if there's an existing object value
+        if (IsObject && _propertyData.Value is ManagementBaseObject mbo)
         {
-            foreach (System.Management.QualifierData qualifier in _wmiParameter.Qualifiers)
-            {
-                // Check for common reference and object qualifiers
-                if (qualifier.Name.Equals("CIMTYPE", StringComparison.OrdinalIgnoreCase) ||
-                    qualifier.Name.Equals("REF", StringComparison.OrdinalIgnoreCase))
-                {
-                    var qualifierValue = qualifier.Value?.ToString();
-                    if (!string.IsNullOrEmpty(qualifierValue))
-                    {
-                        // Handle "ref:ClassName" or "object:ClassName" patterns
-                        if (qualifierValue.Contains(':'))
-                        {
-                            var parts = qualifierValue.Split(':');
-                            if (parts.Length > 1)
-                            {
-                                return parts[1];
-                            }
-                        }
-
-                        // Return direct value if it's not a generic type
-                        if (!qualifierValue.Equals("reference", StringComparison.OrdinalIgnoreCase) &&
-                            !qualifierValue.Equals("object", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return qualifierValue;
-                        }
-                    }
-                }
-            }
+            return mbo.ClassPath?.ClassName;
         }
 
         return null;
     }
 
     /// <summary>
-    /// Initializes the hex display setting based on the current value
-    /// Defaults to hex if the value is larger than 0x80000000
+    /// Initialize hex display for integer values that are likely to be displayed as hex
     /// </summary>
     private void InitializeHexDisplay()
     {
         if (!IsInteger || Value == null)
-        {
-            IsHexadecimal = false;
             return;
-        }
 
         try
         {
             var longValue = Convert.ToInt64(Value);
-            // Default to hex for values larger than 0x80000000 (2147483648)
-            IsHexadecimal = longValue >= 0x80000000;
+            // Default to hex for values > 0x80000000 (2,147,483,648)
+            IsHexadecimal = longValue > 0x80000000;
         }
         catch
         {
-            IsHexadecimal = false;
+            // If conversion fails, default to decimal
         }
     }
 
-    /// <summary>
-    /// Initializes a parameter object for editing using WmiObjectFactory.
-    /// </summary>
     private void InitializeParameterObject()
     {
         if (!IsObject || string.IsNullOrEmpty(TargetClassName) || _parameterObject != null || _managementScope == null)
@@ -279,17 +346,47 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
         try
         {
             var className = TargetClassName;
-            _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
+
+            // Check if there's already an existing object value
+            if (_propertyData.Value is ManagementBaseObject existingObject)
+            {
+                // Create a new template object first
+                _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
+
+                if (_parameterObject != null && existingObject.Properties != null)
+                {
+                    // Copy property values from existing object to the new template
+                    foreach (PropertyData existingProp in existingObject.Properties)
+                    {
+                        try
+                        {
+                            if (_parameterObject.Properties[existingProp.Name] != null)
+                            {
+                                _parameterObject.Properties[existingProp.Name].Value = existingProp.Value;
+                            }
+                        }
+                        catch (Exception propEx)
+                        {
+                            Log.Warning(propEx, "Failed to copy property {PropertyName} from existing object", existingProp.Name);
+                        }
+                    }
+                }
+
+                Log.Debug("Parameter object initialized from existing value for {ClassName} with {PropertyCount} properties", className, _parameterObject?.Properties.Count ?? 0);
+            }
+            else
+            {
+                // Create a new template object if no existing value
+                _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
+                Log.Debug("Parameter object initialized as new template for {ClassName} with {PropertyCount} properties", className, _parameterObject?.Properties.Count ?? 0);
+            }
 
             // Update the parameter value to reference the created object
             if (_parameterObject != null)
             {
                 Value = _parameterObject;
-
                 // Update display text to show "configured"
                 UpdateObjectDisplayText();
-
-                Log.Debug("Parameter object initialized for {ClassName} with {PropertyCount} properties", className, _parameterObject.Properties.Count);
             }
         }
         catch (Exception ex)
@@ -365,12 +462,12 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
                     else
                     {
                         // Fallback to string representation
-                        referenceStrings.Add(instance.ToString());
+                        referenceStrings.Add(instance.ToString() ?? string.Empty);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex, "Error processing reference instance for parameter {ParameterName}", Name ?? "Unknown");
+                    Log.Warning(ex, "Error processing reference instance for {ItemType} {ItemName}", GetItemType(), Name ?? "Unknown");
                 }
             }
 
@@ -378,23 +475,37 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 ReferenceValues.Clear();
-                foreach (var refValue in referenceStrings.OrderBy(s => s))
+
+                // Check if there's an existing reference value that should be included
+                var existingValue = _propertyData.Value?.ToString();
+                var allValues = new List<string>(referenceStrings);
+
+                // Add existing value if it's not already in the list
+                if (!string.IsNullOrEmpty(existingValue) && !allValues.Contains(existingValue))
+                {
+                    allValues.Add(existingValue);
+                    Log.Debug("Added existing reference value '{ExistingValue}' to available options", existingValue);
+                }
+
+                // Populate the collection with sorted values
+                foreach (var refValue in allValues.OrderBy(s => s))
                 {
                     ReferenceValues.Add(refValue);
                 }
-                Value = ReferenceValues.FirstOrDefault(); // Set the first value as default
+
                 ReferenceLoadState = ReferenceValueLoadState.Loaded;
+                Log.Debug("Loaded {Count} reference values for {ItemType} {ItemName}", ReferenceValues.Count, GetItemType(), Name ?? "Unknown");
             });
         }
         catch (OperationCanceledException)
         {
             ReferenceLoadState = ReferenceValueLoadState.Cancelled;
-            Log.Warning("Reference value loading cancelled for parameter {ParameterName}", Name ?? "Unknown");
+            Log.Warning("Reference value loading cancelled for {ItemType} {ItemName}", GetItemType(), Name ?? "Unknown");
         }
         catch (Exception ex)
         {
             ReferenceLoadState = ReferenceValueLoadState.Error;
-            Log.Error(ex, "Error loading reference values for parameter {ParameterName}", Name ?? "Unknown");
+            Log.Error(ex, "Error loading reference values for {ItemType} {ItemName}", GetItemType(), Name ?? "Unknown");
         }
     }
 
@@ -423,11 +534,11 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
     }
 
     /// <summary>
-    /// Handles property change for Value to update the underlying WmiParameter
+    /// Handles property change for Value to update the underlying PropertyData
     /// </summary>
     partial void OnValueChanged(object? value)
     {
-        _wmiParameter.Value = value;
+        _propertyData.Value = value;
 
         if (IsObject)
         {
@@ -493,13 +604,18 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
             return;
         }
 
-        if (_parameterObject == null)
+        // Check if there's an existing object value or a configured parameter object
+        bool hasObjectValue = _propertyData.Value is ManagementBaseObject;
+        bool hasParameterObject = _parameterObject != null;
+
+        if (hasObjectValue || hasParameterObject)
+        {
+            ObjectDisplayText = $"{TargetClassName} object (configured)";
+        }
+        else
         {
             ObjectDisplayText = $"{TargetClassName} object (not configured)";
-            return;
         }
-
-        ObjectDisplayText = $"{TargetClassName} object (configured)";
     }
 
     #region IDisposable
@@ -511,10 +627,6 @@ public partial class WmiParameterViewModel : DisposableObservableObject, IDispos
             _parameterObject?.Dispose();
             _referenceValuesCts?.Cancel();
             _referenceValuesCts?.Dispose();
-            if (_wmiParameter is IDisposable disposable)
-            {
-                try { disposable.Dispose(); } catch { }
-            }
             ReferenceValues?.Clear();
         }
         base.Dispose(disposing);

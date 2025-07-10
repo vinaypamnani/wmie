@@ -205,18 +205,56 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                 var result = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(
                     mainWindow,
                     managementObject,
-                    $"Edit {InstanceName}"); if (result != null)
+                    $"Edit {InstanceName}");
+
+                if (result != null)
                 {
-                    // Save changes to the instance
-                    _wmiInstance.ActualObject.Put();
+                    // Debug: Log property values before saving
+                    // LogPropertyValues("BEFORE PUT", _wmiInstance.ActualObject);
 
-                    // Refresh the instance data
-                    TryGetInstance();
+                    // Validate the property changes first by attempting to save
+                    try
+                    {
+                        // Use PutOptions to be explicit about update behavior
+                        var putOptions = new System.Management.PutOptions
+                        {
+                            Type = System.Management.PutType.UpdateOnly // Only update existing instance
+                        };
 
-                    // Refresh propertygrid
-                    _selectionManager.PropertyGrid.RefreshPropertyGrid();
+                        // Save changes to the instance
+                        var putPath = _wmiInstance.ActualObject.Put(putOptions);
 
-                    PublishSuccessState($"Properties updated for instance: {InstanceName}");
+                        // Debug: Log property values after successful save
+                        // LogPropertyValues("AFTER PUT", _wmiInstance.ActualObject);
+
+                        // Refresh the instance data
+                        TryGetInstance();
+
+                        // Refresh propertygrid
+                        _selectionManager.PropertyGrid.RefreshPropertyGrid();
+
+                        PublishSuccessState($"Properties updated for instance: {InstanceName}");
+                        Log.Information("Properties updated for instance: {InstanceName}", InstanceName);
+                    }
+                    catch (System.Management.ManagementException mgmtEx)
+                    {
+                        // Handle WMI-specific errors with detailed messages
+                        string errorMessage = GetDetailedManagementErrorMessage(mgmtEx);
+                        Log.Error(mgmtEx, "WMI error updating properties for instance: {InstanceName}. Error: {ErrorCode}", InstanceName, mgmtEx.ErrorCode);
+                        PublishErrorState($"Failed to update instance properties: {errorMessage}", mgmtEx);
+                    }
+                    catch (System.ArgumentException argEx)
+                    {
+                        // Handle validation errors (like invalid Char16 values)
+                        Log.Error(argEx, "Property validation error for instance: {InstanceName}", InstanceName);
+                        PublishErrorState($"Property validation failed: {argEx.Message}", argEx);
+                    }
+                    catch (Exception saveEx)
+                    {
+                        // Handle any other errors during save
+                        Log.Error(saveEx, "Unexpected error saving changes for instance: {InstanceName}", InstanceName);
+                        PublishErrorState($"Failed to save changes: {saveEx.Message}", saveEx);
+                    }
                 }
             }
         }
@@ -273,6 +311,27 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Converts ManagementException error codes to user-friendly messages.
+    /// </summary>
+    private string GetDetailedManagementErrorMessage(System.Management.ManagementException mgmtEx)
+    {
+        return mgmtEx.ErrorCode switch
+        {
+            System.Management.ManagementStatus.InvalidParameter => "One or more property values are invalid. Please check the data types and value ranges.",
+            System.Management.ManagementStatus.TypeMismatch => "Property value type mismatch. Please ensure the value matches the expected data type.",
+            System.Management.ManagementStatus.ValueOutOfRange => "Property value is out of the allowed range.",
+            System.Management.ManagementStatus.InvalidPropertyType => "Invalid property type specified.",
+            System.Management.ManagementStatus.InvalidCimType => "Invalid CIM type for property value.",
+            System.Management.ManagementStatus.IllegalNull => "Property cannot be null. Please provide a valid value.",
+            System.Management.ManagementStatus.ReadOnly => "One or more properties are read-only and cannot be modified.",
+            System.Management.ManagementStatus.AccessDenied => "Access denied. You don't have permission to modify this instance.",
+            System.Management.ManagementStatus.NotFound => "Instance not found. It may have been deleted by another process.",
+            System.Management.ManagementStatus.InvalidObject => "The instance object is invalid or corrupted.",
+            _ => $"WMI Error ({mgmtEx.ErrorCode}): {mgmtEx.Message}"
+        };
+    }
+
+    /// <summary>
     /// Loads the methods available for this instance from the parent class.
     /// </summary>
     private void LoadInstanceMethods()
@@ -303,6 +362,37 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Error loading methods for instance: {InstanceName}", InstanceName);
+        }
+    }
+
+    /// <summary>
+    /// Debug method to log property values of a ManagementBaseObject.
+    /// </summary>
+    private void LogPropertyValues(string phase, System.Management.ManagementBaseObject obj)
+    {
+        try
+        {
+            Log.Debug("=== {Phase} - Property Values for {ClassName} ===", phase, obj.ClassPath?.ClassName ?? "Unknown");
+
+            foreach (System.Management.PropertyData prop in obj.Properties)
+            {
+                try
+                {
+                    var value = prop.Value?.ToString() ?? "null";
+                    var type = prop.Type.ToString();
+                    Log.Debug("  {PropertyName} ({Type}): '{Value}'", prop.Name, type, value);
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug("  {PropertyName}: Error reading value - {Error}", prop.Name, ex.Message);
+                }
+            }
+
+            Log.Debug("=== End {Phase} ===", phase);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error logging property values during {Phase}", phase);
         }
     }
 
