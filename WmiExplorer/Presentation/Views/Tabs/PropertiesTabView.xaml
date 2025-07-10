@@ -89,7 +89,8 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Property Name" />
                 <DataGridTextColumn Width="Auto" Binding="{Binding Type}" Header="Type" />
-                <DataGridTextColumn Width="Auto" Binding="{Binding IsLazy, Mode=OneWay}" Header="Lazy" />
+                <DataGridTextColumn Width="Auto" Binding="{Binding IsLazy, Mode=OneWay}" Header="IsLazy" />
+                <DataGridTextColumn Width="Auto" Binding="{Binding IsReadOnly, Mode=OneWay}" Header="IsReadOnly" />
                 <DataGridTextColumn Width="Auto" Binding="{Binding HasValueMap, Mode=OneWay}" Header="HasValueMap" />
                 <DataGridTextColumn Width="Auto" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
             </DataGrid.Columns>

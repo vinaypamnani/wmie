@@ -39,6 +39,17 @@
                                     <MenuItem.Icon>
                                         <ContentControl ContentTemplate="{StaticResource EditIconTemplate}" />
                                     </MenuItem.Icon>
+                                    <MenuItem.Style>
+                                        <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
+                                            <Setter Property="ToolTip" Value="Edit the writable properties of this instance." />
+                                            <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ParentClass.HasWriteProperty}" Value="False">
+                                                    <Setter Property="ToolTip" Value="Editing is not available for this instance. This class has no writable properties." />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </MenuItem.Style>
                                 </MenuItem>
                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                 <MenuItem Command="{Binding ShowInstanceMofCommand}" CommandParameter="True" Header="Show MOF (with amended qualifiers)">

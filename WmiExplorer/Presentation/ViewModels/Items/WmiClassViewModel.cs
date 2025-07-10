@@ -22,6 +22,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private readonly IApplicationService _applicationService;
     private readonly object _collectionLock = new();
     private CancellationTokenSource _cts = new();
+    private bool _hasWriteProperty;
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
 
     [ObservableProperty]
@@ -83,6 +84,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     public string ClassName => _wmiClass.ClassName;
     public string Description => _wmiClass.Description;
+
+    /// <summary>
+    /// Indicates if this class has at least one writable property.
+    /// </summary>
+    public bool HasWriteProperty => _hasWriteProperty;
 
     /// <summary>
     /// Instances of this class (read-only).
@@ -464,7 +470,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     {
         // Log.Debug("Loading properties for class: {ClassName}", ClassName);
         Properties = new ObservableCollection<WmiProperty>();
-
         try
         {
             // Get properties from the WmiClass
@@ -472,20 +477,26 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
             if (properties != null && properties.Count > 0)
             {
-                foreach (var property in properties)
+                var wmiProperties = properties
+                    .Cast<System.Management.PropertyData>()
+                    .Select(property => new WmiProperty(property, _wmiClass.ActualClass))
+                    .ToList();
+                foreach (var wmiProperty in wmiProperties)
                 {
-                    // Add all properties to the properties collection
-                    Properties.Add(new WmiProperty(property, _wmiClass.ActualClass));
+                    Properties.Add(wmiProperty);
                 }
+                _hasWriteProperty = wmiProperties.Any(p => !p.IsReadOnly);
                 Log.Debug("Loaded {PropertyCount} properties for class: {ClassName}", properties.Count, ClassName);
             }
             else
             {
+                _hasWriteProperty = false;
                 Log.Debug("No properties found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
         {
+            _hasWriteProperty = false;
             Log.Warning(ex, "Error loading properties for class: {ClassName}", ClassName);
         }
     }

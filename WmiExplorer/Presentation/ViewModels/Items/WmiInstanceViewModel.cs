@@ -267,7 +267,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
 
     private bool EditPropertiesCanExecute()
     {
-        return _wmiInstance.ActualObject != null;
+        return _wmiInstance.ActualObject != null && _parentClass.HasWriteProperty;
     }
 
     /// <summary>
