@@ -88,19 +88,25 @@ public static class ArrayEditor
         {
             try
             {
+                // Strip surrounding quotes if present
+                var str = stringValues[i];
+                if (str.Length >= 2 && str.StartsWith("\"") && str.EndsWith("\""))
+                {
+                    str = str.Substring(1, str.Length - 2);
+                }
                 object? convertedValue = null;
 
                 if (elementType == typeof(string))
                 {
-                    convertedValue = stringValues[i];
+                    convertedValue = str;
                 }
                 else if (converter != null && converter.CanConvertFrom(typeof(string)))
                 {
-                    convertedValue = converter.ConvertFromString(stringValues[i]);
+                    convertedValue = converter.ConvertFromString(str);
                 }
                 else
                 {
-                    convertedValue = System.Convert.ChangeType(stringValues[i], elementType);
+                    convertedValue = System.Convert.ChangeType(str, elementType);
                 }
 
                 array.SetValue(convertedValue, i);

@@ -155,7 +155,8 @@ public static class WmiObjectFactory
             "real32" or "single" => typeof(float),
             "boolean" or "bool" => typeof(bool),
             "datetime" => typeof(DateTime),
-            "sint16" or "int16" or "uint16" => typeof(short),
+            "sint16" or "int16" => typeof(short),
+            "uint16" => typeof(ushort),
             "sint8" or "int8" or "uint8" => typeof(byte),
             _ => typeof(string) // Default to string for unknown types
         };

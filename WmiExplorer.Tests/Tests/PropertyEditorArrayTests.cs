@@ -88,4 +88,119 @@ public class PropertyEditorArrayTests
         Assert.That(result.GetValue(1), Is.EqualTo("second"));
         Assert.That(result.GetValue(2), Is.EqualTo("third"));
     }
+
+    [Test, STAThread]
+    public void TestArrayParsing_UIntArray()
+    {
+        var result = ArrayEditor.ParseArrayValueFromText("1, 2, 3, 4", typeof(uint));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(4));
+        Assert.That(result.GetValue(0), Is.EqualTo(1u));
+        Assert.That(result.GetValue(1), Is.EqualTo(2u));
+        Assert.That(result.GetValue(2), Is.EqualTo(3u));
+        Assert.That(result.GetValue(3), Is.EqualTo(4u));
+        var formatted = ArrayEditor.FormatArrayValueForEditing(result);
+        Assert.That(formatted, Is.EqualTo("1, 2, 3, 4"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_LongArray()
+    {
+        var result = ArrayEditor.ParseArrayValueFromText("10000000000, 20000000000", typeof(long));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(2));
+        Assert.That(result.GetValue(0), Is.EqualTo(10000000000L));
+        Assert.That(result.GetValue(1), Is.EqualTo(20000000000L));
+        var formatted = ArrayEditor.FormatArrayValueForEditing(result);
+        Assert.That(formatted, Is.EqualTo("10000000000, 20000000000"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_ULongArray()
+    {
+        var result = ArrayEditor.ParseArrayValueFromText("10000000000, 20000000000", typeof(ulong));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(2));
+        Assert.That(result.GetValue(0), Is.EqualTo(10000000000UL));
+        Assert.That(result.GetValue(1), Is.EqualTo(20000000000UL));
+        var formatted = ArrayEditor.FormatArrayValueForEditing(result);
+        Assert.That(formatted, Is.EqualTo("10000000000, 20000000000"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_ShortArray()
+    {
+        var result = ArrayEditor.ParseArrayValueFromText("-1, 0, 1, 32767", typeof(short));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(4));
+        Assert.That(result.GetValue(0), Is.EqualTo((short)-1));
+        Assert.That(result.GetValue(1), Is.EqualTo((short)0));
+        Assert.That(result.GetValue(2), Is.EqualTo((short)1));
+        Assert.That(result.GetValue(3), Is.EqualTo((short)32767));
+        var formatted = ArrayEditor.FormatArrayValueForEditing(result);
+        Assert.That(formatted, Is.EqualTo("-1, 0, 1, 32767"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_UShortArray()
+    {
+        var result = ArrayEditor.ParseArrayValueFromText("0, 1, 65535", typeof(ushort));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo((ushort)0));
+        Assert.That(result.GetValue(1), Is.EqualTo((ushort)1));
+        Assert.That(result.GetValue(2), Is.EqualTo((ushort)65535));
+        var formatted = ArrayEditor.FormatArrayValueForEditing(result);
+        Assert.That(formatted, Is.EqualTo("0, 1, 65535"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_ByteArray()
+    {
+        var result = ArrayEditor.ParseArrayValueFromText("0, 1, 255", typeof(byte));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo((byte)0));
+        Assert.That(result.GetValue(1), Is.EqualTo((byte)1));
+        Assert.That(result.GetValue(2), Is.EqualTo((byte)255));
+        var formatted = ArrayEditor.FormatArrayValueForEditing(result);
+        Assert.That(formatted, Is.EqualTo("0, 1, 255"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_SByteArray()
+    {
+        var result = ArrayEditor.ParseArrayValueFromText("-128, 0, 127", typeof(sbyte));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo((sbyte)-128));
+        Assert.That(result.GetValue(1), Is.EqualTo((sbyte)0));
+        Assert.That(result.GetValue(2), Is.EqualTo((sbyte)127));
+        var formatted = ArrayEditor.FormatArrayValueForEditing(result);
+        Assert.That(formatted, Is.EqualTo("-128, 0, 127"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_QuotedIntegerArray()
+    {
+        // Quotes should be stripped and values parsed as numbers
+        var result = ArrayEditor.ParseArrayValueFromText("\"-1\", \"0\", \"2\"", typeof(int));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo(-1));
+        Assert.That(result.GetValue(1), Is.EqualTo(0));
+        Assert.That(result.GetValue(2), Is.EqualTo(2));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_QuotedStringArray()
+    {
+        // Quotes should be preserved as part of the string value
+        var result = ArrayEditor.ParseArrayValueFromText("\"foo\", \"bar\", \"baz\"", typeof(string));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo("foo"));
+        Assert.That(result.GetValue(1), Is.EqualTo("bar"));
+        Assert.That(result.GetValue(2), Is.EqualTo("baz"));
+    }
 }
