@@ -8,7 +8,7 @@ namespace WmiExplorer.PropertyGrid.Editors.Converters;
 public class ValidationStateToIconConverter : IValueConverter
 {
     // Returns a tuple: (glyph, brush)
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is ValidationState state)
         {
@@ -22,7 +22,7 @@ public class ValidationStateToIconConverter : IValueConverter
                     return ("\uE73E", Brushes.Green);
                 case ValidationState.Normal:
                 default:
-                    return null; // No icon
+                    return null;
             }
         }
         return null;
