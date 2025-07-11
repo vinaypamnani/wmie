@@ -2,12 +2,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Management;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.PropertyGrid.Editors.Core;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
@@ -17,6 +17,55 @@ namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 /// </summary>
 public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
 {
+    [ObservableProperty]
+    private AppState _appState = AppState.Ready;
+
+    private readonly ManagementBaseObject? _clonedObject;
+    private Dictionary<string, string> _currentErrorProperties = new();
+    private HashSet<string> _currentModifiedProperties = new();
+
+    [ObservableProperty]
+    private object? _editableObject;
+
+    private int _lastErrorCount = 0;
+    private int _lastModifiedCount = 0;
+
+    [ObservableProperty]
+    private string _objectTypeName = string.Empty;
+
+    private readonly ManagementBaseObject? _originalObject;
+    private readonly Dictionary<string, ReferenceValueLoadState> _referenceStates = new();
+    private string _statusMessage = string.Empty;
+    private string _statusTooltip = string.Empty;
+
+    [ObservableProperty]
+    private string _title = "Edit Properties";
+
+    private readonly Window _window;
+
+    /// <summary>
+    /// Initializes the dialog for editing a raw ManagementBaseObject (instance editing).
+    /// </summary>
+    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null)
+        : base(messengerService)
+    {
+        _window = window ?? throw new ArgumentNullException(nameof(window));
+        _originalObject = managementObject ?? throw new ArgumentNullException(nameof(managementObject));
+
+        Title = title ?? _title;
+        ObjectTypeName = _originalObject.ClassPath?.ClassName ?? "Unknown";
+
+        // Create a clone of the object for editing so changes don't affect the original until OK is clicked
+        _clonedObject = (ManagementBaseObject)_originalObject.Clone();
+        EditableObject = _clonedObject;
+
+        StrongSubscribe<ReferenceLoadStateChangedMessage>(OnReferenceLoadStateChanged);
+
+        // Subscribe to validation errors for proactive status updates
+        ValidationManager.ValidationStateChanged += OnValidationStateChanged;
+        UpdateStatusBar();
+    }
+
     public bool IsAnyReferenceLoading => _referenceStates.Values.Any(state => state == ReferenceValueLoadState.Loading);
 
     /// <summary>
@@ -37,50 +86,24 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
         }
     }
 
-    #region fields
-    private readonly ManagementBaseObject? _clonedObject;
-
-    [ObservableProperty]
-    private object? _editableObject;
-
-    [ObservableProperty]
-    private string _objectTypeName = string.Empty;
-
-    private readonly ManagementBaseObject? _originalObject;
-    private readonly Dictionary<string, ReferenceValueLoadState> _referenceStates = new();
-    private System.Timers.Timer? _statusClearTimer;
-    private string _statusMessage = string.Empty;
-
-    [ObservableProperty]
-    private string _title = "Edit Properties";
-
-    private readonly Window _window;
-    #endregion 
-
-    /// <summary>
-    /// Initializes the dialog for editing a raw ManagementBaseObject (instance editing).
-    /// </summary>
-    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null)
-        : base(messengerService)
+    public string StatusTooltip
     {
-        _window = window ?? throw new ArgumentNullException(nameof(window));
-        _originalObject = managementObject ?? throw new ArgumentNullException(nameof(managementObject));
-
-        Title = title ?? _title;
-        ObjectTypeName = _originalObject.ClassPath?.ClassName ?? "Unknown";
-
-        // Create a clone of the object for editing so changes don't affect the original until OK is clicked
-        _clonedObject = (ManagementBaseObject)_originalObject.Clone();
-        EditableObject = _clonedObject;
-
-        StrongSubscribe<ReferenceLoadStateChangedMessage>(OnReferenceLoadStateChanged);
+        get => _statusTooltip;
+        set => SetProperty(ref _statusTooltip, value);
     }
 
-    #region methods
+    // Unsubscribe to avoid memory leaks
+    ~PropertyEditorDialogViewModel()
+    {
+        ValidationManager.ValidationStateChanged -= OnValidationStateChanged;
+    }
 
     [RelayCommand]
     private void Cancel()
     {
+        // Optionally set status before closing
+        StatusMessage = "Edit cancelled.";
+        AppState = AppState.Indeterminate;
         Result = null;
         _window.DialogResult = false;
         _window.Close();
@@ -94,6 +117,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
         if (_originalObject == null || _clonedObject == null)
             return;
 
+        var copyErrors = new List<string>();
         try
         {
             foreach (PropertyData property in _clonedObject.Properties)
@@ -110,6 +134,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
                 catch (Exception ex)
                 {
                     Log.Warning($"Failed to copy property '{property.Name}': {ex.Message}");
+                    copyErrors.Add($"{property.Name}: {ex.Message}");
                 }
             }
         }
@@ -118,107 +143,18 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
             Log.Error(ex, "Error copying properties from clone to original object");
             throw; // Re-throw since this is a critical operation
         }
+
+        if (copyErrors.Count > 0)
+        {
+            StatusMessage = $"Some properties could not be loaded: {string.Join(", ", copyErrors)}. See the log for details.";
+            AppState = AppState.Warning;
+        }
     }
 
-    /// <summary>
-    /// Extracts the error message from the tooltip text.
-    /// </summary>
-    private string ExtractErrorMessageFromTooltip(string tooltip)
+    // Replace FindValidationErrors with this method
+    private List<string> GetCurrentValidationErrors()
     {
-        // Extract the actual error message from the tooltip format
-        // Expected format: "❌ Validation Error: {message}\n\nPress Escape to reset to original value."
-
-        var lines = tooltip.Split('\n');
-        var errorLine = lines.FirstOrDefault(line => line.Contains("Validation Error:"));
-
-        if (errorLine != null)
-        {
-            var index = errorLine.IndexOf("Validation Error:");
-            if (index >= 0)
-            {
-                return errorLine.Substring(index + "Validation Error:".Length).Trim();
-            }
-        }
-
-        return "Invalid value";
-    }
-
-    /// <summary>
-    /// Attempts to find the property name associated with a TextBox.
-    /// </summary>
-    private string FindPropertyNameForTextBox(TextBox textBox)
-    {
-        // Try to find the property name by looking at the data context or nearby labels
-        // This is a simplified approach - could be enhanced for better property identification
-
-        var parent = textBox.Parent;
-        while (parent != null)
-        {
-            if (parent is FrameworkElement fe && fe.DataContext != null)
-            {
-                // Check if the DataContext has a Name property (PropertyHierarchyItem)
-                var nameProperty = fe.DataContext.GetType().GetProperty("Name");
-                if (nameProperty != null)
-                {
-                    var name = nameProperty.GetValue(fe.DataContext)?.ToString();
-                    if (!string.IsNullOrEmpty(name))
-                        return name;
-                }
-            }
-
-            parent = parent is FrameworkElement element ? element.Parent : null;
-        }
-
-        return "Property";
-    }
-
-    /// <summary>
-    /// Finds validation errors by searching for TextBoxes with red borders in the visual tree.
-    /// </summary>
-    /// <returns>List of validation error messages</returns>
-    private List<string> FindValidationErrors()
-    {
-        var errors = new List<string>();
-        var textBoxes = FindVisualChildren<TextBox>(_window);
-
-        foreach (var textBox in textBoxes)
-        {
-            // Check if the TextBox has a red border (indicating validation error)
-            if (textBox.BorderBrush is SolidColorBrush brush && brush.Color == Colors.Red)
-            {
-                // Extract error message from tooltip
-                var toolTip = textBox.ToolTip?.ToString();
-                if (!string.IsNullOrEmpty(toolTip) && toolTip.Contains("Validation Error"))
-                {
-                    // Try to find a property name or use a generic description
-                    var propertyName = FindPropertyNameForTextBox(textBox);
-                    var errorMessage = ExtractErrorMessageFromTooltip(toolTip);
-
-                    errors.Add($"• {propertyName}: {errorMessage}");
-                }
-            }
-        }
-
-        return errors;
-    }
-
-    /// <summary>
-    /// Finds all visual children of a specified type in the visual tree.
-    /// </summary>
-    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
-    {
-        if (parent == null) yield break;
-
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-
-            if (child is T t)
-                yield return t;
-
-            foreach (var childOfChild in FindVisualChildren<T>(child))
-                yield return childOfChild;
-        }
+        return _currentErrorProperties.Select(kvp => $"• {kvp.Key}: {kvp.Value}").ToList();
     }
 
     [RelayCommand]
@@ -226,15 +162,13 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     {
         try
         {
-            // Check for validation errors before closing
-            var validationErrors = FindValidationErrors();
+            // Use the new error tracking instead of FindValidationErrors
+            var validationErrors = GetCurrentValidationErrors();
             if (validationErrors.Count > 0)
             {
-                var errorMessage = "Please fix the following validation errors before continuing:\n\n" +
-                                   string.Join("\n", validationErrors) +
-                                   "\n\nTip: Press Escape in any error field to reset to original value.";
-
-                MessageBox.Show(errorMessage, "Validation Errors", MessageBoxButton.OK, MessageBoxImage.Warning);
+                StatusMessage = "Validation errors found. Please review highlighted fields.";
+                AppState = AppState.Warning;
+                MessageBox.Show(StatusTooltip, "Validation Errors", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return; // Don't close the dialog
             }
 
@@ -245,13 +179,16 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
                 Result = _originalObject;
             }
 
+            StatusMessage = "Properties saved successfully.";
+            AppState = AppState.Success;
             _window.DialogResult = true;
             _window.Close();
         }
         catch (Exception ex)
         {
-            // Could show error message to user
             Log.Error(ex, "Error processing properties in PropertyEditorDialog");
+            StatusMessage = $"Error processing properties: {ex.Message}";
+            AppState = AppState.Error;
             MessageBox.Show($"Error processing properties: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
@@ -265,45 +202,53 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
         if (msg.State == ReferenceValueLoadState.Loaded)
         {
             StatusMessage = "Reference values loaded successfully.";
-            StartStatusClearTimer();
+            AppState = AppState.Success;
         }
         else if (msg.State == ReferenceValueLoadState.Error)
         {
-            StatusMessage = "Error loading reference values.";
-            StartStatusClearTimer();
+            StatusMessage = "Error loading reference values. Check the log for details.";
+            AppState = AppState.Error;
         }
         else if (msg.State == ReferenceValueLoadState.Loading)
         {
             StatusMessage = "Loading reference values...";
-            StopStatusClearTimer();
+            AppState = AppState.Busy;
         }
     }
 
-    private void StartStatusClearTimer()
+    private void OnValidationStateChanged(object? sender, ValidationManager.ValidationStateChangedEventArgs e)
     {
-        StopStatusClearTimer();
-        _statusClearTimer = new System.Timers.Timer(3000); // 3 seconds
-        _statusClearTimer.Elapsed += (s, e) =>
-        {
-            _statusClearTimer?.Stop();
-            _statusClearTimer?.Dispose();
-            _statusClearTimer = null;
-            StatusMessage = string.Empty;
-            OnPropertyChanged(nameof(StatusMessage));
-        };
-        _statusClearTimer.AutoReset = false;
-        _statusClearTimer.Start();
+        _lastErrorCount = e.ErrorCount;
+        _lastModifiedCount = e.ModifiedCount;
+        _currentErrorProperties = new Dictionary<string, string>(e.ErrorProperties);
+        _currentModifiedProperties = new HashSet<string>(e.ModifiedProperties);
+        UpdateStatusBar();
     }
 
-    private void StopStatusClearTimer()
+    private void UpdateStatusBar()
     {
-        if (_statusClearTimer != null)
+        if (_lastErrorCount > 0)
         {
-            _statusClearTimer.Stop();
-            _statusClearTimer.Dispose();
-            _statusClearTimer = null;
+            StatusMessage = $"{_lastModifiedCount} properties modified, {_lastErrorCount} with validation errors";
+            AppState = AppState.Warning;
+            // Set tooltip to detailed error message
+            var validationErrors = GetCurrentValidationErrors();
+            StatusTooltip =
+                "Please fix the following validation errors before continuing:\n\n" +
+                string.Join("\n", validationErrors) +
+                "\n\nTip: Press Escape in any error field to reset to original value.";
+        }
+        else if (_lastModifiedCount > 0)
+        {
+            StatusMessage = $"{_lastModifiedCount} properties modified";
+            AppState = AppState.Success;
+            StatusTooltip = $"{_lastModifiedCount} properties modified. Click Save to save changes.";
+        }
+        else
+        {
+            StatusMessage = "Ready.";
+            AppState = AppState.Ready;
+            StatusTooltip = "Edit properties and click Save to save changes.";
         }
     }
-
-    #endregion 
 }

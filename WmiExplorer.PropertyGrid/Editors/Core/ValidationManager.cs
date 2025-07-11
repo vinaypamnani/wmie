@@ -12,16 +12,19 @@ namespace WmiExplorer.PropertyGrid.Editors.Core;
 /// </summary>
 public static class ValidationManager
 {
+    public static event EventHandler<ValidationStateChangedEventArgs>? ValidationStateChanged;
+
     // Attached property to store the validation state
     public static readonly DependencyProperty ValidationStateProperty =
         DependencyProperty.RegisterAttached("ValidationState", typeof(ValidationState), typeof(ValidationManager),
             new PropertyMetadata(ValidationState.Normal, OnValidationStateChanged));
 
+    private static readonly Dictionary<TextBox, (string propertyName, string errorMessage)> _errorEditors = new();
+    private static readonly Dictionary<TextBox, string> _modifiedEditors = new();
+
     // Attached property to track if validation is in progress to prevent recursive calls
     private static readonly DependencyProperty IsValidatingProperty =
         DependencyProperty.RegisterAttached("IsValidating", typeof(bool), typeof(ValidationManager), new PropertyMetadata(false));
-
-    #region methods
 
     /// <summary>
     /// Adds validation behavior to a TextBox for property editing
@@ -32,11 +35,17 @@ public static class ValidationManager
         var originalBorderBrush = textBox.BorderBrush;
         var originalToolTip = textBox.ToolTip;
 
+        // Suppress validation until user interacts
+        bool hasUserInteracted = false;
+        textBox.GotKeyboardFocus += (s, e) => { hasUserInteracted = true; };
+
         // Add TextChanged validation (now also updates property value on valid input)
         textBox.TextChanged += (sender, e) =>
         {
             if (sender is TextBox tb && !GetIsValidating(tb))
             {
+                if (!hasUserInteracted)
+                    return; // Skip validation until user interacts
                 if (customValidation != null)
                 {
                     var originalValue = propertyItem.OriginalValue;
@@ -240,6 +249,10 @@ public static class ValidationManager
     {
         SetValidationState(textBox, ValidationState.Error);
         textBox.ToolTip = CreateErrorTooltip(errorMessage);
+        var propertyName = textBox.DataContext is PropertyHierarchyItem phi ? phi.Name : textBox.Name;
+        _errorEditors[textBox] = (propertyName, errorMessage);
+        _modifiedEditors.Remove(textBox);
+        RaiseValidationStateChanged();
     }
 
     /// <summary>
@@ -249,6 +262,10 @@ public static class ValidationManager
     {
         SetValidationState(textBox, ValidationState.Modified);
         textBox.ToolTip = CreateSuccessTooltip(successMessage);
+        var propertyName = textBox.DataContext is PropertyHierarchyItem phi ? phi.Name : textBox.Name;
+        _modifiedEditors[textBox] = propertyName;
+        _errorEditors.Remove(textBox);
+        RaiseValidationStateChanged();
     }
 
     /// <summary>
@@ -258,6 +275,9 @@ public static class ValidationManager
     {
         SetValidationState(textBox, ValidationState.Normal);
         textBox.ClearValue(Control.ToolTipProperty);
+        _errorEditors.Remove(textBox);
+        _modifiedEditors.Remove(textBox);
+        RaiseValidationStateChanged();
     }
 
     public static void SetValidationState(DependencyObject obj, ValidationState value)
@@ -374,6 +394,22 @@ public static class ValidationManager
             // Only set up binding on first access, not on every state change
             SetupValidationBinding(textBox);
         }
+    }
+
+    private static void RaiseValidationStateChanged()
+    {
+        var errorProps = _errorEditors.Values
+            .GroupBy(e => e.propertyName)
+            .ToDictionary(g => g.Key, g => g.First().errorMessage);
+        var modifiedProps = _modifiedEditors.Values.ToHashSet();
+        ValidationStateChanged?.Invoke(
+            null,
+            new ValidationStateChangedEventArgs(
+                errorProps.Count,
+                modifiedProps.Count,
+                errorProps,
+                modifiedProps)
+        );
     }
 
     /// <summary>
@@ -555,15 +591,28 @@ public static class ValidationManager
         }
     }
 
-    #endregion
+    public class ValidationStateChangedEventArgs : EventArgs
+    {
+        public ValidationStateChangedEventArgs(
+            int errorCount,
+            int modifiedCount,
+            IReadOnlyDictionary<string, string> errorProperties,
+            IReadOnlyCollection<string> modifiedProperties)
+        {
+            ErrorCount = errorCount;
+            ModifiedCount = modifiedCount;
+            ErrorProperties = errorProperties;
+            ModifiedProperties = modifiedProperties;
+        }
+
+        public int ErrorCount { get; }
+        public IReadOnlyDictionary<string, string> ErrorProperties { get; }
+        public int ModifiedCount { get; }
+        public IReadOnlyCollection<string> ModifiedProperties { get; }
+    }
 
     public struct ValidationResult
     {
-        public string? ErrorMessage { get; }
-        public bool IsModified { get; }
-        public bool IsValid { get; }
-        public object? ParsedValue { get; }
-
         private ValidationResult(bool isValid, bool isModified, object? parsedValue, string? errorMessage)
         {
             IsValid = isValid;
@@ -571,6 +620,11 @@ public static class ValidationManager
             ParsedValue = parsedValue;
             ErrorMessage = errorMessage;
         }
+
+        public string? ErrorMessage { get; }
+        public bool IsModified { get; }
+        public bool IsValid { get; }
+        public object? ParsedValue { get; }
 
         public static ValidationResult Error(string errorMessage) => new ValidationResult(false, false, null, errorMessage);
 

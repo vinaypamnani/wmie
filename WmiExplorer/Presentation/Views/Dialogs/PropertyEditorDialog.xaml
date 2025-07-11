@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
+        xmlns:uc="clr-namespace:WmiExplorer.Presentation.Controls.UserControls"
         Width="600"
         Height="800"
         AllowsTransparency="True"
@@ -88,8 +89,13 @@
             </Border>
 
             <!--  Status Bar  -->
-            <StatusBar Grid.Row="3" Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
-                <TextBlock Text="{Binding StatusMessage}" />
+            <StatusBar Grid.Row="3"
+                       Background="{DynamicResource SecondaryBackgroundBrush}"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+                <StatusBarItem>
+                    <uc:EnhancedStatusIndicator AppState="{Binding AppState}" Message="{Binding StatusMessage}" ToolTip="{Binding StatusTooltip, Converter={StaticResource StringNullOrEmptyToNullConverter}}" />
+                </StatusBarItem>
             </StatusBar>
         </Grid>
     </Border>

@@ -95,6 +95,7 @@ public static class UIHelpers
         // Attach validation behavior if property item provided
         if (propertyItem != null)
         {
+            textBox.DataContext = propertyItem;
             if (customValidation != null)
                 ValidationManager.AddValidationBehavior(textBox, propertyItem, customValidation);
             else

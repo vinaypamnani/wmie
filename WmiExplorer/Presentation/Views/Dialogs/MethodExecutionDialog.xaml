@@ -345,7 +345,7 @@
                 <!--  Status Bar  -->
                 <StatusBar Background="{DynamicResource SecondaryBackgroundBrush}" DockPanel.Dock="Bottom" Foreground="{DynamicResource PrimaryForegroundBrush}">
                     <StatusBarItem>
-                        <uc:EnhancedStatusIndicator AppState="{Binding ExecutionState}" Message="{Binding StatusMessage}" ToolTip="{Binding StatusMessage}" />
+                        <uc:EnhancedStatusIndicator AppState="{Binding ExecutionState}" Message="{Binding StatusMessage}" ToolTip="{Binding StatusMessage, Converter={StaticResource StringNullOrEmptyToNullConverter}}" />
                     </StatusBarItem>
                 </StatusBar>
 

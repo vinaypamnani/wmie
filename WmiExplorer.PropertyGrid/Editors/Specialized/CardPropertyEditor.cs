@@ -4,7 +4,6 @@ using System.Windows.Data;
 using System.Windows.Media;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Converters;
-using WmiExplorer.PropertyGrid.Editors.Converters;
 using WmiExplorer.PropertyGrid.Editors.Core;
 
 namespace WmiExplorer.PropertyGrid.Editors.Specialized;
