@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,10 +21,6 @@ public static class ValidationManager
     private static readonly DependencyProperty IsValidatingProperty =
         DependencyProperty.RegisterAttached("IsValidating", typeof(bool), typeof(ValidationManager), new PropertyMetadata(false));
 
-    // Attached property to store the original value for comparison
-    private static readonly DependencyProperty OriginalValueProperty =
-        DependencyProperty.RegisterAttached("OriginalValue", typeof(object), typeof(ValidationManager), new PropertyMetadata(null));
-
     #region methods
 
     /// <summary>
@@ -37,9 +32,6 @@ public static class ValidationManager
         var originalBorderBrush = textBox.BorderBrush;
         var originalToolTip = textBox.ToolTip;
 
-        // Initialize original value tracking
-        InitializeOriginalValue(textBox, propertyItem);
-
         // Add TextChanged validation (visual feedback only, no property updates)
         textBox.TextChanged += (sender, e) =>
         {
@@ -47,7 +39,7 @@ public static class ValidationManager
             {
                 if (customValidation != null)
                 {
-                    var originalValue = GetOriginalValue(tb);
+                    var originalValue = propertyItem.OriginalValue;
                     var result = customValidation(tb.Text, originalValue);
                     if (!result.IsValid)
                     {
@@ -77,7 +69,7 @@ public static class ValidationManager
             {
                 if (customValidation != null)
                 {
-                    var originalValue = GetOriginalValue(tb);
+                    var originalValue = propertyItem.OriginalValue;
                     var result = customValidation(tb.Text, originalValue);
                     if (result.IsValid)
                     {
@@ -98,6 +90,7 @@ public static class ValidationManager
             if (e.Key == System.Windows.Input.Key.Escape && sender is TextBox tb)
             {
                 // Reset to original value and clear error state
+                propertyItem.Value = propertyItem.OriginalValue; // Ensure underlying value is reverted
                 Converters.CaretPositionHelper.SetTextPreservingCaret(tb, propertyItem.FormattedValue ?? string.Empty);
                 ClearValidationError(tb, originalBorderBrush, originalToolTip);
                 e.Handled = true;
@@ -216,7 +209,6 @@ public static class ValidationManager
     /// </summary>
     public static void InitializeOriginalValue(TextBox textBox, PropertyHierarchyItem propertyItem)
     {
-        SetOriginalValue(textBox, propertyItem.Value);
         // Set up validation binding and initialize to Normal state
         SetupValidationBinding(textBox);
         SetValidationState(textBox, ValidationState.Normal);
@@ -227,7 +219,7 @@ public static class ValidationManager
     /// </summary>
     public static bool IsValueModified(TextBox textBox, PropertyHierarchyItem propertyItem)
     {
-        var originalValue = GetOriginalValue(textBox);
+        var originalValue = propertyItem.OriginalValue;
         return !AreValuesEqual(propertyItem.Value, originalValue);
     }
 
@@ -364,8 +356,6 @@ public static class ValidationManager
         );
     }
 
-    private static object GetOriginalValue(DependencyObject obj) => obj.GetValue(OriginalValueProperty);
-
     /// <summary>
     /// Callback when validation state changes - sets up the background binding (only once)
     /// </summary>
@@ -377,8 +367,6 @@ public static class ValidationManager
             SetupValidationBinding(textBox);
         }
     }
-
-    private static void SetOriginalValue(DependencyObject obj, object? value) => obj.SetValue(OriginalValueProperty, value);
 
     /// <summary>
     /// Sets up the validation state binding for a TextBox (should only be called once per TextBox)
@@ -507,8 +495,8 @@ public static class ValidationManager
                     // The actual property update happens on LostFocus
                     if (convertedValue != null)
                     {
-                        // Value is valid - check if it differs from the ORIGINAL value stored when editor was created
-                        var storedOriginalValue = GetOriginalValue(textBox);
+                        // Value is valid - check if it differs from the ORIGINAL value stored in propertyItem
+                        var storedOriginalValue = propertyItem.OriginalValue;
                         bool valueModified = !AreValuesEqual(storedOriginalValue, convertedValue);
 
                         if (valueModified)
@@ -524,7 +512,7 @@ public static class ValidationManager
                     else
                     {
                         // Check if null differs from original value
-                        var storedOriginalValue = GetOriginalValue(textBox);
+                        var storedOriginalValue = propertyItem.OriginalValue;
                         bool valueModified = !AreValuesEqual(storedOriginalValue, null);
 
                         if (valueModified)

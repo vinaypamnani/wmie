@@ -91,11 +91,17 @@ public partial class PropertyHierarchyItem : ObservableObject
     private Visibility _visibility = Visibility.Visible;
 
     /// <summary>
+    /// Stores the original value for validation. Set only once at construction.
+    /// </summary>
+    public object? OriginalValue { get; }
+
+    /// <summary>
     /// Creates a new instance of PropertyHierarchyItem.
     /// </summary>
     public PropertyHierarchyItem()
     {
         _filterOptions = PropertyFilterOptions.DefaultWmiOptions;
+        OriginalValue = Value;
         _isInitializing = false; // Initialization complete
     }
 
@@ -114,6 +120,7 @@ public partial class PropertyHierarchyItem : ObservableObject
         Name = descriptor.Name;
         DisplayName = descriptor.DisplayName;
         Value = descriptor.Value;
+        OriginalValue = Value;
         PropertyType = descriptor.PropertyType ?? typeof(object);
         IsReadOnly = descriptor.IsReadOnly;
         IsKey = descriptor.IsKey;
