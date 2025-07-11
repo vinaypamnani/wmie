@@ -12,21 +12,21 @@ namespace WmiExplorer.Presentation.Views.Dialogs;
 public partial class PropertyEditorDialog : Window
 {
     /// <summary>
-    /// Gets the cleaned result object after the dialog closes with OK.
-    /// </summary>
-    public ManagementBaseObject? Result => ViewModel.Result;
-
-    public PropertyEditorDialogViewModel ViewModel { get; }
-
-    /// <summary>
     /// Creates a PropertyEditorDialog for editing instance properties.
     /// </summary>
     public PropertyEditorDialog(ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null)
     {
         InitializeComponent();
-        ViewModel = new PropertyEditorDialogViewModel(this, managementObject, messengerService, title);
+        ViewModel = new PropertyEditorDialogViewModel(this, managementObject, messengerService, title, PropertyGridControl.DialogId);
         DataContext = ViewModel;
     }
+
+    /// <summary>
+    /// Gets the cleaned result object after the dialog closes with OK.
+    /// </summary>
+    public ManagementBaseObject? Result => ViewModel.Result;
+
+    public PropertyEditorDialogViewModel ViewModel { get; }
 
     /// <summary>
     /// Shows the dialog and returns the edited instance object if OK was clicked.

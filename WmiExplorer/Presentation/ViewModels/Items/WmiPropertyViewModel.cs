@@ -15,7 +15,60 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// </summary>
 public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
 {
-    #region properties
+    /// <summary>
+    /// Gets or sets whether integer values should be displayed in hexadecimal format
+    /// </summary>
+    [ObservableProperty]
+    private bool _isHexadecimal;
+
+    private readonly bool _isMethodParameter;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEnabled))]
+    private bool _isSelected = false;
+
+    private readonly ManagementScope? _managementScope;
+
+    [ObservableProperty]
+    private string _objectDisplayText = string.Empty;
+
+    private ManagementObject? _parameterObject;
+    private readonly PropertyData _propertyData;
+
+    [ObservableProperty]
+    private ReferenceValueLoadState _referenceLoadState = ReferenceValueLoadState.None;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _referenceValues = new();
+
+    private CancellationTokenSource? _referenceValuesCts;
+
+    [ObservableProperty]
+    private object? _value;
+
+    private readonly IWmiService? _wmiService;
+
+    // Remove the manual command property and initialization
+    // public IAsyncRelayCommand<object?> EditObjectCommand { get; }
+
+    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false, IMessengerService? messengerService = null)
+        : base(messengerService ?? throw new ArgumentNullException(nameof(messengerService)))
+    {
+        _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
+        _value = propertyData.Value;
+        _wmiService = wmiService;
+        _managementScope = managementScope;
+        _isMethodParameter = isMethodParameter;
+
+        // Initialize hex display for large values (> 0x80000000)
+        InitializeHexDisplay();
+
+        // Initialize the display text
+        UpdateObjectDisplayText();
+
+        // Initialize the async edit command
+        // Remove from constructor: EditObjectCommand = new AsyncRelayCommand<object?>(EditObjectAsync, _ => EditObjectCanExecute());
+    }
 
     public string? CimType
     {
@@ -97,61 +150,6 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     public string? TargetClassName => GetTargetClassName();
 
     public string? Type => _propertyData.Type.ToString();
-    #endregion
-
-    #region fields
-
-    /// <summary>
-    /// Gets or sets whether integer values should be displayed in hexadecimal format
-    /// </summary>
-    [ObservableProperty]
-    private bool _isHexadecimal;
-
-    private readonly bool _isMethodParameter;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsEnabled))]
-    private bool _isSelected = false;
-
-    private readonly ManagementScope? _managementScope;
-
-    [ObservableProperty]
-    private string _objectDisplayText = string.Empty;
-
-    private ManagementObject? _parameterObject;
-    private readonly PropertyData _propertyData;
-
-    [ObservableProperty]
-    private ReferenceValueLoadState _referenceLoadState = ReferenceValueLoadState.None;
-
-    [ObservableProperty]
-    private ObservableCollection<string> _referenceValues = new();
-
-    private CancellationTokenSource? _referenceValuesCts;
-
-    [ObservableProperty]
-    private object? _value;
-
-    private readonly IWmiService? _wmiService;
-    #endregion 
-
-    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false, IMessengerService? messengerService = null)
-        : base(messengerService ?? throw new ArgumentNullException(nameof(messengerService)))
-    {
-        _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
-        _value = propertyData.Value;
-        _wmiService = wmiService;
-        _managementScope = managementScope;
-        _isMethodParameter = isMethodParameter;
-
-        // Initialize hex display for large values (> 0x80000000)
-        InitializeHexDisplay();
-
-        // Initialize the display text
-        UpdateObjectDisplayText();
-    }
-
-    #region methods
 
     /// <summary>
     /// Command to cancel the loading of reference values
@@ -641,15 +639,28 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
 
         if (hasObjectValue || hasParameterObject)
         {
-            ObjectDisplayText = $"{TargetClassName} object (configured)";
+            if (Value is ManagementBaseObject mbo)
+            {
+                var relPath = mbo.GetPropertyValue("__RELPATH")?.ToString();
+                if (!string.IsNullOrEmpty(relPath))
+                {
+                    ObjectDisplayText = $"[Embedded: {relPath}]"; // [Embedded: TestObject.Id="MyId"]
+                }
+                else
+                {
+                    ObjectDisplayText = $"{TargetClassName} object (configured)";
+                }
+            }
+            else
+            {
+                ObjectDisplayText = $"{TargetClassName} object (configured)";
+            }
         }
         else
         {
             ObjectDisplayText = $"{TargetClassName} object (not configured)";
         }
     }
-
-    #endregion 
 
     #region IDisposable
 
@@ -665,7 +676,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         base.Dispose(disposing);
     }
 
-    #endregion 
+    #endregion
 }
 
 public enum ReferenceValueLoadState

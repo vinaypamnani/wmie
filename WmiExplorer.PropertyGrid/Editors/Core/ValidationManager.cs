@@ -19,8 +19,10 @@ public static class ValidationManager
         DependencyProperty.RegisterAttached("ValidationState", typeof(ValidationState), typeof(ValidationManager),
             new PropertyMetadata(ValidationState.Normal, OnValidationStateChanged));
 
-    private static readonly Dictionary<TextBox, (string propertyName, string errorMessage)> _errorEditors = new();
-    private static readonly Dictionary<TextBox, string> _modifiedEditors = new();
+    // Change dictionary types to (Control, int dialogId)
+    private static readonly Dictionary<(Control, int), (string propertyName, string errorMessage)> _errorEditors = new();
+
+    private static readonly Dictionary<(Control, int), string> _modifiedEditors = new();
 
     // Attached property to track if validation is in progress to prevent recursive calls
     private static readonly DependencyProperty IsValidatingProperty =
@@ -59,7 +61,7 @@ public static class ValidationManager
                         propertyItem.Value = result.ParsedValue; // Update value immediately
                         if (result.IsModified)
                         {
-                            SetValidationModified(tb, "Value modified");
+                            SetValidationModified(tb, "Modified value (will be rounded or truncated if needed, depending on property type)");
                         }
                         else
                         {
@@ -216,6 +218,18 @@ public static class ValidationManager
         textBox.ClearValue(Control.BackgroundProperty);
     }
 
+    public static int GetDialogId(Control control)
+    {
+        DependencyObject current = control;
+        while (current != null)
+        {
+            if (current is PropertyGrid grid)
+                return grid.DialogId;
+            current = VisualTreeHelper.GetParent(current);
+        }
+        return 0; // fallback if not found
+    }
+
     public static bool GetIsValidating(DependencyObject obj) => (bool)obj.GetValue(IsValidatingProperty);
 
     public static ValidationState GetValidationState(DependencyObject obj) => (ValidationState)obj.GetValue(ValidationStateProperty);
@@ -247,37 +261,41 @@ public static class ValidationManager
     /// </summary>
     public static void SetValidationError(TextBox textBox, string errorMessage)
     {
+        int dialogId = GetDialogId(textBox);
         SetValidationState(textBox, ValidationState.Error);
-        textBox.ToolTip = CreateErrorTooltip(errorMessage);
+        textBox.ToolTip = CreateErrorTooltip(errorMessage, true);
         var propertyName = textBox.DataContext is PropertyHierarchyItem phi ? phi.Name : textBox.Name;
-        _errorEditors[textBox] = (propertyName, errorMessage);
-        _modifiedEditors.Remove(textBox);
-        RaiseValidationStateChanged();
+        _errorEditors[(textBox, dialogId)] = (propertyName, errorMessage);
+        _modifiedEditors.Remove((textBox, dialogId));
+        RaiseValidationStateChanged(dialogId);
     }
 
     /// <summary>
-    /// Sets the validation state to modified for a TextBox
+    /// Sets the validation state to modified for a Control
     /// </summary>
-    public static void SetValidationModified(TextBox textBox, string successMessage = "Value modified")
+    public static void SetValidationModified(Control control, string successMessage = "Value modified")
     {
-        SetValidationState(textBox, ValidationState.Modified);
-        textBox.ToolTip = CreateSuccessTooltip(successMessage);
-        var propertyName = textBox.DataContext is PropertyHierarchyItem phi ? phi.Name : textBox.Name;
-        _modifiedEditors[textBox] = propertyName;
-        _errorEditors.Remove(textBox);
-        RaiseValidationStateChanged();
+        int dialogId = GetDialogId(control);
+        SetValidationState(control, ValidationState.Modified);
+        bool showSecondaryText = control is TextBox;
+        control.ToolTip = CreateSuccessTooltip(successMessage, showSecondaryText);
+        var propertyName = control.DataContext is PropertyHierarchyItem phi ? phi.Name : control.Name;
+        _modifiedEditors[(control, dialogId)] = propertyName;
+        _errorEditors.Remove((control, dialogId));
+        RaiseValidationStateChanged(dialogId);
     }
 
     /// <summary>
-    /// Sets the validation state to normal for a TextBox
+    /// Sets the validation state to normal for a Control
     /// </summary>
-    public static void SetValidationNormal(TextBox textBox)
+    public static void SetValidationNormal(Control control)
     {
-        SetValidationState(textBox, ValidationState.Normal);
-        textBox.ClearValue(Control.ToolTipProperty);
-        _errorEditors.Remove(textBox);
-        _modifiedEditors.Remove(textBox);
-        RaiseValidationStateChanged();
+        int dialogId = GetDialogId(control);
+        SetValidationState(control, ValidationState.Normal);
+        control.ClearValue(Control.ToolTipProperty);
+        _errorEditors.Remove((control, dialogId));
+        _modifiedEditors.Remove((control, dialogId));
+        RaiseValidationStateChanged(dialogId);
     }
 
     public static void SetValidationState(DependencyObject obj, ValidationState value)
@@ -300,7 +318,7 @@ public static class ValidationManager
         textBox.BorderThickness = new Thickness(2);
 
         // Set error tooltip
-        textBox.ToolTip = CreateErrorTooltip(errorMessage);
+        textBox.ToolTip = CreateErrorTooltip(errorMessage, true);
 
         // Optional: Add background tint to make error more visible
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 255, 0, 0));
@@ -316,23 +334,24 @@ public static class ValidationManager
         textBox.BorderThickness = new Thickness(2);
 
         // Set success tooltip
-        textBox.ToolTip = CreateSuccessTooltip(successMessage);
+        textBox.ToolTip = CreateSuccessTooltip(successMessage, true);
 
         // Add background tint to make success more visible
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 0, 255, 0));
     }
 
-    private static object CreateErrorTooltip(string errorMessage)
+    private static object CreateErrorTooltip(string errorMessage, bool showSecondaryText = true)
     {
         var iconInfo = new ValidationStateToIconInfoConverter().Convert(ValidationState.Error, typeof(ValidationIconInfo), null!, System.Globalization.CultureInfo.CurrentUICulture) as ValidationIconInfo ?? new ValidationIconInfo();
         return CreateIconTooltip(
             iconGlyph: iconInfo.Glyph,
             iconColor: iconInfo.Brush,
-            mainMessage: $"Validation Error: {errorMessage}"
+            mainMessage: $"Validation Error: {errorMessage}",
+            showSecondaryText: showSecondaryText
         );
     }
 
-    private static object CreateIconTooltip(string iconGlyph, Brush iconColor, string mainMessage)
+    private static object CreateIconTooltip(string iconGlyph, Brush iconColor, string mainMessage, bool showSecondaryText)
     {
         var icon = new TextBlock
         {
@@ -355,32 +374,35 @@ public static class ValidationManager
             TextWrapping = TextWrapping.Wrap
         };
 
-        var secondaryText = new TextBlock
-        {
-            Text = "Press Escape to reset to original value.",
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 6, 0, 0),
-            FontSize = 11,
-            TextWrapping = TextWrapping.Wrap
-        };
-
         var row1 = new StackPanel { Orientation = Orientation.Horizontal };
         row1.Children.Add(icon);
         row1.Children.Add(mainText);
 
         var panel = new StackPanel { Orientation = Orientation.Vertical };
         panel.Children.Add(row1);
-        panel.Children.Add(secondaryText);
+        if (showSecondaryText)
+        {
+            var secondaryText = new TextBlock
+            {
+                Text = "Press Escape to reset to original value.",
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 6, 0, 0),
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap
+            };
+            panel.Children.Add(secondaryText);
+        }
         return panel;
     }
 
-    private static object CreateSuccessTooltip(string successMessage)
+    private static object CreateSuccessTooltip(string successMessage, bool showSecondaryText = true)
     {
         var iconInfo = new ValidationStateToIconInfoConverter().Convert(ValidationState.Modified, typeof(ValidationIconInfo), null!, System.Globalization.CultureInfo.CurrentUICulture) as ValidationIconInfo ?? new ValidationIconInfo();
         return CreateIconTooltip(
             iconGlyph: iconInfo.Glyph,
             iconColor: iconInfo.Brush,
-            mainMessage: successMessage
+            mainMessage: successMessage,
+            showSecondaryText: showSecondaryText
         );
     }
 
@@ -396,15 +418,23 @@ public static class ValidationManager
         }
     }
 
-    private static void RaiseValidationStateChanged()
+    private static void RaiseValidationStateChanged(int dialogId)
     {
-        var errorProps = _errorEditors.Values
+        var errorProps = _errorEditors
+            .Where(kvp => kvp.Key.Item2 == dialogId)
+            .Select(kvp => kvp.Value)
             .GroupBy(e => e.propertyName)
             .ToDictionary(g => g.Key, g => g.First().errorMessage);
-        var modifiedProps = _modifiedEditors.Values.ToHashSet();
+
+        var modifiedProps = _modifiedEditors
+            .Where(kvp => kvp.Key.Item2 == dialogId)
+            .Select(kvp => kvp.Value)
+            .ToHashSet();
+
         ValidationStateChanged?.Invoke(
             null,
             new ValidationStateChangedEventArgs(
+                dialogId,
                 errorProps.Count,
                 modifiedProps.Count,
                 errorProps,
@@ -594,17 +624,20 @@ public static class ValidationManager
     public class ValidationStateChangedEventArgs : EventArgs
     {
         public ValidationStateChangedEventArgs(
+            int dialogId,
             int errorCount,
             int modifiedCount,
             IReadOnlyDictionary<string, string> errorProperties,
             IReadOnlyCollection<string> modifiedProperties)
         {
+            DialogId = dialogId;
             ErrorCount = errorCount;
             ModifiedCount = modifiedCount;
             ErrorProperties = errorProperties;
             ModifiedProperties = modifiedProperties;
         }
 
+        public int DialogId { get; }
         public int ErrorCount { get; }
         public IReadOnlyDictionary<string, string> ErrorProperties { get; }
         public int ModifiedCount { get; }

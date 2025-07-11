@@ -23,6 +23,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     private readonly ManagementBaseObject? _clonedObject;
     private Dictionary<string, string> _currentErrorProperties = new();
     private HashSet<string> _currentModifiedProperties = new();
+    private readonly int _dialogId;
 
     [ObservableProperty]
     private object? _editableObject;
@@ -46,9 +47,10 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     /// <summary>
     /// Initializes the dialog for editing a raw ManagementBaseObject (instance editing).
     /// </summary>
-    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null)
+    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, IMessengerService messengerService, string? title, int dialogId)
         : base(messengerService)
     {
+        _dialogId = dialogId;
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _originalObject = managementObject ?? throw new ArgumentNullException(nameof(managementObject));
 
@@ -218,6 +220,8 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
 
     private void OnValidationStateChanged(object? sender, ValidationManager.ValidationStateChangedEventArgs e)
     {
+        if (e.DialogId != _dialogId)
+            return;
         _lastErrorCount = e.ErrorCount;
         _lastModifiedCount = e.ModifiedCount;
         _currentErrorProperties = new Dictionary<string, string>(e.ErrorProperties);

@@ -227,6 +227,8 @@ public partial class PropertyGrid : Control, IPropertyGridContext
             new CommandBinding(HelpPaneSelectAllCommand, OnHelpPaneSelectAllExecuted, OnHelpPaneSelectAllCanExecute));
     }
 
+    public int DialogId => this.GetHashCode();
+
     /// <summary>
     /// Gets or sets whether virtualization is enabled.
     /// </summary>

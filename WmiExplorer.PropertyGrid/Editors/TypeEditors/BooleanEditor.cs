@@ -21,10 +21,32 @@ public static class BooleanEditor
             Margin = EditorInfrastructure.CONTROL_MARGIN_STANDARD
         };
 
+        PropertyEditorUtils.InitializeEditor(checkBox, propertyItem);
+
         var binding = EditorInfrastructure.CreateStandardPropertyBinding(propertyItem);
         checkBox.SetBinding(CheckBox.IsCheckedProperty, binding);
         EditorInfrastructure.AttachSelectOnFocus(checkBox, propertyItem);
 
+        // Validation/modified tracking
+        checkBox.Checked += (s, e) => ApplyValidation(checkBox, propertyItem);
+        checkBox.Unchecked += (s, e) => ApplyValidation(checkBox, propertyItem);
+        // Also apply on load
+        checkBox.Loaded += (s, e) => ApplyValidation(checkBox, propertyItem);
+
         return checkBox;
+    }
+
+    private static void ApplyValidation(CheckBox checkBox, PropertyHierarchyItem propertyItem)
+    {
+        var current = checkBox.IsChecked;
+        var original = propertyItem.OriginalValue as bool?;
+        if (current != original)
+        {
+            ValidationManager.SetValidationModified(checkBox);
+        }
+        else
+        {
+            ValidationManager.SetValidationNormal(checkBox);
+        }
     }
 }

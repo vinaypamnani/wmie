@@ -16,11 +16,10 @@ public static class PropertyEditorUtils
     public static readonly Thickness CONTROL_MARGIN_STANDARD = EditorInfrastructure.CONTROL_MARGIN_STANDARD;
     public static readonly Thickness TIP_TEXT_MARGIN = EditorInfrastructure.TIP_TEXT_MARGIN;
 
-    // ===== CORE FUNCTIONALITY (delegated to EditorInfrastructure) =====
-
     /// <summary>
     /// Applies MaxWidth constraint to any FrameworkElement based on parent container
     /// </summary>
+
     public static void ApplyMaxWidthConstraint(FrameworkElement element, FrameworkElement? parentContainer = null, double widthToSubtract = 20, bool forceApply = false)
         => UIHelpers.ApplyMaxWidthConstraint(element, parentContainer, widthToSubtract, forceApply);
 
@@ -36,13 +35,10 @@ public static class PropertyEditorUtils
     public static void AttachSelectOnFocus(Control control, PropertyHierarchyItem? propertyItem)
         => EditorInfrastructure.AttachSelectOnFocus(control, propertyItem);
 
-
-    // ===== BACKWARD COMPATIBILITY METHODS =====
-    // These maintain the exact interface but delegate to the new system
-
     /// <summary>
     /// Clears integer validation error state from a TextBox (backward compatibility)
     /// </summary>
+
     public static void ClearIntegerValidationError(TextBox textBox)
         => ValidationManager.ClearValidationError(textBox);
 
@@ -58,11 +54,10 @@ public static class PropertyEditorUtils
     public static void ClearValidationError(TextBox textBox, System.Windows.Media.Brush originalBorderBrush, object originalToolTip)
         => ValidationManager.ClearValidationError(textBox, originalBorderBrush, originalToolTip);
 
-    // ===== TYPE-SPECIFIC EDITORS (delegated to TypeEditors) =====
-
     /// <summary>
     /// Creates an array editor with input validation and tips
     /// </summary>
+
     public static StackPanel CreateArrayEditor(PropertyHierarchyItem propertyItem, Type arrayType)
         => ArrayEditor.Create(propertyItem, arrayType);
 
@@ -71,6 +66,12 @@ public static class PropertyEditorUtils
     /// </summary>
     public static CheckBox CreateBooleanEditor(PropertyHierarchyItem propertyItem)
         => BooleanEditor.Create(propertyItem);
+
+    /// <summary>
+    /// Creates a complete char editor with hex/decimal support
+    /// </summary>
+    public static Grid CreateCharEditor(PropertyHierarchyItem propertyItem)
+        => CharEditor.Create(propertyItem);
 
     /// <summary>
     /// Creates a standardized DatePicker for DateTime property editing
@@ -101,12 +102,6 @@ public static class PropertyEditorUtils
     /// </summary>
     public static Grid CreateIntegerEditor(PropertyHierarchyItem propertyItem)
         => IntegerEditor.Create(propertyItem);
-
-    /// <summary>
-    /// Creates a complete char editor with hex/decimal support
-    /// </summary>
-    public static Grid CreateCharEditor(PropertyHierarchyItem propertyItem)
-        => CharEditor.Create(propertyItem);
 
     /// <summary>
     /// Creates a read-only TextBlock for displaying property values
@@ -141,6 +136,16 @@ public static class PropertyEditorUtils
         => EditorInfrastructure.GetFriendlyTypeName(type);
 
     /// <summary>
+    /// Standardizes initialization for all editor controls: sets DataContext and ValidationState.
+    /// </summary>
+    public static T InitializeEditor<T>(T control, PropertyHierarchyItem propertyItem) where T : Control
+    {
+        control.DataContext = propertyItem;
+        ValidationManager.SetValidationNormal(control);
+        return control;
+    }
+
+    /// <summary>
     /// Checks if a type is an integer type
     /// </summary>
     public static bool IsIntegerType(Type? propertyType)
@@ -157,8 +162,6 @@ public static class PropertyEditorUtils
     /// </summary>
     public static void ShowIntegerValidationSuccess(TextBox textBox, string successMessage = "Value modified")
         => ValidationManager.ShowValidationSuccess(textBox, successMessage);
-
-    // ===== VALIDATION (delegated to ValidationManager) =====
 
     /// <summary>
     /// Shows validation error state on a TextBox

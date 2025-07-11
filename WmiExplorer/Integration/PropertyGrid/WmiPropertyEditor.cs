@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -35,8 +36,6 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
     }
-
-    #region methods
 
     /// <summary>
     /// Determines whether this editor can handle the specified property item.
@@ -80,6 +79,46 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         }
 
         throw new ArgumentException("Property is not a WMI object, reference, or DateTime type", nameof(propertyItem));
+    }
+
+    private void ApplyValidation(Control control, PropertyHierarchyItem propertyItem)
+    {
+        var current = propertyItem.Value;
+        var original = propertyItem.OriginalValue;
+        bool isModified;
+        if (current is System.Management.ManagementBaseObject mboCurrent && original is System.Management.ManagementBaseObject mboOriginal)
+        {
+            isModified = !AreWmiObjectsEqual(mboCurrent, mboOriginal);
+        }
+        else
+        {
+            isModified = !ValidationManager.AreValuesEqual(current, original);
+        }
+        if (isModified)
+        {
+            ValidationManager.SetValidationModified(control);
+        }
+        else
+        {
+            ValidationManager.SetValidationNormal(control);
+        }
+    }
+
+    private static bool AreWmiObjectsEqual(System.Management.ManagementBaseObject? obj1, System.Management.ManagementBaseObject? obj2)
+    {
+        if (obj1 == null && obj2 == null) { return true; }
+        if (obj1 == null || obj2 == null) { return false; }
+        if (obj1.Properties.Count != obj2.Properties.Count) { return false; }
+        foreach (System.Management.PropertyData prop in obj1.Properties)
+        {
+            var otherProp = obj2.Properties[prop.Name];
+            if (otherProp == null) { return false; }
+            if (!ValidationManager.AreValuesEqual(prop.Value, otherProp.Value))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /// <summary>
@@ -190,8 +229,13 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             propertyItem
         );
 
+        PropertyEditorUtils.InitializeEditor(textBox, propertyItem);
         textBox.IsReadOnly = true;
         textBox.TextWrapping = TextWrapping.Wrap;
+
+        // Validation/modified tracking (for object reference, if value can change)
+        textBox.TextChanged += (s, e) => ApplyValidation(textBox, propertyItem);
+        textBox.Loaded += (s, e) => ApplyValidation(textBox, propertyItem);
 
         // Edit Button
         var editButton = new Button
@@ -206,9 +250,14 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         {
             try
             {
-                EditObject(wmiDescriptor);
-                // Refresh the text after editing
-                textBox.Text = GetObjectDisplayText(wmiDescriptor);
+                var result = EditObject(wmiDescriptor);
+                // Set the edited object as the new value for the property grid
+                if (result != null)
+                {
+                    propertyItem.Value = result;
+                    textBox.Text = GetObjectDisplayText(wmiDescriptor);
+                    ApplyValidation(textBox, propertyItem);
+                }
             }
             catch (Exception ex)
             {
@@ -240,6 +289,16 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             Text = GetReferenceText(wmiDescriptor)
         };
 
+        PropertyEditorUtils.InitializeEditor(comboBox, propertyItem);
+
+        // Bind SelectedItem to propertyItem.Value for validation/modified tracking
+        comboBox.SetBinding(ComboBox.SelectedItemProperty, new Binding("Value")
+        {
+            Source = propertyItem,
+            Mode = BindingMode.TwoWay,
+            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+        });
+
         // Apply MaxWidth constraint using the same logic as base PropertyEditor
         PropertyEditorUtils.ApplyMaxWidthConstraint(comboBox, grid, 120); // Account for Load/Cancel buttons
 
@@ -253,6 +312,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
                 {
                     SetReferenceText(wmiDescriptor, comboBox.Text);
                 }
+                ApplyValidation(comboBox, propertyItem);
             }));
         }
 
@@ -264,6 +324,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
                 SetReferenceText(wmiDescriptor, selectedText);
                 comboBox.Text = selectedText;
             }
+            ApplyValidation(comboBox, propertyItem);
         };
 
         // Focus handling for selection
@@ -379,16 +440,18 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     /// <summary>
     /// Edits an object property using the PropertyEditorDialog.
     /// </summary>
-    private void EditObject(WmiPropertyDescriptor wmiDescriptor)
+    private object? EditObject(WmiPropertyDescriptor wmiDescriptor)
     {
         try
         {
-            var viewModel = GetOrCreateViewModel(wmiDescriptor);
+            var viewModel = CreateViewModel(wmiDescriptor); // Create a new ViewModel for editing so we don't modify the cached one
             viewModel.EditObjectCommand?.Execute(null);
+            return viewModel.Value; // Return the edited object;
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Error editing object: {ex.Message}", "Edit Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return null;
         }
     }
 
@@ -509,7 +572,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     }
 
     /// <summary>
-    /// Custom validation handler for WMI DateTime properties
+    /// Validates if a string is in valid WMI DateTime format
     /// </summary>
     private static ValidationManager.ValidationResult ValidateWmiDateTime(string text, object? originalValue)
     {
@@ -519,8 +582,6 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             return ValidationManager.ValidationResult.Valid(text, !AreWmiValuesEqual(originalValue, text));
         return ValidationManager.ValidationResult.Error("Invalid WMI DateTime format. Expected format: YYYYMMDDHHMMSS.mmmmmm±UUU (e.g., 20250708120000.000000-000)");
     }
-
-    #endregion 
 
     #region IDisposable
     private bool _disposed = false;
@@ -544,5 +605,5 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         }
     }
 
-    #endregion 
+    #endregion
 }

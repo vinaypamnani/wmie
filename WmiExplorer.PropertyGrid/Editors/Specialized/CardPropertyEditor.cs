@@ -128,38 +128,11 @@ public class CardPropertyEditor : PropertyEditor
         grid.Children.Add(namePanel);
 
         // --- Validation Icon ---
-        // Try to find the TextBox inside the editor content
-        TextBox? editorTextBox = null;
-        if (content is TextBox tb)
-            editorTextBox = tb;
-
-        else if (content is Panel panel)
-        {
-            // Look for first TextBox child
-            foreach (var child in panel.Children)
-            {
-                if (child is TextBox t)
-                {
-                    editorTextBox = t;
-                    break;
-                }
-            }
-        }
-        else if (content is Grid gridContent)
-        {
-            foreach (var child in gridContent.Children)
-            {
-                if (child is TextBox t)
-                {
-                    editorTextBox = t;
-                    break;
-                }
-            }
-        }
-        // If not found, icon will not be shown
+        // Try to find the first Control with ValidationStateProperty set in the editor content
+        Control? validationControl = FindValidationControl(content);
 
         var iconPanel = new Grid { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
-        if (editorTextBox != null)
+        if (validationControl != null)
         {
             var iconText = new System.Windows.Controls.TextBlock
             {
@@ -174,25 +147,21 @@ public class CardPropertyEditor : PropertyEditor
             var iconInfoBinding = new Binding
             {
                 Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
-                Source = editorTextBox,
+                Source = validationControl,
                 Converter = new Converters.ValidationStateToIconInfoConverter()
             };
-            // Set DataContext to the icon info
             iconText.SetBinding(System.Windows.Controls.TextBlock.DataContextProperty, iconInfoBinding);
-            // Bind Glyph and Brush to DataContext
             iconText.SetBinding(System.Windows.Controls.TextBlock.TextProperty, new Binding("Glyph"));
             iconText.SetBinding(System.Windows.Controls.TextBlock.ForegroundProperty, new Binding("Brush"));
-            // Visibility still depends on ValidationState
             iconText.SetBinding(System.Windows.Controls.TextBlock.VisibilityProperty, new Binding
             {
                 Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
-                Source = editorTextBox,
+                Source = validationControl,
                 Converter = new Converters.ValidationStateToVisibilityConverter()
             });
-            // Tooltip: bind to the TextBox's ToolTip
             iconText.SetBinding(System.Windows.Controls.TextBlock.ToolTipProperty, new Binding
             {
-                Source = editorTextBox,
+                Source = validationControl,
                 Path = new PropertyPath("ToolTip")
             });
             iconPanel.Children.Add(iconText);
@@ -226,6 +195,37 @@ public class CardPropertyEditor : PropertyEditor
 
         cardBorder.Child = grid;
         return cardBorder;
+    }
+
+    /// <summary>
+    /// Recursively finds the first Control with ValidationStateProperty set (not Normal) in the visual tree
+    /// </summary>
+    private static Control? FindValidationControl(object? element)
+    {
+        if (element is Control ctrl && ctrl.ReadLocalValue(ValidationManager.ValidationStateProperty) != DependencyProperty.UnsetValue)
+            return ctrl;
+        if (element is Panel panel)
+        {
+            foreach (var child in panel.Children)
+            {
+                var found = FindValidationControl(child);
+                if (found != null) return found;
+            }
+        }
+        else if (element is Grid grid)
+        {
+            foreach (var child in grid.Children)
+            {
+                var found = FindValidationControl(child);
+                if (found != null) return found;
+            }
+        }
+        else if (element is ContentControl contentControl)
+        {
+            var found = FindValidationControl(contentControl.Content);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     /// <summary>

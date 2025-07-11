@@ -63,7 +63,8 @@
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="3">
-                <pg:PropertyGrid IsPropertyGridReadOnly="False"
+                <pg:PropertyGrid x:Name="PropertyGridControl"
+                                 IsPropertyGridReadOnly="False"
                                  NameColumnWidth="150"
                                  SelectedObject="{Binding EditableObject}"
                                  ShowHelpPane="True"

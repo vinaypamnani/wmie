@@ -66,6 +66,8 @@ public static class UIHelpers
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
         };
 
+        PropertyEditorUtils.InitializeEditor(textBox, propertyItem!);
+
         // Apply MaxWidth constraint using the generic method
         ApplyMaxWidthConstraint(textBox);
 
@@ -95,7 +97,6 @@ public static class UIHelpers
         // Attach validation behavior if property item provided
         if (propertyItem != null)
         {
-            textBox.DataContext = propertyItem;
             if (customValidation != null)
                 ValidationManager.AddValidationBehavior(textBox, propertyItem, customValidation);
             else
