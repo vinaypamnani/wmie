@@ -286,10 +286,27 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
                 loadButton.IsEnabled = false;
                 loadButton.Content = "Loading...";
 
+                // Track the current selected value (prefer SelectedItem, fallback to Text)
+                var previousSelected = comboBox.SelectedItem as string;
+                if (string.IsNullOrEmpty(previousSelected))
+                    previousSelected = comboBox.Text;
+
                 await LoadReferenceValuesAsync(wmiDescriptor);
 
                 // Update the ComboBox items
-                comboBox.ItemsSource = GetReferenceValues(wmiDescriptor);
+                var newItems = GetReferenceValues(wmiDescriptor);
+                comboBox.ItemsSource = newItems;
+
+                // Try to re-select the previous value if it exists, otherwise select the first item
+                if (!string.IsNullOrEmpty(previousSelected) && newItems.Contains(previousSelected))
+                {
+                    comboBox.SelectedItem = previousSelected;
+                }
+                else if (newItems.Count > 0)
+                {
+                    comboBox.SelectedItem = newItems[0];
+                }
+
                 loadButton.IsEnabled = CanLoadReferenceValues(wmiDescriptor);
                 loadButton.Content = "Load";
             }

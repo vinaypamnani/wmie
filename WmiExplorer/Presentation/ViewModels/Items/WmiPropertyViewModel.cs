@@ -14,53 +14,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// </summary>
 public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposable
 {
-    /// <summary>
-    /// Gets or sets whether integer values should be displayed in hexadecimal format
-    /// </summary>
-    [ObservableProperty]
-    private bool _isHexadecimal;
-
-    private readonly bool _isMethodParameter;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsEnabled))]
-    private bool _isSelected = false;
-
-    private readonly ManagementScope? _managementScope;
-
-    [ObservableProperty]
-    private string _objectDisplayText = string.Empty;
-
-    private ManagementObject? _parameterObject;
-    private readonly PropertyData _propertyData;
-
-    [ObservableProperty]
-    private ReferenceValueLoadState _referenceLoadState = ReferenceValueLoadState.None;
-
-    [ObservableProperty]
-    private ObservableCollection<string> _referenceValues = new();
-
-    private CancellationTokenSource? _referenceValuesCts;
-
-    [ObservableProperty]
-    private object? _value;
-
-    private readonly IWmiService? _wmiService;
-
-    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false)
-    {
-        _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
-        _value = propertyData.Value;
-        _wmiService = wmiService;
-        _managementScope = managementScope;
-        _isMethodParameter = isMethodParameter;
-
-        // Initialize hex display for large values (> 0x80000000)
-        InitializeHexDisplay();
-
-        // Initialize the display text
-        UpdateObjectDisplayText();
-    }
+    #region properties
 
     public string? CimType
     {
@@ -142,6 +96,60 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
     public string? TargetClassName => GetTargetClassName();
 
     public string? Type => _propertyData.Type.ToString();
+    #endregion
+
+    #region fields
+
+    /// <summary>
+    /// Gets or sets whether integer values should be displayed in hexadecimal format
+    /// </summary>
+    [ObservableProperty]
+    private bool _isHexadecimal;
+
+    private readonly bool _isMethodParameter;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEnabled))]
+    private bool _isSelected = false;
+
+    private readonly ManagementScope? _managementScope;
+
+    [ObservableProperty]
+    private string _objectDisplayText = string.Empty;
+
+    private ManagementObject? _parameterObject;
+    private readonly PropertyData _propertyData;
+
+    [ObservableProperty]
+    private ReferenceValueLoadState _referenceLoadState = ReferenceValueLoadState.None;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _referenceValues = new();
+
+    private CancellationTokenSource? _referenceValuesCts;
+
+    [ObservableProperty]
+    private object? _value;
+
+    private readonly IWmiService? _wmiService;
+    #endregion 
+
+    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false)
+    {
+        _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
+        _value = propertyData.Value;
+        _wmiService = wmiService;
+        _managementScope = managementScope;
+        _isMethodParameter = isMethodParameter;
+
+        // Initialize hex display for large values (> 0x80000000)
+        InitializeHexDisplay();
+
+        // Initialize the display text
+        UpdateObjectDisplayText();
+    }
+
+    #region methods
 
     /// <summary>
     /// Command to cancel the loading of reference values
@@ -474,6 +482,9 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
             // Update the ReferenceValues collection on UI thread
             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
+                // Track the current selected value before updating
+                var previousValue = Value as string;
+
                 ReferenceValues.Clear();
 
                 // Check if there's an existing reference value that should be included
@@ -491,6 +502,16 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
                 foreach (var refValue in allValues.OrderBy(s => s))
                 {
                     ReferenceValues.Add(refValue);
+                }
+
+                // After populating ReferenceValues, restore selection
+                if (!string.IsNullOrEmpty(previousValue) && ReferenceValues.Contains(previousValue))
+                {
+                    Value = previousValue;
+                }
+                else if (ReferenceValues.Count > 0)
+                {
+                    Value = ReferenceValues[0];
                 }
 
                 ReferenceLoadState = ReferenceValueLoadState.Loaded;
@@ -618,6 +639,8 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
         }
     }
 
+    #endregion 
+
     #region IDisposable
 
     protected override void Dispose(bool disposing)
@@ -632,7 +655,7 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
         base.Dispose(disposing);
     }
 
-    #endregion
+    #endregion 
 }
 
 public enum ReferenceValueLoadState
