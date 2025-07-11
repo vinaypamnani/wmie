@@ -32,6 +32,8 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
     }
 
+    #region methods
+
     /// <summary>
     /// Determines whether this editor can handle the specified property item.
     /// This editor handles WMI object, reference, and DateTime properties.
@@ -169,8 +171,6 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
 
         textBox.IsReadOnly = wmiDescriptor.IsReadOnly;
 
-        // Removed custom LostFocus handler; ValidationManager handles assignment and validation.
-
         return textBox;
     }
 
@@ -223,15 +223,15 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });        
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         // ComboBox for reference values
         var comboBox = new ComboBox
         {
             IsEditable = true,
             VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Stretch,     
-            Margin = PropertyEditorUtils.CONTROL_MARGIN_STANDARD,       
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = PropertyEditorUtils.CONTROL_MARGIN_STANDARD,
             ItemsSource = GetReferenceValues(wmiDescriptor),
             Text = GetReferenceText(wmiDescriptor)
         };
@@ -239,14 +239,18 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         // Apply MaxWidth constraint using the same logic as base PropertyEditor
         PropertyEditorUtils.ApplyMaxWidthConstraint(comboBox, grid, 120); // Account for Load/Cancel buttons
 
-        // Handle text changes when focus is lost (simpler approach)
-        comboBox.LostFocus += (s, e) =>
+        // update value on TextChanged if possible
+        if (comboBox.IsEditable)
         {
-            if (comboBox.Text != GetReferenceText(wmiDescriptor))
+            comboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler((s, e) =>
             {
-                SetReferenceText(wmiDescriptor, comboBox.Text);
-            }
-        };
+                var tb = (s as ComboBox)?.Template.FindName("PART_EditableTextBox", comboBox) as TextBox;
+                if (tb != null && comboBox.Text != GetReferenceText(wmiDescriptor))
+                {
+                    SetReferenceText(wmiDescriptor, comboBox.Text);
+                }
+            }));
+        }
 
         // Handle selection changes
         comboBox.SelectionChanged += (s, e) =>
@@ -485,7 +489,6 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
 
     /// <summary>
     /// Custom validation handler for WMI DateTime properties
-    /// This method provides visual feedback only - property updates are handled separately on LostFocus
     /// </summary>
     private static ValidationManager.ValidationResult ValidateWmiDateTime(string text, object? originalValue)
     {
@@ -495,6 +498,8 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             return ValidationManager.ValidationResult.Valid(text, !AreWmiValuesEqual(originalValue, text));
         return ValidationManager.ValidationResult.Error("Invalid WMI DateTime format. Expected format: YYYYMMDDHHMMSS.mmmmmm±UUU (e.g., 20250708120000.000000-000)");
     }
+
+    #endregion 
 
     #region IDisposable
     private bool _disposed = false;
@@ -518,5 +523,5 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         }
     }
 
-    #endregion
+    #endregion 
 }

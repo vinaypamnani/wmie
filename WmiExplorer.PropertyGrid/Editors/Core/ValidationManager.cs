@@ -32,7 +32,7 @@ public static class ValidationManager
         var originalBorderBrush = textBox.BorderBrush;
         var originalToolTip = textBox.ToolTip;
 
-        // Add TextChanged validation (visual feedback only, no property updates)
+        // Add TextChanged validation (now also updates property value on valid input)
         textBox.TextChanged += (sender, e) =>
         {
             if (sender is TextBox tb && !GetIsValidating(tb))
@@ -45,41 +45,49 @@ public static class ValidationManager
                     {
                         SetValidationError(tb, result.ErrorMessage ?? "Invalid value");
                     }
-                    else if (result.IsModified)
-                    {
-                        SetValidationModified(tb, "Value modified");
-                    }
                     else
                     {
-                        SetValidationNormal(tb);
+                        propertyItem.Value = result.ParsedValue; // Update value immediately
+                        if (result.IsModified)
+                        {
+                            SetValidationModified(tb, "Value modified");
+                        }
+                        else
+                        {
+                            SetValidationNormal(tb);
+                        }
                     }
                 }
                 else if (ShouldValidateOnTextChanged(propertyItem))
                 {
-                    // Use default validation for types that use TypeConverter (visual feedback only)
-                    ValidateTextBoxValue(tb, propertyItem, originalBorderBrush, originalToolTip);
-                }
-            }
-        };
-
-        // Add LostFocus handler to actually update the property value
-        textBox.LostFocus += (sender, e) =>
-        {
-            if (sender is TextBox tb && !GetIsValidating(tb))
-            {
-                if (customValidation != null)
-                {
-                    var originalValue = propertyItem.OriginalValue;
-                    var result = customValidation(tb.Text, originalValue);
-                    if (result.IsValid)
+                    // Use default validation for types that use TypeConverter
+                    var converter = System.ComponentModel.TypeDescriptor.GetConverter(propertyItem.PropertyType);
+                    if (converter != null && converter.CanConvertFrom(typeof(string)))
                     {
-                        propertyItem.Value = result.ParsedValue;
-                        // Do not update original value here!
+                        try
+                        {
+                            var convertedValue = converter.ConvertFromString(tb.Text);
+                            propertyItem.Value = convertedValue; // Update value immediately
+                            var storedOriginalValue = propertyItem.OriginalValue;
+                            bool valueModified = !AreValuesEqual(storedOriginalValue, convertedValue);
+                            if (valueModified)
+                            {
+                                SetValidationModified(tb, "Modified value (will be rounded or truncated if needed, depending on property type)");
+                            }
+                            else
+                            {
+                                SetValidationNormal(tb);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SetValidationError(tb, ex.Message);
+                        }
                     }
-                }
-                else
-                {
-                    UpdatePropertyValueFromText(tb, propertyItem, originalBorderBrush, originalToolTip);
+                    else
+                    {
+                        SetValidationError(tb, "Cannot convert this value to the required type.");
+                    }
                 }
             }
         };

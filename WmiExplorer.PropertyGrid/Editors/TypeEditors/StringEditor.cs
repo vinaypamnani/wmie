@@ -14,11 +14,7 @@ public static class StringEditor
     /// </summary>
     public static TextBox Create(PropertyHierarchyItem propertyItem)
     {
-        var textBox = UIHelpers.CreateStandardTextBox(null, "Enter text", propertyItem);
-
-        var binding = EditorInfrastructure.CreateStandardPropertyBinding(propertyItem, UpdateSourceTrigger.LostFocus);
-        textBox.SetBinding(TextBox.TextProperty, binding);
-
+        var textBox = UIHelpers.CreateStandardTextBox(propertyItem.FormattedValue, "Enter text", propertyItem);
         return textBox;
     }
 }

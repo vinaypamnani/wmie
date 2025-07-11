@@ -15,11 +15,7 @@ public static class NumericEditor
     public static TextBox Create(PropertyHierarchyItem propertyItem, Type propertyType)
     {
         var placeholderText = propertyType == typeof(decimal) ? "Enter decimal number (e.g., 123.45)" : "Enter decimal number";
-        var textBox = UIHelpers.CreateStandardTextBox(null, placeholderText, propertyItem);
-
-        var binding = EditorInfrastructure.CreateStandardPropertyBinding(propertyItem, UpdateSourceTrigger.LostFocus);
-        textBox.SetBinding(TextBox.TextProperty, binding);
-
+        var textBox = UIHelpers.CreateStandardTextBox(propertyItem.FormattedValue, placeholderText, propertyItem);
         return textBox;
     }
 }
