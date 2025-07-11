@@ -174,30 +174,24 @@ public class CardPropertyEditor : PropertyEditor
                 Margin = new Thickness(0, 0, 8, 0) // Add right margin
             };
 
-            // Bind icon glyph and color using the converter
-            var iconBinding = new Binding
+            // Bind icon glyph and color using the unified converter
+            var iconInfoBinding = new Binding
             {
                 Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
                 Source = editorTextBox,
-                Converter = new Converters.ValidationStateToIconConverter()
+                Converter = new Converters.ValidationStateToIconInfoConverter()
             };
+            // Set DataContext to the icon info
+            iconText.SetBinding(System.Windows.Controls.TextBlock.DataContextProperty, iconInfoBinding);
+            // Bind Glyph and Brush to DataContext
+            iconText.SetBinding(System.Windows.Controls.TextBlock.TextProperty, new Binding("Glyph"));
+            iconText.SetBinding(System.Windows.Controls.TextBlock.ForegroundProperty, new Binding("Brush"));
+            // Visibility still depends on ValidationState
             iconText.SetBinding(System.Windows.Controls.TextBlock.VisibilityProperty, new Binding
             {
                 Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
                 Source = editorTextBox,
-                Converter = new Converters.ValidationStateToVisibilityConverter() // You may need to add this
-            });
-            iconText.SetBinding(System.Windows.Controls.TextBlock.TextProperty, new Binding
-            {
-                Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
-                Source = editorTextBox,
-                Converter = new Converters.ValidationStateToGlyphConverter() // You may need to add this
-            });
-            iconText.SetBinding(System.Windows.Controls.TextBlock.ForegroundProperty, new Binding
-            {
-                Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
-                Source = editorTextBox,
-                Converter = new Converters.ValidationStateToBrushConverter() // You may need to add this
+                Converter = new Converters.ValidationStateToVisibilityConverter()
             });
             // Tooltip: bind to the TextBox's ToolTip
             iconText.SetBinding(System.Windows.Controls.TextBlock.ToolTipProperty, new Binding

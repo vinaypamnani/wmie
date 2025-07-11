@@ -304,11 +304,10 @@ public static class ValidationManager
 
     private static object CreateErrorTooltip(string errorMessage)
     {
-        var iconGlyph = (string)new ValidationStateToGlyphConverter().Convert(ValidationState.Error, typeof(string), null!, System.Globalization.CultureInfo.CurrentUICulture);
-        var iconColor = (System.Windows.Media.Brush)new ValidationStateToBrushConverter().Convert(ValidationState.Error, typeof(System.Windows.Media.Brush), null!, System.Globalization.CultureInfo.CurrentUICulture);
+        var iconInfo = new ValidationStateToIconInfoConverter().Convert(ValidationState.Error, typeof(ValidationIconInfo), null!, System.Globalization.CultureInfo.CurrentUICulture) as ValidationIconInfo ?? new ValidationIconInfo();
         return CreateIconTooltip(
-            iconGlyph: iconGlyph,
-            iconColor: iconColor,
+            iconGlyph: iconInfo.Glyph,
+            iconColor: iconInfo.Brush,
             mainMessage: $"Validation Error: {errorMessage}"
         );
     }
@@ -357,11 +356,10 @@ public static class ValidationManager
 
     private static object CreateSuccessTooltip(string successMessage)
     {
-        var iconGlyph = (string)new ValidationStateToGlyphConverter().Convert(ValidationState.Modified, typeof(string), null!, System.Globalization.CultureInfo.CurrentUICulture);
-        var iconColor = (System.Windows.Media.Brush)new ValidationStateToBrushConverter().Convert(ValidationState.Modified, typeof(System.Windows.Media.Brush), null!, System.Globalization.CultureInfo.CurrentUICulture);
+        var iconInfo = new ValidationStateToIconInfoConverter().Convert(ValidationState.Modified, typeof(ValidationIconInfo), null!, System.Globalization.CultureInfo.CurrentUICulture) as ValidationIconInfo ?? new ValidationIconInfo();
         return CreateIconTooltip(
-            iconGlyph: iconGlyph,
-            iconColor: iconColor,
+            iconGlyph: iconInfo.Glyph,
+            iconColor: iconInfo.Brush,
             mainMessage: successMessage
         );
     }
@@ -581,103 +579,6 @@ public static class ValidationManager
         public static ValidationResult Error(string errorMessage) => new ValidationResult(false, false, null, errorMessage);
 
         public static ValidationResult Valid(object? parsedValue, bool isModified) => new ValidationResult(true, isModified, parsedValue, null);
-    }
-}
-
-/// <summary>
-/// Converts ValidationState to background brush
-/// </summary>
-public class ValidationStateToBackgroundConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        if (value is ValidationState state)
-        {
-            return state switch
-            {
-                ValidationState.Normal => GetPropertyGridBackgroundBrush(),
-                ValidationState.Modified => new SolidColorBrush(Color.FromArgb(30, 0, 255, 0)),
-                ValidationState.Error => new SolidColorBrush(Color.FromArgb(30, 255, 0, 0)),
-                _ => GetPropertyGridBackgroundBrush()
-            };
-        }
-        return GetPropertyGridBackgroundBrush();
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-
-    private static Brush GetPropertyGridBackgroundBrush()
-    {
-        try
-        {
-            // Try to get the PropertyGridBackgroundBrush resource
-            if (Application.Current?.TryFindResource("PropertyGridBackgroundBrush") is Brush brush)
-            {
-                return brush;
-            }
-        }
-        catch
-        {
-            // Fall back if resource not found
-        }
-
-        // Fallback to system background brush
-        return SystemColors.WindowBrush;
-    }
-}
-
-/// <summary>
-/// Converts ValidationState to border brush
-/// </summary>
-public class ValidationStateToBorderConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        if (value is ValidationState state)
-        {
-            return state switch
-            {
-                ValidationState.Normal => SystemColors.ControlDarkBrush,
-                ValidationState.Modified => Brushes.Green,
-                ValidationState.Error => Brushes.Red,
-                _ => SystemColors.ControlDarkBrush
-            };
-        }
-        return SystemColors.ControlDarkBrush;
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-/// <summary>
-/// Converts ValidationState to border thickness
-/// </summary>
-public class ValidationStateToBorderThicknessConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        if (value is ValidationState state)
-        {
-            return state switch
-            {
-                ValidationState.Normal => new Thickness(1),
-                ValidationState.Modified => new Thickness(2),
-                ValidationState.Error => new Thickness(2),
-                _ => new Thickness(1)
-            };
-        }
-        return new Thickness(1);
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
     }
 }
 

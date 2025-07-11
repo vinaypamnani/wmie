@@ -5,9 +5,14 @@ using WmiExplorer.PropertyGrid.Editors.Core;
 
 namespace WmiExplorer.PropertyGrid.Editors.Converters;
 
-public class ValidationStateToIconConverter : IValueConverter
+public class ValidationIconInfo
 {
-    // Returns a tuple: (glyph, brush)
+    public string Glyph { get; set; } = string.Empty;
+    public Brush Brush { get; set; } = Brushes.Gray;
+}
+
+public class ValidationStateToIconInfoConverter : IValueConverter
+{
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is ValidationState state)
@@ -15,17 +20,15 @@ public class ValidationStateToIconConverter : IValueConverter
             switch (state)
             {
                 case ValidationState.Error:
-                    // Error icon (Segoe Fluent: ErrorCircle, U+EA39)
-                    return ("\uEA39", Brushes.Red);
+                    return new ValidationIconInfo { Glyph = "\uEA39", Brush = Brushes.Red };
                 case ValidationState.Modified:
-                    // Success/modified icon (Segoe Fluent: CheckmarkCircle, U+E73E)
-                    return ("\uE73E", Brushes.Green);
+                    return new ValidationIconInfo { Glyph = "\uE946", Brush = Brushes.Green };
                 case ValidationState.Normal:
                 default:
-                    return null;
+                    return new ValidationIconInfo { Glyph = string.Empty, Brush = Brushes.Gray };
             }
         }
-        return null;
+        return new ValidationIconInfo { Glyph = string.Empty, Brush = Brushes.Gray };
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
