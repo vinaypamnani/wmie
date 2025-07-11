@@ -23,9 +23,8 @@ public static class CharEditor
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        UIHelpers.ApplyMaxWidthConstraint(grid);
-
         var textBox = UIHelpers.CreateStandardTextBox(null, "Enter character (or 0xHEX)", propertyItem, new Thickness(0), CustomCharValidation);
+        // MaxWidth constraint is applied within CreateStandardTextBox
 
         var checkBox = new CheckBox
         {

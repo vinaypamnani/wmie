@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using WmiExplorer.PropertyGrid.Editors.Converters;
 
 namespace WmiExplorer.PropertyGrid.Editors.Core;
@@ -21,15 +22,31 @@ public static class UIHelpers
             return; // Already has a MaxWidth binding, don't override
         }
 
-        if (parentContainer != null)
+        FrameworkElement? targetParent = parentContainer;
+        if (targetParent == null)
+        {
+            // Walk up the visual tree to find the first ancestor with a finite ActualWidth
+            DependencyObject? current = element;
+            while (current != null)
+            {
+                current = VisualTreeHelper.GetParent(current);
+                if (current is FrameworkElement fe && fe.ActualWidth > 0 && !double.IsInfinity(fe.ActualWidth))
+                {
+                    targetParent = fe;
+                    break;
+                }
+            }
+        }
+
+        if (targetParent != null)
         {
             var maxWidthConverter = new MaxWidthConverter();
             element.SetBinding(FrameworkElement.MaxWidthProperty,
-                new Binding("ActualWidth") { Source = parentContainer, Converter = maxWidthConverter, ConverterParameter = widthToSubtract });
+                new Binding("ActualWidth") { Source = targetParent, Converter = maxWidthConverter, ConverterParameter = widthToSubtract });
         }
         else
         {
-            // If no parent container, try to use a parent element
+            // Fallback: use RelativeSource to find a Grid ancestor
             element.SetBinding(FrameworkElement.MaxWidthProperty,
                 new Binding("ActualWidth") { RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1), Converter = new MaxWidthConverter(), ConverterParameter = widthToSubtract });
         }

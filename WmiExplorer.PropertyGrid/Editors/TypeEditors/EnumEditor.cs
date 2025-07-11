@@ -23,6 +23,7 @@ public static class EnumEditor
             MinWidth = 100
         };
 
+        // MaxWidth constraint is applied only to the ComboBox for best practice
         UIHelpers.ApplyMaxWidthConstraint(comboBox);
 
         var binding = EditorInfrastructure.CreateStandardPropertyBinding(propertyItem);

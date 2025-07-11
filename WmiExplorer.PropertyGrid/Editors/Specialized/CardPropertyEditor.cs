@@ -125,9 +125,6 @@ public class CardPropertyEditor : PropertyEditor
             Opacity = 0.6
         });
 
-        // Create converter instance for width constraints (used for column 1)
-        var maxWidthConverter = new MaxWidthConverter();
-
         Grid.SetColumn(namePanel, 0);
         grid.Children.Add(namePanel);
 
@@ -322,8 +319,8 @@ public class WidthCalculationConverter : IMultiValueConverter
             values[0] is double gridWidth &&
             values[1] is double nameColumnWidth)
         {
-            // Calculate width to subtract: nameColumnWidth + fe margin (8) + card padding (8*2) + border/spacing buffer (8)
-            double widthToSubtract = nameColumnWidth + 8 + 16 + 8;
+            // Calculate width to subtract: nameColumnWidth + icon width + fe margin (8) + card padding (8*2) + border/spacing buffer (8)
+            double widthToSubtract = nameColumnWidth + 24 + 8 + 16 + 8;
             double maxWidth = gridWidth - widthToSubtract;
 
             return Math.Max(maxWidth, 50); // Ensure minimum width of 50

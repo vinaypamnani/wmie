@@ -14,6 +14,7 @@ public static class StringEditor
     /// </summary>
     public static TextBox Create(PropertyHierarchyItem propertyItem)
     {
+        // MaxWidth constraint is applied within CreateStandardTextBox for the TextBox
         var textBox = UIHelpers.CreateStandardTextBox(propertyItem.FormattedValue, "Enter text", propertyItem);
         return textBox;
     }

@@ -22,6 +22,7 @@ public static class DateTimeEditor
             MinWidth = 180
         };
 
+        // MaxWidth constraint is applied only to the DatePicker for best practice
         UIHelpers.ApplyMaxWidthConstraint(datePicker);
 
         var binding = EditorInfrastructure.CreateStandardPropertyBinding(propertyItem);

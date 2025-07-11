@@ -15,6 +15,7 @@ public static class NumericEditor
     public static TextBox Create(PropertyHierarchyItem propertyItem, Type propertyType)
     {
         var placeholderText = propertyType == typeof(decimal) ? "Enter decimal number (e.g., 123.45)" : "Enter decimal number";
+        // MaxWidth constraint is applied within CreateStandardTextBox for the TextBox
         var textBox = UIHelpers.CreateStandardTextBox(propertyItem.FormattedValue, placeholderText, propertyItem);
         return textBox;
     }
