@@ -10,12 +10,11 @@ namespace WmiExplorer.PropertyGrid.Editors.Core;
 /// </summary>
 public static class EditorInfrastructure
 {
-    public static readonly Thickness CHECKBOX_HEX_MARGIN = new(6, 0, 3, 0);
+    public static readonly Thickness CHECKBOX_HEX_MARGIN = new(6, 0, 6, 0);
+    public static readonly Thickness CONTROL_MARGIN_STANDARD = new(0, 2, 2, 2);
+    public static readonly Thickness TIP_TEXT_MARGIN = new(4, 4, 4, 4);
 
-    // Margin constants for consistent spacing across all editors
-    public static readonly Thickness CONTROL_MARGIN_STANDARD = new(4, 2, 4, 2);
-
-    public static readonly Thickness TIP_TEXT_MARGIN = new(3, 3, 3, 3);
+    #region methods
 
     /// <summary>
     /// Applies standard configuration to a FrameworkElement for property editing
@@ -155,4 +154,6 @@ public static class EditorInfrastructure
                type == typeof(float) || type == typeof(double) ||
                type == typeof(decimal);
     }
+
+    #endregion 
 }

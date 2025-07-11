@@ -111,7 +111,7 @@ public static class PropertyEditorUtils
     /// <summary>
     /// Creates a read-only TextBlock for displaying property values
     /// </summary>
-    public static TextBlock CreateReadOnlyEditor(PropertyHierarchyItem propertyItem)
+    public static TextBox CreateReadOnlyEditor(PropertyHierarchyItem propertyItem)
         => ReadOnlyEditor.Create(propertyItem);
 
     /// <summary>

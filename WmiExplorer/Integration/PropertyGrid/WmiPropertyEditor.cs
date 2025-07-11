@@ -193,6 +193,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         var editButton = new Button
         {
             Content = "Edit...",
+            Width = 54,
             IsEnabled = CanEditObject(wmiDescriptor)
         };
 
@@ -211,7 +212,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             }
         };
 
-        return PropertyEditorUtils.CreateGridWithActionButton(textBox, editButton, 60);
+        return PropertyEditorUtils.CreateGridWithActionButton(textBox, editButton, editButton.Width);
     }
 
     /// <summary>
@@ -222,15 +223,15 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });        
 
         // ComboBox for reference values
         var comboBox = new ComboBox
         {
             IsEditable = true,
             VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Margin = PropertyEditorUtils.CONTROL_MARGIN_STANDARD,
+            HorizontalAlignment = HorizontalAlignment.Stretch,     
+            Margin = PropertyEditorUtils.CONTROL_MARGIN_STANDARD,       
             ItemsSource = GetReferenceValues(wmiDescriptor),
             Text = GetReferenceText(wmiDescriptor)
         };
