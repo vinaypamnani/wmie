@@ -81,9 +81,9 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // BYTE
-    [TestCase("0", (byte)0)]
-    [TestCase("255", (byte)255)]
-    [TestCase("0xFF", (byte)255)]
+    [TestCase("0", byte.MinValue)]
+    [TestCase("255", byte.MaxValue)]
+    [TestCase("0xFF", byte.MaxValue)]
     public void IntegerEditor_Validates_Byte(string input, byte expected)
     {
         var result = IntegerEditor.CustomIntegerValidation(input, (byte)expected);
@@ -93,9 +93,9 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // UINT
-    [TestCase("0", 0u)]
-    [TestCase("4294967295", 4294967295u)]
-    [TestCase("0xFFFFFFFF", 4294967295u)]
+    [TestCase("0", uint.MinValue)]
+    [TestCase("4294967295", uint.MaxValue)]
+    [TestCase("0xFFFFFFFF", uint.MaxValue)]
     public void IntegerEditor_Validates_UInt(string input, uint expected)
     {
         var result = IntegerEditor.CustomIntegerValidation(input, expected);
@@ -105,9 +105,9 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // ULONG
-    [TestCase("0", 0UL)]
-    [TestCase("18446744073709551615", 18446744073709551615UL)]
-    [TestCase("0xFFFFFFFFFFFFFFFF", 18446744073709551615UL)]
+    [TestCase("0", ulong.MinValue)]
+    [TestCase("18446744073709551615", ulong.MaxValue)]
+    [TestCase("0xFFFFFFFFFFFFFFFF", ulong.MaxValue)]
     public void IntegerEditor_Validates_ULong(string input, ulong expected)
     {
         var result = IntegerEditor.CustomIntegerValidation(input, expected);
@@ -117,9 +117,9 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // USHORT
-    [TestCase("0", (ushort)0)]
-    [TestCase("65535", (ushort)65535)]
-    [TestCase("0xFFFF", (ushort)65535)]
+    [TestCase("0", ushort.MinValue)]
+    [TestCase("65535", ushort.MaxValue)]
+    [TestCase("0xFFFF", ushort.MaxValue)]
     public void IntegerEditor_Validates_UShort(string input, ushort expected)
     {
         var result = IntegerEditor.CustomIntegerValidation(input, (ushort)expected);
@@ -129,10 +129,10 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // INT
-    [TestCase("-2147483648", -2147483648)]
-    [TestCase("2147483647", 2147483647)]
-    [TestCase("0x7FFFFFFF", 2147483647)]
-    [TestCase("0x80000000", -2147483648)]
+    [TestCase("-2147483648", int.MinValue)]
+    [TestCase("2147483647", int.MaxValue)]
+    [TestCase("0x7FFFFFFF", int.MaxValue)]
+    [TestCase("0x80000000", int.MinValue)]
     // two's complement
     public void IntegerEditor_Validates_Int(string input, int expected)
     {
@@ -143,10 +143,10 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // LONG
-    [TestCase("-9223372036854775808", -9223372036854775808L)]
-    [TestCase("9223372036854775807", 9223372036854775807L)]
-    [TestCase("0x7FFFFFFFFFFFFFFF", 9223372036854775807L)]
-    [TestCase("0x8000000000000000", -9223372036854775808L)]
+    [TestCase("-9223372036854775808", long.MinValue)]
+    [TestCase("9223372036854775807", long.MaxValue)]
+    [TestCase("0x7FFFFFFFFFFFFFFF", long.MaxValue)]
+    [TestCase("0x8000000000000000", long.MinValue)]
     // two's complement
     public void IntegerEditor_Validates_Long(string input, long expected)
     {
@@ -157,10 +157,10 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // SBYTE
-    [TestCase("-128", (sbyte)-128)]
-    [TestCase("127", (sbyte)127)]
-    [TestCase("0x7F", (sbyte)127)]
-    [TestCase("0x80", (sbyte)-128)]
+    [TestCase("-128", sbyte.MinValue)]
+    [TestCase("127", sbyte.MaxValue)]
+    [TestCase("0x7F", sbyte.MaxValue)]
+    [TestCase("0x80", sbyte.MinValue)]
     // two's complement
     public void IntegerEditor_Validates_SByte(string input, sbyte expected)
     {
@@ -171,10 +171,10 @@ public class PropertyEditorIntegerValidationTests
     }
 
     // SHORT
-    [TestCase("-32768", (short)-32768)]
-    [TestCase("32767", (short)32767)]
-    [TestCase("0x7FFF", (short)32767)]
-    [TestCase("0x8000", (short)-32768)]
+    [TestCase("-32768", short.MinValue)]
+    [TestCase("32767", short.MaxValue)]
+    [TestCase("0x7FFF", short.MaxValue)]
+    [TestCase("0x8000", short.MinValue)]
     // two's complement
     public void IntegerEditor_Validates_Short(string input, short expected)
     {
