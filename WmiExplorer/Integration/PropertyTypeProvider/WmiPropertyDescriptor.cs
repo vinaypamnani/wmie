@@ -151,6 +151,8 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
                     $"0x{Convert.ToUInt64(value):X16}",
                 var t when t == typeof(long) || t == typeof(long?) =>
                     $"0x{(ulong)Convert.ToInt64(value):X16}",
+                var t when t == typeof(char) || t == typeof(char?) =>
+                    $"0x{Convert.ToUInt16(value):X4}", // Char as UTF-16 hex
                 _ => string.Empty
             };
         }
