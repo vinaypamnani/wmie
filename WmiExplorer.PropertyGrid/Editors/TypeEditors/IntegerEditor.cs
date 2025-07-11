@@ -11,8 +11,6 @@ namespace WmiExplorer.PropertyGrid.Editors.TypeEditors;
 /// </summary>
 public static class IntegerEditor
 {
-    #region methods
-
     /// <summary>
     /// Creates a complete integer editor with hex/decimal support
     /// </summary>
@@ -373,6 +371,4 @@ public static class IntegerEditor
         // Apply appropriate validation styling using the centralized ValidationManager
         ValidationManager.ApplyValidationStyling(textBox, propertyItem);
     }
-
-    #endregion 
 }
