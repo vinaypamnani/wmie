@@ -25,25 +25,6 @@ public static class ValidationManager
     private static readonly DependencyProperty OriginalValueProperty =
         DependencyProperty.RegisterAttached("OriginalValue", typeof(object), typeof(ValidationManager), new PropertyMetadata(null));
 
-    public struct ValidationResult
-    {
-        public bool IsValid { get; }
-        public bool IsModified { get; }
-        public object? ParsedValue { get; }
-        public string? ErrorMessage { get; }
-
-        private ValidationResult(bool isValid, bool isModified, object? parsedValue, string? errorMessage)
-        {
-            IsValid = isValid;
-            IsModified = isModified;
-            ParsedValue = parsedValue;
-            ErrorMessage = errorMessage;
-        }
-
-        public static ValidationResult Valid(object? parsedValue, bool isModified) => new ValidationResult(true, isModified, parsedValue, null);
-        public static ValidationResult Error(string errorMessage) => new ValidationResult(false, false, null, errorMessage);
-    }
-
     /// <summary>
     /// Adds validation behavior to a TextBox for property editing
     /// </summary>
@@ -255,7 +236,7 @@ public static class ValidationManager
     public static void SetValidationError(TextBox textBox, string errorMessage)
     {
         SetValidationState(textBox, ValidationState.Error);
-        textBox.ToolTip = $"❌ Validation Error: {errorMessage}\n\nPress Escape to reset to original value.";
+        textBox.ToolTip = CreateErrorTooltip(errorMessage);
     }
 
     /// <summary>
@@ -264,7 +245,7 @@ public static class ValidationManager
     public static void SetValidationModified(TextBox textBox, string successMessage = "Value modified")
     {
         SetValidationState(textBox, ValidationState.Modified);
-        textBox.ToolTip = $"✅ {successMessage}\n\nPress Escape to reset to original value.";
+        textBox.ToolTip = CreateSuccessTooltip(successMessage);
     }
 
     /// <summary>
@@ -296,7 +277,7 @@ public static class ValidationManager
         textBox.BorderThickness = new Thickness(2);
 
         // Set error tooltip
-        textBox.ToolTip = $"❌ Validation Error: {errorMessage}\n\nPress Escape to reset to original value.";
+        textBox.ToolTip = CreateErrorTooltip(errorMessage);
 
         // Optional: Add background tint to make error more visible
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 255, 0, 0));
@@ -312,10 +293,70 @@ public static class ValidationManager
         textBox.BorderThickness = new Thickness(2);
 
         // Set success tooltip
-        textBox.ToolTip = $"✅ {successMessage}\n\nPress Escape to reset to original value.";
+        textBox.ToolTip = CreateSuccessTooltip(successMessage);
 
         // Add background tint to make success more visible
         textBox.Background = new SolidColorBrush(Color.FromArgb(30, 0, 255, 0));
+    }
+
+    private static object CreateErrorTooltip(string errorMessage)
+    {
+        return CreateIconTooltip(
+            iconGlyph: "\uEA39", // StatusErrorFull
+            iconColor: Brushes.Red,
+            mainMessage: $"Validation Error: {errorMessage}"
+        );
+    }
+
+    private static object CreateIconTooltip(string iconGlyph, Brush iconColor, string mainMessage)
+    {
+        var icon = new TextBlock
+        {
+            Text = iconGlyph,
+            Foreground = iconColor,
+            Margin = new Thickness(0, 0, 6, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        try
+        {
+            var style = (Style)Application.Current.FindResource("PropertyGridIconStyle");
+            icon.Style = style;
+        }
+        catch { /* Style not found, fallback to default */ }
+
+        var mainText = new TextBlock
+        {
+            Text = mainMessage,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextWrapping = TextWrapping.Wrap
+        };
+
+        var secondaryText = new TextBlock
+        {
+            Text = "Press Escape to reset to original value.",
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 6, 0, 0),
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap
+        };
+
+        var row1 = new StackPanel { Orientation = Orientation.Horizontal };
+        row1.Children.Add(icon);
+        row1.Children.Add(mainText);
+
+        var panel = new StackPanel { Orientation = Orientation.Vertical };
+        panel.Children.Add(row1);
+        panel.Children.Add(secondaryText);
+        return panel;
+    }
+
+    private static object CreateSuccessTooltip(string successMessage)
+    {
+        return CreateIconTooltip(
+            iconGlyph: "\uE946", // Success icon
+            iconColor: Brushes.Green,
+            mainMessage: successMessage
+        );
     }
 
     private static object GetOriginalValue(DependencyObject obj) => obj.GetValue(OriginalValueProperty);
@@ -467,7 +508,7 @@ public static class ValidationManager
 
                         if (valueModified)
                         {
-                            SetValidationModified(textBox, "Modified value (will update on focus loss)");
+                            SetValidationModified(textBox, "Modified value (will be rounded or truncated if needed, depending on property type)");
                         }
                         else
                         {
@@ -483,7 +524,7 @@ public static class ValidationManager
 
                         if (valueModified)
                         {
-                            SetValidationModified(textBox, "Modified to null (will update on focus loss)");
+                            SetValidationModified(textBox, "Modified value (will be rounded or truncated if needed, depending on property type)");
                         }
                         else
                         {
@@ -511,6 +552,26 @@ public static class ValidationManager
         {
             SetIsValidating(textBox, false);
         }
+    }
+
+    public struct ValidationResult
+    {
+        private ValidationResult(bool isValid, bool isModified, object? parsedValue, string? errorMessage)
+        {
+            IsValid = isValid;
+            IsModified = isModified;
+            ParsedValue = parsedValue;
+            ErrorMessage = errorMessage;
+        }
+
+        public string? ErrorMessage { get; }
+        public bool IsModified { get; }
+        public bool IsValid { get; }
+        public object? ParsedValue { get; }
+
+        public static ValidationResult Error(string errorMessage) => new ValidationResult(false, false, null, errorMessage);
+
+        public static ValidationResult Valid(object? parsedValue, bool isModified) => new ValidationResult(true, isModified, parsedValue, null);
     }
 }
 
