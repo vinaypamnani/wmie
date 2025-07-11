@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using WmiExplorer.PropertyGrid.Editors.Converters;
@@ -10,6 +11,8 @@ namespace WmiExplorer.PropertyGrid.Editors.TypeEditors;
 /// </summary>
 public static class IntegerEditor
 {
+    #region methods
+
     /// <summary>
     /// Creates a complete integer editor with hex/decimal support
     /// </summary>
@@ -51,27 +54,8 @@ public static class IntegerEditor
         return grid;
     }
 
-    /// <summary>
-    /// Converts a long value to the appropriate target integer type
-    /// </summary>
-    private static object ConvertToTargetIntegerType(long value, Type targetType)
-    {
-        return targetType switch
-        {
-            var t when t == typeof(int) || t == typeof(int?) => (int)value,
-            var t when t == typeof(uint) || t == typeof(uint?) => (uint)value,
-            var t when t == typeof(long) || t == typeof(long?) => value,
-            var t when t == typeof(ulong) || t == typeof(ulong?) => (ulong)value,
-            var t when t == typeof(short) || t == typeof(short?) => (short)value,
-            var t when t == typeof(ushort) || t == typeof(ushort?) => (ushort)value,
-            var t when t == typeof(byte) || t == typeof(byte?) => (byte)value,
-            var t when t == typeof(sbyte) || t == typeof(sbyte?) => (sbyte)value,
-            _ => value
-        };
-    }
-
     // New-style validation delegate
-    private static ValidationManager.ValidationResult CustomIntegerValidation(string text, object? originalValue)
+    public static ValidationManager.ValidationResult CustomIntegerValidation(string text, object? originalValue)
     {
         if (string.IsNullOrEmpty(text))
             return ValidationManager.ValidationResult.Valid(null, !ValidationManager.AreValuesEqual(null, originalValue));
@@ -79,16 +63,50 @@ public static class IntegerEditor
         {
             object convertedValue;
             var targetType = originalValue?.GetType() ?? typeof(int); // Fallback to int if originalValue is null
-            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            bool isHex = text.StartsWith("0x", StringComparison.OrdinalIgnoreCase);
+            string normalizedInput = isHex ? text.Substring(2).TrimStart('0').ToUpperInvariant() : text.TrimStart('0');
+            if (string.IsNullOrEmpty(normalizedInput)) normalizedInput = "0";
+
+            BigInteger bigValue;
+            if (isHex)
             {
-                var hexValue = text.Substring(2);
-                convertedValue = ParseHexValueForType(hexValue, targetType);
+                bigValue = BigInteger.Parse(text.Substring(2), System.Globalization.NumberStyles.HexNumber);
+                // Apply unsigned fix for negative values (same as ParseHexValueForType)
+                if (bigValue.Sign < 0)
+                {
+                    if (targetType == typeof(byte) || targetType == typeof(byte?))
+                        bigValue += BigInteger.One << 8;
+                    else if (targetType == typeof(ushort) || targetType == typeof(ushort?))
+                        bigValue += BigInteger.One << 16;
+                    else if (targetType == typeof(uint) || targetType == typeof(uint?))
+                        bigValue += BigInteger.One << 32;
+                    else if (targetType == typeof(ulong) || targetType == typeof(ulong?))
+                        bigValue += BigInteger.One << 64;
+                }
             }
             else
+                bigValue = BigInteger.Parse(text, System.Globalization.NumberStyles.Integer);
+
+            convertedValue = ConvertToTargetIntegerType(bigValue, targetType);
+
+            // Convert back to string for comparison
+            string resultString = isHex
+                ? FormatIntegerAsHex(convertedValue, targetType).Substring(2).TrimStart('0').ToUpperInvariant()
+                : convertedValue?.ToString() ?? "";
+            if (string.IsNullOrEmpty(resultString)) resultString = "0";
+
+            // For decimal, handle negative zero edge case
+            if (!isHex && (normalizedInput == "-0" || resultString == "-0"))
             {
-                var longValue = System.Convert.ToInt64(text);
-                convertedValue = ConvertToTargetIntegerType(longValue, targetType);
+                normalizedInput = "0";
+                resultString = "0";
             }
+
+            if (normalizedInput != resultString)
+            {
+                return ValidationManager.ValidationResult.Error($"Value '{text}' is out of range for type {targetType.Name}.");
+            }
+
             bool isModified = !ValidationManager.AreValuesEqual(convertedValue, originalValue);
             return ValidationManager.ValidationResult.Valid(convertedValue, isModified);
         }
@@ -96,6 +114,124 @@ public static class IntegerEditor
         {
             return ValidationManager.ValidationResult.Error($"Invalid number format: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Converts a long value to the appropriate target integer type
+    /// </summary>
+    private static object ConvertToTargetIntegerType(BigInteger value, Type targetType)
+    {
+        // Console.WriteLine debug logging removed for production
+        if (targetType == typeof(byte) || targetType == typeof(byte?))
+        {
+            if (value >= new BigInteger(byte.MinValue) && value <= new BigInteger(byte.MaxValue))
+            {
+                try
+                {
+                    var castValue = (byte)value;
+                    return castValue;
+                }
+                catch (Exception)
+                {
+                    var fallback = Convert.ToByte((int)value);
+                    return fallback;
+                }
+            }
+            throw new OverflowException($"Value is out of range for byte. Valid range: {byte.MinValue} to {byte.MaxValue}.");
+        }
+        if (targetType == typeof(sbyte) || targetType == typeof(sbyte?))
+        {
+            if (value >= new BigInteger(sbyte.MinValue) && value <= new BigInteger(sbyte.MaxValue))
+            {
+                var castValue = (sbyte)value;
+                return castValue;
+            }
+            throw new OverflowException($"Value is out of range for sbyte. Valid range: {sbyte.MinValue} to {sbyte.MaxValue}.");
+        }
+        if (targetType == typeof(short) || targetType == typeof(short?))
+        {
+            if (value >= new BigInteger(short.MinValue) && value <= new BigInteger(short.MaxValue))
+            {
+                var castValue = (short)value;
+                return castValue;
+            }
+            throw new OverflowException($"Value is out of range for short. Valid range: {short.MinValue} to {short.MaxValue}.");
+        }
+        if (targetType == typeof(ushort) || targetType == typeof(ushort?))
+        {
+            if (value >= new BigInteger(ushort.MinValue) && value <= new BigInteger(ushort.MaxValue))
+            {
+                try
+                {
+                    var castValue = (ushort)value;
+                    return castValue;
+                }
+                catch (Exception)
+                {
+                    var fallback = Convert.ToUInt16((int)value);
+                    return fallback;
+                }
+            }
+            throw new OverflowException($"Value is out of range for ushort. Valid range: {ushort.MinValue} to {ushort.MaxValue}.");
+        }
+        if (targetType == typeof(int) || targetType == typeof(int?))
+        {
+            if (value >= new BigInteger(int.MinValue) && value <= new BigInteger(int.MaxValue))
+            {
+                var castValue = (int)value;
+                return castValue;
+            }
+            throw new OverflowException($"Value is out of range for int. Valid range: {int.MinValue} to {int.MaxValue}.");
+        }
+        if (targetType == typeof(uint) || targetType == typeof(uint?))
+        {
+            if (value >= new BigInteger(uint.MinValue) && value <= new BigInteger(uint.MaxValue))
+            {
+                try
+                {
+                    var castValue = (uint)value;
+                    return castValue;
+                }
+                catch (Exception)
+                {
+                    var fallback = Convert.ToUInt32((long)value);
+                    return fallback;
+                }
+            }
+            throw new OverflowException($"Value is out of range for uint. Valid range: {uint.MinValue} to {uint.MaxValue}.");
+        }
+        if (targetType == typeof(long) || targetType == typeof(long?))
+        {
+            if (value >= new BigInteger(long.MinValue) && value <= new BigInteger(long.MaxValue))
+            {
+                var castValue = (long)value;
+                return castValue;
+            }
+            throw new OverflowException($"Value is out of range for long. Valid range: {long.MinValue} to {long.MaxValue}.");
+        }
+        if (targetType == typeof(ulong) || targetType == typeof(ulong?))
+        {
+            if (value >= new BigInteger(ulong.MinValue) && value <= new BigInteger(ulong.MaxValue))
+            {
+                try
+                {
+                    var castValue = (ulong)value;
+                    return castValue;
+                }
+                catch (Exception)
+                {
+                    var fallback = Convert.ToUInt64((decimal)value);
+                    return fallback;
+                }
+            }
+            throw new OverflowException($"Value is out of range for ulong. Valid range: {ulong.MinValue} to {ulong.MaxValue}.");
+        }
+        if (value >= new BigInteger(long.MinValue) && value <= new BigInteger(long.MaxValue))
+        {
+            var castValue = (long)value;
+            return castValue;
+        }
+        throw new OverflowException($"Value is out of range for long. Valid range: {long.MinValue} to {long.MaxValue}.");
     }
 
     /// <summary>
@@ -140,27 +276,20 @@ public static class IntegerEditor
     /// </summary>
     private static object ParseHexValueForType(string hexValue, Type targetType)
     {
-        // For signed types, we need to handle two's complement representation correctly
-        return targetType switch
+        BigInteger bigValue = BigInteger.Parse(hexValue, System.Globalization.NumberStyles.HexNumber);
+        // Fix for unsigned types: if negative, add 2^(bit width)
+        if (bigValue.Sign < 0)
         {
-            var t when t == typeof(byte) || t == typeof(byte?) =>
-                Convert.ToByte(hexValue, 16),
-            var t when t == typeof(sbyte) || t == typeof(sbyte?) =>
-                (sbyte)Convert.ToByte(hexValue, 16), // Parse as byte, then cast to sbyte for two's complement
-            var t when t == typeof(ushort) || t == typeof(ushort?) =>
-                Convert.ToUInt16(hexValue, 16),
-            var t when t == typeof(short) || t == typeof(short?) =>
-                (short)Convert.ToUInt16(hexValue, 16), // Parse as ushort, then cast to short for two's complement
-            var t when t == typeof(uint) || t == typeof(uint?) =>
-                Convert.ToUInt32(hexValue, 16),
-            var t when t == typeof(int) || t == typeof(int?) =>
-                (int)Convert.ToUInt32(hexValue, 16), // Parse as uint, then cast to int for two's complement
-            var t when t == typeof(ulong) || t == typeof(ulong?) =>
-                Convert.ToUInt64(hexValue, 16),
-            var t when t == typeof(long) || t == typeof(long?) =>
-                (long)Convert.ToUInt64(hexValue, 16), // Parse as ulong, then cast to long for two's complement
-            _ => Convert.ToInt64(hexValue, 16)
-        };
+            if (targetType == typeof(byte) || targetType == typeof(byte?))
+                bigValue += BigInteger.One << 8;
+            else if (targetType == typeof(ushort) || targetType == typeof(ushort?))
+                bigValue += BigInteger.One << 16;
+            else if (targetType == typeof(uint) || targetType == typeof(uint?))
+                bigValue += BigInteger.One << 32;
+            else if (targetType == typeof(ulong) || targetType == typeof(ulong?))
+                bigValue += BigInteger.One << 64;
+        }
+        return ConvertToTargetIntegerType(bigValue, targetType);
     }
 
     /// <summary>
@@ -244,4 +373,6 @@ public static class IntegerEditor
         // Apply appropriate validation styling using the centralized ValidationManager
         ValidationManager.ApplyValidationStyling(textBox, propertyItem);
     }
+
+    #endregion 
 }
