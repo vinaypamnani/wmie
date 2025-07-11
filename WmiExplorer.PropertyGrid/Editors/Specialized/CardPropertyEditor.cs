@@ -53,7 +53,7 @@ public class CardPropertyEditor : PropertyEditor
         // Set up styling with fallbacks
         SetupCardStyling(cardBorder, propertyItem);
 
-        // Two-column grid layout
+        // Three-column grid layout: [name][icon][editor]
         var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
 
         // Name column - bind width to PropertyGrid's NameColumnWidth
@@ -65,6 +65,9 @@ public class CardPropertyEditor : PropertyEditor
                 Converter = new DoubleToGridLengthConverter()
             });
         grid.ColumnDefinitions.Add(nameColumn);
+
+        // Icon column (fixed width, e.g., 24)
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
 
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Stretching editor column
 
@@ -96,7 +99,7 @@ public class CardPropertyEditor : PropertyEditor
                 keyIcon.Content = new TextBlock
                 {
                     Text = "🔑",
-                    FontSize = 10,
+                    FontSize = 8,
                     VerticalAlignment = VerticalAlignment.Center
                 };
             }
@@ -128,6 +131,85 @@ public class CardPropertyEditor : PropertyEditor
         Grid.SetColumn(namePanel, 0);
         grid.Children.Add(namePanel);
 
+        // --- Validation Icon ---
+        // Try to find the TextBox inside the editor content
+        TextBox? editorTextBox = null;
+        if (content is TextBox tb)
+            editorTextBox = tb;
+
+        else if (content is Panel panel)
+        {
+            // Look for first TextBox child
+            foreach (var child in panel.Children)
+            {
+                if (child is TextBox t)
+                {
+                    editorTextBox = t;
+                    break;
+                }
+            }
+        }
+        else if (content is Grid gridContent)
+        {
+            foreach (var child in gridContent.Children)
+            {
+                if (child is TextBox t)
+                {
+                    editorTextBox = t;
+                    break;
+                }
+            }
+        }
+        // If not found, icon will not be shown
+
+        var iconPanel = new Grid { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+        if (editorTextBox != null)
+        {
+            var iconText = new System.Windows.Controls.TextBlock
+            {
+                Style = (Style)Application.Current.FindResource("PropertyGridIconStyle"),
+                FontSize = 16,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 0, 8, 0) // Add right margin
+            };
+
+            // Bind icon glyph and color using the converter
+            var iconBinding = new Binding
+            {
+                Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
+                Source = editorTextBox,
+                Converter = new Converters.ValidationStateToIconConverter()
+            };
+            iconText.SetBinding(System.Windows.Controls.TextBlock.VisibilityProperty, new Binding
+            {
+                Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
+                Source = editorTextBox,
+                Converter = new Converters.ValidationStateToVisibilityConverter() // You may need to add this
+            });
+            iconText.SetBinding(System.Windows.Controls.TextBlock.TextProperty, new Binding
+            {
+                Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
+                Source = editorTextBox,
+                Converter = new Converters.ValidationStateToGlyphConverter() // You may need to add this
+            });
+            iconText.SetBinding(System.Windows.Controls.TextBlock.ForegroundProperty, new Binding
+            {
+                Path = new PropertyPath("(0)", ValidationManager.ValidationStateProperty),
+                Source = editorTextBox,
+                Converter = new Converters.ValidationStateToBrushConverter() // You may need to add this
+            });
+            // Tooltip: bind to the TextBox's ToolTip
+            iconText.SetBinding(System.Windows.Controls.TextBlock.ToolTipProperty, new Binding
+            {
+                Source = editorTextBox,
+                Path = new PropertyPath("ToolTip")
+            });
+            iconPanel.Children.Add(iconText);
+        }
+        Grid.SetColumn(iconPanel, 1);
+        grid.Children.Add(iconPanel);
+
         // Editor content column
         if (content is FrameworkElement fe)
         {
@@ -135,23 +217,21 @@ public class CardPropertyEditor : PropertyEditor
             fe.VerticalAlignment = VerticalAlignment.Center;
             fe.HorizontalAlignment = HorizontalAlignment.Stretch;
 
-            // Calculate width to subtract: column0 width (dynamic) + fe margin (8) + card padding (8*2) + border/spacing buffer (8)
-            // We'll create a multi-binding to subtract the name column width + fixed spacing
+            // Calculate width to subtract: name column width + icon column width + fe margin (8) + card padding (4*2) + border/spacing buffer (8)
             var multiBinding = new MultiBinding
             {
                 Converter = new WidthCalculationConverter()
             };
-
             multiBinding.Bindings.Add(new Binding("ActualWidth") { Source = grid });
             multiBinding.Bindings.Add(new Binding("NameColumnWidth")
             {
                 RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(PropertyGrid), 1)
             });
-
+            // Add icon column width (fixed 24)
+            multiBinding.Bindings.Add(new Binding { Source = 24.0 });
             fe.SetBinding(FrameworkElement.MaxWidthProperty, multiBinding);
         }
-
-        Grid.SetColumn(content, 1);
+        Grid.SetColumn(content, 2);
         grid.Children.Add(content);
 
         cardBorder.Child = grid;
