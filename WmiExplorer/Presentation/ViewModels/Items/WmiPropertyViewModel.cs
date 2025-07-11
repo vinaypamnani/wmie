@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
 
@@ -12,7 +13,7 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// <summary>
 /// ViewModel for WMI properties and parameters that supports object and reference editing
 /// </summary>
-public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposable
+public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
 {
     #region properties
 
@@ -134,7 +135,8 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
     private readonly IWmiService? _wmiService;
     #endregion 
 
-    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false)
+    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false, IMessengerService? messengerService = null)
+        : base(messengerService ?? throw new ArgumentNullException(nameof(messengerService)))
     {
         _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
         _value = propertyData.Value;
@@ -201,7 +203,7 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
             var window = System.Windows.Application.Current.MainWindow;
 
             // Show the PropertyEditorDialog
-            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, _parameterObject, $"Edit {TargetClassName}");
+            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, _parameterObject, _messengerService, $"Edit {TargetClassName}");
             if (result != null)
             {
                 if (_isMethodParameter)
@@ -552,6 +554,14 @@ public partial class WmiPropertyViewModel : DisposableObservableObject, IDisposa
         {
             InitializeParameterObject();
         }
+    }
+
+    /// <summary>
+    /// Handles property change for ReferenceLoadState to publish message
+    /// </summary>
+    partial void OnReferenceLoadStateChanged(ReferenceValueLoadState value)
+    {
+        PublishMessage(new ReferenceLoadStateChangedMessage(Name ?? string.Empty, value));
     }
 
     /// <summary>

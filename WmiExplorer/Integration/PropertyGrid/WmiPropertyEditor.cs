@@ -18,6 +18,8 @@ namespace WmiExplorer.Integration.PropertyGrid;
 /// </summary>
 public class WmiPropertyEditor : IPropertyEditor, IDisposable
 {
+    private readonly IMessengerService _messengerService;
+
     // Cache for ViewModels to avoid creating them multiple times for the same property
     private readonly ConcurrentDictionary<string, WmiPropertyViewModel> _viewModels = new();
 
@@ -27,9 +29,11 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     /// Initializes a new instance of the WmiPropertyEditor with required dependencies.
     /// </summary>
     /// <param name="wmiService">The WMI service for WMI operations</param>
-    public WmiPropertyEditor(IWmiService wmiService)
+    /// <param name="messengerService">The messenger service for messaging</param>
+    public WmiPropertyEditor(IWmiService wmiService, IMessengerService messengerService)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+        _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
     }
 
     #region methods
@@ -362,8 +366,8 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             // Get the ManagementScope for the ViewModel
             var scope = wmiDescriptor.GetManagementScope();
 
-            // Create the ViewModel with PropertyData using the injected WmiService
-            return new WmiPropertyViewModel(wmiDescriptor.PropertyData, _wmiService, scope);
+            // Create the ViewModel with PropertyData using the injected WmiService and MessengerService
+            return new WmiPropertyViewModel(wmiDescriptor.PropertyData, _wmiService, scope, false, _messengerService);
         }
         catch (Exception ex)
         {

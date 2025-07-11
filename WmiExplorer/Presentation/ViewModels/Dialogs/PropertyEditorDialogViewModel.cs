@@ -4,15 +4,40 @@ using System.Management;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
+using WmiExplorer.Common.Messages;
+using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 
 /// <summary>
 /// ViewModel for the PropertyEditorDialog that allows editing WMI objects.
 /// </summary>
-public partial class PropertyEditorDialogViewModel : ObservableObject
+public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
 {
+    public bool IsAnyReferenceLoading => _referenceStates.Values.Any(state => state == ReferenceValueLoadState.Loading);
+
+    /// <summary>
+    /// Gets the cleaned result object. Only available after OK is clicked.
+    /// </summary>
+    public ManagementBaseObject? Result { get; private set; }
+
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set
+        {
+            if (_statusMessage != value)
+            {
+                _statusMessage = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    #region fields
     private readonly ManagementBaseObject? _clonedObject;
 
     [ObservableProperty]
@@ -22,16 +47,21 @@ public partial class PropertyEditorDialogViewModel : ObservableObject
     private string _objectTypeName = string.Empty;
 
     private readonly ManagementBaseObject? _originalObject;
+    private readonly Dictionary<string, ReferenceValueLoadState> _referenceStates = new();
+    private System.Timers.Timer? _statusClearTimer;
+    private string _statusMessage = string.Empty;
 
     [ObservableProperty]
     private string _title = "Edit Properties";
 
     private readonly Window _window;
+    #endregion 
 
     /// <summary>
     /// Initializes the dialog for editing a raw ManagementBaseObject (instance editing).
     /// </summary>
-    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, string? title = null)
+    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null)
+        : base(messengerService)
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _originalObject = managementObject ?? throw new ArgumentNullException(nameof(managementObject));
@@ -42,12 +72,11 @@ public partial class PropertyEditorDialogViewModel : ObservableObject
         // Create a clone of the object for editing so changes don't affect the original until OK is clicked
         _clonedObject = (ManagementBaseObject)_originalObject.Clone();
         EditableObject = _clonedObject;
+
+        StrongSubscribe<ReferenceLoadStateChangedMessage>(OnReferenceLoadStateChanged);
     }
 
-    /// <summary>
-    /// Gets the cleaned result object. Only available after OK is clicked.
-    /// </summary>
-    public ManagementBaseObject? Result { get; private set; }
+    #region methods
 
     [RelayCommand]
     private void Cancel()
@@ -226,4 +255,55 @@ public partial class PropertyEditorDialogViewModel : ObservableObject
             MessageBox.Show($"Error processing properties: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
+
+    private void OnReferenceLoadStateChanged(ReferenceLoadStateChangedMessage msg)
+    {
+        _referenceStates[msg.PropertyName] = msg.State;
+        OnPropertyChanged(nameof(IsAnyReferenceLoading));
+        OnPropertyChanged(nameof(StatusMessage));
+
+        if (msg.State == ReferenceValueLoadState.Loaded)
+        {
+            StatusMessage = "Reference values loaded successfully.";
+            StartStatusClearTimer();
+        }
+        else if (msg.State == ReferenceValueLoadState.Error)
+        {
+            StatusMessage = "Error loading reference values.";
+            StartStatusClearTimer();
+        }
+        else if (msg.State == ReferenceValueLoadState.Loading)
+        {
+            StatusMessage = "Loading reference values...";
+            StopStatusClearTimer();
+        }
+    }
+
+    private void StartStatusClearTimer()
+    {
+        StopStatusClearTimer();
+        _statusClearTimer = new System.Timers.Timer(3000); // 3 seconds
+        _statusClearTimer.Elapsed += (s, e) =>
+        {
+            _statusClearTimer?.Stop();
+            _statusClearTimer?.Dispose();
+            _statusClearTimer = null;
+            StatusMessage = string.Empty;
+            OnPropertyChanged(nameof(StatusMessage));
+        };
+        _statusClearTimer.AutoReset = false;
+        _statusClearTimer.Start();
+    }
+
+    private void StopStatusClearTimer()
+    {
+        if (_statusClearTimer != null)
+        {
+            _statusClearTimer.Stop();
+            _statusClearTimer.Dispose();
+            _statusClearTimer = null;
+        }
+    }
+
+    #endregion 
 }

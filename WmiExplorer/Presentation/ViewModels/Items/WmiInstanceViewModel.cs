@@ -15,13 +15,32 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// </summary>
 public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
 {
-    public enum InstanceState
-    {
-        Unknown,
-        Success,
-        Failed
-    }
+    /// <summary>
+    /// The display name for this instance.
+    /// </summary>
+    public string InstanceName => _wmiInstance.InstanceName;
 
+    /// <summary>
+    /// The WMI path for this instance.
+    /// </summary>
+    public string NamespacePath => _wmiInstance.Path.Path;
+
+    /// <summary>
+    /// The parent class ViewModel.
+    /// </summary>
+    public WmiClassViewModel ParentClass => _parentClass;
+
+    /// <summary>
+    /// The parent namespace ViewModel.
+    /// </summary>
+    public WmiNamespaceViewModel? ParentNamespace => ParentClass.ParentNamespaceViewModel;
+
+    /// <summary>
+    /// The underlying ManagementObject for this instance.
+    /// </summary>
+    public WmiInstance WmiInstance => _wmiInstance;
+
+    #region fields
     private readonly IApplicationService _applicationService;
 
     [ObservableProperty]
@@ -39,6 +58,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     private readonly SelectionManager _selectionManager;
     private readonly WmiInstance _wmiInstance;
     private readonly IWmiService _wmiService;
+    #endregion 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiInstanceViewModel"/> class.
@@ -71,30 +91,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         _selectionManager = selectionManager;
     }
 
-    /// <summary>
-    /// The display name for this instance.
-    /// </summary>
-    public string InstanceName => _wmiInstance.InstanceName;
-
-    /// <summary>
-    /// The WMI path for this instance.
-    /// </summary>
-    public string NamespacePath => _wmiInstance.Path.Path;
-
-    /// <summary>
-    /// The parent class ViewModel.
-    /// </summary>
-    public WmiClassViewModel ParentClass => _parentClass;
-
-    /// <summary>
-    /// The parent namespace ViewModel.
-    /// </summary>
-    public WmiNamespaceViewModel? ParentNamespace => ParentClass.ParentNamespaceViewModel;
-
-    /// <summary>
-    /// The underlying ManagementObject for this instance.
-    /// </summary>
-    public WmiInstance WmiInstance => _wmiInstance;
+    #region methods
 
     /// <summary>
     /// Creates a collection of WmiInstanceViewModel from a collection of WmiInstance models.
@@ -205,7 +202,8 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                 var result = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(
                     mainWindow,
                     managementObject,
-                    $"Edit {InstanceName}");
+                    _messengerService,
+                    $"Edit Instance: {_wmiInstance.ClassPath?.ClassName ?? "Unknown"}");
 
                 if (result != null)
                 {
@@ -481,6 +479,15 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         }
     }
 
+    #endregion 
+
+    public enum InstanceState
+    {
+        Unknown,
+        Success,
+        Failed
+    }
+
     #region IDisposable
 
     protected override void Dispose(bool disposing)
@@ -503,5 +510,5 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         base.Dispose(disposing);
     }
 
-    #endregion
+    #endregion 
 }
