@@ -487,7 +487,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     /// Custom validation handler for WMI DateTime properties
     /// This method provides visual feedback only - property updates are handled separately on LostFocus
     /// </summary>
-    private static ValidationManager.ValidationResult ValidateWmiDateTime(string text, object originalValue)
+    private static ValidationManager.ValidationResult ValidateWmiDateTime(string text, object? originalValue)
     {
         if (string.IsNullOrEmpty(text))
             return ValidationManager.ValidationResult.Valid(null, !AreWmiValuesEqual(originalValue, null));

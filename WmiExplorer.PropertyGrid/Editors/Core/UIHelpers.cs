@@ -38,7 +38,7 @@ public static class UIHelpers
     /// <summary>
     /// Creates a standardized TextBox for property editing with consistent styling and behavior
     /// </summary>
-    public static TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null, Thickness? margin = null, System.Func<string, object, ValidationManager.ValidationResult>? customValidation = null)
+    public static TextBox CreateStandardTextBox(string? initialText = null, string? placeholder = null, PropertyHierarchyItem? propertyItem = null, Thickness? margin = null, System.Func<string, object?, ValidationManager.ValidationResult>? customValidation = null)
     {
         var textBox = new TextBox
         {

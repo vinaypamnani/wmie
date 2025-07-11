@@ -26,7 +26,7 @@ public static class ValidationManager
     /// <summary>
     /// Adds validation behavior to a TextBox for property editing
     /// </summary>
-    public static void AddValidationBehavior(TextBox textBox, PropertyHierarchyItem propertyItem, Func<string, object, ValidationResult>? customValidation = null)
+    public static void AddValidationBehavior(TextBox textBox, PropertyHierarchyItem propertyItem, Func<string, object?, ValidationResult>? customValidation = null)
     {
         // Store original values for reset functionality
         var originalBorderBrush = textBox.BorderBrush;

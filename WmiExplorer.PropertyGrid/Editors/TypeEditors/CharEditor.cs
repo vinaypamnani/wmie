@@ -52,7 +52,7 @@ public static class CharEditor
     }
 
     // New-style validation delegate
-    private static ValidationManager.ValidationResult CustomCharValidation(string text, object originalValue)
+    private static ValidationManager.ValidationResult CustomCharValidation(string text, object? originalValue)
     {
         if (string.IsNullOrEmpty(text))
             return ValidationManager.ValidationResult.Valid(null, !ValidationManager.AreValuesEqual(null, originalValue));
@@ -110,7 +110,7 @@ public static class CharEditor
         textBox.TextChanged += (s, e) =>
         {
             // Ensure propertyItem.Value is not null; pass string.Empty if it is
-            var originalValue = propertyItem.Value ?? string.Empty;
+            var originalValue = propertyItem.Value;
             var result = CustomCharValidation(textBox.Text, originalValue);
             checkBox.IsEnabled = result.IsValid;
         };

@@ -120,7 +120,7 @@ public static class ArrayEditor
         return array;
     }
 
-    private static ValidationManager.ValidationResult CustomArrayValidation(string text, object originalValue, Type elementType)
+    private static ValidationManager.ValidationResult CustomArrayValidation(string text, object? originalValue, Type elementType)
     {
         try
         {
