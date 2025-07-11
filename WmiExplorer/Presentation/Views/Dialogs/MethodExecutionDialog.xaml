@@ -271,7 +271,7 @@
                                                                                              TextWrapping="Wrap">
                                                                                         <TextBox.Style>
                                                                                             <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
-                                                                                                <Setter Property="Tag" Value="{Binding DataContext.ObjectDisplayText, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=OneWay}" />
+                                                                                                <Setter Property="Text" Value="{Binding DataContext.ObjectDisplayText, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=OneWay}" />
                                                                                             </Style>
                                                                                         </TextBox.Style>
                                                                                     </TextBox>

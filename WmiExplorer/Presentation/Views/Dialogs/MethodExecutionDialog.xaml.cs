@@ -49,6 +49,7 @@ public partial class MethodExecutionDialog : Window
         WmiNamespace wmiNamespace,
         WmiClass wmiClass,
         WmiMethod wmiMethod,
+        IMessengerService messengerService,
         WmiInstance? wmiInstance = null)
     {
         var viewModel = new MethodExecutionDialogViewModel(
@@ -56,13 +57,12 @@ public partial class MethodExecutionDialog : Window
             wmiNamespace,
             wmiClass,
             wmiMethod,
+            messengerService,
             wmiInstance);
-
         var dialog = new MethodExecutionDialog(viewModel)
         {
             Owner = owner
         };
-
         return dialog.ShowDialog() ?? false;
     }
 }

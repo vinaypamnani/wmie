@@ -13,7 +13,7 @@ namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 /// <summary>
 /// ViewModel for executing WMI methods (both static and instance)
 /// </summary>
-public partial class MethodExecutionDialogViewModel : DisposableObservableObject
+public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
 {
     public event EventHandler? CloseRequested;
 
@@ -63,7 +63,9 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         WmiNamespace wmiNamespace,
         WmiClass wmiClass,
         WmiMethod wmiMethod,
+        IMessengerService messengerService,
         WmiInstance? wmiInstance = null)
+        : base(messengerService)
     {
         _namespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
         _class = wmiClass ?? throw new ArgumentNullException(nameof(wmiClass));
@@ -316,18 +318,14 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
         _parameters.Clear();
         if (_method != null && _class != null)
         {
-            // Get the method parameters directly from the WMI class
             var methodParameters = _class.ActualClass.GetMethodParameters(_method.Name);
             if (methodParameters != null && methodParameters.Properties.Count > 0)
             {
-                // Create a list to enable ordering by Id qualifier
                 var parameterList = new List<PropertyData>();
                 foreach (PropertyData propertyData in methodParameters.Properties)
                 {
                     parameterList.Add(propertyData);
                 }
-
-                // Order by Id qualifier if present
                 var orderedParameters = parameterList.OrderBy(p =>
                 {
                     if (p.Qualifiers != null)
@@ -340,12 +338,11 @@ public partial class MethodExecutionDialogViewModel : DisposableObservableObject
                             }
                         }
                     }
-                    return int.MaxValue; // Put parameters without Id at the end
+                    return int.MaxValue;
                 });
-
                 foreach (var propertyData in orderedParameters)
                 {
-                    var parameterViewModel = new WmiPropertyViewModel(propertyData, _wmiService, _managementScope, isMethodParameter: true);
+                    var parameterViewModel = new WmiPropertyViewModel(propertyData, _wmiService, _managementScope, isMethodParameter: true, messengerService: _messengerService);
                     if (parameterViewModel.IsReference)
                     {
                         parameterViewModel.PropertyChanged += WmiPropertyViewModel_PropertyChanged;

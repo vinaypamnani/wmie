@@ -287,7 +287,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                         _wmiService,
                         _parentNamespaceViewModel.WmiNamespace,
                         _wmiClass,
-                        method);
+                        method,
+                        _messengerService);
                 }
             }
             catch (Exception ex)
