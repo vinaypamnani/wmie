@@ -650,6 +650,9 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
                 {
                     ObjectDisplayText = $"Embedded: {TargetClassName} object (configured)]";
                 }
+            }            
+            else {
+                ObjectDisplayText = $"Embedded: {TargetClassName} object (configured)]";
             }
         }
         else

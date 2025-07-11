@@ -16,14 +16,16 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     private readonly IPropertyGridContext? _propertyGridContext;
     private readonly ManagementBaseObject _source;
     private readonly WmiProperty _wmiProperty;
+    private readonly bool _forceEditable;
 
-    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null)
+    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
     {
         _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
         _source = source;
         _allowExpansion = allowExpansion;
         _category = category;
         _propertyGridContext = propertyGridContext;
+        _forceEditable = forceEditable;
 
         // Use the same logic as before to get the class definition for WmiProperty
         ManagementClass? parentClass = null;
@@ -49,7 +51,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public string DisplayName => _wmiProperty.Name;
     public bool IsKey => _wmiProperty.IsKey;
     public bool IsObject => _propertyData.Type == System.Management.CimType.Object;
-    public bool IsReadOnly => _wmiProperty.IsReadOnly;
+    public bool IsReadOnly => _forceEditable ? false : _wmiProperty.IsReadOnly;
     public bool IsReference => _propertyData.Type == System.Management.CimType.Reference;
     public string Name => _wmiProperty.Name;
     public System.Management.PropertyData PropertyData => _propertyData;
