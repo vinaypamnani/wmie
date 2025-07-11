@@ -108,19 +108,27 @@ public class WmiProperty
     {
         get
         {
+            // Use GetQualifierFromClassOrInstance for all qualifier checks
+            var isKey = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "key") is bool keyBool && keyBool;
+            if (isKey)
+                return true; // keys are always read-only
+
             var writeQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "write");
             if (writeQualifier is bool writeBool)
-            {
                 return !writeBool;
-            }
 
-            var readOnlyQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "read");
-            if (readOnlyQualifier is bool readBool && readBool)
-            {
+            var readQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "read");
+            if (readQualifier is bool readBool && readBool)
                 return true;
-            }
 
-            // Default: For regular WMI instances without explicit qualifiers, properties are generally read-only
+            var isDynamic = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "dynamic") is bool dynamicBool && dynamicBool;
+            var hasPropertyContext = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "PropertyContext") != null;
+
+            // Special case for dynamic/provider-backed properties with PropertyContext
+            if (isDynamic && hasPropertyContext)
+                return false; // treat as writable
+
+            // Default: read-only
             return true;
         }
     }
