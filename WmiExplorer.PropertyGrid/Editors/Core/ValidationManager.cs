@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using WmiExplorer.PropertyGrid.Editors.Converters;
 
 namespace WmiExplorer.PropertyGrid.Editors.Core;
 
@@ -24,6 +25,8 @@ public static class ValidationManager
     // Attached property to store the original value for comparison
     private static readonly DependencyProperty OriginalValueProperty =
         DependencyProperty.RegisterAttached("OriginalValue", typeof(object), typeof(ValidationManager), new PropertyMetadata(null));
+
+    #region methods
 
     /// <summary>
     /// Adds validation behavior to a TextBox for property editing
@@ -301,9 +304,11 @@ public static class ValidationManager
 
     private static object CreateErrorTooltip(string errorMessage)
     {
+        var iconGlyph = (string)new ValidationStateToGlyphConverter().Convert(ValidationState.Error, typeof(string), null!, System.Globalization.CultureInfo.CurrentUICulture);
+        var iconColor = (System.Windows.Media.Brush)new ValidationStateToBrushConverter().Convert(ValidationState.Error, typeof(System.Windows.Media.Brush), null!, System.Globalization.CultureInfo.CurrentUICulture);
         return CreateIconTooltip(
-            iconGlyph: "\uEA39", // StatusErrorFull
-            iconColor: Brushes.Red,
+            iconGlyph: iconGlyph,
+            iconColor: iconColor,
             mainMessage: $"Validation Error: {errorMessage}"
         );
     }
@@ -352,9 +357,11 @@ public static class ValidationManager
 
     private static object CreateSuccessTooltip(string successMessage)
     {
+        var iconGlyph = (string)new ValidationStateToGlyphConverter().Convert(ValidationState.Modified, typeof(string), null!, System.Globalization.CultureInfo.CurrentUICulture);
+        var iconColor = (System.Windows.Media.Brush)new ValidationStateToBrushConverter().Convert(ValidationState.Modified, typeof(System.Windows.Media.Brush), null!, System.Globalization.CultureInfo.CurrentUICulture);
         return CreateIconTooltip(
-            iconGlyph: "\uE946", // Success icon
-            iconColor: Brushes.Green,
+            iconGlyph: iconGlyph,
+            iconColor: iconColor,
             mainMessage: successMessage
         );
     }
@@ -554,8 +561,15 @@ public static class ValidationManager
         }
     }
 
+    #endregion
+
     public struct ValidationResult
     {
+        public string? ErrorMessage { get; }
+        public bool IsModified { get; }
+        public bool IsValid { get; }
+        public object? ParsedValue { get; }
+
         private ValidationResult(bool isValid, bool isModified, object? parsedValue, string? errorMessage)
         {
             IsValid = isValid;
@@ -563,11 +577,6 @@ public static class ValidationManager
             ParsedValue = parsedValue;
             ErrorMessage = errorMessage;
         }
-
-        public string? ErrorMessage { get; }
-        public bool IsModified { get; }
-        public bool IsValid { get; }
-        public object? ParsedValue { get; }
 
         public static ValidationResult Error(string errorMessage) => new ValidationResult(false, false, null, errorMessage);
 
