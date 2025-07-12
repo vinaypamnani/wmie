@@ -37,9 +37,25 @@ public static class ValidationManager
         var originalBorderBrush = textBox.BorderBrush;
         var originalToolTip = textBox.ToolTip;
 
+        // Disable built-in undo
+        textBox.IsUndoEnabled = false;
+
         // Suppress validation until user interacts
         bool hasUserInteracted = false;
         textBox.GotKeyboardFocus += (s, e) => { hasUserInteracted = true; };
+
+        // Add Ctrl+Z handler for reset (instead of built-in undo)
+        textBox.PreviewKeyDown += (sender, e) =>
+        {
+            if (e.Key == System.Windows.Input.Key.Z && (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) == System.Windows.Input.ModifierKeys.Control)
+            {
+                // Reset to original value and clear error state
+                propertyItem.Value = propertyItem.OriginalValue; // Ensure underlying value is reverted
+                Converters.CaretPositionHelper.SetTextPreservingCaret(textBox, propertyItem.FormattedValue ?? string.Empty);
+                ClearValidationError(textBox, originalBorderBrush, originalToolTip);
+                e.Handled = true; // Prevent default undo
+            }
+        };
 
         // Add TextChanged validation (now also updates property value on valid input)
         textBox.TextChanged += (sender, e) =>
@@ -124,19 +140,6 @@ public static class ValidationManager
                 {
                     SetValidationError(tb, keyErrorMessage);
                 }
-            }
-        };
-
-        // Add key handler to reset on Escape
-        textBox.KeyDown += (sender, e) =>
-        {
-            if (e.Key == System.Windows.Input.Key.Escape && sender is TextBox tb)
-            {
-                // Reset to original value and clear error state
-                propertyItem.Value = propertyItem.OriginalValue; // Ensure underlying value is reverted
-                Converters.CaretPositionHelper.SetTextPreservingCaret(tb, propertyItem.FormattedValue ?? string.Empty);
-                ClearValidationError(tb, originalBorderBrush, originalToolTip);
-                e.Handled = true;
             }
         };
     }
@@ -411,7 +414,7 @@ public static class ValidationManager
         {
             var secondaryText = new TextBlock
             {
-                Text = "Press Escape to reset to original value.",
+                Text = "Press Ctrl+Z to reset to original value.",
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0, 6, 0, 0),
                 FontSize = 11,

@@ -11,9 +11,14 @@
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         mc:Ignorable="d">
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding OkCommand}" />
+    </Window.InputBindings>
     <Border Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"

@@ -240,7 +240,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
             StatusTooltip =
                 "Please fix the following validation errors before continuing:\n\n" +
                 string.Join("\n", validationErrors) +
-                "\n\nTip: Press Escape in any error field to reset to original value.";
+                "\n\nTip: Press Ctrl+Z in any field to reset to original value.";
         }
         else if (_lastModifiedCount > 0)
         {

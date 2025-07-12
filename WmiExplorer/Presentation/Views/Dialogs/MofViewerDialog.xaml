@@ -11,6 +11,7 @@
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="CanResize"
+        ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         mc:Ignorable="d">
