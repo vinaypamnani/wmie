@@ -83,49 +83,42 @@ public static class ArrayEditor
             return Array.CreateInstance(elementType, 0);
         }
 
-        var separators = new[] { ',', ';' };
-        var stringValues = text.Split(separators, StringSplitOptions.RemoveEmptyEntries)
-                              .Select(s => s.Trim())
-                              .Where(s => !string.IsNullOrEmpty(s))
-                              .ToArray();
-
-        var array = Array.CreateInstance(elementType, stringValues.Length);
+        var values = SplitArrayInput(text);
+        var array = Array.CreateInstance(elementType, values.Count);
         var converter = System.ComponentModel.TypeDescriptor.GetConverter(elementType);
 
-        for (int i = 0; i < stringValues.Length; i++)
+        for (int i = 0; i < values.Count; i++)
         {
             try
             {
-                // Strip surrounding quotes if present
-                var str = stringValues[i];
-                if (str.Length >= 2 && str.StartsWith("\"") && str.EndsWith("\""))
-                {
-                    str = str.Substring(1, str.Length - 2);
-                }
-                object? convertedValue = null;
-
-                if (elementType == typeof(string))
-                {
-                    convertedValue = str;
-                }
-                else if (converter != null && converter.CanConvertFrom(typeof(string)))
-                {
-                    convertedValue = converter.ConvertFromString(str);
-                }
-                else
-                {
-                    convertedValue = System.Convert.ChangeType(str, elementType);
-                }
-
+                var convertedValue = ConvertElement(values[i], elementType, converter);
                 array.SetValue(convertedValue, i);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Cannot convert '{stringValues[i]}' to {elementType.Name}: {ex.Message}", ex);
+                throw new InvalidOperationException($"Cannot convert '{values[i]}' to {elementType.Name}: {ex.Message}", ex);
             }
         }
-
         return array;
+    }
+
+    /// <summary>
+    /// Converts a string value to the specified element type using the provided converter.
+    /// </summary>
+    private static object? ConvertElement(string value, Type elementType, System.ComponentModel.TypeConverter converter)
+    {
+        if (elementType == typeof(string))
+        {
+            return value;
+        }
+        else if (converter != null && converter.CanConvertFrom(typeof(string)))
+        {
+            return converter.ConvertFromString(value);
+        }
+        else
+        {
+            return System.Convert.ChangeType(value, elementType);
+        }
     }
 
     private static ValidationManager.ValidationResult CustomArrayValidation(string text, object? originalValue, Type elementType)
@@ -140,5 +133,39 @@ public static class ArrayEditor
         {
             return ValidationManager.ValidationResult.Error($"Array parsing error: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Splits the input string into array elements, respecting quoted delimiters.
+    /// </summary>
+    private static List<string> SplitArrayInput(string text)
+    {
+        var values = new List<string>();
+        var current = new System.Text.StringBuilder();
+        bool inQuotes = false;
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (c == '"')
+            {
+                inQuotes = !inQuotes;
+                continue; // Don't include the quote itself
+            }
+            if ((c == ',' || c == ';') && !inQuotes)
+            {
+                var val = current.ToString().Trim();
+                if (!string.IsNullOrEmpty(val))
+                    values.Add(val);
+                current.Clear();
+            }
+            else
+            {
+                current.Append(c);
+            }
+        }
+        var lastVal = current.ToString().Trim();
+        if (!string.IsNullOrEmpty(lastVal))
+            values.Add(lastVal);
+        return values;
     }
 }
