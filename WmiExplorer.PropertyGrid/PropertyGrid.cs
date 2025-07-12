@@ -257,10 +257,6 @@ public partial class PropertyGrid : Control, IPropertyGridContext
     }
 
     /// <summary>
-    /// Gets or sets whether to iws
-    /// <summary>
-
-    /// <summary>
     /// Gets or sets whether the property grid is read-only.
     /// </summary>
 
