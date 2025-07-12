@@ -48,10 +48,21 @@ public static class ValidationManager
             {
                 if (!hasUserInteracted)
                     return; // Skip validation until user interacts
+
+                // --- CENTRALIZED KEY PROPERTY NULL VALIDATION ---
+                if (IsKeyPropertyNullOrInvalid(tb, propertyItem, out string keyErrorMessage))
+                {
+                    SetValidationError(tb, keyErrorMessage);
+                    return;
+                }
+                // --- END CENTRALIZED KEY PROPERTY NULL VALIDATION ---
+
                 if (customValidation != null)
                 {
                     var originalValue = propertyItem.OriginalValue;
-                    var result = customValidation(tb.Text, originalValue);
+                    // customValidation expects a non-null string, so pass empty string if input is null
+                    var safeInput = ToNullIfNullString(tb.Text) ?? string.Empty;
+                    var result = customValidation(safeInput, originalValue);
                     if (!result.IsValid)
                     {
                         SetValidationError(tb, result.ErrorMessage ?? "Invalid value");
@@ -77,7 +88,8 @@ public static class ValidationManager
                     {
                         try
                         {
-                            var convertedValue = converter.ConvertFromString(tb.Text);
+                            string? input = ToNullIfNullString(tb.Text);
+                            object? convertedValue = input == null ? null : converter.ConvertFromString(input);
                             propertyItem.Value = convertedValue; // Update value immediately
                             var storedOriginalValue = propertyItem.OriginalValue;
                             bool valueModified = !AreValuesEqual(storedOriginalValue, convertedValue);
@@ -99,6 +111,18 @@ public static class ValidationManager
                     {
                         SetValidationError(tb, "Cannot convert this value to the required type.");
                     }
+                }
+            }
+        };
+
+        // Validate initial state for key properties on load
+        textBox.Loaded += (sender, e) =>
+        {
+            if (sender is TextBox tb)
+            {
+                if (IsKeyPropertyNullOrInvalid(tb, propertyItem, out string keyErrorMessage))
+                {
+                    SetValidationError(tb, keyErrorMessage);
                 }
             }
         };
@@ -407,6 +431,54 @@ public static class ValidationManager
     }
 
     /// <summary>
+    /// Checks if a key property is null or invalid (empty for string, null for other types).
+    /// Returns true if invalid, with an appropriate error message.
+    /// </summary>
+    private static bool IsKeyPropertyNullOrInvalid(TextBox tb, PropertyHierarchyItem propertyItem, out string errorMessage)
+    {
+        errorMessage = string.Empty;
+        if (!propertyItem.IsKey)
+            return false;
+
+        string? input = ToNullIfNullString(tb.Text);
+
+        if (propertyItem.PropertyType == typeof(string))
+        {
+            if (input == null)
+            {
+                errorMessage = "Key property cannot be null or empty";
+                return true;
+            }
+        }
+        else
+        {
+            var converter = System.ComponentModel.TypeDescriptor.GetConverter(propertyItem.PropertyType);
+            object? convertedValue = null;
+            bool conversionFailed = false;
+            try
+            {
+                if (converter != null && converter.CanConvertFrom(typeof(string)))
+                {
+                    if (input == null)
+                        convertedValue = null;
+                    else
+                        convertedValue = converter.ConvertFromString(input);
+                }
+            }
+            catch
+            {
+                conversionFailed = true;
+            }
+            if (conversionFailed || convertedValue == null)
+            {
+                errorMessage = "Key property cannot be null";
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Callback when validation state changes - sets up the background binding (only once)
     /// </summary>
     private static void OnValidationStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -495,6 +567,19 @@ public static class ValidationManager
     }
 
     /// <summary>
+    /// Converts a string to null if it is null, empty, "null", or "<null>" (case-insensitive, trimmed). Otherwise returns the trimmed string.
+    /// </summary>
+    private static string? ToNullIfNullString(string? input)
+    {
+        var trimmed = input?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(trimmed) ||
+            string.Equals(trimmed, "null", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(trimmed, "<null>", StringComparison.OrdinalIgnoreCase))
+            return null;
+        return trimmed;
+    }
+
+    /// <summary>
     /// Updates the property value from TextBox text on focus loss (property conversion only, no styling)
     /// </summary>
     private static void UpdatePropertyValueFromText(TextBox textBox, PropertyHierarchyItem propertyItem, Brush originalBorderBrush, object originalToolTip)
@@ -509,8 +594,9 @@ public static class ValidationManager
             {
                 try
                 {
+                    string? input = ToNullIfNullString(textBox.Text);
                     // Convert and update the property value
-                    var convertedValue = converter.ConvertFromString(textBox.Text);
+                    var convertedValue = input == null ? null : converter.ConvertFromString(input);
 
                     try
                     {
@@ -561,9 +647,10 @@ public static class ValidationManager
             {
                 try
                 {
+                    string? input = ToNullIfNullString(textBox.Text);
                     // Test conversion without updating the property value during typing
                     // This prevents triggering additional TextChanged events that cause caret jumping
-                    var convertedValue = converter.ConvertFromString(textBox.Text);
+                    var convertedValue = input == null ? null : converter.ConvertFromString(input);
 
                     // Only show visual feedback - don't update the property value during typing
                     // The actual property update happens on LostFocus
