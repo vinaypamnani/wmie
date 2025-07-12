@@ -16,6 +16,15 @@ public static class StringEditor
     {
         // MaxWidth constraint is applied within CreateStandardTextBox for the TextBox
         var textBox = UIHelpers.CreateStandardTextBox(propertyItem.FormattedValue, "Enter text", propertyItem);
+
+        // Enable multiline editing with Shift+Enter for new lines
+        textBox.AcceptsReturn = true;
+        textBox.TextWrapping = System.Windows.TextWrapping.Wrap;
+
+        // Optionally, set a reasonable height for multiline editing
+        textBox.MinHeight = 24;
+        textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+
         return textBox;
     }
 }
