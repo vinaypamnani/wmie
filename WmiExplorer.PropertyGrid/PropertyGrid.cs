@@ -396,36 +396,15 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         base.OnApplyTemplate();
 
         // Detach previous event handlers if necessary
-        if (_searchBox != null)
-        {
-            _searchBox.TextChanged -= SearchBox_TextChanged;
-        }
-        if (_propertiesTreeView != null)
-        {
-            _propertiesTreeView.SelectedItemChanged -= TreeView_SelectedItemChanged;
-            _propertiesTreeView.PreviewMouseWheel -= TreeView_PreviewMouseWheel;
-        }
+        DetachHandlers();
 
         _searchBox = GetTemplateChild("PART_SearchBox") as TextBox;
         _helpTextBlock = GetTemplateChild("PART_HelpText") as TextBlock;
         _propertiesTreeView = GetTemplateChild("PART_PropertiesTree") as TreeView;
         ScrollViewer? treeScrollViewer = GetTemplateChild("PART_TreeScrollViewer") as ScrollViewer;
 
-        if (_searchBox != null)
-        {
-            _searchBox.TextChanged += SearchBox_TextChanged;
-        }
+        AttachHandlers();
 
-        if (_propertiesTreeView != null)
-        {
-            _propertiesTreeView.SelectedItemChanged += TreeView_SelectedItemChanged;
-            _propertiesTreeView.PreviewMouseWheel += TreeView_PreviewMouseWheel;
-            VirtualizingStackPanel.SetIsVirtualizing(_propertiesTreeView, EnableVirtualization);
-            VirtualizingStackPanel.SetVirtualizationMode(
-                _propertiesTreeView,
-                EnableVirtualization ? VirtualizationMode.Recycling : VirtualizationMode.Standard);
-            ScrollViewer.SetCanContentScroll(_propertiesTreeView, EnableVirtualization);
-        }
         if (ShowHelpPane && Template != null)
         {
             if (Template.FindName("PART_GridSplitter", this) is GridSplitter splitter)
@@ -441,6 +420,30 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         }
 
         LoadProperties();
+    }
+
+    /// <summary>
+    /// Attaches event handlers to the relevant controls.
+    /// </summary>
+    private void AttachHandlers()
+    {
+        if (_searchBox != null)
+        {
+            _searchBox.TextChanged += SearchBox_TextChanged;
+        }
+        if (_propertiesTreeView != null)
+        {
+            _propertiesTreeView.SelectedItemChanged += TreeView_SelectedItemChanged;
+            _propertiesTreeView.PreviewMouseWheel += TreeView_PreviewMouseWheel;
+            _propertiesTreeView.KeyDown += PropertiesTreeView_KeyDown;
+
+            // Restore virtualization and scrolling settings
+            VirtualizingStackPanel.SetIsVirtualizing(_propertiesTreeView, EnableVirtualization);
+            VirtualizingStackPanel.SetVirtualizationMode(
+                _propertiesTreeView,
+                EnableVirtualization ? VirtualizationMode.Recycling : VirtualizationMode.Standard);
+            ScrollViewer.SetCanContentScroll(_propertiesTreeView, EnableVirtualization);
+        }
     }
 
     /// <summary>
@@ -478,6 +481,23 @@ public partial class PropertyGrid : Control, IPropertyGridContext
             // The command's CanExecute will be automatically updated by the source generator
             // when the text changes, but we can also manually trigger it
             ClearSearchCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    /// <summary>
+    /// Detaches event handlers from the relevant controls.
+    /// </summary>
+    private void DetachHandlers()
+    {
+        if (_searchBox != null)
+        {
+            _searchBox.TextChanged -= SearchBox_TextChanged;
+        }
+        if (_propertiesTreeView != null)
+        {
+            _propertiesTreeView.SelectedItemChanged -= TreeView_SelectedItemChanged;
+            _propertiesTreeView.PreviewMouseWheel -= TreeView_PreviewMouseWheel;
+            _propertiesTreeView.KeyDown -= PropertiesTreeView_KeyDown;
         }
     }
 
@@ -810,6 +830,25 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         }
     }
 
+    /// <summary>
+    /// Handles Ctrl+C to copy the value of the selected property to the clipboard.
+    /// </summary>
+    private void PropertiesTreeView_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.C && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+        {
+            if (SelectedHierarchyItem != null && !SelectedHierarchyItem.IsCategory)
+            {
+                var value = SelectedHierarchyItem.Value?.ToString();
+                if (!string.IsNullOrEmpty(value))
+                {
+                    Clipboard.SetText(value);
+                    e.Handled = true;
+                }
+            }
+        }
+    }
+
     private void PropertyGrid_Loaded(object sender, RoutedEventArgs e)
     {
         // Load properties if an object is selected
@@ -825,16 +864,7 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         _searchDebounceTimer?.Stop();
 
         // Unsubscribe from event handlers to prevent memory leaks
-        if (_searchBox != null)
-        {
-            _searchBox.TextChanged -= SearchBox_TextChanged;
-        }
-
-        if (_propertiesTreeView != null)
-        {
-            _propertiesTreeView.SelectedItemChanged -= TreeView_SelectedItemChanged;
-            _propertiesTreeView.PreviewMouseWheel -= TreeView_PreviewMouseWheel;
-        }
+        DetachHandlers();
     }
 
     /// <summary>
