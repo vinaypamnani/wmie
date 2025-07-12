@@ -33,6 +33,8 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
                objectType == typeof(WmiInstance) ||
                objectType == typeof(ManagementBaseObject) ||
                objectType == typeof(ManagementObject) ||
+               objectType == typeof(ManagementBaseObject[]) ||
+               objectType == typeof(ManagementObject[]) ||
                objectType == typeof(PropertyDataCollection) ||
                objectType == typeof(QualifierDataCollection) == true;
     }
@@ -71,11 +73,13 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         // Special handling for array of embedded ManagementBaseObject
         if (value is ManagementBaseObject[] mboArray)
         {
-            foreach (var embeddedMbo in mboArray)
+            for (int i = 0; i < mboArray.Length; i++)
             {
-                bool isTemplate = embeddedMbo is ManagementObject mo && IsTemplateObject(mo);
-                foreach (var desc in ProcessWmiCollection<PropertyData>(embeddedMbo.Properties, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, embeddedMbo, false, propertyGridContext, isTemplate)))
-                    yield return desc;
+                var embeddedMbo = mboArray[i];
+                if (embeddedMbo != null)
+                {
+                    yield return new WmiEmbeddedObjectPropertyDescriptor($"[{i}]", embeddedMbo, value, parentCategory);
+                }
             }
             yield break;
         }
@@ -268,6 +272,44 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
             .Where(p => p.CanRead && p.GetIndexParameters().Length == 0);
     }
 
+    private static bool IsTemplateObject(ManagementObject obj)
+    {
+        foreach (PropertyData prop in obj.Properties)
+        {
+            if (prop.Name.StartsWith("__"))
+                continue;
+            if (prop.Value == null)
+                continue;
+            // Treat 0 as unset for numeric types
+            var type = prop.Value.GetType();
+            if (type == typeof(int) && (int)prop.Value == 0)
+                continue;
+            if (type == typeof(uint) && (uint)prop.Value == 0)
+                continue;
+            if (type == typeof(long) && (long)prop.Value == 0)
+                continue;
+            if (type == typeof(ulong) && (ulong)prop.Value == 0)
+                continue;
+            if (type == typeof(short) && (short)prop.Value == 0)
+                continue;
+            if (type == typeof(ushort) && (ushort)prop.Value == 0)
+                continue;
+            if (type == typeof(byte) && (byte)prop.Value == 0)
+                continue;
+            if (type == typeof(sbyte) && (sbyte)prop.Value == 0)
+                continue;
+            if (type == typeof(float) && (float)prop.Value == 0f)
+                continue;
+            if (type == typeof(double) && (double)prop.Value == 0.0)
+                continue;
+            if (type == typeof(decimal) && (decimal)prop.Value == 0m)
+                continue;
+            // If we get here, the property is set to a non-null, non-zero value
+            return false;
+        }
+        return true;
+    }
+
     /// <summary>
     /// Generic method to process WMI collections with error handling
     /// </summary>
@@ -307,43 +349,5 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
                 }
             }
         }
-    }
-
-    private static bool IsTemplateObject(ManagementObject obj)
-    {
-        foreach (PropertyData prop in obj.Properties)
-        {
-            if (prop.Name.StartsWith("__"))
-                continue;
-            if (prop.Value == null)
-                continue;
-            // Treat 0 as unset for numeric types
-            var type = prop.Value.GetType();
-            if (type == typeof(int) && (int)prop.Value == 0)
-                continue;
-            if (type == typeof(uint) && (uint)prop.Value == 0)
-                continue;
-            if (type == typeof(long) && (long)prop.Value == 0)
-                continue;
-            if (type == typeof(ulong) && (ulong)prop.Value == 0)
-                continue;
-            if (type == typeof(short) && (short)prop.Value == 0)
-                continue;
-            if (type == typeof(ushort) && (ushort)prop.Value == 0)
-                continue;
-            if (type == typeof(byte) && (byte)prop.Value == 0)
-                continue;
-            if (type == typeof(sbyte) && (sbyte)prop.Value == 0)
-                continue;
-            if (type == typeof(float) && (float)prop.Value == 0f)
-                continue;
-            if (type == typeof(double) && (double)prop.Value == 0.0)
-                continue;
-            if (type == typeof(decimal) && (decimal)prop.Value == 0m)
-                continue;
-            // If we get here, the property is set to a non-null, non-zero value
-            return false;
-        }
-        return true;
     }
 }

@@ -91,11 +91,6 @@ public partial class PropertyHierarchyItem : ObservableObject
     private Visibility _visibility = Visibility.Visible;
 
     /// <summary>
-    /// Stores the original value for validation. Set only once at construction.
-    /// </summary>
-    public object? OriginalValue { get; }
-
-    /// <summary>
     /// Creates a new instance of PropertyHierarchyItem.
     /// </summary>
     public PropertyHierarchyItem()
@@ -151,15 +146,14 @@ public partial class PropertyHierarchyItem : ObservableObject
     {
         get
         {
+            if (Value == DependencyProperty.UnsetValue)
+                return string.Empty;
+                
             var valueType = Value?.GetType() ?? typeof(object);
             var converter = PropertyTypeProviderRegistry.Instance.GetConverter(valueType);
             if (converter == null)
                 return Value?.ToString() ?? string.Empty;
-            if (Value is Array arr && !(Value is string))
-            {
-                // Join each element's string representation using the converter
-                return string.Join(", ", arr.Cast<object>().Select(v => converter.ConvertToString(v, v?.GetType() ?? typeof(object))));
-            }
+            // For arrays, use the converter's array logic, not string.Join
             return converter.ConvertToString(Value, valueType);
         }
     }
@@ -195,6 +189,11 @@ public partial class PropertyHierarchyItem : ObservableObject
     /// Gets or sets the level in the hierarchy (used for indentation).
     /// </summary>
     public int Level { get; set; }
+
+    /// <summary>
+    /// Stores the original value for validation. Set only once at construction.
+    /// </summary>
+    public object? OriginalValue { get; }
 
     /// <summary>
     /// Gets or sets the property descriptor for this item.

@@ -27,7 +27,10 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
             return false;
 
         // Check if this is a WMI type
-        return typeof(ManagementBaseObject).IsAssignableFrom(propertyType) ||
+        return typeof(ManagementObject).IsAssignableFrom(propertyType) ||
+               typeof(ManagementObject[]).IsAssignableFrom(propertyType) ||
+               typeof(ManagementBaseObject).IsAssignableFrom(propertyType) ||
+               typeof(ManagementBaseObject[]).IsAssignableFrom(propertyType) ||
                typeof(PropertyData).IsAssignableFrom(propertyType) ||
                typeof(QualifierData).IsAssignableFrom(propertyType) ||
                typeof(ManagementPath).IsAssignableFrom(propertyType) ||
@@ -51,31 +54,27 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
         if (value == null)
             return "<null>";
 
-        // Special handling for WMI types
+        // Explicit handling for ManagementObject
+        if (value is System.Management.ManagementObject mo)
+        {
+            // You can customize this string as needed
+            return $"[ManagementObject: {GetEmbeddedObjectDisplayString(mo)}]";
+        }
+
+        // Explicit handling for ManagementObject[]
+        if (value is System.Management.ManagementObject[] moArray)
+        {
+            return $"[ManagementObject Array: {moArray.Length} object(s)]";
+        }
+
         if (value is ManagementBaseObject mbo)
         {
-            // Try __RELPATH value
-            var relPath = mbo.SystemProperties["__RELPATH"]?.Value as string;
-            if (!string.IsNullOrEmpty(relPath))
-                return $"[Embedded: {relPath}]";
-
-            // Fallback: use ClassPath.Path
-            var classPath = mbo.ClassPath?.Path ?? "Object";
-            string? displayName = null;
-            // Try to get DisplayName or Name property value
-            if (mbo.Properties["DisplayName"] != null && mbo.Properties["DisplayName"].Value is string dn && !string.IsNullOrEmpty(dn))
-                displayName = dn;
-            else if (mbo.Properties["Name"] != null && mbo.Properties["Name"].Value is string n && !string.IsNullOrEmpty(n))
-                displayName = n;
-
-            if (!string.IsNullOrEmpty(displayName))
-                return $"[Embedded: {classPath} ({displayName})]";
-            else
-                return $"[Embedded: {classPath}]";
+            return GetEmbeddedObjectDisplayString(mbo);
         }
+
         if (value is ManagementBaseObject[] mboArray)
         {
-            return $"[Embedded Array: {mboArray.Length} object(s)]";
+            return $"[EmbeddedObject Array: {mboArray.Length} object(s)]";
         }
 
         if (value is PropertyData propertyData)
@@ -117,5 +116,93 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
     {
         // WMI types generally can't be edited directly
         return false;
+    }
+
+    private string GetEmbeddedObjectDisplayString(ManagementBaseObject mbo)
+    {
+        // 1. Try instance path (for ManagementObject)
+        try
+        {
+            if (mbo is System.Management.ManagementObject mo && mo.Path != null)
+            {
+                var relPath = mo.Path.RelativePath;
+                if (!string.IsNullOrEmpty(relPath))
+                {
+                    return $"[Embedded: {relPath}]";
+                }
+            }
+        }
+        catch { /* ignore */ }
+
+        // 2. Try key property string using ManagementClass and WmiProperty
+        try
+        {
+            var className = mbo.ClassPath?.ClassName ?? mbo.GetType().Name;
+            ManagementClass? mgmtClass = null;
+            try
+            {
+                if (!string.IsNullOrEmpty(className))
+                {
+                    // Try to get scope from mbo if possible
+                    ManagementScope? scope = null;
+                    if (mbo is System.Management.ManagementObject mo2)
+                        scope = mo2.Scope;
+                    mgmtClass = scope != null ? new ManagementClass(scope, new ManagementPath(className), null) : new ManagementClass(className);
+                }
+            }
+            catch { /* ignore */ }
+            var keyProps = new List<string>();
+            foreach (PropertyData prop in mbo.Properties)
+            {
+                try
+                {
+                    var wmiProp = new WmiExplorer.Core.Models.WmiProperty(prop, mgmtClass);
+                    if (wmiProp.IsKey)
+                    {
+                        keyProps.Add($"{prop.Name}={prop.Value}");
+                    }
+                }
+                catch { /* ignore */ }
+            }
+            if (keyProps.Count > 0)
+            {
+                var keyString = string.Join(", ", keyProps);
+                return $"[Embedded: {className}({keyString})]";
+            }
+        }
+        catch { /* ignore */ }
+
+        // 3. Try class path
+        try
+        {
+            if (mbo.ClassPath != null)
+            {
+                var relPath = mbo.ClassPath.RelativePath;
+                if (!string.IsNullOrEmpty(relPath))
+                {
+                    string[] extraPropNames = { "Name", "Id", "DisplayName", "Caption", "Value" };
+                    string? extra = null;
+                    foreach (var propName in extraPropNames)
+                    {
+                        var prop = mbo.Properties.Cast<PropertyData>().FirstOrDefault(p => string.Equals(p.Name, propName, StringComparison.OrdinalIgnoreCase));
+                        if (prop != null && prop.Value != null)
+                        {
+                            extra = $"{propName}={prop.Value}";
+                            break;
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(extra))
+                        return $"[Embedded: {relPath} ({extra})]";
+                    return $"[Embedded: {relPath}]";
+                }
+            }
+        }
+        catch { /* ignore */ }
+
+        // 4. Fallback to ToString
+        var fallback = mbo.ToString();
+        if (string.IsNullOrEmpty(fallback) || fallback == "{DependencyProperty.UnsetValue}")
+            return "<unset>";
+        return fallback;
     }
 }

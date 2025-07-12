@@ -38,8 +38,9 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                     return CategoryItemTemplate;
                 }
 
-                // Check if we should use card style by looking for PropertyGrid ancestor
+                // Find PropertyGrid ancestor and check read-only state
                 bool useCardStyle = false;
+                bool isReadOnly = false;
                 var ancestor = container;
 
                 // First try visual tree traversal
@@ -48,6 +49,7 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                     if (ancestor is PropertyGrid propertyGrid)
                     {
                         useCardStyle = propertyGrid.UseCardStyleEditor;
+                        isReadOnly = propertyGrid.IsPropertyGridReadOnly;
                         break;
                     }
                     ancestor = VisualTreeHelper.GetParent(ancestor);
@@ -62,10 +64,17 @@ public class PropertyItemTemplateSelector : DataTemplateSelector
                         if (ancestor is PropertyGrid propertyGrid)
                         {
                             useCardStyle = propertyGrid.UseCardStyleEditor;
+                            isReadOnly = propertyGrid.IsPropertyGridReadOnly;
                             break;
                         }
                         ancestor = LogicalTreeHelper.GetParent(ancestor);
                     }
+                }
+
+                // If grid is read-only, always use PropertyItemTemplate
+                if (isReadOnly && PropertyItemTemplate != null)
+                {
+                    return PropertyItemTemplate;
                 }
 
                 // Select appropriate property template
