@@ -240,6 +240,9 @@ public static class ValidationManager
 
         // Clear error background
         textBox.ClearValue(Control.BackgroundProperty);
+
+        // Clear error state
+        SetValidationNormal(textBox);
     }
 
     public static int GetDialogId(Control control)
