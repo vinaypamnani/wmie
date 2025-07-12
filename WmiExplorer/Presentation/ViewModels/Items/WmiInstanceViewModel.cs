@@ -427,6 +427,30 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Command to refresh the instance by calling .Get() and updating the property grid.
+    /// </summary>
+    [RelayCommand]
+    private void RefreshInstance()
+    {
+        try
+        {
+            // Always reload the instance data
+            WmiInstance.ActualObject?.Get();
+            LoadState = InstanceState.Success;
+            // Refresh the property grid to reflect updated values
+            _selectionManager.PropertyGrid.RefreshPropertyGrid();
+            PublishSuccessState($"Instance refreshed: {InstanceName}");
+            Log.Information("Instance refreshed: {InstanceName}", InstanceName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to refresh instance: {InstanceName}", InstanceName);
+            LoadState = InstanceState.Failed;
+            PublishErrorState($"Failed to refresh instance: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     /// Command to show the instance MOF in a dialog, with or without amended qualifiers.
     /// </summary>
     [RelayCommand]

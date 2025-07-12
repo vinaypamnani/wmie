@@ -9,6 +9,10 @@
              d:DesignWidth="800"
              Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5"
+                    Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.RefreshInstanceCommand}" />
+    </UserControl.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -50,6 +54,14 @@
                                             </Style.Triggers>
                                         </Style>
                                     </MenuItem.Style>
+                                </MenuItem>
+                                <MenuItem Command="{Binding RefreshInstanceCommand}" Header="Refresh Instance" InputGestureText="F5">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource RefreshIconTemplate}" />
+                                    </MenuItem.Icon>
+                                    <MenuItem.ToolTip>
+                                        <ToolTip Content="Reload this instance from WMI and refresh the property grid." />
+                                    </MenuItem.ToolTip>
                                 </MenuItem>
                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                 <MenuItem Command="{Binding ShowInstanceMofCommand}" CommandParameter="True" Header="Show MOF (with amended qualifiers)">

@@ -146,6 +146,10 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71D;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="RefreshIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE72C;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="JumpToIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE73F;" />
     </DataTemplate>
