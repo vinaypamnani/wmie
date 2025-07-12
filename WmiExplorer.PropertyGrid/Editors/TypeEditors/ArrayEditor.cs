@@ -30,6 +30,14 @@ public static class ArrayEditor
             null,
             (text, originalValue) => CustomArrayValidation(text, originalValue, elementType));
 
+        // Enable multiline editing with Shift+Enter for new lines
+        textBox.AcceptsReturn = true;
+        textBox.TextWrapping = System.Windows.TextWrapping.Wrap;
+
+        // Optionally, set a reasonable height for multiline editing
+        textBox.MinHeight = 24;
+        textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+
         textBox.ToolTip = $"Enter {EditorInfrastructure.GetFriendlyTypeName(elementType)} values separated by commas or semicolons";
 
         var stackPanel = new StackPanel
