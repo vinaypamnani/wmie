@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Management;
 using WmiExplorer.PropertyGrid;
+using WmiExplorer.Common.Helpers;
 
 namespace WmiExplorer.Core.Models;
 
@@ -154,10 +155,9 @@ public class WmiProperty
                 _possibleValuesComputed = true;
             }
 
-            // Always create a fresh NameValueCollection from cached data or else PropertyGrid doesn't update on reselection
             if (_cachedValues != null)
             {
-                return CreateNameValueCollection(_cachedValues, _cachedValueMap);
+                return ValueMapHelper.CreateNameValueCollection(_cachedValues, _cachedValueMap);
             }
 
             return null;
@@ -184,84 +184,24 @@ public class WmiProperty
     /// </summary>
     private void BuildAndCachePossibleValues()
     {
-        var valueQualifiers = new HashSet<string>(
-            new[] { "values", "enumeration", "stringenumeration", "bitvalues", "bits" },
-            StringComparer.OrdinalIgnoreCase);
-        var valueMapQualifiers = new HashSet<string>(
-            new[] { "valuemap", "bitmap" },
-            StringComparer.OrdinalIgnoreCase);
-
-        object? values = null;
-        foreach (var name in valueQualifiers)
+        // Try instance qualifiers first
+        ValueMapHelper.GetPossibleValuesAndMap(_propertyData.Qualifiers, out _cachedValues, out _cachedValueMap);
+        if (_cachedValues == null && _parentClass != null)
         {
-            values = GetQualifierFromClassOrInstance(_propertyData, _parentClass, name);
-            if (values != null)
+            // Fallback to class property qualifiers
+            try
             {
-                break;
+                var classProperty = _parentClass.Properties[_propertyData.Name];
+                if (classProperty != null)
+                {
+                    ValueMapHelper.GetPossibleValuesAndMap(classProperty.Qualifiers, out _cachedValues, out _cachedValueMap);
+                }
+            }
+            catch
+            {
+                // Ignore errors, just fallback
             }
         }
-        object? valueMap = null;
-        foreach (var name in valueMapQualifiers)
-        {
-            valueMap = GetQualifierFromClassOrInstance(_propertyData, _parentClass, name);
-            if (valueMap != null)
-            {
-                break;
-            }
-        }
-        _cachedValues = values;
-        _cachedValueMap = valueMap;
-    }
-
-    /// <summary>
-    /// Creates a NameValueCollection from the values and optional value map.
-    /// </summary>
-    private static NameValueCollection? CreateNameValueCollection(object values, object? valueMap)
-    {
-        var result = new NameValueCollection();
-
-        switch (values)
-        {
-            case string[] valueArray when valueMap is string[] mapArray && valueArray.Length == mapArray.Length:
-                // Paired values and map
-                for (int i = 0; i < valueArray.Length; i++)
-                {
-                    result.Add(valueArray[i], mapArray[i]);
-                }
-                break;
-
-            case string[] valueArray:
-                // Only values available, use value as both name and value
-                for (int i = 0; i < valueArray.Length; i++)
-                {
-                    result.Add(valueArray[i], valueArray[i]);
-                }
-                break;
-
-            case int[] intArray:
-                // Integer values
-                for (int i = 0; i < intArray.Length; i++)
-                {
-                    var value = intArray[i].ToString();
-                    result.Add(value, value);
-                }
-                break;
-
-            case string str when !string.IsNullOrEmpty(str):
-                // Comma-separated string
-                var splitValues = str.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                foreach (var splitValue in splitValues)
-                {
-                    var value = splitValue.Trim();
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        result.Add(value, value);
-                    }
-                }
-                break;
-        }
-
-        return result.Count > 0 ? result : null;
     }
 
     /// <summary>

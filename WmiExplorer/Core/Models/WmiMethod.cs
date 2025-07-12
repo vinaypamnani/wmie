@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Management;
 using WmiExplorer.PropertyGrid;
+using System.Collections.Specialized;
+using WmiExplorer.Common.Helpers;
 
 namespace WmiExplorer.Core.Models;
 
@@ -11,6 +13,9 @@ public class WmiMethod
 {
     private readonly MethodData _methodData;
     private readonly ManagementClass? _parentClass;
+    private object? _cachedValueMap;
+    private object? _cachedValues;
+    private bool _possibleValuesComputed;
 
     public WmiMethod(MethodData methodData, ManagementClass? parentClass = null)
     {
@@ -70,6 +75,53 @@ public class WmiMethod
     [Category("Qualifiers")]
     [ShowChildrenAsParent]
     public QualifierDataCollection Qualifiers => _methodData.Qualifiers;
+
+    /// <summary>
+    /// Indicates whether this method has possible values (enumeration or value map) on the method itself.
+    /// </summary>
+    [Category("Advanced")]
+    public bool HasValueMap
+    {
+        get
+        {
+            if (!_possibleValuesComputed)
+            {
+                BuildAndCachePossibleValues();
+                _possibleValuesComputed = true;
+            }
+            return _cachedValues != null;
+        }
+    }
+
+    /// <summary>
+    /// Gets the possible enumeration values for this method, if available (from method qualifiers).
+    /// </summary>
+    [Category("Value Map")]
+    [ShowChildrenAsParent]
+    public NameValueCollection? PossibleValues
+    {
+        get
+        {
+            if (!_possibleValuesComputed)
+            {
+                BuildAndCachePossibleValues();
+                _possibleValuesComputed = true;
+            }
+            if (_cachedValues != null)
+            {
+                return ValueMapHelper.CreateNameValueCollection(_cachedValues, _cachedValueMap);
+            }
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Builds and caches the possible values data from WMI qualifiers on the method itself.
+    /// </summary>
+    private void BuildAndCachePossibleValues()
+    {
+        ValueMapHelper.GetPossibleValuesAndMap(_methodData.Qualifiers, out _cachedValues, out _cachedValueMap);
+    }
 
     public override string ToString() => $"Static: {IsStatic}, InParameters: {InParameters.Count}, OutParameters: {OutParameters.Count}";
 }
