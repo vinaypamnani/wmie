@@ -4,8 +4,10 @@ using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
+using WmiExplorer.Presentation.ViewModels.Dialogs;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
+using WmiExplorer.Presentation.Views.Dialogs;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Items;
@@ -195,13 +197,14 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     private async Task DeleteInstanceAsync()
     {
         var mainWindow = System.Windows.Application.Current.MainWindow;
-        var result = System.Windows.MessageBox.Show(mainWindow,
+        var result = MessageBoxDialog.Show(
             $"Are you sure you want to delete this instance?\n\n{InstanceName}",
             "Confirm Delete Instance",
-            System.Windows.MessageBoxButton.YesNo,
-            System.Windows.MessageBoxImage.Warning);
+            MessageBoxDialogButton.YesNo,
+            MessageBoxDialogIcon.Warning,
+            mainWindow);
 
-        if (result != System.Windows.MessageBoxResult.Yes)
+        if (result != MessageBoxDialogResult.Yes)
             return;
 
         try
