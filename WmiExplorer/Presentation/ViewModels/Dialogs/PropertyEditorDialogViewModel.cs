@@ -127,10 +127,10 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
                 try
                 {
                     // Only copy writable properties
-                    if (!property.IsLocal || property.Value == null)
+                    if (!property.IsLocal)
                         continue;
 
-                    // Set the property value on the original object
+                    // Set the property value on the original object, including nulls
                     _originalObject.Properties[property.Name].Value = property.Value;
                 }
                 catch (Exception ex)

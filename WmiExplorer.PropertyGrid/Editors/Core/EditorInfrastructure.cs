@@ -14,8 +14,6 @@ public static class EditorInfrastructure
     public static readonly Thickness CONTROL_MARGIN_STANDARD = new(0, 2, 2, 2);
     public static readonly Thickness TIP_TEXT_MARGIN = new(4, 4, 4, 4);
 
-    #region methods
-
     /// <summary>
     /// Applies standard configuration to a FrameworkElement for property editing
     /// </summary>
@@ -48,9 +46,9 @@ public static class EditorInfrastructure
     }
 
     /// <summary>
-    /// Creates a standard Grid layout with main content and action button
+    /// Creates a standard Grid layout with main content and an action panel (which can be a single control or a container)
     /// </summary>
-    public static Grid CreateGridWithActionButton(UIElement mainContent, UIElement actionButton, double buttonWidth = 80)
+    public static Grid CreateGridWithActionPanel(UIElement mainContent, UIElement actionPanel, double actionPanelWidth = 80)
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -59,26 +57,27 @@ public static class EditorInfrastructure
         Grid.SetColumn(mainContent, 0);
         grid.Children.Add(mainContent);
 
-        if (actionButton != null)
+        if (actionPanel != null)
         {
-            if (actionButton is FrameworkElement fe)
+            if (actionPanel is FrameworkElement fe)
             {
                 fe.Margin = new Thickness(8, 0, 0, 0);
                 fe.VerticalAlignment = VerticalAlignment.Center;
-                if (fe.Width.Equals(double.NaN) && buttonWidth > 0)
+                // Only set width if it's a single control and width is not set
+                if (fe.Width.Equals(double.NaN) && actionPanelWidth > 0 && !(actionPanel is Panel))
                 {
-                    fe.Width = buttonWidth;
+                    fe.Width = actionPanelWidth;
                 }
             }
 
-            Grid.SetColumn(actionButton, 1);
-            grid.Children.Add(actionButton);
+            Grid.SetColumn(actionPanel, 1);
+            grid.Children.Add(actionPanel);
         }
 
-        // Apply MaxWidth constraint to main content accounting for button width
+        // Apply MaxWidth constraint to main content accounting for action panel width
         if (mainContent is FrameworkElement mainElement)
         {
-            UIHelpers.ApplyMaxWidthConstraint(mainElement, grid, buttonWidth + 16); // Account for button width + margins
+            UIHelpers.ApplyMaxWidthConstraint(mainElement, grid, actionPanelWidth + 16); // Account for panel width + margins
         }
 
         return grid;
@@ -154,6 +153,4 @@ public static class EditorInfrastructure
                type == typeof(float) || type == typeof(double) ||
                type == typeof(decimal);
     }
-
-    #endregion 
 }

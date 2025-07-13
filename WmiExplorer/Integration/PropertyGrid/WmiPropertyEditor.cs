@@ -242,6 +242,8 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     /// </summary>
     private UIElement CreateEmbeddedObjectArrayEditor(PropertyHierarchyItem propertyItem, WmiPropertyDescriptor wmiDescriptor)
     {
+        var viewModel = CreateViewModel(wmiDescriptor);
+
         var panel = new StackPanel();
         var array = propertyItem.Value as System.Management.ManagementBaseObject[];
         var items = new ObservableCollection<System.Management.ManagementBaseObject>(array ?? Array.Empty<System.Management.ManagementBaseObject>());
@@ -250,6 +252,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         var validationProxy = new ComboBox
         {
             Visibility = Visibility.Collapsed,
+            Width = 0,
             IsReadOnly = true,
             Focusable = false,
             IsTabStop = false,
@@ -266,7 +269,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             MinHeight = 40,
             MaxHeight = 200,
             Style = (Style)Application.Current.FindResource("ModernListViewStyle"),
-            SelectionMode = System.Windows.Controls.SelectionMode.Single,
+            SelectionMode = SelectionMode.Single,
             SelectedIndex = -1,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
@@ -287,9 +290,11 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             textBox.IsReadOnly = true;
             textBox.TextWrapping = TextWrapping.Wrap;
 
+            ValidationManager.SetValidationNormal(textBox);
+
             var editButton = new Button
             {
-                Content = "Edit...",
+                Content = "Edit",
                 Width = 54
             };
             editButton.Click += (s, e) =>
@@ -304,11 +309,34 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
                     {
                         items[idx] = editedMbo;
                         propertyItem.Value = items.ToArray();
+                        textBox.Text = _propertyValueConverter.ConvertToString(editedMbo, typeof(System.Management.ManagementBaseObject));
                         listView.Items[idx] = CreateEmbeddedObjectListItem(editedMbo);
                     }
                 }
             };
-            return PropertyEditorUtils.CreateGridWithActionButton(textBox, editButton, editButton.Width);
+
+            var removeButton = new Button
+            {
+                Content = "Remove",
+                Width = 60,
+                Margin = new Thickness(8, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            removeButton.Click += (s, e) =>
+            {
+                items.Remove(mbo);
+                // propertyItem.Value and validation will be updated by the CollectionChanged handler
+            };
+
+            var actionPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            actionPanel.Children.Add(editButton);
+            actionPanel.Children.Add(removeButton);
+
+            return PropertyEditorUtils.CreateGridWithActionPanel(textBox, actionPanel, editButton.Width + removeButton.Width + 8);
         }
 
         // Populate ListView initially
@@ -350,7 +378,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         addButton.HorizontalAlignment = HorizontalAlignment.Left;
         addButton.Click += (s, e) =>
         {
-            var className = wmiDescriptor.PropertyData.Qualifiers["CIMTYPE"]?.Value?.ToString()?.Replace("object:", "");
+            var className = viewModel.TargetClassName;
             var scope = wmiDescriptor.GetManagementScope();
             if (!string.IsNullOrEmpty(className) && scope != null)
             {
@@ -369,11 +397,19 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
                             ValidationManager.SetValidationModified(validationProxy);
                         }
                     }
+                    else
+                    {
+                        Log.Error("Error creating embedded object: {ClassName}. New object is null. ", className);
+                    }
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Error creating embedded object: {ClassName}", className);
                 }
+            }
+            else
+            {
+                Log.Error("Error creating embedded object: {PropertyName}. Target class name or scope is null. ", wmiDescriptor.Name);
             }
         };
         panel.Children.Add(expander);
@@ -391,8 +427,11 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     /// </summary>
     private UIElement CreateObjectEditor(PropertyHierarchyItem propertyItem, WmiPropertyDescriptor wmiDescriptor)
     {
+        var viewModel = CreateViewModel(wmiDescriptor); //Create a new ViewModel for editing so we don't modify the cached one
+        var mbo = viewModel.Value as System.Management.ManagementBaseObject;
+
         // Read-only TextBox showing object info using value converter
-        var displayText = _propertyValueConverter.ConvertToString(wmiDescriptor.PropertyData.Value, typeof(System.Management.ManagementBaseObject));
+        var displayText = _propertyValueConverter.ConvertToString(mbo, typeof(System.Management.ManagementBaseObject));
         var textBox = PropertyEditorUtils.CreateStandardTextBox(
             displayText,
             null,
@@ -410,34 +449,95 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         // Edit Button
         var editButton = new Button
         {
-            Content = "Edit...",
-            Width = 54,
             IsEnabled = CanEditObject(wmiDescriptor)
         };
+
+        void UpdateEditButton()
+        {
+            var mbo = propertyItem.Value as System.Management.ManagementBaseObject;
+            if (mbo != null)
+            {
+                editButton.Content = "Edit";
+                editButton.Width = 54;
+            }
+            else
+            {
+                editButton.Content = "Create";
+                editButton.Width = 64;
+            }
+        }
+
+        textBox.TextChanged += (s, e) => UpdateEditButton();
+        UpdateEditButton();
 
         // Handle edit button click
         editButton.Click += (s, e) =>
         {
             try
             {
-                var viewModel = CreateViewModel(wmiDescriptor); //Create a new ViewModel for editing so we don't modify the cached one
-                var mbo = viewModel.Value as System.Management.ManagementBaseObject;
-                var result = EditObject(mbo);
-                // Set the edited object as the new value for the property grid
-                if (result != null)
+
+                var className = viewModel.TargetClassName;
+                var scope = wmiDescriptor.GetManagementScope();
+                var objectToEdit = propertyItem.Value as System.Management.ManagementBaseObject;
+                if (!string.IsNullOrEmpty(className) && scope != null)
                 {
-                    propertyItem.Value = result;
-                    textBox.Text = _propertyValueConverter.ConvertToString(result, typeof(System.Management.ManagementBaseObject));
-                    ApplyValidation(textBox, propertyItem);
+                    if (objectToEdit == null)
+                    {
+                        objectToEdit = WmiObjectFactory.CreateTemplateObject(className, scope);
+                    }
+
+                    var result = EditObject(objectToEdit);
+
+                    // Set the edited object as the new value for the property grid
+                    if (result != null)
+                    {
+                        propertyItem.Value = result;
+                        textBox.Text = _propertyValueConverter.ConvertToString(result, typeof(System.Management.ManagementBaseObject));
+                        ApplyValidation(textBox, propertyItem);
+                    }
+                    else
+                    {
+                        Log.Error("Error editing object: {PropertyName}. New object is null. ", wmiDescriptor.Name);
+                    }
+                }
+                else
+                {
+                    Log.Error("Error editing object: {PropertyName}. Target class name or scope is null. ", wmiDescriptor.Name);
                 }
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Error editing object: {PropertyName}", wmiDescriptor.Name);
                 MessageBox.Show($"Error editing object: {ex.Message}", "Edit Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         };
 
-        return PropertyEditorUtils.CreateGridWithActionButton(textBox, editButton, editButton.Width);
+        // Remove Button
+        var removeButton = new Button
+        {
+            Content = "Remove",
+            Width = 60,
+            Margin = new Thickness(8, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        removeButton.Click += (s, e) =>
+        {
+            propertyItem.Value = null;
+            textBox.Text = "<null>";
+            UpdateEditButton();
+            ApplyValidation(textBox, propertyItem);
+        };
+
+        // StackPanel for action buttons
+        var actionPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        actionPanel.Children.Add(editButton);
+        actionPanel.Children.Add(removeButton);
+
+        return PropertyEditorUtils.CreateGridWithActionPanel(textBox, actionPanel, editButton.Width + removeButton.Width + 8);
     }
 
     /// <summary>

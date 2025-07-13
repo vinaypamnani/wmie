@@ -92,10 +92,10 @@ public static class PropertyEditorUtils
         => EnumEditor.Create(propertyItem, enumType);
 
     /// <summary>
-    /// Creates a standard Grid layout with main content and action button
+    /// Creates a standard Grid layout with main content and an action panel (single control or container)
     /// </summary>
-    public static Grid CreateGridWithActionButton(UIElement mainContent, UIElement actionButton, double buttonWidth = 80)
-        => EditorInfrastructure.CreateGridWithActionButton(mainContent, actionButton, buttonWidth);
+    public static Grid CreateGridWithActionPanel(UIElement mainContent, UIElement actionPanel, double actionPanelWidth = 80)
+        => EditorInfrastructure.CreateGridWithActionPanel(mainContent, actionPanel, actionPanelWidth);
 
     /// <summary>
     /// Creates a complete integer editor with hex/decimal support
