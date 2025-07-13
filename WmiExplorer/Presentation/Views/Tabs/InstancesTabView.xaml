@@ -9,10 +9,6 @@
              d:DesignWidth="800"
              Background="{DynamicResource PrimaryBackgroundBrush}"
              mc:Ignorable="d">
-    <UserControl.InputBindings>
-        <KeyBinding Key="F5"
-                    Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.RefreshInstanceCommand}" />
-    </UserControl.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -34,6 +30,9 @@
                   SelectedItem="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance}"
                   SelectionMode="Single"
                   Style="{StaticResource ModernListViewStyle}">
+            <ListView.InputBindings>
+                <KeyBinding Key="F5" Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance.RefreshInstanceCommand}" />
+            </ListView.InputBindings>
             <ListView.ItemContainerStyle>
                 <Style BasedOn="{StaticResource ModernListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                     <Setter Property="ContextMenu">
