@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows;
+using WmiExplorer.Presentation.Views.Dialogs;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 
@@ -26,7 +27,7 @@ public partial class MofViewerDialogViewModel : ObservableObject
         }
         catch (System.Exception ex)
         {
-            MessageBox.Show($"Failed to copy MOF to clipboard.\n{ex.Message}", "Copy Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBoxDialog.Show($"Failed to copy MOF to clipboard.\n{ex.Message}", "Copy Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Error, System.Windows.Application.Current.MainWindow);
         }
     }
 }

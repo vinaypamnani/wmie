@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Windows;
 using System.Windows.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Presentation.Views.Dialogs;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 
@@ -56,9 +57,3 @@ public class MessageBoxDialogViewModel : DisposableObservableObject
         catch { /* Optionally handle clipboard exceptions */ }
     }
 }
-
-public enum MessageBoxDialogButton { OK, OKCancel, YesNo, YesNoCancel }
-
-public enum MessageBoxDialogIcon { None, Information, Warning, Error, Question }
-
-public enum MessageBoxDialogResult { None, OK, Cancel, Yes, No }

@@ -5,6 +5,7 @@ using System.Management;
 using System.Security;
 using System.Windows;
 using WmiExplorer.Common.Logging;
+using WmiExplorer.Presentation.Views.Dialogs;
 
 namespace WmiExplorer.Presentation.ViewModels.Dialogs;
 
@@ -218,7 +219,7 @@ public partial class ConnectionOptionsDialogViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Error creating connection options in ConnectionOptionsDialogViewModel");
-            MessageBox.Show($"Error creating connection options: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBoxDialog.Show($"Error creating connection options: {ex.Message}", "Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Error, _window);
         }
     }
 

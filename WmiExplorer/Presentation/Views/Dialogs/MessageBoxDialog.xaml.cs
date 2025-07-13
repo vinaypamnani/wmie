@@ -31,3 +31,9 @@ public partial class MessageBoxDialog : Window
         Close();
     }
 }
+
+public enum MessageBoxDialogButton { OK, OKCancel, YesNo, YesNoCancel }
+
+public enum MessageBoxDialogIcon { None, Information, Warning, Error, Question }
+
+public enum MessageBoxDialogResult { None, OK, Cancel, Yes, No }

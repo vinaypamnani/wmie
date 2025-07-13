@@ -7,6 +7,7 @@ using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.Views.Dialogs;
 using WmiExplorer.PropertyGrid.Editors.Core;
 using WmiExplorer.Services;
 
@@ -170,7 +171,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
             {
                 StatusMessage = "Validation errors found. Please review highlighted fields.";
                 AppState = AppState.Warning;
-                MessageBox.Show(StatusTooltip, "Validation Errors", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxDialog.Show(StatusTooltip, "Validation Errors", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Warning, _window);
                 return; // Don't close the dialog
             }
 
@@ -191,7 +192,6 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
             Log.Error(ex, "Error processing properties in PropertyEditorDialog");
             StatusMessage = $"Error processing properties: {ex.Message}";
             AppState = AppState.Error;
-            MessageBox.Show($"Error processing properties: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

@@ -7,6 +7,7 @@ using WmiExplorer.Common.Logging;
 using WmiExplorer.Integration.PropertyTypeProvider;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.Views.Dialogs;
 using WmiExplorer.PropertyGrid;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Editors.Core;
@@ -508,7 +509,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             catch (Exception ex)
             {
                 Log.Error(ex, "Error editing object: {PropertyName}", wmiDescriptor.Name);
-                MessageBox.Show($"Error editing object: {ex.Message}", "Edit Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxDialog.Show($"Error editing object: {ex.Message}", "Edit Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Error, System.Windows.Application.Current.MainWindow);
             }
         };
 
@@ -649,7 +650,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading reference values: {ex.Message}", "Load Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxDialog.Show($"Error loading reference values: {ex.Message}", "Load Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Warning, System.Windows.Application.Current.MainWindow);
                 loadButton.IsEnabled = true;
                 loadButton.Content = "Load";
             }
@@ -679,7 +680,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error cancelling load: {ex.Message}", "Cancel Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBoxDialog.Show($"Error cancelling load: {ex.Message}", "Cancel Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Warning, System.Windows.Application.Current.MainWindow);
             }
         };
 
@@ -726,7 +727,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error editing object: {ex.Message}", "Edit Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBoxDialog.Show($"Error editing object: {ex.Message}", "Edit Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Error, System.Windows.Application.Current.MainWindow);
             return null;
         }
     }
