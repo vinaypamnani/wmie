@@ -14,6 +14,11 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None">
+    <!--  InputBindings for keyboard shortcuts  -->
+    <Window.InputBindings>
+        <KeyBinding Key="C" Command="{Binding CopyCommand}" Modifiers="Control" />
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+    </Window.InputBindings>
     <Border Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
@@ -46,7 +51,8 @@
                 <ContentControl Grid.Row="0"
                                 Grid.Column="0"
                                 Width="40"
-                                Height="40">
+                                Height="40"
+                                VerticalAlignment="Top">
                     <ContentControl.Style>
                         <Style TargetType="ContentControl">
                             <Setter Property="ContentTemplate" Value="{x:Null}" />

@@ -91,6 +91,14 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
         // Demonstrate different log levels for testing
         // DemonstrateLogging();
+
+        // // Test
+        // MessageBoxDialog.Show(
+        //     "Welcome to WMI Explorer!",
+        //     "WMI Explorer",
+        //     MessageBoxDialogButton.OK,
+        //     MessageBoxDialogIcon.Information,
+        //     Application.Current.MainWindow);
     }
 
     /// <summary>
