@@ -282,6 +282,62 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         PublishSuccessState($"Copied class path: {classPath}");
     }
 
+    [RelayCommand]
+    private void CreateInstance()
+    {
+        try
+        {
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            var managementScope = ManagementScope;
+            var className = ClassName;
+
+            // Create a new template instance
+            var newInstance = WmiObjectFactory.CreateTemplateObject(className, managementScope);
+
+            // Show the property editor dialog for the new instance
+            var result = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(
+                mainWindow,
+                newInstance,
+                _messengerService,
+                $"Create Instance: {className}");
+
+            if (result != null)
+            {
+                // Commit the new instance to WMI
+                var putPath = newInstance.Put();
+
+                // Wrap in WmiInstance and WmiInstanceViewModel
+                var wmiInstance = new WmiInstance(newInstance);
+                var instanceViewModel = new WmiInstanceViewModel(
+                    wmiInstance,
+                    this,
+                    _wmiService,
+                    _messengerService,
+                    _applicationService,
+                    _selectionManager);
+
+                // Add to the collection on the UI thread
+                RunOnUIThread(() =>
+                {
+                    lock (_collectionLock)
+                    {
+                        _instances.Add(instanceViewModel);
+                    }
+                    _instanceFilterHelper.CollectionView.Refresh();
+                    OnPropertyChanged(nameof(Instances));
+                    OnPropertyChanged(nameof(InstancesView));
+                });
+
+                PublishSuccessState($"Instance created for class: {className}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error creating instance for class: {ClassName}", ClassName);
+            PublishErrorState($"Error creating instance: {ex.Message}", ex);
+        }
+    }
+
     /// <summary>
     /// Executes a WMI method from the context menu.
     /// </summary>
@@ -333,7 +389,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
-    [RelayCommand(CanExecute = nameof(LoadInstancesCanExecute))]
+    [RelayCommand]
     private async Task LoadInstancesAsync()
     {
         if (LoadState == InstanceLoadState.Loading)

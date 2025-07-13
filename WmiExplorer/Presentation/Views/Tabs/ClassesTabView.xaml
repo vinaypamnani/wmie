@@ -173,6 +173,12 @@
                                                     <MenuItem.Icon>
                                                         <ContentControl ContentTemplate="{StaticResource StopIconTemplate}" />
                                                     </MenuItem.Icon>
+                                                </MenuItem>                                                
+                                                <MenuItem Command="{Binding CreateInstanceCommand}"
+                                                          Header="Create instance">
+                                                    <MenuItem.Icon>
+                                                        <ContentControl ContentTemplate="{StaticResource AddIconTemplate}" />
+                                                    </MenuItem.Icon>
                                                 </MenuItem>
                                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                                 <MenuItem Command="{Binding ShowClassMofCommand}" CommandParameter="True" Header="Show MOF (with amended qualifiers)">
@@ -232,7 +238,7 @@
                                                             <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource BaseBlueBrush}" />
                                                         </Style>
                                                     </MenuItem.ItemContainerStyle>
-                                                </MenuItem>
+                                                </MenuItem>                                                
                                             </ContextMenu>
                                         </Setter.Value>
                                     </Setter>
