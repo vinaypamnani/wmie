@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Management;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
@@ -12,11 +13,12 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
 {
     private readonly bool _allowExpansion;
     private readonly string _category;
+    private readonly object? _context;
+    private readonly bool _forceEditable;
     private readonly PropertyData _propertyData;
     private readonly IPropertyGridContext? _propertyGridContext;
     private readonly ManagementBaseObject _source;
     private readonly WmiProperty _wmiProperty;
-    private readonly bool _forceEditable;
 
     public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
     {
@@ -44,6 +46,13 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             // Ignore errors, parentClass will be null
         }
         _wmiProperty = new WmiProperty(_propertyData, parentClass);
+    }
+
+    // New constructor for explicit context
+    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, object? context, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
+        : this(propertyData, source, category, allowExpansion, propertyGridContext, forceEditable)
+    {
+        _context = context;
     }
 
     public string Category => _category;
@@ -169,7 +178,21 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     {
         if (rawValue == null)
             return null;
-        var possibleValues = _wmiProperty.PossibleValues;
+        NameValueCollection? possibleValues = null;
+        // Use explicit context if available and appropriate
+        object? context = _context;
+        if (_propertyData.Origin == "__PARAMETERS")
+        {
+            if (context is WmiMethod ctxMethod)
+            {
+                possibleValues = ctxMethod.PossibleValues;
+            }
+        }
+        else
+        {
+            possibleValues = _wmiProperty.PossibleValues;
+        }
+
         if (possibleValues != null && possibleValues.Count > 0)
         {
             var valueStr = rawValue.ToString();
@@ -178,30 +201,37 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             var allKeys = possibleValues.AllKeys;
             if (allKeys == null)
                 return null;
+            // Try to match by key (code)
             foreach (string? key in allKeys)
             {
-                if (key == null) continue;
-                var possibleValue = possibleValues[key];
-                if (string.Equals(possibleValue, valueStr, StringComparison.OrdinalIgnoreCase))
+                if (key == valueStr)
                 {
-                    if (!string.IsNullOrEmpty(possibleValue) && !string.Equals(key, possibleValue, StringComparison.OrdinalIgnoreCase))
-                        return $"{possibleValue} [{key}]";
-                    return null;
+                    var displayValue = possibleValues[key];
+                    if (displayValue != null && displayValue != key)
+                        return $"{key} [{displayValue}]";
+                    return key;
                 }
             }
-            return null;
-        }
-        else
-        {
-            // If no possible values, and value is an integer type, show hex representation
-            var propertyType = PropertyType;
-            var hex = FormatIntegerAsHex(rawValue, propertyType);
-            if (!string.IsNullOrEmpty(hex))
+            // Try to match by value (display string)
+            foreach (string? key in allKeys)
             {
-                return $"{rawValue} [{hex}]";
+                var displayValue = possibleValues[key];
+                if (displayValue == valueStr)
+                {
+                    if (key != displayValue)
+                        return $"{key} [{displayValue}]";
+                    return displayValue;
+                }
             }
         }
-        return null;
+        // Fallback to hex if appropriate
+        var propertyType = PropertyType;
+        var hex = FormatIntegerAsHex(rawValue, propertyType);
+        if (!string.IsNullOrEmpty(hex))
+        {
+            return $"{rawValue} [{hex}]";
+        }
+        return rawValue;
     }
 
     private string GetPropertyDescription()

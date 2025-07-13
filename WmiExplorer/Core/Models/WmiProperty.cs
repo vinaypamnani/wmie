@@ -1,8 +1,8 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Management;
-using WmiExplorer.PropertyGrid;
 using WmiExplorer.Common.Helpers;
+using WmiExplorer.PropertyGrid;
 
 namespace WmiExplorer.Core.Models;
 
@@ -26,6 +26,9 @@ public class WmiProperty
 
     [Browsable(false)]
     public PropertyData ActualProperty => _propertyData;
+
+    [Category("Property")]
+    public string CimType => GetQualifierFromClassOrInstance(_propertyData, _parentClass, "cimtype")?.ToString() ?? _propertyData.Type.ToString();
 
     public string ClassName => _parentClass?["__Class"]?.ToString() ?? string.Empty;
     public string ClassPath => _parentClass?.Path?.Path ?? string.Empty;
@@ -157,7 +160,7 @@ public class WmiProperty
 
             if (_cachedValues != null)
             {
-                return ValueMapHelper.CreateNameValueCollection(_cachedValues, _cachedValueMap);
+                return ValueMapHelper.CreateNameValueCollection(_cachedValueMap, _cachedValues);
             }
 
             return null;
@@ -170,9 +173,6 @@ public class WmiProperty
 
     [Category("Property")]
     public string Type => _propertyData.Type.ToString();
-
-    [Category("Property")]
-    public string CimType => GetQualifierFromClassOrInstance(_propertyData, _parentClass, "cimtype")?.ToString() ?? _propertyData.Type.ToString();
 
     [Category("Property")]
     public object Value => _propertyData.Value;

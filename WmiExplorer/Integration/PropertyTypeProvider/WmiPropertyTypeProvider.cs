@@ -31,6 +31,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         return objectType == typeof(WmiNamespace) ||
                objectType == typeof(WmiClass) ||
                objectType == typeof(WmiInstance) ||
+               objectType == typeof(WmiBaseObject) ||
                objectType == typeof(ManagementBaseObject) ||
                objectType == typeof(ManagementObject) ||
                objectType == typeof(ManagementBaseObject[]) ||
@@ -50,7 +51,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         // Special handling for PropertyDataCollection and QualifierDataCollection
         if (value is PropertyDataCollection propertyCollection)
         {
-            foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, value, true, propertyGridContext)))
+            foreach (var desc in ProcessWmiCollection<PropertyData>(propertyCollection, string.Empty, (property, cat) => CreatePropertyDataDescriptor(property, string.Empty, value, true, propertyGridContext, false)))
                 yield return desc;
             yield break;
         }
@@ -95,6 +96,21 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     {
         if (obj == null)
             yield break;
+
+        // Special handling for WmiBaseObject (preserve context)
+        if (obj is WmiBaseObject wmiBaseObj)
+        {
+            var mbo = wmiBaseObj.ActualObject;
+            foreach (PropertyData property in mbo.Properties)
+            {
+                yield return CreatePropertyDataDescriptor(property, "Output", wmiBaseObj, false, propertyGridContext, false);
+            }
+            foreach (PropertyData property in mbo.SystemProperties)
+            {
+                yield return CreatePropertyDataDescriptor(property, "System Properties", wmiBaseObj, false, propertyGridContext, false);
+            }
+            yield break;
+        }
 
         // Special handling for ManagementObject - expose its properties directly (we used this for editing)
         if (obj is ManagementObject managementObject)
@@ -198,11 +214,21 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     /// </summary>
     private IPropertyDescriptor CreatePropertyDataDescriptor(PropertyData property, string category, object? source, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
     {
-        // Use the ActualObject property of WmiInstance if available, otherwise fallback to dummy
-        var wmiSource = (source is WmiInstance wmiInstance)
-            ? (wmiInstance.ActualObject ?? new ManagementClass())
-            : (source as ManagementBaseObject ?? new ManagementClass());
-        return new WmiPropertyDescriptor(property, wmiSource, category, allowExpansion, propertyGridContext, forceEditable);
+        object? context = null;
+        if (source is WmiBaseObject wmiBaseObj)
+        {
+            context = wmiBaseObj.Context;
+            source = wmiBaseObj.ActualObject;
+        }
+        else if (source is WmiInstance wmiInstance)
+        {
+            source = wmiInstance.ActualObject ?? new ManagementClass();
+        }
+        else if (source is not ManagementBaseObject)
+        {
+            source = new ManagementClass();
+        }
+        return new WmiPropertyDescriptor(property, (ManagementBaseObject)source, category, context, allowExpansion, propertyGridContext, forceEditable);
     }
 
     /// <summary>

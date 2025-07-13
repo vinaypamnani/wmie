@@ -275,7 +275,7 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
             // Update output parameters
             if (outParams != null && outParams.Properties.Count > 0)
             {
-                OutputParameters = new WmiBaseObject(outParams);
+                OutputParameters = new WmiBaseObject(outParams, _method);
                 HasOutputParameters = true;
             }
             else

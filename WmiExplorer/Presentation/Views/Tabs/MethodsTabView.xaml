@@ -65,6 +65,7 @@
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
                     <DataGridTextColumn Width="Auto" Binding="{Binding IsStatic, Mode=OneWay}" Header="Is Static" />
+                    <DataGridTextColumn Width="Auto" Binding="{Binding HasValueMap, Mode=OneWay}" Header="Has Value Map" />
                     <DataGridTextColumn Width="Auto" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
