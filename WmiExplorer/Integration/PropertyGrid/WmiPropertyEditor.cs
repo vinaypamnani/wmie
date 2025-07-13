@@ -65,6 +65,15 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             throw new ArgumentException("PropertyItem must have a WmiPropertyDescriptor", nameof(propertyItem));
         }
 
+        // Handle WMI object arrays as not supported
+        if (wmiDescriptor.IsObject && wmiDescriptor.PropertyData.IsArray)
+        {
+            var textBox = PropertyEditorUtils.CreateStandardTextBox("<Not supported>", null, propertyItem);
+            textBox.IsReadOnly = true;
+            textBox.TextWrapping = TextWrapping.Wrap;
+            return textBox;
+        }
+
         if (wmiDescriptor.IsObject)
         {
             return CreateObjectEditor(propertyItem, wmiDescriptor);
