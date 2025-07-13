@@ -3,15 +3,14 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Media;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Integration.PropertyTypeProvider;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.PropertyGrid;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Editors.Core;
 using WmiExplorer.Services;
-using WmiExplorer.Presentation.ViewModels.Helpers;
 
 namespace WmiExplorer.Integration.PropertyGrid;
 
@@ -22,12 +21,12 @@ namespace WmiExplorer.Integration.PropertyGrid;
 public class WmiPropertyEditor : IPropertyEditor, IDisposable
 {
     private readonly IMessengerService _messengerService;
+    private readonly WmiPropertyValueConverter _propertyValueConverter = new WmiPropertyValueConverter();
 
     // Cache for ViewModels to avoid creating them multiple times for the same property
     private readonly ConcurrentDictionary<string, WmiPropertyViewModel> _viewModels = new();
 
     private readonly IWmiService _wmiService;
-    private readonly WmiPropertyValueConverter _propertyValueConverter = new WmiPropertyValueConverter();
 
     /// <summary>
     /// Initializes a new instance of the WmiPropertyEditor with required dependencies.
@@ -239,6 +238,155 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     }
 
     /// <summary>
+    /// Creates an editor for embedded object arrays (ManagementBaseObject[]).
+    /// </summary>
+    private UIElement CreateEmbeddedObjectArrayEditor(PropertyHierarchyItem propertyItem, WmiPropertyDescriptor wmiDescriptor)
+    {
+        var panel = new StackPanel();
+        var array = propertyItem.Value as System.Management.ManagementBaseObject[];
+        var items = new ObservableCollection<System.Management.ManagementBaseObject>(array ?? Array.Empty<System.Management.ManagementBaseObject>());
+
+        // Hidden proxy ComboBox for validation state (ComBoBox is used because textbox gets the "Ctrl+Z" message)
+        var validationProxy = new ComboBox
+        {
+            Visibility = Visibility.Collapsed,
+            IsReadOnly = true,
+            Focusable = false,
+            IsTabStop = false,
+            IsHitTestVisible = false
+        };
+        panel.Children.Add(validationProxy);
+        // Ensure ValidationState.Normal is set on load so CardPropertyEditor can find it
+        ValidationManager.SetValidationNormal(validationProxy);
+
+        // ListView for embedded objects
+        var listView = new ListView
+        {
+            Margin = new Thickness(0, 0, 0, 8),
+            MinHeight = 40,
+            MaxHeight = 200,
+            Style = (Style)Application.Current.FindResource("ModernListViewStyle"),
+            SelectionMode = System.Windows.Controls.SelectionMode.Single,
+            SelectedIndex = -1,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+        // Ensure ListView items stretch horizontally
+        listView.SetValue(ItemsControl.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch);
+        listView.ItemContainerStyle = new Style(typeof(ListViewItem))
+        {
+            Setters = {
+                new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch)
+            }
+        };
+
+        // Helper to create a ListView item UI for an embedded object
+        UIElement CreateEmbeddedObjectListItem(System.Management.ManagementBaseObject mbo)
+        {
+            var displayText = _propertyValueConverter.ConvertToString(mbo, typeof(System.Management.ManagementBaseObject));
+            var textBox = PropertyEditorUtils.CreateStandardTextBox(displayText, null, null);
+            textBox.IsReadOnly = true;
+            textBox.TextWrapping = TextWrapping.Wrap;
+
+            var editButton = new Button
+            {
+                Content = "Edit...",
+                Width = 54
+            };
+            editButton.Click += (s, e) =>
+            {
+                var edited = EditObject(mbo);
+                if (edited is System.Management.ManagementBaseObject editedMbo)
+                {
+                    // Set validation state to Modified unconditionally
+                    ValidationManager.SetValidationModified(validationProxy);
+                    var idx = items.IndexOf(mbo);
+                    if (idx >= 0)
+                    {
+                        items[idx] = editedMbo;
+                        propertyItem.Value = items.ToArray();
+                        listView.Items[idx] = CreateEmbeddedObjectListItem(editedMbo);
+                    }
+                }
+            };
+            return PropertyEditorUtils.CreateGridWithActionButton(textBox, editButton, editButton.Width);
+        }
+
+        // Populate ListView initially
+        listView.Items.Clear();
+        foreach (var mbo in items)
+        {
+            listView.Items.Add(CreateEmbeddedObjectListItem(mbo));
+        }
+
+        // Rebuild ListView only when items are added/removed
+        items.CollectionChanged += (s, e) =>
+        {
+            listView.Items.Clear();
+            foreach (var mbo in items)
+            {
+                listView.Items.Add(CreateEmbeddedObjectListItem(mbo));
+            }
+            propertyItem.Value = items.ToArray();
+            // Set validation state to Modified on any add/remove
+            ValidationManager.SetValidationModified(validationProxy);
+        };
+
+        // Expander to contain the ListView
+        var expander = new Expander
+        {
+            Header = $"Embedded Objects ({items.Count})",
+            IsExpanded = true,
+            Content = listView
+        };
+
+        // Update expander header on collection change
+        items.CollectionChanged += (s, e) =>
+        {
+            expander.Header = $"Embedded Objects ({items.Count})";
+        };
+
+        // Add button as before
+        var addButton = new Button { Content = "Add...", Width = 60 };
+        addButton.HorizontalAlignment = HorizontalAlignment.Left;
+        addButton.Click += (s, e) =>
+        {
+            var className = wmiDescriptor.PropertyData.Qualifiers["CIMTYPE"]?.Value?.ToString()?.Replace("object:", "");
+            var scope = wmiDescriptor.GetManagementScope();
+            if (!string.IsNullOrEmpty(className) && scope != null)
+            {
+                try
+                {
+                    var newObj = WmiObjectFactory.CreateTemplateObject(className, scope);
+                    if (newObj != null)
+                    {
+                        var owner = Application.Current.MainWindow;
+                        var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, newObj, _messengerService, $"Add {className}");
+                        if (edited != null)
+                        {
+                            items.Add(edited);
+                            propertyItem.Value = items.ToArray();
+                            // Set validation state to Modified on add
+                            ValidationManager.SetValidationModified(validationProxy);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error creating embedded object: {ClassName}", className);
+                }
+            }
+        };
+        panel.Children.Add(expander);
+        panel.Children.Add(addButton);
+        // No need to call validation on load or selection change
+        listView.SelectionChanged += (s, e) =>
+        {
+            listView.SelectedIndex = -1;
+        };
+        return panel;
+    }
+
+    /// <summary>
     /// Creates an editor for WMI object-type properties with an Edit button.
     /// </summary>
     private UIElement CreateObjectEditor(PropertyHierarchyItem propertyItem, WmiPropertyDescriptor wmiDescriptor)
@@ -272,7 +420,9 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         {
             try
             {
-                var result = EditObject(wmiDescriptor);
+                var viewModel = CreateViewModel(wmiDescriptor); //Create a new ViewModel for editing so we don't modify the cached one
+                var mbo = viewModel.Value as System.Management.ManagementBaseObject;
+                var result = EditObject(mbo);
                 // Set the edited object as the new value for the property grid
                 if (result != null)
                 {
@@ -440,155 +590,6 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     }
 
     /// <summary>
-    /// Creates an editor for embedded object arrays (ManagementBaseObject[]).
-    /// </summary>
-    private UIElement CreateEmbeddedObjectArrayEditor(PropertyHierarchyItem propertyItem, WmiPropertyDescriptor wmiDescriptor)
-    {
-        var panel = new StackPanel();
-        var array = propertyItem.Value as System.Management.ManagementBaseObject[];
-        var items = new ObservableCollection<System.Management.ManagementBaseObject>(array ?? Array.Empty<System.Management.ManagementBaseObject>());
-
-        // Hidden proxy ComboBox for validation state (ComBoBox is used because textbox gets the "Ctrl+Z" message)
-        var validationProxy = new ComboBox {
-            Visibility = Visibility.Collapsed,
-            IsReadOnly = true,
-            Focusable = false,
-            IsTabStop = false,
-            IsHitTestVisible = false
-        };
-        panel.Children.Add(validationProxy);
-        // Ensure ValidationState.Normal is set on load so CardPropertyEditor can find it
-        ValidationManager.SetValidationNormal(validationProxy);
-
-        // ListView for embedded objects
-        var listView = new ListView
-        {
-            Margin = new Thickness(0, 0, 0, 8),
-            MinHeight = 40,
-            MaxHeight = 200,
-            Style = (Style)Application.Current.FindResource("ModernListViewStyle"),
-            SelectionMode = System.Windows.Controls.SelectionMode.Single,
-            SelectedIndex = -1,
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        // Ensure ListView items stretch horizontally
-        listView.SetValue(ItemsControl.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch);
-        listView.ItemContainerStyle = new Style(typeof(ListViewItem))
-        {
-            Setters = {
-                new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch)
-            }
-        };
-
-        // Helper to create a ListView item UI for an embedded object
-        UIElement CreateEmbeddedObjectListItem(System.Management.ManagementBaseObject mbo)
-        {
-            var displayText = _propertyValueConverter.ConvertToString(mbo, typeof(System.Management.ManagementBaseObject));
-            var textBox = PropertyEditorUtils.CreateStandardTextBox(displayText, null, null);
-            textBox.IsReadOnly = true;
-            textBox.TextWrapping = TextWrapping.Wrap;
-
-            var editButton = new Button
-            {
-                Content = "Edit...",
-                Width = 54
-            };
-            editButton.Click += (s, e) =>
-            {
-                var owner = Application.Current.MainWindow;
-                var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, mbo, _messengerService, $"Edit {mbo.ClassPath?.ClassName}");
-                if (edited != null)
-                {
-                    // Set validation state to Modified unconditionally
-                    ValidationManager.SetValidationModified(validationProxy);
-                    var idx = items.IndexOf(mbo);
-                    if (idx >= 0)
-                    {
-                        items[idx] = edited;
-                        propertyItem.Value = items.ToArray();
-                        listView.Items[idx] = CreateEmbeddedObjectListItem(edited);
-                    }
-                }
-            };
-            return PropertyEditorUtils.CreateGridWithActionButton(textBox, editButton, editButton.Width);
-        }
-
-        // Populate ListView initially
-        listView.Items.Clear();
-        foreach (var mbo in items)
-        {
-            listView.Items.Add(CreateEmbeddedObjectListItem(mbo));
-        }
-
-        // Rebuild ListView only when items are added/removed
-        items.CollectionChanged += (s, e) =>
-        {
-            listView.Items.Clear();
-            foreach (var mbo in items)
-            {
-                listView.Items.Add(CreateEmbeddedObjectListItem(mbo));
-            }
-            propertyItem.Value = items.ToArray();
-            // Set validation state to Modified on any add/remove
-            ValidationManager.SetValidationModified(validationProxy);
-        };
-
-        // Expander to contain the ListView
-        var expander = new Expander
-        {
-            Header = $"Embedded Objects ({items.Count})",
-            IsExpanded = true,
-            Content = listView
-        };
-
-        // Update expander header on collection change
-        items.CollectionChanged += (s, e) =>
-        {
-            expander.Header = $"Embedded Objects ({items.Count})";
-        };
-
-        // Add button as before
-        var addButton = new Button { Content = "Add...", Width = 60 };
-        addButton.HorizontalAlignment = HorizontalAlignment.Left;
-        addButton.Click += (s, e) =>
-        {
-            var className = wmiDescriptor.PropertyData.Qualifiers["CIMTYPE"]?.Value?.ToString()?.Replace("object:", "");
-            var scope = wmiDescriptor.GetManagementScope();
-            if (!string.IsNullOrEmpty(className) && scope != null)
-            {
-                try
-                {
-                    var newObj = WmiObjectFactory.CreateTemplateObject(className, scope);
-                    if (newObj != null)
-                    {
-                        var owner = Application.Current.MainWindow;
-                        var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, newObj, _messengerService, $"Add {className}");
-                        if (edited != null)
-                        {
-                            items.Add(edited);
-                            propertyItem.Value = items.ToArray();
-                            // Set validation state to Modified on add
-                            ValidationManager.SetValidationModified(validationProxy);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error creating embedded object: {ClassName}", className);
-                }
-            }
-        };
-        panel.Children.Add(expander);
-        panel.Children.Add(addButton);
-        // No need to call validation on load or selection change
-        listView.SelectionChanged += (s, e) =>
-        {
-            listView.SelectedIndex = -1;
-        };
-        return panel;
-    }
-
-    /// <summary>
     /// Creates a new ViewModel for the specified WMI property descriptor.
     /// </summary>
     private WmiPropertyViewModel CreateViewModel(WmiPropertyDescriptor wmiDescriptor)
@@ -611,13 +612,17 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
     /// <summary>
     /// Edits an object property using the PropertyEditorDialog.
     /// </summary>
-    private object? EditObject(WmiPropertyDescriptor wmiDescriptor)
+    private object? EditObject(System.Management.ManagementBaseObject? mbo, string? title = null)
     {
         try
         {
-            var viewModel = CreateViewModel(wmiDescriptor); // Create a new ViewModel for editing so we don't modify the cached one
-            viewModel.EditObjectCommand?.Execute(null);
-            return viewModel.Value; // Return the edited object;
+            if (mbo == null) return null;
+
+            var owner = Application.Current.MainWindow;
+            var displayName = _propertyValueConverter.ConvertToString(mbo, typeof(System.Management.ManagementBaseObject));
+            var dialogTitle = title ?? $"Edit object: {displayName}";
+            var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, mbo, _messengerService, dialogTitle);
+            return edited;
         }
         catch (Exception ex)
         {
