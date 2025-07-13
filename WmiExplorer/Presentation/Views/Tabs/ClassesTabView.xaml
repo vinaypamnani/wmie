@@ -150,6 +150,9 @@
                                     </GridViewColumn>
                                 </GridView>
                             </ListView.View>
+                            <ListView.InputBindings>
+                                <KeyBinding Key="F5" Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.LoadInstancesCommand}" />
+                            </ListView.InputBindings>
                             <ListView.ItemContainerStyle>
                                 <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
                                     <Setter Property="behaviors:ItemDoubleClickBehavior.Command" Value="{Binding LoadInstancesCommand}" />
@@ -160,7 +163,8 @@
                                                 <MenuItem Command="{Binding LoadInstancesCommand}"
                                                           CommandParameter="{Binding}"
                                                           FontWeight="Bold"
-                                                          Header="Load Instances">
+                                                          Header="Load Instances"
+                                                          InputGestureText="F5">
                                                     <MenuItem.Icon>
                                                         <ContentControl ContentTemplate="{StaticResource LoadIconTemplate}" />
                                                     </MenuItem.Icon>
