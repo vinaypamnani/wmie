@@ -131,6 +131,22 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         return viewModels;
     }
 
+    /// <summary>
+    /// Removes a WmiInstanceViewModel from the _instances collection and updates the view.
+    /// </summary>
+    public void RemoveInstance(WmiInstanceViewModel instance)
+    {
+        if (instance == null) return;
+        lock (_collectionLock)
+        {
+            _instances.Remove(instance);
+        }
+        // Refresh the filter view if needed
+        _instanceFilterHelper.CollectionView.Refresh();
+        OnPropertyChanged(nameof(Instances));
+        OnPropertyChanged(nameof(InstancesView));
+    }
+
     public override string ToString() => _wmiClass.ClassName;
 
     protected override void Dispose(bool disposing)

@@ -43,6 +43,32 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Deletes a WMI instance asynchronously.
+    /// </summary>
+    public async Task DeleteInstanceAsync(ManagementObject instance, CancellationToken cancellationToken = default)
+    {
+        if (instance == null)
+            throw new ArgumentNullException(nameof(instance));
+
+        await Task.Run(() =>
+        {
+            if (OperationMode == WmiOperationMode.Synchronous)
+            {
+                instance.Delete();
+            }
+            else
+            {
+                var observer = new ManagementOperationObserver();
+                var completed = new TaskCompletionSource<bool>();
+                observer.Completed += (s, e) => completed.TrySetResult(true);
+                observer.ObjectReady += (s, e) => { };
+                instance.Delete(observer);
+                completed.Task.Wait(cancellationToken);
+            }
+        }, cancellationToken);
+    }
+
+    /// <summary>
     /// Executes a static WMI method asynchronously on a class
     /// </summary>
     public async Task<ManagementBaseObject?> ExecuteClassMethodAsync(ManagementClass managementClass, string methodName, ManagementBaseObject? inputParameters = null, CancellationToken cancellationToken = default)

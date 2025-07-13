@@ -189,6 +189,36 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     private bool CopyRelativePathCanExecute() => !string.IsNullOrEmpty(NamespacePath);
 
     /// <summary>
+    /// Command to delete the instance.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteInstanceAsync()
+    {
+        var mainWindow = System.Windows.Application.Current.MainWindow;
+        var result = System.Windows.MessageBox.Show(mainWindow,
+            $"Are you sure you want to delete this instance?\n\n{InstanceName}",
+            "Confirm Delete Instance",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (result != System.Windows.MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            await _wmiService.DeleteInstanceAsync(_wmiInstance.ActualObject!);
+            // Remove from parent class collection
+            _parentClass.RemoveInstance(this);
+            PublishSuccessState($"Instance deleted: {InstanceName}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to delete instance: {InstanceName}", InstanceName);
+            PublishErrorState($"Failed to delete instance: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     /// Command to edit instance properties using PropertyEditorDialog.
     /// </summary>
     [RelayCommand(CanExecute = nameof(EditPropertiesCanExecute))]

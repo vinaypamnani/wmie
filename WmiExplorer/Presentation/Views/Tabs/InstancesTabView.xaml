@@ -62,6 +62,14 @@
                                         <ToolTip Content="Reload this instance from WMI and refresh the property grid." />
                                     </MenuItem.ToolTip>
                                 </MenuItem>
+                                <MenuItem Command="{Binding DeleteInstanceCommand}" Header="Delete Instance...">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource DeleteIconTemplate}" />
+                                    </MenuItem.Icon>
+                                    <MenuItem.ToolTip>
+                                        <ToolTip Content="Delete this instance from WMI." />
+                                    </MenuItem.ToolTip>
+                                </MenuItem>
                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
                                 <MenuItem Command="{Binding ShowInstanceMofCommand}" CommandParameter="True" Header="Show MOF (with amended qualifiers)">
                                     <MenuItem.Icon>
