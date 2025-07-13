@@ -84,6 +84,17 @@ public static class ArrayEditor
         }
 
         var values = SplitArrayInput(text);
+        // Unquote and unescape quoted values
+        for (int i = 0; i < values.Count; i++)
+        {
+            var v = values[i];
+            if (v.Length >= 2 && v[0] == '"' && v[v.Length - 1] == '"')
+            {
+                // Remove outer quotes and unescape double quotes
+                v = v.Substring(1, v.Length - 2).Replace("\"\"", "\"");
+                values[i] = v;
+            }
+        }
         var array = Array.CreateInstance(elementType, values.Count);
         var converter = System.ComponentModel.TypeDescriptor.GetConverter(elementType);
 
@@ -136,36 +147,52 @@ public static class ArrayEditor
     }
 
     /// <summary>
-    /// Splits the input string into array elements, respecting quoted delimiters.
+    /// Splits the input string into array elements, respecting quoted delimiters and escaped quotes.
     /// </summary>
     private static List<string> SplitArrayInput(string text)
     {
         var values = new List<string>();
         var current = new System.Text.StringBuilder();
         bool inQuotes = false;
+        bool currentWasQuoted = false;
         for (int i = 0; i < text.Length; i++)
         {
             char c = text[i];
             if (c == '"')
             {
-                inQuotes = !inQuotes;
+                // Handle escaped quote ("")
+                if (inQuotes && i + 1 < text.Length && text[i + 1] == '"')
+                {
+                    current.Append('"');
+                    i++; // Skip the next quote
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                    if (inQuotes && current.Length == 0)
+                    {
+                        // Starting a quoted value at the beginning of a token
+                        currentWasQuoted = true;
+                    }
+                }
                 continue; // Don't include the quote itself
             }
             if ((c == ',' || c == ';') && !inQuotes)
             {
-                var val = current.ToString().Trim();
-                if (!string.IsNullOrEmpty(val))
-                    values.Add(val);
+                var val = current.ToString();
+                if (!currentWasQuoted) val = val.Trim();
+                values.Add(val); // Always add, even if empty
                 current.Clear();
+                currentWasQuoted = false;
             }
             else
             {
                 current.Append(c);
             }
         }
-        var lastVal = current.ToString().Trim();
-        if (!string.IsNullOrEmpty(lastVal))
-            values.Add(lastVal);
+        var lastVal = current.ToString();
+        if (!currentWasQuoted) lastVal = lastVal.Trim();
+        values.Add(lastVal); // Always add last value, even if empty
         return values;
     }
 }

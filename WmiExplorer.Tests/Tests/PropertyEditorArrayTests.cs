@@ -46,6 +46,29 @@ public class PropertyEditorArrayTests
         Assert.That(result.Length, Is.EqualTo(0));
     }
 
+    [Test, STAThread]
+    public void TestArrayParsing_EmptyQuotedValues()
+    {
+        // "",foo,"" => ["", foo, ""]
+        var result = ArrayEditor.ParseArrayValueFromText("\"\",foo,\"\"", typeof(string));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo(""));
+        Assert.That(result.GetValue(1), Is.EqualTo("foo"));
+        Assert.That(result.GetValue(2), Is.EqualTo(""));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_EscapedQuotes()
+    {
+        // "foo""bar",baz => [foo"bar, baz]
+        var result = ArrayEditor.ParseArrayValueFromText("\"foo\"\"bar\",baz", typeof(string));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(2));
+        Assert.That(result.GetValue(0), Is.EqualTo("foo\"bar"));
+        Assert.That(result.GetValue(1), Is.EqualTo("baz"));
+    }
+
     /// Test that array parsing works correctly for various data types and separators
     /// </summary>
     [Test, STAThread]
@@ -110,6 +133,18 @@ public class PropertyEditorArrayTests
         Assert.That(result.GetValue(1), Is.EqualTo("second"));
         Assert.That(result.GetValue(2), Is.EqualTo("third"));
         Assert.That(result.GetValue(3), Is.EqualTo("fourth"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_QuotedDelimiters()
+    {
+        // "a,b;c",d => [a,b;c, d]
+        var result = ArrayEditor.ParseArrayValueFromText("\"a,b;c\",d,\"e,f\"", typeof(string));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo("a,b;c"));
+        Assert.That(result.GetValue(1), Is.EqualTo("d"));
+        Assert.That(result.GetValue(2), Is.EqualTo("e,f"));
     }
 
     [Test, STAThread]
@@ -239,5 +274,17 @@ public class PropertyEditorArrayTests
         Assert.That(result.GetValue(0), Is.EqualTo("first"));
         Assert.That(result.GetValue(1), Is.EqualTo("second"));
         Assert.That(result.GetValue(2), Is.EqualTo("third"));
+    }
+
+    [Test, STAThread]
+    public void TestArrayParsing_WhitespaceInsideAndOutsideQuotes()
+    {
+        // "  foo  ", bar ,"baz " => [  foo  , bar, baz ]
+        var result = ArrayEditor.ParseArrayValueFromText("\"  foo  \", bar ,\"baz \"", typeof(string));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Length, Is.EqualTo(3));
+        Assert.That(result.GetValue(0), Is.EqualTo("  foo  "));
+        Assert.That(result.GetValue(1), Is.EqualTo("bar"));
+        Assert.That(result.GetValue(2), Is.EqualTo("baz "));
     }
 }
