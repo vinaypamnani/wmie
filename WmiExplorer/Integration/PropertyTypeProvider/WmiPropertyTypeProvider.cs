@@ -123,6 +123,16 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
             yield break;
         }
 
+        // Special handling for ManagementBaseObject (embedded objects in arrays)
+        if (obj is ManagementBaseObject baseObject)
+        {
+            foreach (PropertyData property in baseObject.Properties)
+            {
+                yield return new WmiPropertyDescriptor(property, baseObject, "Properties", false, propertyGridContext, true);
+            }
+            yield break;
+        }
+
         var type = obj.GetType();
         bool yieldedSpecial = false;
         foreach (var prop in GetTypeProperties(obj))

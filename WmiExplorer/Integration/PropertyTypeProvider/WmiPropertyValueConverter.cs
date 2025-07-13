@@ -1,5 +1,10 @@
 using System.Management;
 using WmiExplorer.PropertyGrid.Abstractions;
+using System;
+using System.Globalization;
+using System.Windows.Data;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
 
@@ -167,7 +172,7 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
             if (keyProps.Count > 0)
             {
                 var keyString = string.Join(", ", keyProps);
-                return $"[Embedded: {className}({keyString})]";
+                return $"[Embedded: {className} ({keyString})]";
             }
         }
         catch { /* ignore */ }
@@ -204,5 +209,18 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
         if (string.IsNullOrEmpty(fallback) || fallback == "{DependencyProperty.UnsetValue}")
             return "<unset>";
         return fallback;
+    }
+}
+
+public class WmiPropertyValueConverterBinding : IValueConverter
+{
+    private static readonly WmiPropertyValueConverter _converter = new WmiPropertyValueConverter();
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return _converter.ConvertToString(value, value?.GetType() ?? typeof(object));
+    }
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }
