@@ -6,8 +6,12 @@
         Title="{Binding Title}"
         Width="400"
         Height="200"
+        MinWidth="320"
+        MinHeight="160"
+        AllowsTransparency="True"
         Background="{DynamicResource PrimaryBackgroundBrush}"
-        ResizeMode="NoResize"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None">
     <Border Background="{DynamicResource PrimaryBackgroundBrush}"
@@ -73,45 +77,61 @@
                 </ContentControl>
 
                 <!--  Message  -->
-                <TextBlock Grid.Row="0"
-                           Grid.Column="2"
-                           VerticalAlignment="Center"
-                           FontSize="14"
-                           Text="{Binding Message}"
-                           TextWrapping="Wrap" />
+                <ScrollViewer Grid.Row="0"
+                              Grid.Column="2"
+                              MinWidth="100"
+                              MinHeight="40"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto">
+                    <TextBlock HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               FontSize="14"
+                               Text="{Binding Message}"
+                               TextTrimming="CharacterEllipsis"
+                               TextWrapping="Wrap" />
+                </ScrollViewer>
 
                 <!--  Buttons  -->
-                <StackPanel Grid.Row="1"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="3"
-                            Margin="0,24,0,0"
-                            HorizontalAlignment="Right"
-                            Orientation="Horizontal">
-                    <!--  OK Button  -->
-                    <Button MinWidth="75"
-                            Margin="8,0,0,0"
-                            Command="{Binding OkCommand}"
-                            Content="OK"
-                            Visibility="{Binding OkVisibility}" />
-                    <!--  Cancel Button  -->
-                    <Button MinWidth="75"
-                            Margin="8,0,0,0"
-                            Command="{Binding CancelCommand}"
-                            Content="Cancel"
-                            Visibility="{Binding CancelVisibility}" />
-                    <!--  Yes Button  -->
-                    <Button MinWidth="75"
-                            Margin="8,0,0,0"
-                            Command="{Binding YesCommand}"
-                            Content="Yes"
-                            Visibility="{Binding YesVisibility}" />
-                    <!--  No Button  -->
-                    <Button MinWidth="75"
-                            Margin="8,0,0,0"
-                            Command="{Binding NoCommand}"
-                            Content="No"
-                            Visibility="{Binding NoVisibility}" />
-                </StackPanel>
+                <Grid Grid.Row="1"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="3"
+                      Margin="0,24,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <!--  Copy Button Left-Aligned  -->
+                    <Button Grid.Column="0"
+                            MinWidth="75"
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding CopyCommand}"
+                            Content="Copy"
+                            Visibility="{Binding CopyVisibility}" />
+                    <!--  Other Buttons Right-Aligned  -->
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
+                        <Button MinWidth="75"
+                                Margin="8,0,0,0"
+                                Command="{Binding OkCommand}"
+                                Content="OK"
+                                Visibility="{Binding OkVisibility}" />
+                        <Button MinWidth="75"
+                                Margin="8,0,0,0"
+                                Command="{Binding CancelCommand}"
+                                Content="Cancel"
+                                Visibility="{Binding CancelVisibility}" />
+                        <Button MinWidth="75"
+                                Margin="8,0,0,0"
+                                Command="{Binding YesCommand}"
+                                Content="Yes"
+                                Visibility="{Binding YesVisibility}" />
+                        <Button MinWidth="75"
+                                Margin="8,0,0,0"
+                                Command="{Binding NoCommand}"
+                                Content="No"
+                                Visibility="{Binding NoVisibility}" />
+                    </StackPanel>
+                </Grid>
             </Grid>
         </DockPanel>
     </Border>

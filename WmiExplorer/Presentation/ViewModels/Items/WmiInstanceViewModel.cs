@@ -202,7 +202,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
             "Confirm Delete Instance",
             MessageBoxDialogButton.YesNo,
             MessageBoxDialogIcon.Warning,
-            mainWindow);
+            mainWindow, false);
 
         if (result != MessageBoxDialogResult.Yes)
             return;
