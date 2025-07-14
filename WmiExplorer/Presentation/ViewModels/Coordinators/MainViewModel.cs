@@ -298,7 +298,21 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         if (value != 0) // Assuming 0 is the index for Classes tab
             SelectionManager.PropertyGrid.ClearPropertyGrid();
         else
-            SelectionManager.SetSelectedObject(SelectionManager.SelectedNamespace, updatePropertyGrid: true);
+        {
+            // Set selection in order: Instance, Class, Namespace
+            if (SelectionManager.GetSelectedInstance() != null)
+            {
+                SelectionManager.SetSelectedObject(SelectionManager.GetSelectedInstance(), updatePropertyGrid: true);
+            }
+            else if (SelectionManager.GetSelectedClass() != null)
+            {
+                SelectionManager.SetSelectedObject(SelectionManager.GetSelectedClass(), updatePropertyGrid: true);
+            }
+            else if (SelectionManager.SelectedNamespace != null)
+            {
+                SelectionManager.SetSelectedObject(SelectionManager.SelectedNamespace, updatePropertyGrid: true);
+            }
+        }
     }
 
     /// <summary>
