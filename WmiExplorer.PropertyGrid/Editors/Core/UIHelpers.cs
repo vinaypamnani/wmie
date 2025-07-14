@@ -95,6 +95,9 @@ public static class UIHelpers
         // Attach selection behavior if property item provided
         EditorInfrastructure.AttachSelectOnFocus(textBox, propertyItem);
 
+        // Attach <null> value select-all behavior
+        EditorInfrastructure.AttachNullValueSelectAll(textBox);
+
         // Attach validation behavior if property item provided
         if (propertyItem != null)
         {

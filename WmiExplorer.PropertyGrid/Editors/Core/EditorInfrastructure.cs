@@ -35,13 +35,39 @@ public static class EditorInfrastructure
     }
 
     /// <summary>
+    /// Attaches logic to select all text in a TextBox if its text is "<null>" (trimmed), for both keyboard and mouse focus.
+    /// </summary>
+    public static void AttachNullValueSelectAll(TextBox textBox)
+    {
+        // Keyboard focus: select all if text is "<null>"
+        textBox.GotKeyboardFocus += (s, e) =>
+        {
+            if (textBox.Text.Trim() == "<null>")
+                textBox.Dispatcher.BeginInvoke(new Action(() => textBox.SelectAll()));
+        };
+        // Mouse focus: select all if text is "<null>"
+        textBox.PreviewMouseLeftButtonDown += (s, e) =>
+        {
+            if (!textBox.IsKeyboardFocusWithin && textBox.Text.Trim() == "<null>")
+            {
+                e.Handled = true;
+                textBox.Focus();
+                textBox.Dispatcher.BeginInvoke(new Action(() => textBox.SelectAll()));
+            }
+        };
+    }
+
+    /// <summary>
     /// Helper to attach focus event for selection
     /// </summary>
     public static void AttachSelectOnFocus(Control control, PropertyHierarchyItem? propertyItem)
     {
         if (propertyItem != null && control != null)
         {
-            control.GotFocus += (s, e) => propertyItem.IsSelected = true;
+            control.GotFocus += (s, e) =>
+            {
+                propertyItem.IsSelected = true;
+            };
         }
     }
 
