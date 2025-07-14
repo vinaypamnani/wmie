@@ -184,12 +184,16 @@ public class WmiProperty
     /// <returns>A dictionary of qualifier names and their values, or an empty dictionary if none.</returns>
     public static object? GetQualifierFromClass(ManagementClass? parentClass, string qualifierName)
     {
-        if (parentClass == null || parentClass.Qualifiers == null)
+        if (parentClass == null)
             return null;
 
         // Check qualifier in the current class
         try
         {
+            // Check if the class has qualifiers in the try block to avoid not found exception
+            if (parentClass.Qualifiers == null)
+                return null;
+
             foreach (QualifierData qualifier in parentClass.Qualifiers)
             {
                 if (qualifier.Name.Equals(qualifierName, StringComparison.OrdinalIgnoreCase))
