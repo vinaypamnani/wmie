@@ -22,6 +22,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private readonly IApplicationService _applicationService;
     private readonly object _collectionLock = new();
     private CancellationTokenSource _cts = new();
+    private bool _hasLazyProperty;
     private bool _hasWriteProperty;
     private readonly FilterHelper<WmiInstanceViewModel> _instanceFilterHelper;
 
@@ -84,6 +85,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     public string ClassName => _wmiClass.ClassName;
     public string Description => _wmiClass.Description;
+
+    /// <summary>
+    /// Indicates if this class has at least one lazy property.
+    /// </summary>
+    public bool HasLazyProperty => _hasLazyProperty;
 
     /// <summary>
     /// Indicates if this class has at least one writable property.
@@ -559,17 +565,20 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     Properties.Add(wmiProperty);
                 }
                 _hasWriteProperty = wmiProperties.Any(p => !p.IsReadOnly);
+                _hasLazyProperty = wmiProperties.Any(p => p.IsLazy);
                 Log.Debug("Loaded {PropertyCount} properties for class: {ClassName}", properties.Count, ClassName);
             }
             else
             {
                 _hasWriteProperty = false;
+                _hasLazyProperty = false;
                 Log.Debug("No properties found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
         {
             _hasWriteProperty = false;
+            _hasLazyProperty = false;
             Log.Warning(ex, "Error loading properties for class: {ClassName}", ClassName);
         }
     }

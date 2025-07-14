@@ -20,6 +20,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     {
         Unknown,
         Success,
+        Warning, // used for instance with lazy properties
         Failed
     }
 
@@ -139,25 +140,6 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     /// </summary>
     /// <returns>A string representation of the instance.</returns>
     public override string ToString() => _wmiInstance.ToString();
-
-    public void TryGetInstance()
-    {
-        try
-        {
-
-            if (LoadState == InstanceState.Unknown)
-            {
-                // Attempt to load the instance data if not already loaded (useful for lazy props)
-                _wmiService.RefreshInstanceAsync(_wmiInstance.ActualObject);
-                LoadState = InstanceState.Success;
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to load instance data for: {InstanceName}", InstanceName);
-            LoadState = InstanceState.Failed;
-        }
-    }
 
     /// <summary>
     /// Command to copy the instance MOF to clipboard, with or without amended qualifiers.
@@ -403,8 +385,11 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                 // Load Instance Methods
                 LoadInstanceMethods();
 
-                // Force the instance to try to get its data
-                TryGetInstance();
+                // Set state based on parent class properties
+                if (!_parentClass.HasLazyProperty)
+                    LoadState = InstanceState.Success;
+                else
+                    LoadState = InstanceState.Warning;
             }
             finally
             {
@@ -424,15 +409,17 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
             // Always reload the instance data
             _wmiService.RefreshInstanceAsync(_wmiInstance.ActualObject);
             LoadState = InstanceState.Success;
+
             // Refresh the property grid to reflect updated values
             _selectionManager.PropertyGrid.RefreshPropertyGrid();
+
             PublishSuccessState($"Instance refreshed: {InstanceName}");
             Log.Information("Instance refreshed: {InstanceName}", InstanceName);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to refresh instance: {InstanceName}", InstanceName);
             LoadState = InstanceState.Failed;
+            Log.Error(ex, "Failed to refresh instance: {InstanceName}", InstanceName);
             PublishErrorState($"Failed to refresh instance: {ex.Message}", ex);
         }
     }
