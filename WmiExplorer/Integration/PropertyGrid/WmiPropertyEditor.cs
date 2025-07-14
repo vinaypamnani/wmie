@@ -266,20 +266,32 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         // ListView for embedded objects
         var listView = new ListView
         {
-            Margin = new Thickness(0, 0, 0, 8),
+            Margin = new Thickness(0, 0, 0, 0),
             MinHeight = 40,
             MaxHeight = 200,
             Style = (Style)Application.Current.FindResource("ModernListViewStyle"),
+            Background = System.Windows.Media.Brushes.Transparent,
             SelectionMode = SelectionMode.Single,
             SelectedIndex = -1,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
         // Ensure ListView items stretch horizontally
         listView.SetValue(ItemsControl.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch);
+        // Override ControlTemplate to fully disable hover background
+        var borderFactory = new FrameworkElementFactory(typeof(Border));
+        borderFactory.SetValue(Border.BackgroundProperty, System.Windows.Media.Brushes.Transparent);
+        var contentPresenterFactory = new FrameworkElementFactory(typeof(ContentPresenter));
+        contentPresenterFactory.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
+        contentPresenterFactory.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+        contentPresenterFactory.SetValue(ContentPresenter.ContentProperty, new TemplateBindingExtension(ContentControl.ContentProperty));
+        contentPresenterFactory.SetValue(ContentPresenter.ContentTemplateProperty, new TemplateBindingExtension(ContentControl.ContentTemplateProperty));
+        contentPresenterFactory.SetValue(ContentPresenter.ContentTemplateSelectorProperty, new TemplateBindingExtension(ContentControl.ContentTemplateSelectorProperty));
+        borderFactory.AppendChild(contentPresenterFactory);
+        var template = new ControlTemplate(typeof(ListViewItem)) { VisualTree = borderFactory };
         listView.ItemContainerStyle = new Style(typeof(ListViewItem))
         {
             Setters = {
-                new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch)
+                new Setter(Control.TemplateProperty, template)
             }
         };
 
@@ -287,7 +299,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         UIElement CreateEmbeddedObjectListItem(System.Management.ManagementBaseObject mbo)
         {
             var displayText = _propertyValueConverter.ConvertToString(mbo, typeof(System.Management.ManagementBaseObject));
-            var textBox = PropertyEditorUtils.CreateStandardTextBox(displayText, null, null);
+            var textBox = PropertyEditorUtils.CreateStandardTextBox(displayText, null, null, new Thickness(4, 0, 0, 0));
             textBox.IsReadOnly = true;
             textBox.TextWrapping = TextWrapping.Wrap;
 
@@ -320,7 +332,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             {
                 Content = "Remove",
                 Width = 60,
-                Margin = new Thickness(8, 0, 0, 0),
+                Margin = new Thickness(4, 0, 4, 0),
                 VerticalAlignment = VerticalAlignment.Center
             };
             removeButton.Click += (s, e) =>
@@ -337,7 +349,7 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
             actionPanel.Children.Add(editButton);
             actionPanel.Children.Add(removeButton);
 
-            return PropertyEditorUtils.CreateGridWithActionPanel(textBox, actionPanel, editButton.Width + removeButton.Width + 8);
+            return PropertyEditorUtils.CreateGridWithActionPanel(textBox, actionPanel, editButton.Width + removeButton.Width + 8 + 4);
         }
 
         // Populate ListView initially
@@ -375,7 +387,10 @@ public class WmiPropertyEditor : IPropertyEditor, IDisposable
         };
 
         // Add button as before
-        var addButton = new Button { Content = "Add...", Width = 60 };
+        var addButton = new Button {
+            Content = "Add...",
+            Width = 60
+        };
         addButton.HorizontalAlignment = HorizontalAlignment.Left;
         addButton.Click += (s, e) =>
         {
