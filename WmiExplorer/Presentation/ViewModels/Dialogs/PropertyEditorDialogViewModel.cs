@@ -230,7 +230,6 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
                 if (_saveBeforeReturn && _wmiService != null && _originalObject is ManagementObject mgmtObj)
                 {
                     Log.Debug("Saving instance before return: {Path}", objectPath!);
-                    throw new InvalidOperationException("Save operation completed successfully, but dialog should not close yet.");
                     await _wmiService.SaveInstanceAsync(mgmtObj);
                 }
                 Result = _originalObject;

@@ -200,7 +200,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
             $"Are you sure you want to delete this instance?\n\n{InstanceName}",
             "Confirm Delete Instance",
             MessageBoxDialogButton.YesNo,
-            MessageBoxDialogIcon.Warning,
+            MessageBoxDialogIcon.Question,
             mainWindow, false);
 
         if (result != MessageBoxDialogResult.Yes)
@@ -253,23 +253,10 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                         // LogPropertyValues("AFTER PUT", _wmiInstance.ActualObject);
 
                         // Refresh propertygrid
-                        _selectionManager.PropertyGrid.RefreshPropertyGrid(); 
+                        _selectionManager.PropertyGrid.RefreshPropertyGrid();
 
                         PublishSuccessState($"Properties updated for instance: {InstanceName}");
                         Log.Information("Properties updated for instance: {InstanceName}", InstanceName);
-                    }
-                    catch (System.Management.ManagementException mgmtEx)
-                    {
-                        // Handle WMI-specific errors with detailed messages
-                        string errorMessage = GetDetailedManagementErrorMessage(mgmtEx);
-                        Log.Error(mgmtEx, "WMI error updating properties for instance: {InstanceName}. Error: {ErrorCode}", InstanceName, mgmtEx.ErrorCode);
-                        PublishErrorState($"Failed to update instance properties: {errorMessage}", mgmtEx);
-                    }
-                    catch (System.ArgumentException argEx)
-                    {
-                        // Handle validation errors (like invalid Char16 values)
-                        Log.Error(argEx, "Property validation error for instance: {InstanceName}", InstanceName);
-                        PublishErrorState($"Property validation failed: {argEx.Message}", argEx);
                     }
                     catch (Exception saveEx)
                     {
@@ -331,27 +318,6 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     {
         return parameter is WmiMethod &&
                ParentNamespace?.WmiNamespace != null;
-    }
-
-    /// <summary>
-    /// Converts ManagementException error codes to user-friendly messages.
-    /// </summary>
-    private string GetDetailedManagementErrorMessage(System.Management.ManagementException mgmtEx)
-    {
-        return mgmtEx.ErrorCode switch
-        {
-            System.Management.ManagementStatus.InvalidParameter => "One or more property values are invalid. Please check the data types and value ranges.",
-            System.Management.ManagementStatus.TypeMismatch => "Property value type mismatch. Please ensure the value matches the expected data type.",
-            System.Management.ManagementStatus.ValueOutOfRange => "Property value is out of the allowed range.",
-            System.Management.ManagementStatus.InvalidPropertyType => "Invalid property type specified.",
-            System.Management.ManagementStatus.InvalidCimType => "Invalid CIM type for property value.",
-            System.Management.ManagementStatus.IllegalNull => "Property cannot be null. Please provide a valid value.",
-            System.Management.ManagementStatus.ReadOnly => "One or more properties are read-only and cannot be modified.",
-            System.Management.ManagementStatus.AccessDenied => "Access denied. You don't have permission to modify this instance.",
-            System.Management.ManagementStatus.NotFound => "Instance not found. It may have been deleted by another process.",
-            System.Management.ManagementStatus.InvalidObject => "The instance object is invalid or corrupted.",
-            _ => $"WMI Error ({mgmtEx.ErrorCode}): {mgmtEx.Message}"
-        };
     }
 
     /// <summary>
