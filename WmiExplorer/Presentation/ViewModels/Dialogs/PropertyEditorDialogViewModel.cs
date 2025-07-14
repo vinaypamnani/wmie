@@ -200,6 +200,16 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     [RelayCommand]
     private async Task Save()
     {
+        var objectPath = "Unknown";
+        if (_originalObject is ManagementObject mo && mo.Path != null)
+        {
+            objectPath = mo.Path.Path;
+        }
+        else if (_originalObject is ManagementBaseObject mbo && mbo.ClassPath != null)
+        {
+            objectPath = mbo.ClassPath.Path;
+        }
+
         try
         {
             // Use the new error tracking instead of FindValidationErrors
@@ -219,22 +229,29 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
                 // Save if requested and object is ManagementObject
                 if (_saveBeforeReturn && _wmiService != null && _originalObject is ManagementObject mgmtObj)
                 {
-                    Log.Debug("Saving instance before return: {Path}", mgmtObj.Path?.Path!);
+                    Log.Debug("Saving instance before return: {Path}", objectPath!);
+                    throw new InvalidOperationException("Save operation completed successfully, but dialog should not close yet.");
                     await _wmiService.SaveInstanceAsync(mgmtObj);
                 }
                 Result = _originalObject;
             }
 
-            StatusMessage = "Properties saved successfully.";
-            AppState = AppState.Success;
+            // StatusMessage = $"Instance {objectPath} saved successfully.";
+            // AppState = AppState.Success;
             _window.DialogResult = true;
             _window.Close();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error processing properties in PropertyEditorDialog");
-            StatusMessage = $"Error processing properties: {ex.Message}";
+            Log.Error(ex, "Error saving instance: {Path}", objectPath);
+            StatusMessage = $"Error saving instance {objectPath}: {ex.Message}";
             AppState = AppState.Error;
+            MessageBoxDialog.Show(
+                $"Failed to save {objectPath}:\n\n{ex.Message}",
+                "Error",
+                MessageBoxDialogButton.OK,
+                MessageBoxDialogIcon.Error,
+                _window);
         }
     }
 

@@ -4,8 +4,6 @@
         xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
         xmlns:local="clr-namespace:WmiExplorer.Presentation.Views.Dialogs"
         Title="{Binding Title}"
-        Width="400"
-        Height="200"
         MinWidth="320"
         MinHeight="160"
         AllowsTransparency="True"
@@ -87,14 +85,18 @@
                               Grid.Column="2"
                               MinWidth="100"
                               MinHeight="40"
+                              VerticalAlignment="Stretch"
+                              HorizontalAlignment="Stretch"
                               HorizontalScrollBarVisibility="Auto"
                               VerticalScrollBarVisibility="Auto">
-                    <TextBlock HorizontalAlignment="Stretch"
-                               VerticalAlignment="Stretch"
-                               FontSize="14"
-                               Text="{Binding Message}"
-                               TextTrimming="CharacterEllipsis"
-                               TextWrapping="Wrap" />
+                    <TextBlock
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        FontSize="14"
+                        Text="{Binding Message}"
+                        TextWrapping="Wrap"
+                        MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
+                    />
                 </ScrollViewer>
 
                 <!--  Buttons  -->
