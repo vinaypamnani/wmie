@@ -50,22 +50,14 @@ public class WmiService : IWmiService, IDisposable
         if (instance == null)
             throw new ArgumentNullException(nameof(instance));
 
-        await Task.Run(() =>
+        if (OperationMode == WmiOperationMode.Synchronous)
         {
-            if (OperationMode == WmiOperationMode.Synchronous)
-            {
-                instance.Delete();
-            }
-            else
-            {
-                var observer = new ManagementOperationObserver();
-                var completed = new TaskCompletionSource<bool>();
-                observer.Completed += (s, e) => completed.TrySetResult(true);
-                observer.ObjectReady += (s, e) => { };
-                instance.Delete(observer);
-                completed.Task.Wait(cancellationToken);
-            }
-        }, cancellationToken);
+            await ExecuteSyncWithTimeout(() => DeleteInstanceSync(instance, cancellationToken), cancellationToken);
+        }
+        else
+        {
+            await PerformWmiActionAsync(observer => instance.Delete(observer), cancellationToken);
+        }
     }
 
     /// <summary>
@@ -282,6 +274,65 @@ public class WmiService : IWmiService, IDisposable
         }
     }
 
+    public async Task<ManagementClass?> RefreshClassAsync(ManagementClass managementClass, CancellationToken cancellationToken = default)
+    {
+        if (managementClass == null)
+            throw new ArgumentNullException(nameof(managementClass));
+
+        if (OperationMode == WmiOperationMode.Synchronous)
+        {
+            return await ExecuteSyncWithTimeout(() => RefreshClassSync(managementClass, cancellationToken), cancellationToken);
+        }
+        else
+        {
+            var success = await PerformWmiActionAsync(observer => managementClass.Get(observer), cancellationToken);
+            return success ? managementClass : null;
+        }
+    }
+
+    /// <summary>
+    /// Refreshes a WMI instance asynchronously.
+    /// </summary>
+    public async Task<ManagementObject?> RefreshInstanceAsync(ManagementObject instance, CancellationToken cancellationToken = default)
+    {
+        if (instance == null)
+            throw new ArgumentNullException(nameof(instance));
+
+        if (OperationMode == WmiOperationMode.Synchronous)
+        {
+            return await ExecuteSyncWithTimeout(() => RefreshInstanceSync(instance, cancellationToken), cancellationToken);
+        }
+        else
+        {
+            var success = await PerformWmiActionAsync(observer => instance.Get(observer), cancellationToken);
+            return success ? instance : null;
+        }
+    }
+
+    /// <summary>
+    /// Saves (creates or updates) a WMI instance synchronously, regardless of OperationMode.
+    /// This avoids WMI provider timing/caching issues that can occur with async Put, ensuring
+    /// the instance is immediately available for querying and a fully loaded object is returned.
+    /// </summary>
+    public async Task<ManagementObject?> SaveInstanceAsync(ManagementObject instance, PutType putType = PutType.UpdateOrCreate, CancellationToken cancellationToken = default)
+    {
+        if (instance == null)
+            throw new ArgumentNullException(nameof(instance));
+
+        var options = new PutOptions { Type = putType };
+        // Always use the synchronous Put path for reliability:
+        // - Async Put does not guarantee the new instance is immediately available for Get()
+        // - Some WMI providers delay visibility or do not update the in-memory object after async Put
+        // - This ensures the returned object is fully loaded and ready for use
+        return await ExecuteSyncWithTimeout(() =>
+        {
+            var path = instance.Put(options); // Synchronous Put returns the new ManagementPath
+            var updated = new ManagementObject(instance.Scope, path, null);
+            // Immediately refresh to get all properties (including system-generated keys)
+            return RefreshInstanceSync(updated, cancellationToken);
+        }, cancellationToken);
+    }
+
     /// <summary>
     /// Tries to get a ManagementClass for the specified class name, returning null if not found.
     /// </summary>
@@ -362,6 +413,24 @@ public class WmiService : IWmiService, IDisposable
             Classes = classCaches
         };
         await _cacheService.UpdateNamespaceCacheAsync(nsCache);
+    }
+
+    /// <summary>
+    /// Synchronous helper for deleting a WMI instance (calls Delete()).
+    /// </summary>
+    private bool DeleteInstanceSync(ManagementObject instance, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            instance.Delete();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error deleting WMI instance");
+            throw;
+        }
     }
 
     /// <summary>
@@ -755,6 +824,53 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Helper for async WMI actions that do not return a result (e.g., Put, Delete)
+    /// </summary>
+    private async Task<bool> PerformWmiActionAsync(Action<ManagementOperationObserver> startAction, CancellationToken cancellationToken)
+    {
+        var tcs = new TaskCompletionSource<bool>();
+        var observer = new ManagementOperationObserver();
+        var cancelCalled = false;
+
+        observer.Completed += (s, e) =>
+        {
+            if (e.Status == ManagementStatus.NoError)
+                tcs.TrySetResult(true);
+            else if (e.Status == ManagementStatus.CallCanceled || e.Status == ManagementStatus.OperationCanceled)
+                tcs.TrySetCanceled(cancellationToken);
+            else
+            {
+                var errorMessage = ExtractWmiErrorMessage(e.StatusObject, e.Status);
+                tcs.TrySetException(new ManagementException(errorMessage));
+            }
+        };
+
+        using (cancellationToken.Register(() =>
+        {
+            if (!cancelCalled)
+            {
+                cancelCalled = true;
+                Task.Run(() =>
+                {
+                    try { observer.Cancel(); }
+                    catch (Exception ex) { Log.Warning(ex, "Error canceling WMI observer"); }
+                });
+            }
+        }))
+        {
+            try
+            {
+                startAction(observer);
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+            }
+            return await tcs.Task.ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
     /// Helper for async WMI queries returning a list
     /// </summary>
     private async Task<List<ManagementObject>> PerformWmiOperationAsync(Action<ManagementOperationObserver> startAction, CancellationToken cancellationToken)
@@ -842,6 +958,42 @@ public class WmiService : IWmiService, IDisposable
                 tcs.TrySetException(ex);
             }
             return await tcs.Task.ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Synchronous helper for refreshing a WMI class (calls Get()). Returns the class if successful, null if any error occurs.
+    /// </summary>
+    private ManagementClass? RefreshClassSync(ManagementClass managementClass, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            managementClass.Get();
+            return managementClass;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error refreshing WMI class");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Synchronous helper for refreshing a WMI instance (calls Get()). Returns the instance if successful, null if any error occurs.
+    /// </summary>
+    private ManagementObject? RefreshInstanceSync(ManagementObject instance, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            instance.Get();
+            return instance;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error refreshing WMI instance");
+            return null;
         }
     }
 

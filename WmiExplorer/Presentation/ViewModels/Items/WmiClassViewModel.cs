@@ -283,7 +283,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     }
 
     [RelayCommand]
-    private void CreateInstance()
+    private async Task CreateInstance()
     {
         try
         {
@@ -304,7 +304,13 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             if (result != null)
             {
                 // Commit the new instance to WMI
-                var putPath = newInstance.Put();
+                await _wmiService.SaveInstanceAsync(newInstance);
+                newInstance = await _wmiService.RefreshInstanceAsync(newInstance);
+                if (newInstance == null)
+                {
+                    PublishErrorState("Failed to refresh new instance. Reload the instances to see the new instance.");
+                    return;
+                }
 
                 // Wrap in WmiInstance and WmiInstanceViewModel
                 var wmiInstance = new WmiInstance(newInstance);
@@ -434,7 +440,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 ClearAndDisposeInstances();
                 lock (_collectionLock)
                 {
-                    foreach (var vm in instanceViewModels)
+                    foreach (var vm in instanceViewModels.OrderBy(vm => vm.InstanceName))
                     {
                         _instances.Add(vm);
                     }
@@ -647,12 +653,12 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             managementClass.Options.UseAmendedQualifiers = useAmendedQualifiers;
 
             // Get the MOF representation of the class
-            managementClass.Get();
+            _wmiService.RefreshClassAsync(managementClass);
             mof = managementClass.GetText(System.Management.TextFormat.Mof);
 
             // Restore the original value
             managementClass.Options.UseAmendedQualifiers = originalValue;
-            managementClass.Get();
+            _wmiService.RefreshClassAsync(managementClass);
 
             return true;
         }

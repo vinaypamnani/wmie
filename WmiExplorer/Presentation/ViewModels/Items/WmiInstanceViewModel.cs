@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Core.Models;
-using WmiExplorer.Presentation.ViewModels.Dialogs;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Presentation.Views.Dialogs;
@@ -149,7 +148,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
             if (LoadState == InstanceState.Unknown)
             {
                 // Attempt to load the instance data if not already loaded (useful for lazy props)
-                WmiInstance.ActualObject?.Get();
+                _wmiService.RefreshInstanceAsync(_wmiInstance.ActualObject);
                 LoadState = InstanceState.Success;
             }
         }
@@ -249,14 +248,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                     // Validate the property changes first by attempting to save
                     try
                     {
-                        // Use PutOptions to be explicit about update behavior
-                        var putOptions = new System.Management.PutOptions
-                        {
-                            Type = System.Management.PutType.UpdateOnly // Only update existing instance
-                        };
-
-                        // Save changes to the instance
-                        var putPath = _wmiInstance.ActualObject.Put(putOptions);
+                        _wmiService.SaveInstanceAsync(_wmiInstance.ActualObject, System.Management.PutType.UpdateOnly);
 
                         // Debug: Log property values after successful save
                         // LogPropertyValues("AFTER PUT", _wmiInstance.ActualObject);
@@ -460,7 +452,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Command to refresh the instance by calling .Get() and updating the property grid.
+    /// Command to refresh the instance and update the property grid.
     /// </summary>
     [RelayCommand]
     private void RefreshInstance()
@@ -468,7 +460,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         try
         {
             // Always reload the instance data
-            WmiInstance.ActualObject?.Get();
+            _wmiService.RefreshInstanceAsync(_wmiInstance.ActualObject);
             LoadState = InstanceState.Success;
             // Refresh the property grid to reflect updated values
             _selectionManager.PropertyGrid.RefreshPropertyGrid();
@@ -523,12 +515,12 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
             managementObject.Options.UseAmendedQualifiers = useAmendedQualifiers;
 
             // Get the MOF representation of the instance
-            managementObject.Get();
+            _wmiService.RefreshInstanceAsync(managementObject);
             mof = managementObject.GetText(System.Management.TextFormat.Mof);
 
             // Restore the original value
             managementObject.Options.UseAmendedQualifiers = originalValue;
-            managementObject.Get();
+            _wmiService.RefreshInstanceAsync(managementObject);
 
             return true;
         }

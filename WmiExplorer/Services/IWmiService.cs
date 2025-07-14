@@ -104,6 +104,28 @@ public interface IWmiService
     /// <returns>A ManagementObject</returns>
     Task<ManagementObject?> GetRootNamespaceAsync(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken = default);
     /// <summary>
+    /// Refreshes a WMI ManagementClass using Get(), using the current operation mode. Returns the refreshed class if successful, or null if any error occurs.
+    /// </summary>
+    /// <param name="managementClass">The ManagementClass instance to refresh.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A Task that returns the refreshed ManagementClass if successful, or null if any error occurs.</returns>
+    Task<ManagementClass?> RefreshClassAsync(ManagementClass managementClass, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Refreshes a WMI ManagementObject using Get(), using the current operation mode. Returns the refreshed object if successful, or null if any error occurs.
+    /// </summary>
+    /// <param name="instance">The ManagementObject instance to refresh.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A Task that returns the refreshed ManagementObject if successful, or null if any error occurs.</returns>
+    Task<ManagementObject?> RefreshInstanceAsync(ManagementObject instance, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Saves (creates or updates) a WMI instance asynchronously, using the current operation mode and specified PutType. Returns the original object if successful, or null if any error occurs.
+    /// </summary>
+    /// <param name="instance">The ManagementObject instance to save.</param>
+    /// <param name="putType">The PutType to use (default is UpdateOrCreate).</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A Task that returns the original ManagementObject if the instance is saved, or null if any error occurs.</returns>
+    Task<ManagementObject?> SaveInstanceAsync(ManagementObject instance, PutType putType = PutType.UpdateOrCreate, CancellationToken cancellationToken = default);
+    /// <summary>
     /// Attempts to get a ManagementClass for a given class name in the specified namespace. Returns null if not found or not accessible.
     /// </summary>
     Task<ManagementClass?> TryGetManagementClassAsync(string namespacePath, ConnectionOptions options, string className, CancellationToken cancellationToken = default);
