@@ -32,7 +32,6 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     [ObservableProperty]
     private string _objectDisplayText = string.Empty;
 
-    private ManagementObject? _parameterObject;
     private readonly PropertyData _propertyData;
 
     [ObservableProperty]
@@ -65,9 +64,6 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
 
         // Initialize the display text
         UpdateObjectDisplayText();
-
-        // Initialize the async edit command
-        // Remove from constructor: EditObjectCommand = new AsyncRelayCommand<object?>(EditObjectAsync, _ => EditObjectCanExecute());
     }
 
     public string? CimType
@@ -190,30 +186,27 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     [RelayCommand(CanExecute = nameof(EditObjectCanExecute))]
     private void EditObject()
     {
-        if (_parameterObject == null)
+        if (_propertyData.Value == null)
         {
-            InitializeParameterObject();
+            InitializeObjectValue();
         }
 
-        if (_parameterObject != null)
+        if (_propertyData.Value is ManagementBaseObject currentObject)
         {
-            // Find the parent window to use as owner
             var window = System.Windows.Application.Current.MainWindow;
-
-            // Show the PropertyEditorDialog
-            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, _parameterObject, _messengerService, $"Edit {TargetClassName}");
+            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, currentObject, _messengerService, $"Edit {TargetClassName}");
             if (result != null)
             {
                 if (_isMethodParameter)
                 {
                     // For method parameters, clean the object for WMI method calls
-                    Value = WmiObjectFactory.CleanParameterObject((ManagementObject)result);
+                    Value = WmiObjectFactory.CleanParameterObject((ManagementBaseObject)result);
                     Log.Debug("Updated {ItemType} {ItemName} with edited and cleaned object for method parameter", GetItemType(), Name ?? "Unknown");
                 }
                 else
                 {
                     // For property values, store the ManagementObject directly without "cleaning"
-                    Value = (ManagementObject)result;
+                    Value = (ManagementBaseObject)result;
                     Log.Debug("Updated {ItemType} {ItemName} with edited object for property value", GetItemType(), Name ?? "Unknown");
                 }
             }
@@ -346,31 +339,28 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         }
     }
 
-    private void InitializeParameterObject()
+    private void InitializeObjectValue()
     {
-        if (!IsObject || string.IsNullOrEmpty(TargetClassName) || _parameterObject != null || _managementScope == null)
+        if (!IsObject || string.IsNullOrEmpty(TargetClassName) || _propertyData.Value != null || _managementScope == null)
             return;
 
         try
         {
             var className = TargetClassName;
+            ManagementObject? newObject = null;
 
-            // Check if there's already an existing object value
             if (_propertyData.Value is ManagementBaseObject existingObject)
             {
-                // Create a new template object first
-                _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
-
-                if (_parameterObject != null && existingObject.Properties != null)
+                newObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
+                if (newObject != null && existingObject.Properties != null)
                 {
-                    // Copy property values from existing object to the new template
                     foreach (PropertyData existingProp in existingObject.Properties)
                     {
                         try
                         {
-                            if (_parameterObject.Properties[existingProp.Name] != null)
+                            if (newObject.Properties[existingProp.Name] != null)
                             {
-                                _parameterObject.Properties[existingProp.Name].Value = existingProp.Value;
+                                newObject.Properties[existingProp.Name].Value = existingProp.Value;
                             }
                         }
                         catch (Exception propEx)
@@ -379,21 +369,17 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
                         }
                     }
                 }
-
-                Log.Debug("Parameter object initialized from existing value for {ClassName} with {PropertyCount} properties", className, _parameterObject?.Properties.Count ?? 0);
+                Log.Debug("Parameter object initialized from existing value for {ClassName} with {PropertyCount} properties", className, newObject?.Properties.Count ?? 0);
             }
             else
             {
-                // Create a new template object if no existing value
-                _parameterObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
-                Log.Debug("Parameter object initialized as new template for {ClassName} with {PropertyCount} properties", className, _parameterObject?.Properties.Count ?? 0);
+                newObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
+                Log.Debug("Parameter object initialized as new template for {ClassName} with {PropertyCount} properties", className, newObject?.Properties.Count ?? 0);
             }
 
-            // Update the parameter value to reference the created object
-            if (_parameterObject != null)
+            if (newObject != null)
             {
-                Value = _parameterObject;
-                // Update display text to show "configured"
+                Value = newObject;
                 UpdateObjectDisplayText();
             }
         }
@@ -548,9 +534,9 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     /// </summary>
     partial void OnIsSelectedChanged(bool value)
     {
-        if (value && IsObject && !string.IsNullOrEmpty(TargetClassName) && _parameterObject == null)
+        if (value && IsObject && !string.IsNullOrEmpty(TargetClassName) && _propertyData.Value == null)
         {
-            InitializeParameterObject();
+            InitializeObjectValue();
         }
     }
 
@@ -633,25 +619,17 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
             return;
         }
 
-        // Check if there's an existing object value or a configured parameter object
         bool hasObjectValue = _propertyData.Value is ManagementBaseObject;
-        bool hasParameterObject = _parameterObject != null;
 
-        if (hasObjectValue || hasParameterObject)
+        if (hasObjectValue)
         {
+            var valueConverter = new Integration.PropertyTypeProvider.WmiPropertyValueConverter();
             if (Value is ManagementBaseObject mbo)
             {
-                var relPath = mbo.GetPropertyValue("__RELPATH")?.ToString();
-                if (!string.IsNullOrEmpty(relPath))
-                {
-                    ObjectDisplayText = $"[Embedded: {relPath}]"; // [Embedded: TestObject.Id="MyId"]
-                }
-                else
-                {
-                    ObjectDisplayText = $"Embedded: {TargetClassName} object (configured)]";
-                }
-            }            
-            else {
+                ObjectDisplayText = valueConverter.ConvertToString(mbo, typeof(ManagementBaseObject));
+            }
+            else
+            {
                 ObjectDisplayText = $"Embedded: {TargetClassName} object (configured)]";
             }
         }
@@ -667,7 +645,10 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     {
         if (disposing)
         {
-            _parameterObject?.Dispose();
+            if (_propertyData.Value is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
             _referenceValuesCts?.Cancel();
             _referenceValuesCts?.Dispose();
             ReferenceValues?.Clear();

@@ -15,7 +15,7 @@ public static class WmiObjectFactory
     /// </summary>
     /// <param name="source">The ManagementObject to clean</param>
     /// <returns>The same object with cleaned properties</returns>
-    public static ManagementObject CleanParameterObject(ManagementObject source)
+    public static ManagementBaseObject CleanParameterObject(ManagementBaseObject source)
     {
         if (source == null)
             throw new ArgumentNullException(nameof(source));
@@ -179,13 +179,17 @@ public static class WmiObjectFactory
             {
                 prop.Value = null;
                 Log.Debug("Converted '<null>' back to null for property {PropertyName}", prop.Name);
-                return false; // null values are not meaningful for parameters
-            }            // Handle comma/semicolon-separated array values if this property is supposed to be an array
+                return false;
+            }
+            
+            // Handle comma/semicolon-separated array values if this property is supposed to be an array
             if (prop.IsArray && !string.IsNullOrWhiteSpace(strValue))
             {
                 try
                 {
-                    var parsedArrayValue = ParseStringToArray(strValue, prop.Type.ToString());
+                    // Utilize the ArrayEditor to parse the array value from text
+                    var parsedArrayValue = WmiExplorer.PropertyGrid.Editors.TypeEditors.ArrayEditor.ParseArrayValueFromText(strValue, prop.GetType());
+                    //var parsedArrayValue = ParseStringToArray(strValue, prop.Type.ToString());
                     if (parsedArrayValue != null)
                     {
                         prop.Value = parsedArrayValue;

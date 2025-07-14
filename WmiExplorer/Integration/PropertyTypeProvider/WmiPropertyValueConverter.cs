@@ -63,13 +63,13 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
         if (value is System.Management.ManagementObject mo)
         {
             // You can customize this string as needed
-            return $"[ManagementObject: {GetEmbeddedObjectDisplayString(mo)}]";
+            return GetEmbeddedObjectDisplayString(mo);
         }
 
         // Explicit handling for ManagementObject[]
         if (value is System.Management.ManagementObject[] moArray)
         {
-            return $"[ManagementObject Array: {moArray.Length} object(s)]";
+            return $"[EmbeddedObject Array: {moArray.Length} object(s)]";
         }
 
         if (value is ManagementBaseObject mbo)
