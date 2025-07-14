@@ -67,6 +67,7 @@ public static class UIHelpers
         };
 
         PropertyEditorUtils.InitializeEditor(textBox, propertyItem!);
+        ValidationManager.SetValidationNormal(textBox);
 
         // Apply MaxWidth constraint using the generic method
         ApplyMaxWidthConstraint(textBox);
