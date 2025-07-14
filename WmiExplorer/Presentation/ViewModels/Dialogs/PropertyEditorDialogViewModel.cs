@@ -37,6 +37,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
 
     private readonly ManagementBaseObject? _originalObject;
     private readonly Dictionary<string, ReferenceValueLoadState> _referenceStates = new();
+    private readonly bool _saveBeforeReturn;
     private string _statusMessage = string.Empty;
     private string _statusTooltip = string.Empty;
 
@@ -45,7 +46,6 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
 
     private readonly Window _window;
     private readonly IWmiService? _wmiService;
-    private readonly bool _saveBeforeReturn;
 
     /// <summary>
     /// Initializes the dialog for editing a raw ManagementBaseObject (instance editing).
@@ -139,7 +139,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"Failed to copy property '{property.Name}': {ex.Message}");
+                    Log.Warning($"Failed to copy property to original object after edit: '{property.Name}': {ex.Message}");
                     copyErrors.Add($"{property.Name}: {ex.Message}");
                 }
             }
@@ -161,6 +161,40 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     private List<string> GetCurrentValidationErrors()
     {
         return _currentErrorProperties.Select(kvp => $"• {kvp.Key}: {kvp.Value}").ToList();
+    }
+
+    private void OnReferenceLoadStateChanged(ReferenceLoadStateChangedMessage msg)
+    {
+        _referenceStates[msg.PropertyName] = msg.State;
+        OnPropertyChanged(nameof(IsAnyReferenceLoading));
+        OnPropertyChanged(nameof(StatusMessage));
+
+        if (msg.State == ReferenceValueLoadState.Loaded)
+        {
+            StatusMessage = "Reference values loaded successfully.";
+            AppState = AppState.Success;
+        }
+        else if (msg.State == ReferenceValueLoadState.Error)
+        {
+            StatusMessage = "Error loading reference values. Check the log for details.";
+            AppState = AppState.Error;
+        }
+        else if (msg.State == ReferenceValueLoadState.Loading)
+        {
+            StatusMessage = "Loading reference values...";
+            AppState = AppState.Busy;
+        }
+    }
+
+    private void OnValidationStateChanged(object? sender, ValidationManager.ValidationStateChangedEventArgs e)
+    {
+        if (e.DialogId != _dialogId)
+            return;
+        _lastErrorCount = e.ErrorCount;
+        _lastModifiedCount = e.ModifiedCount;
+        _currentErrorProperties = new Dictionary<string, string>(e.ErrorProperties);
+        _currentModifiedProperties = new HashSet<string>(e.ModifiedProperties);
+        UpdateStatusBar();
     }
 
     [RelayCommand]
@@ -202,40 +236,6 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
             StatusMessage = $"Error processing properties: {ex.Message}";
             AppState = AppState.Error;
         }
-    }
-
-    private void OnReferenceLoadStateChanged(ReferenceLoadStateChangedMessage msg)
-    {
-        _referenceStates[msg.PropertyName] = msg.State;
-        OnPropertyChanged(nameof(IsAnyReferenceLoading));
-        OnPropertyChanged(nameof(StatusMessage));
-
-        if (msg.State == ReferenceValueLoadState.Loaded)
-        {
-            StatusMessage = "Reference values loaded successfully.";
-            AppState = AppState.Success;
-        }
-        else if (msg.State == ReferenceValueLoadState.Error)
-        {
-            StatusMessage = "Error loading reference values. Check the log for details.";
-            AppState = AppState.Error;
-        }
-        else if (msg.State == ReferenceValueLoadState.Loading)
-        {
-            StatusMessage = "Loading reference values...";
-            AppState = AppState.Busy;
-        }
-    }
-
-    private void OnValidationStateChanged(object? sender, ValidationManager.ValidationStateChangedEventArgs e)
-    {
-        if (e.DialogId != _dialogId)
-            return;
-        _lastErrorCount = e.ErrorCount;
-        _lastModifiedCount = e.ModifiedCount;
-        _currentErrorProperties = new Dictionary<string, string>(e.ErrorProperties);
-        _currentModifiedProperties = new HashSet<string>(e.ModifiedProperties);
-        UpdateStatusBar();
     }
 
     private void UpdateStatusBar()

@@ -25,8 +25,6 @@ public class DefaultPropertyValueConverter : IPropertyValueConverter
     }
 
     /// <summary>
-    /// Converts a st
-    /// <summary>
     /// Converts a string value back to the property's type.
     /// </summary>
 
@@ -34,11 +32,11 @@ public class DefaultPropertyValueConverter : IPropertyValueConverter
 
     public object? ConvertFromString(string value, Type propertyType)
     {
-        if (string.IsNullOrEmpty(value) || propertyType == null)
+        if (propertyType == null)
             return null;
 
         // Handle null value
-        if (value == "<null>")
+        if (value == "<null>" || value == "null")
             return null;
 
         try

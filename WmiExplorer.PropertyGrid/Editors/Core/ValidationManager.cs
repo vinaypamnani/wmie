@@ -578,8 +578,7 @@ public static class ValidationManager
     private static string? ToNullIfNullString(string? input)
     {
         var trimmed = input?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(trimmed) ||
-            string.Equals(trimmed, "null", StringComparison.OrdinalIgnoreCase) ||
+        if (string.Equals(trimmed, "null", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(trimmed, "<null>", StringComparison.OrdinalIgnoreCase))
             return null;
         return trimmed;

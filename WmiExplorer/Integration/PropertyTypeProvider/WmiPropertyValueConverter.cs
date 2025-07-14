@@ -1,10 +1,7 @@
-using System.Management;
-using WmiExplorer.PropertyGrid.Abstractions;
-using System;
 using System.Globalization;
+using System.Management;
 using System.Windows.Data;
-using System.Collections.Generic;
-using System.Linq;
+using WmiExplorer.PropertyGrid.Abstractions;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
 
@@ -48,7 +45,10 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
     public object? ConvertFromString(string value, Type propertyType)
     {
         // Most WMI types don't support conversion from string
-        return null;
+        if (value == "<null>" || value == "null")
+            return null;
+
+        return value.ToString();
     }
 
     /// <summary>
@@ -215,10 +215,12 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
 public class WmiPropertyValueConverterBinding : IValueConverter
 {
     private static readonly WmiPropertyValueConverter _converter = new WmiPropertyValueConverter();
+
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         return _converter.ConvertToString(value, value?.GetType() ?? typeof(object));
     }
+
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         throw new NotImplementedException();

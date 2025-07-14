@@ -106,7 +106,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             return null;
         if (value is string stringValue)
         {
-            if (string.IsNullOrEmpty(stringValue))
+            if (string.IsNullOrEmpty(stringValue) && cimType != CimType.String)
                 return null;
             try
             {
