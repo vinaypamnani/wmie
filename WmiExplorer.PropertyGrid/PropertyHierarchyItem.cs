@@ -264,7 +264,7 @@ public partial class PropertyHierarchyItem : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[PropertyHierarchyItem] Error loading child properties: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[PropertyHierarchyItem] Error loading child properties: {ex.Message}\n{ex.StackTrace}");
         }
     }
 

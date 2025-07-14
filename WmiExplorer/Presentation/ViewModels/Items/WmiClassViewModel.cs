@@ -283,7 +283,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     }
 
     [RelayCommand]
-    private async Task CreateInstance()
+    private void CreateInstance()
     {
         try
         {
@@ -299,18 +299,12 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 mainWindow,
                 newInstance,
                 _messengerService,
-                $"Create Instance: {className}");
+                $"Create Instance: {className}",
+                _wmiService,
+                true);
 
             if (result != null)
             {
-                // Commit the new instance to WMI
-                await _wmiService.SaveInstanceAsync(newInstance);
-                newInstance = await _wmiService.RefreshInstanceAsync(newInstance);
-                if (newInstance == null)
-                {
-                    PublishErrorState("Failed to refresh new instance. Reload the instances to see the new instance.");
-                    return;
-                }
 
                 // Wrap in WmiInstance and WmiInstanceViewModel
                 var wmiInstance = new WmiInstance(newInstance);

@@ -45,7 +45,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     [ObservableProperty]
     private object? _value;
 
-    private readonly IWmiService? _wmiService;
+    private readonly IWmiService _wmiService;
 
     // Remove the manual command property and initialization
     // public IAsyncRelayCommand<object?> EditObjectCommand { get; }
@@ -54,8 +54,9 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         : base(messengerService ?? throw new ArgumentNullException(nameof(messengerService)))
     {
         _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
+        _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _value = propertyData.Value;
-        _wmiService = wmiService;
+
         _managementScope = managementScope;
         _isMethodParameter = isMethodParameter;
 
@@ -194,7 +195,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         if (_propertyData.Value is ManagementBaseObject currentObject)
         {
             var window = System.Windows.Application.Current.MainWindow;
-            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, currentObject, _messengerService, $"Edit {TargetClassName}");
+            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, currentObject, _messengerService, $"Edit {TargetClassName}", _wmiService, false);
             if (result != null)
             {
                 if (_isMethodParameter)

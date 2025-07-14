@@ -238,26 +238,22 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                     mainWindow,
                     managementObject,
                     _messengerService,
-                    $"Edit Instance: {_wmiInstance.ClassPath?.ClassName ?? "Unknown"}");
+                    $"Edit Instance: {_wmiInstance.ClassPath?.ClassName ?? "Unknown"}",
+                    _wmiService,
+                    true);
 
                 if (result != null)
                 {
                     // Debug: Log property values before saving
                     // LogPropertyValues("BEFORE PUT", _wmiInstance.ActualObject);
-
-                    // Validate the property changes first by attempting to save
                     try
                     {
-                        _wmiService.SaveInstanceAsync(_wmiInstance.ActualObject, System.Management.PutType.UpdateOnly);
 
                         // Debug: Log property values after successful save
                         // LogPropertyValues("AFTER PUT", _wmiInstance.ActualObject);
 
-                        // Refresh the instance data
-                        TryGetInstance();
-
                         // Refresh propertygrid
-                        _selectionManager.PropertyGrid.RefreshPropertyGrid();
+                        _selectionManager.PropertyGrid.RefreshPropertyGrid(); 
 
                         PublishSuccessState($"Properties updated for instance: {InstanceName}");
                         Log.Information("Properties updated for instance: {InstanceName}", InstanceName);

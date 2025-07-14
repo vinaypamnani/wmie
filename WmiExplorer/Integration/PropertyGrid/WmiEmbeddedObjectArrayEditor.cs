@@ -160,7 +160,7 @@ public class WmiEmbeddedObjectArrayEditor : WmiPropertyEditorBase
                     if (newObj != null)
                     {
                         var owner = Application.Current.MainWindow;
-                        var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, newObj, _messengerService, $"Add {className}");
+                        var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, newObj, _messengerService, $"Add {className}", _wmiService, false);
                         if (edited != null)
                         {
                             items.Add(edited);
@@ -200,7 +200,7 @@ public class WmiEmbeddedObjectArrayEditor : WmiPropertyEditorBase
             var owner = Application.Current.MainWindow;
             var displayName = _propertyValueConverter.ConvertToString(mbo, typeof(System.Management.ManagementBaseObject));
             var dialogTitle = title ?? $"Edit object: {displayName}";
-            var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, mbo, _messengerService, dialogTitle);
+            var edited = Presentation.Views.Dialogs.PropertyEditorDialog.ShowEditor(owner, mbo, _messengerService, dialogTitle, _wmiService, false);
             return edited;
         }
         catch (Exception ex)

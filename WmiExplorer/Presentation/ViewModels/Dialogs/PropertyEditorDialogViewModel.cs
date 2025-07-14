@@ -44,17 +44,20 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     private string _title = "Edit Properties";
 
     private readonly Window _window;
+    private readonly IWmiService? _wmiService;
+    private readonly bool _saveBeforeReturn;
 
     /// <summary>
     /// Initializes the dialog for editing a raw ManagementBaseObject (instance editing).
     /// </summary>
-    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, IMessengerService messengerService, string? title, int dialogId)
+    public PropertyEditorDialogViewModel(Window window, ManagementBaseObject managementObject, IMessengerService messengerService, string? title, int dialogId, IWmiService? wmiService = null, bool saveBeforeReturn = false)
         : base(messengerService)
     {
         _dialogId = dialogId;
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _originalObject = managementObject ?? throw new ArgumentNullException(nameof(managementObject));
-
+        _wmiService = wmiService;
+        _saveBeforeReturn = saveBeforeReturn;
         Title = title ?? _title;
         ObjectTypeName = _originalObject.ClassPath?.ClassName ?? "Unknown";
 
@@ -161,7 +164,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     }
 
     [RelayCommand]
-    private void Ok()
+    private async Task Save()
     {
         try
         {
@@ -179,6 +182,12 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
             if (_originalObject != null && _clonedObject != null)
             {
                 CopyPropertiesFromCloneToOriginal();
+                // Save if requested and object is ManagementObject
+                if (_saveBeforeReturn && _wmiService != null && _originalObject is ManagementObject mgmtObj)
+                {
+                    Log.Debug("Saving instance before return: {Path}", mgmtObj.Path?.Path!);
+                    await _wmiService.SaveInstanceAsync(mgmtObj);
+                }
                 Result = _originalObject;
             }
 

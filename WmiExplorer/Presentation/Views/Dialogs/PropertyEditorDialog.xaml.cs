@@ -14,10 +14,10 @@ public partial class PropertyEditorDialog : Window
     /// <summary>
     /// Creates a PropertyEditorDialog for editing instance properties.
     /// </summary>
-    public PropertyEditorDialog(ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null)
+    public PropertyEditorDialog(ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null, IWmiService? wmiService = null, bool saveBeforeReturn = false)
     {
         InitializeComponent();
-        ViewModel = new PropertyEditorDialogViewModel(this, managementObject, messengerService, title, PropertyGridControl.DialogId);
+        ViewModel = new PropertyEditorDialogViewModel(this, managementObject, messengerService, title, PropertyGridControl.DialogId, wmiService, saveBeforeReturn);
         DataContext = ViewModel;
     }
 
@@ -33,9 +33,9 @@ public partial class PropertyEditorDialog : Window
     /// </summary>
     /// <param name="owner">The owner window</param>
     /// <returns>The edited ManagementBaseObject if OK was clicked, null if cancelled</returns>
-    public static ManagementBaseObject? ShowEditor(Window owner, ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null)
+    public static ManagementBaseObject? ShowEditor(Window owner, ManagementBaseObject managementObject, IMessengerService messengerService, string? title = null, IWmiService? wmiService = null, bool saveBeforeReturn = false)
     {
-        var dialog = new PropertyEditorDialog(managementObject, messengerService, title)
+        var dialog = new PropertyEditorDialog(managementObject, messengerService, title, wmiService, saveBeforeReturn)
         {
             Owner = owner
         };

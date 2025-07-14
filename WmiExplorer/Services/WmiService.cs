@@ -320,16 +320,31 @@ public class WmiService : IWmiService, IDisposable
             throw new ArgumentNullException(nameof(instance));
 
         var options = new PutOptions { Type = putType };
-        // Always use the synchronous Put path for reliability:
+        // Always use the synchronous Put for reliability:
         // - Async Put does not guarantee the new instance is immediately available for Get()
         // - Some WMI providers delay visibility or do not update the in-memory object after async Put
         // - This ensures the returned object is fully loaded and ready for use
         return await ExecuteSyncWithTimeout(() =>
         {
-            var path = instance.Put(options); // Synchronous Put returns the new ManagementPath
-            var updated = new ManagementObject(instance.Scope, path, null);
-            // Immediately refresh to get all properties (including system-generated keys)
-            return RefreshInstanceSync(updated, cancellationToken);
+            try
+            {
+                var path = instance.Put(options); // Synchronous Put returns the new ManagementPath
+                var updated = new ManagementObject(instance.Scope, path, null);
+                Log.Debug("Saved instance with path: {Path}", path?.Path!);
+                // Immediately refresh to get all properties (including system-generated keys)
+                return RefreshInstanceSync(updated, cancellationToken);
+            }
+            catch (ManagementException mex)
+            {
+                var errorMessage = ExtractWmiErrorMessage(mex);
+                Log.Error(mex, "Error saving WMI instance: {ErrorMessage}", errorMessage);
+                throw new ManagementException(errorMessage, mex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Unexpected error saving WMI instance");
+                throw;
+            }
         }, cancellationToken);
     }
 
@@ -974,7 +989,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error refreshing WMI class");
+            Log.Error(ex, "Error refreshing WMI class {ClassName}", managementClass.Path?.ClassName ?? "Unknown");
             return null;
         }
     }
@@ -992,7 +1007,7 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error refreshing WMI instance");
+            Log.Error(ex, "Error refreshing WMI instance {Path}", instance.Path?.Path ?? "Unknown");
             return null;
         }
     }

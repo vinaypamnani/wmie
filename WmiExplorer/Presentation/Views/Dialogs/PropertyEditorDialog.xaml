@@ -17,7 +17,7 @@
         mc:Ignorable="d">
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
-        <KeyBinding Key="Enter" Command="{Binding OkCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding SaveCommand}" />
     </Window.InputBindings>
     <Border Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
@@ -90,7 +90,7 @@
                     BorderThickness="0,1,0,0">
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                     <Button Margin="0,0,8,0" Command="{Binding CancelCommand}" Content="Cancel" />
-                    <Button Command="{Binding OkCommand}" Content="Save" IsDefault="True" />
+                    <Button Command="{Binding SaveCommand}" Content="Save" IsDefault="True" />
                 </StackPanel>
             </Border>
 
