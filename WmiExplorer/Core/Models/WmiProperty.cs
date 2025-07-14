@@ -117,13 +117,6 @@ public class WmiProperty
             // if (isKey)
             //     return true; // keys are always read-only
 
-            var isDynamic = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "dynamic") is bool dynamicBool && dynamicBool;
-            var hasProvider = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "provider") != null;
-
-            // Special case for dynamic/provider-backed properties with Provider - override qualifiers
-            if (isDynamic && hasProvider)
-                return false; // treat as writable
-
             var writeQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "write");
             if (writeQualifier is bool writeBool)
                 return !writeBool;
@@ -131,6 +124,13 @@ public class WmiProperty
             var readQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "read");
             if (readQualifier is bool readBool && readBool)
                 return true;
+
+            var isDynamic = GetQualifierFromClass(_parentClass, "dynamic") is bool dynamicBool && dynamicBool;
+            var hasProvider = GetQualifierFromClass(_parentClass, "provider") != null;
+
+            // Special case for dynamic/provider-backed properties with Provider
+            if (isDynamic && hasProvider)
+                return false; // treat as writable
 
             // Default: read-only
             return true;
@@ -177,6 +177,70 @@ public class WmiProperty
     [Category("Property")]
     public object Value => _propertyData.Value;
 
+    /// <summary>
+    /// Gets all qualifiers for the WMI class itself (not property qualifiers).
+    /// </summary>
+    /// <param name="parentClass">The ManagementClass instance.</param>
+    /// <returns>A dictionary of qualifier names and their values, or an empty dictionary if none.</returns>
+    public static object? GetQualifierFromClass(ManagementClass? parentClass, string qualifierName)
+    {
+        if (parentClass == null || parentClass.Qualifiers == null)
+            return null;
+
+        // Check qualifier in the current class
+        try
+        {
+            foreach (QualifierData qualifier in parentClass.Qualifiers)
+            {
+                if (qualifier.Name.Equals(qualifierName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return qualifier.Value;
+                }
+            }
+        }
+        catch
+        {
+            // Ignore errors, just return null
+        }
+
+        // Walk through derivation chain if present
+        try
+        {
+            var derivationObj = parentClass["Derivation"];
+            if (derivationObj is string[] derivationArray && derivationArray.Length > 0)
+            {
+                foreach (var className in derivationArray)
+                {
+                    try
+                    {
+                        // Use parentClass.Scope to preserve connection/auth context
+                        var objectOptions = new ObjectGetOptions(null, TimeSpan.FromSeconds(30), true);
+                        var derivedClass = new ManagementClass(parentClass.Scope, new ManagementPath(className), objectOptions);
+                        if (derivedClass.Qualifiers != null)
+                        {
+                            foreach (QualifierData qualifier in derivedClass.Qualifiers)
+                            {
+                                if (qualifier.Name.Equals(qualifierName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    return qualifier.Value;
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore errors for individual derived classes
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Ignore errors, just fallback
+        }
+        return null;
+    }
+
     public override string ToString() => $"Property: {Name} ({Type})";
 
     /// <summary>
@@ -207,7 +271,7 @@ public class WmiProperty
     /// <summary>
     /// Helper to get a qualifier value from the class definition using UseAmendedQualifiers.
     /// </summary>
-    private static object? GetQualifierFromClass(PropertyData propertyData, ManagementClass? parentClass, string qualifierName)
+    private static object? GetPropertyQualifierFromClass(PropertyData propertyData, ManagementClass? parentClass, string qualifierName)
     {
         if (parentClass == null)
             return null;
@@ -230,6 +294,45 @@ public class WmiProperty
         {
             // Ignore errors, just fallback
         }
+
+        // Walk through derivation chain if present
+        try
+        {
+            var derivationClasses = parentClass.Derivation;
+            if (derivationClasses != null && derivationClasses.Count > 0)
+            {
+                foreach (var className in derivationClasses)
+                {
+                    try
+                    {
+                        var objectOptions = new ObjectGetOptions(null, TimeSpan.FromSeconds(30), true);
+                        var derivedClass = new ManagementClass(parentClass.Scope, new ManagementPath(className), objectOptions)
+                        {
+                            Options = { UseAmendedQualifiers = true }
+                        };
+                        var derivedProperty = derivedClass.Properties[propertyData.Name];
+                        if (derivedProperty != null && derivedProperty.Qualifiers != null)
+                        {
+                            foreach (QualifierData qualifier in derivedProperty.Qualifiers)
+                            {
+                                if (qualifier.Name.Equals(qualifierName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    return qualifier.Value;
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore errors for individual derived classes
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Ignore errors, just fallback
+        }
         return null;
     }
 
@@ -241,7 +344,12 @@ public class WmiProperty
         var instanceValue = GetQualifierValue(propertyData, qualifierName);
         if (instanceValue != null)
             return instanceValue;
-        return GetQualifierFromClass(propertyData, parentClass, qualifierName);
+
+        var classValue = GetPropertyQualifierFromClass(propertyData, parentClass, qualifierName);
+        if (classValue != null)
+            return classValue;
+
+        return null;
     }
 
     /// <summary>
