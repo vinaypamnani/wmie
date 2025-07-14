@@ -66,8 +66,16 @@ public static class ArrayEditor
             for (int i = 0; i < array.Length; i++)
             {
                 var item = array.GetValue(i);
-                values.Add(item?.ToString() ?? "");
+                var str = item?.ToString() ?? "";
+                // Enclose in quotes if contains comma or semicolon
+                if (str.Contains(",") || str.Contains(";"))
+                {
+                    // Escape quotes by doubling them
+                    str = '"' + str.Replace("\"", "\"\"") + '"';
+                }
+                values.Add(str);
             }
+            // Join with comma and space to ensure proper spacing after quoted elements
             return string.Join(", ", values);
         }
         return string.Empty;
