@@ -38,7 +38,7 @@
 
                 <!--  Load additional control specific styles  -->
                 <ResourceDictionary Source="Presentation/Styles/AvalonEditCompletionStyles.xaml" />
-                <ResourceDictionary Source="Presentation/Controls/ColorPicker/ColorPickerTheme.xaml" />
+                <ResourceDictionary Source="Presentation/Controls/ColorPicker/ColorPicker.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGrid.xaml" />
 
             </ResourceDictionary.MergedDictionaries>

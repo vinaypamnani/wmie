@@ -10,7 +10,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:ColorPicker}">
-                    <Grid>
+                    <Grid Focusable="False">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -55,7 +55,7 @@
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                            Text="Standard Colors" />
-                                                <ItemsControl ItemsSource="{Binding StandardColors, RelativeSource={RelativeSource TemplatedParent}}">
+                                                <ItemsControl Focusable="False" ItemsSource="{Binding StandardColors, RelativeSource={RelativeSource TemplatedParent}}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <UniformGrid Columns="11" Rows="1" />
@@ -75,7 +75,7 @@
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource PrimaryForegroundBrush}"
                                                            Text="Available Colors" />
-                                                <ItemsControl ItemsSource="{Binding AvailableColors, RelativeSource={RelativeSource TemplatedParent}}">
+                                                <ItemsControl Focusable="False" ItemsSource="{Binding AvailableColors, RelativeSource={RelativeSource TemplatedParent}}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <UniformGrid Columns="11" />
@@ -223,7 +223,10 @@
                                                    Text="Recent Colors"
                                                    Visibility="{Binding ShowRecentColors, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                                        <ItemsControl Grid.Row="1" ItemsSource="{Binding RecentColors, RelativeSource={RelativeSource TemplatedParent}}" Visibility="{Binding ShowRecentColors, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ItemsControl Grid.Row="1"
+                                                      Focusable="False"
+                                                      ItemsSource="{Binding RecentColors, RelativeSource={RelativeSource TemplatedParent}}"
+                                                      Visibility="{Binding ShowRecentColors, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
                                                     <UniformGrid Columns="11" />

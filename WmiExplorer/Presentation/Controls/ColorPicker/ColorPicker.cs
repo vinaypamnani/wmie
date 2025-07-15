@@ -88,6 +88,8 @@ public partial class ColorPicker : Control
     static ColorPicker()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(ColorPicker), new FrameworkPropertyMetadata(typeof(ColorPicker)));
+        FocusableProperty.OverrideMetadata(typeof(ColorPicker), new FrameworkPropertyMetadata(false));
+        IsTabStopProperty.OverrideMetadata(typeof(ColorPicker), new FrameworkPropertyMetadata(false));
     }
 
     /// <summary>
@@ -331,15 +333,15 @@ public partial class ColorPicker : Control
         }
     }
 
-    protected override void OnGotFocus(RoutedEventArgs e)
-    {
-        base.OnGotFocus(e);
-        if (_colorButton != null && _colorButton.Focusable)
-        {
-            _colorButton.Focus();
-            e.Handled = true;
-        }
-    }
+    // protected override void OnGotFocus(RoutedEventArgs e)
+    // {
+    //     base.OnGotFocus(e);
+    //     if (_colorButton != null && _colorButton.Focusable)
+    //     {
+    //         _colorButton.Focus();
+    //         e.Handled = true;
+    //     }
+    // }
 
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
