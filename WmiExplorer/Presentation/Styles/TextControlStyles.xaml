@@ -49,10 +49,6 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
                 <Setter Property="BorderThickness" Value="0" />
             </Trigger>
-            <Trigger Property="IsFocused" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                <Setter Property="BorderThickness" Value="1" />
-            </Trigger>
         </Style.Triggers>
     </Style>
 
