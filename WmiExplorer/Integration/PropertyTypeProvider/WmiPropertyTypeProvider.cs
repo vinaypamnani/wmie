@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Management;
 using System.Reflection;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Providers;
 using WmiExplorer.Services;

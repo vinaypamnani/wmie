@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Management;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 /// <summary>
 /// Represents a WMI event watcher that can be started and stopped.

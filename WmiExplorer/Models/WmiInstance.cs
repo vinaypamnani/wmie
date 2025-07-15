@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Management;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 /// <summary>
 /// Model representing a WMI instance

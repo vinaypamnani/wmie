@@ -1,5 +1,5 @@
 using System.Windows;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Dialogs;
 using WmiExplorer.Services;
 

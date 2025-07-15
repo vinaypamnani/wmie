@@ -1,7 +1,7 @@
 using System.Collections.Specialized;
 using System.Management;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;

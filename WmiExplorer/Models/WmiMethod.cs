@@ -4,7 +4,7 @@ using System.Management;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.PropertyGrid;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 /// <summary>
 /// Thin wrapper for a WMI MethodData object

@@ -5,7 +5,7 @@ using System.Windows.Data;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 
 namespace WmiExplorer.Presentation.ViewModels.Watcher;
 

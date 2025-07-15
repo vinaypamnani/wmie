@@ -161,7 +161,7 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
             {
                 try
                 {
-                    var wmiProp = new WmiExplorer.Core.Models.WmiProperty(prop, mgmtClass);
+                    var wmiProp = new WmiExplorer.Models.WmiProperty(prop, mgmtClass);
                     if (wmiProp.IsKey)
                     {
                         keyProps.Add($"{prop.Name}={prop.Value}");

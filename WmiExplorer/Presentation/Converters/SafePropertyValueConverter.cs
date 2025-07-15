@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Windows.Data;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 
 namespace WmiExplorer.Presentation.Converters;
 

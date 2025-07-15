@@ -2,7 +2,7 @@ using System.Collections;
 using System.ComponentModel;
 using WmiExplorer.PropertyGrid;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 public class WmiParameter
 {

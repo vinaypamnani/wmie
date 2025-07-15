@@ -3,7 +3,7 @@ using System.Management;
 using WmiExplorer.PropertyGrid;
 using WmiExplorer.Common.Logging;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 /// <summary>
 /// Represents a WMI event received from a watcher.

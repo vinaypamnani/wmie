@@ -7,7 +7,7 @@ using System.Windows.Data;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 

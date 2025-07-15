@@ -5,7 +5,7 @@ using System.ComponentModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Presentation.ViewModels.Watcher;
@@ -383,7 +383,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     {
         // Set initial default watcher name to "All"
         SelectedWatcherName = "All";
-        
+
         // When watchers change, reset selection if it becomes invalid or null
         _watcherManager.WatchersChanged += (s, e) =>
         {

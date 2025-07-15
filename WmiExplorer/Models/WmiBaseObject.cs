@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Management;
 using WmiExplorer.PropertyGrid;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 /// <summary>
 /// Model representing a WMI instance

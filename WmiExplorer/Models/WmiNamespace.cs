@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Management;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 /// <summary>
 /// Minimal container for a WMI namespace object

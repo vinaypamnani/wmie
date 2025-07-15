@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Presentation.Views.Dialogs;

@@ -5,7 +5,7 @@ using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
 

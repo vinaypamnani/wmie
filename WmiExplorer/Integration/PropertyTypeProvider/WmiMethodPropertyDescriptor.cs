@@ -1,4 +1,4 @@
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;

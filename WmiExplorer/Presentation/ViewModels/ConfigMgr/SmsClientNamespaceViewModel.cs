@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Management;
 using System.Windows.Input;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;

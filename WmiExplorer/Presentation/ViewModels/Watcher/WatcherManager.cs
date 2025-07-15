@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Watcher;
@@ -209,11 +209,11 @@ public class WatcherManager : DisposableObservableObject
     private void UpdateWatcherNames()
     {
         var names = _watchers.Select(w => w.Name).Distinct().OrderBy(n => n).ToList();
-        
+
         // Build the new collection with "All" first, then watcher names
         var newNames = new List<string> { "All" };
         newNames.AddRange(names);
-        
+
         // Update collection efficiently to preserve ComboBox selection
         // Remove items not in new list
         for (int i = WatcherNames.Count - 1; i >= 0; i--)
@@ -221,14 +221,14 @@ public class WatcherManager : DisposableObservableObject
             if (!newNames.Contains(WatcherNames[i]))
                 WatcherNames.RemoveAt(i);
         }
-        
+
         // Add items that are in new list but not in current collection
         foreach (var name in newNames)
         {
             if (!WatcherNames.Contains(name))
                 WatcherNames.Add(name);
         }
-        
+
         // Ensure "All" is first if it's not already
         if (WatcherNames.Count > 0 && WatcherNames[0] != "All")
         {

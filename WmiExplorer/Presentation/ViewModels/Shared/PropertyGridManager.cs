@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Watcher;
 

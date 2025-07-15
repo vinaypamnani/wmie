@@ -1,7 +1,7 @@
 using System.Management;
 using WmiExplorer.Common.Enums;
 
-namespace WmiExplorer.Core.Models;
+namespace WmiExplorer.Models;
 
 /// <summary>
 /// Represents a unified search result for WMI search (Class, Method, or Property).

@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 
 namespace WmiExplorer.Presentation.ViewModels.Watcher;
 

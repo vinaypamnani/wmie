@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
-using WmiExplorer.Core.Models;
+using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
 
