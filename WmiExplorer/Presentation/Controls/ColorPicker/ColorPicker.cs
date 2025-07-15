@@ -341,6 +341,16 @@ public partial class ColorPicker : Control
         }
     }
 
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        base.OnPreviewKeyDown(e);
+        if (e.Key == Key.Escape && _colorPickerPopup != null && _colorPickerPopup.IsOpen)
+        {
+            CancelButton_Click(this, new RoutedEventArgs());
+            e.Handled = true;
+        }
+    }
+
     /// <summary>
     /// Raises the PropertyChanged event for multiple properties.
     /// </summary>
