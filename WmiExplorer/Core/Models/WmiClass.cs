@@ -30,7 +30,7 @@ public class WmiClass : IDisposable
     [Category("Class")]
     public string ClassName => _actualClass["__Class"]?.ToString() ?? string.Empty;
 
-    [Browsable(false)]
+    [Category("Class")]
     public ManagementPath ClassPath => _actualClass.ClassPath;
 
     [Browsable(false)]
@@ -55,6 +55,10 @@ public class WmiClass : IDisposable
 
     [Category("Methods")]
     public List<WmiMethod> Methods { get; }
+
+    [Category("Class")]
+    [Browsable(false)]
+    public ObjectGetOptions Options => _actualClass.Options;
 
     [Category("Class")]
     public ManagementPath Path => _actualClass.Path;
