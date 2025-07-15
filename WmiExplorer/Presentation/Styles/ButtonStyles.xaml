@@ -1,4 +1,5 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
     <!--  Button  -->
     <Style TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
@@ -191,8 +192,24 @@
         </Style.Triggers>
     </Style>
 
+    <!--  Invisible RepeatButton Style for Slider  -->
+    <Style x:Key="InvisibleRepeatButtonStyle" TargetType="RepeatButton">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Transparent" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--  Custom Slider Style  -->
     <Style TargetType="Slider">
+        <Setter Property="SmallChange" Value="1" />
+        <Setter Property="LargeChange" Value="10" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
@@ -207,13 +224,7 @@
                                 CornerRadius="2" />
                         <Track x:Name="PART_Track" VerticalAlignment="Center" IsDirectionReversed="False">
                             <Track.DecreaseRepeatButton>
-                                <RepeatButton x:Name="PART_DecreaseRepeatButton" Command="Slider.DecreaseLarge" Focusable="False">
-                                    <RepeatButton.Template>
-                                        <ControlTemplate TargetType="RepeatButton">
-                                            <Border x:Name="DecreaseButton" Background="Transparent" BorderThickness="0" />
-                                        </ControlTemplate>
-                                    </RepeatButton.Template>
-                                </RepeatButton>
+                                <RepeatButton x:Name="PART_DecreaseRepeatButton" Command="Slider.DecreaseLarge" Style="{StaticResource InvisibleRepeatButtonStyle}" />
                             </Track.DecreaseRepeatButton>
                             <Track.Thumb>
                                 <Thumb x:Name="Thumb" Focusable="False">
@@ -222,8 +233,8 @@
                                             <Ellipse x:Name="ThumbCircle"
                                                      Width="16"
                                                      Height="16"
-                                                     Fill="{DynamicResource PrimaryBackgroundBrush}"
-                                                     Stroke="{DynamicResource PrimaryAccentBrush}"
+                                                     Fill="{DynamicResource SecondaryAccentBrush}"
+                                                     Stroke="{DynamicResource SecondaryAccentBrush}"
                                                      StrokeThickness="2" />
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
@@ -235,13 +246,7 @@
                                 </Thumb>
                             </Track.Thumb>
                             <Track.IncreaseRepeatButton>
-                                <RepeatButton x:Name="PART_IncreaseRepeatButton" Command="Slider.IncreaseLarge" Focusable="False">
-                                    <RepeatButton.Template>
-                                        <ControlTemplate TargetType="RepeatButton">
-                                            <Border x:Name="IncreaseButton" Background="Transparent" BorderThickness="0" />
-                                        </ControlTemplate>
-                                    </RepeatButton.Template>
-                                </RepeatButton>
+                                <RepeatButton x:Name="PART_IncreaseRepeatButton" Command="Slider.IncreaseLarge" Style="{StaticResource InvisibleRepeatButtonStyle}" />
                             </Track.IncreaseRepeatButton>
                         </Track>
                     </Grid>

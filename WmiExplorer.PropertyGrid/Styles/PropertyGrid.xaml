@@ -65,8 +65,10 @@
                                        Text="Name Width:" />
                             <Slider Width="80"
                                     VerticalAlignment="Center"
-                                    Maximum="400"
+                                    Maximum="500"
                                     Minimum="100"
+                                    LargeChange="10"
+                                    SmallChange="10"
                                     ToolTip="Adjust property name column width"
                                     Value="{Binding NameColumnWidth, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                             <TextBlock Margin="4,0,0,0"
