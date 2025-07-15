@@ -96,7 +96,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Border x:Name="Bd"
-                            Margin="0,0,4,-1"
+                            Margin="0,0,4,0"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
@@ -122,6 +122,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
     </Style>
 
     <!--  ToggleButton Style for Vertical Expander with Chevron Arrows  -->
@@ -205,6 +206,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CozyFocusVisualStyle}" />
     </Style>
 
     <!--  Expander - Collapsible panel style with vertical header  -->

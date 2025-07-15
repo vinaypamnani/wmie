@@ -9,6 +9,7 @@
         <Setter Property="Width" Value="80" />
         <Setter Property="Padding" Value="{StaticResource PaddingHorizontalLarge}" />
         <Setter Property="Margin" Value="{StaticResource MarginSmall}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -32,11 +33,7 @@
                             <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                         </Trigger>
-                        <!--  Highlight button when focused for better keyboard accessibility  -->
-                        <Trigger Property="IsFocused" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter Property="BorderThickness" Value="1" />
-                        </Trigger>
+                        <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -50,44 +47,37 @@
         <Setter Property="Padding" Value="{DynamicResource PaddingHorizontalMedium}" />
         <Setter Property="Margin" Value="{DynamicResource MarginHorizontalMedium}" />
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CozyFocusVisualStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
-                    <!--  Main border around the entire control, transparent by default  -->
-                    <Border x:Name="MainBorder"
-                            Padding="{StaticResource PaddingHorizontalSmall}"
-                            Background="Transparent"
-                            BorderBrush="Transparent"
-                            BorderThickness="1"
-                            CornerRadius="0">
-                        <DockPanel LastChildFill="True">
-                            <!--  Modern radio button: smaller circle, subtle shadow, clean dot  -->
-                            <Border x:Name="Border"
-                                    Width="16"
-                                    Height="16"
-                                    Margin="{DynamicResource MarginRightSmall}"
-                                    VerticalAlignment="Center"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="8">
-                                <Ellipse x:Name="RadioDot"
-                                         Width="8"
-                                         Height="8"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"
-                                         Fill="{DynamicResource PrimaryAccentBrush}"
-                                         Opacity="0" />
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="3"
-                                                      Opacity="0.15"
-                                                      ShadowDepth="0"
-                                                      Color="{DynamicResource BorderColor}" />
-                                </Border.Effect>
-                            </Border>
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </DockPanel>
-                    </Border>
+                    <DockPanel LastChildFill="True">
+                        <!--  Modern radio button: smaller circle, subtle shadow, clean dot  -->
+                        <Border x:Name="Border"
+                                Width="16"
+                                Height="16"
+                                Margin="{DynamicResource MarginRightSmall}"
+                                VerticalAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <Ellipse x:Name="RadioDot"
+                                     Width="8"
+                                     Height="8"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     Fill="{DynamicResource PrimaryAccentBrush}"
+                                     Opacity="0" />
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="3"
+                                                  Opacity="0.15"
+                                                  ShadowDepth="0"
+                                                  Color="{DynamicResource BorderColor}" />
+                            </Border.Effect>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </DockPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="RadioDot" Property="Opacity" Value="1" />
@@ -99,10 +89,7 @@
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                         </Trigger>
-                        <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="MainBorder" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter TargetName="MainBorder" Property="BorderThickness" Value="1" />
-                        </Trigger>
+                        <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.5" />
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
@@ -124,42 +111,35 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CozyFocusVisualStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <!--  Main border around the entire control, transparent by default  -->
-                    <Border x:Name="MainBorder"
-                            Padding="{StaticResource PaddingHorizontalSmall}"
-                            Background="Transparent"
-                            BorderBrush="Transparent"
-                            BorderThickness="1"
-                            CornerRadius="0">
-                        <Grid VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <!--  Toggle Track  -->
-                            <Border x:Name="SwitchTrack"
-                                    Grid.Column="0"
-                                    Width="32"
-                                    Height="16"
-                                    Background="{DynamicResource TertiaryBackgroundBrush}"
-                                    BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="8" />
-                            <!--  Toggle Thumb  -->
-                            <Ellipse x:Name="SwitchThumb"
-                                     Grid.Column="0"
-                                     Width="12"
-                                     Height="12"
-                                     Margin="3"
-                                     HorizontalAlignment="Left"
-                                     VerticalAlignment="Center"
-                                     Fill="{DynamicResource TertiaryForegroundBrush}" />
-                            <ContentPresenter Grid.Column="1" Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" />
-                        </Grid>
-                    </Border>
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <!--  Toggle Track  -->
+                        <Border x:Name="SwitchTrack"
+                                Grid.Column="0"
+                                Width="32"
+                                Height="16"
+                                Background="{DynamicResource TertiaryBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8" />
+                        <!--  Toggle Thumb  -->
+                        <Ellipse x:Name="SwitchThumb"
+                                 Grid.Column="0"
+                                 Width="12"
+                                 Height="12"
+                                 Margin="3"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center"
+                                 Fill="{DynamicResource TertiaryForegroundBrush}" />
+                        <ContentPresenter Grid.Column="1" Margin="{StaticResource MarginLeftSmall}" VerticalAlignment="Center" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="SwitchTrack" Property="Background" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
@@ -177,11 +157,7 @@
                             <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                             <Setter Property="Opacity" Value="0.5" />
                         </Trigger>
-                        <!--  Highlight button when focused for better keyboard accessibility  -->
-                        <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="MainBorder" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter TargetName="MainBorder" Property="BorderThickness" Value="1" />
-                        </Trigger>
+                        <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -211,11 +187,73 @@
             <Trigger Property="IsPressed" Value="True">
                 <Setter Property="Foreground" Value="#005A9E" />
             </Trigger>
-            <Trigger Property="IsFocused" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                <Setter Property="BorderThickness" Value="2" />
-            </Trigger>
+            <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
         </Style.Triggers>
+    </Style>
+
+    <!--  Custom Slider Style  -->
+    <Style TargetType="Slider">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid>
+                        <Border x:Name="TrackBackground"
+                                Height="4"
+                                Margin="0,8,0,8"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource SecondaryBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="2" />
+                        <Track x:Name="PART_Track" VerticalAlignment="Center" IsDirectionReversed="False">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton x:Name="PART_DecreaseRepeatButton" Command="Slider.DecreaseLarge" Focusable="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border x:Name="DecreaseButton" Background="Transparent" BorderThickness="0" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="Thumb" Focusable="False">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Ellipse x:Name="ThumbCircle"
+                                                     Width="16"
+                                                     Height="16"
+                                                     Fill="{DynamicResource PrimaryBackgroundBrush}"
+                                                     Stroke="{DynamicResource PrimaryAccentBrush}"
+                                                     StrokeThickness="2" />
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="ThumbCircle" Property="Stroke" Value="{DynamicResource PrimaryAccentBrush}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton x:Name="PART_IncreaseRepeatButton" Command="Slider.IncreaseLarge" Focusable="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border x:Name="IncreaseButton" Background="Transparent" BorderThickness="0" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseRepeatButton>
+                        </Track>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="TrackBackground" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="TrackBackground" Property="BorderThickness" Value="2" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
 </ResourceDictionary>

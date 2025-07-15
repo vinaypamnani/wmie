@@ -6,6 +6,7 @@
 
     <!--  Button Style for color preview  -->
     <Style x:Key="ColorPickerButtonStyle" TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -23,10 +24,6 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Border" Property="Opacity" Value="0.5" />
                         </Trigger>
-                        <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
-                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -41,6 +38,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="ToolTip" Value="{Binding Converter={StaticResource ColorToNameConverter}}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CozyFocusVisualStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -78,10 +76,6 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Border" Property="Opacity" Value="0.5" />
                         </Trigger>
-                        <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
-                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -101,6 +95,7 @@
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="Margin" Value="0,0,4,0" />
         <Setter Property="Template">
@@ -121,10 +116,6 @@
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
-                        </Trigger>
-                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -196,6 +187,6 @@
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
-        </Setter>        
+        </Setter>
     </Style>
 </ResourceDictionary>

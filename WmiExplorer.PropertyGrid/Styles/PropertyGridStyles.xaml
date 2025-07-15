@@ -106,7 +106,7 @@
                             <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
                         </DataTrigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridFocusedElementBrush}" />
                             <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -222,7 +222,7 @@
                             <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
                         </MultiDataTrigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridFocusedElementBrush}" />
                             <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -444,7 +444,7 @@
                             <Setter TargetName="PART_Root" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="PART_Root" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
+                            <Setter TargetName="PART_Root" Property="BorderBrush" Value="{DynamicResource PropertyGridFocusedElementBrush}" />
                             <Setter TargetName="PART_Root" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -460,85 +460,6 @@
                 <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
             </Style>
         </Style.Resources>
-    </Style>
-
-    <!--  Slider RepeatButton Style (must be defined before Slider style)  -->
-    <Style x:Key="SliderRepeatButtonStyle" TargetType="RepeatButton">
-        <Setter Property="OverridesDefaultStyle" Value="True" />
-        <Setter Property="IsTabStop" Value="False" />
-        <Setter Property="Focusable" Value="False" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="RepeatButton">
-                    <Rectangle Fill="Transparent" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!--  Slider Thumb Style (must be defined before Slider style)  -->
-    <Style x:Key="SliderThumbStyle" TargetType="Thumb">
-        <Setter Property="Background" Value="{DynamicResource PropertyGridBorderBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Height" Value="14" />
-        <Setter Property="Width" Value="14" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Thumb">
-                    <Ellipse Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="{TemplateBinding BorderThickness}" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource PropertyGridHoverBackgroundBrush}" />
-            </Trigger>
-            <Trigger Property="IsDragging" Value="True">
-                <Setter Property="Background" Value="{DynamicResource PropertyGridSelectedBackgroundBrush}" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <!--  PropertyGrid Slider Style (references the above styles)  -->
-    <Style x:Key="PropertyGridSliderStyle" TargetType="Slider">
-        <Setter Property="Background" Value="{DynamicResource PropertyGridSecondaryBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PropertyGridBorderBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Slider">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <TickBar x:Name="TopTick" Grid.Row="0" Visibility="Collapsed" />
-                        <Border x:Name="TrackBackground"
-                                Grid.Row="1"
-                                Height="4"
-                                Margin="5,0"
-                                VerticalAlignment="Center"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="1" />
-                        <Track x:Name="PART_Track" Grid.Row="1">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource SliderRepeatButtonStyle}" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb x:Name="Thumb" Style="{StaticResource SliderThumbStyle}" />
-                            </Track.Thumb>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource SliderRepeatButtonStyle}" />
-                            </Track.IncreaseRepeatButton>
-                        </Track>
-                        <TickBar x:Name="BottomTick" Grid.Row="2" Visibility="Collapsed" />
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
 </ResourceDictionary>

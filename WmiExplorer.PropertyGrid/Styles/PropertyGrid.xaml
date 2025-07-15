@@ -67,7 +67,6 @@
                                     VerticalAlignment="Center"
                                     Maximum="400"
                                     Minimum="100"
-                                    Style="{StaticResource PropertyGridSliderStyle}"
                                     ToolTip="Adjust property name column width"
                                     Value="{Binding NameColumnWidth, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                             <TextBlock Margin="4,0,0,0"

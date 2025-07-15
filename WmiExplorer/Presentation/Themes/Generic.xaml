@@ -62,5 +62,6 @@
     <SolidColorBrush x:Key="PropertyGridDisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="PropertyGridHoverBackgroundBrush" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="PropertyGridKeyHighlightBrush" Color="{StaticResource BaseGreen}" />
+    <SolidColorBrush x:Key="PropertyGridFocusedElementBrush" Color="{StaticResource BaseGreen}" />
 
 </ResourceDictionary>
