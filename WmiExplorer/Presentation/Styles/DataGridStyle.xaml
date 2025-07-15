@@ -221,7 +221,7 @@
                                                    Margin="4,4,4,4"
                                                    Maximum="{TemplateBinding ScrollableHeight}"
                                                    Orientation="Vertical"
-                                                   Style="{DynamicResource ModernScrollBarStyle}"
+                                                   Style="{StaticResource ModernScrollBarStyle}"
                                                    ViewportSize="{TemplateBinding ViewportHeight}"
                                                    Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
                                                    Value="{TemplateBinding VerticalOffset}" />
@@ -232,7 +232,7 @@
                                                    Margin="4,0,4,4"
                                                    Maximum="{TemplateBinding ScrollableWidth}"
                                                    Orientation="Horizontal"
-                                                   Style="{DynamicResource ModernScrollBarStyle}"
+                                                   Style="{StaticResource ModernScrollBarStyle}"
                                                    ViewportSize="{TemplateBinding ViewportWidth}"
                                                    Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
                                                    Value="{TemplateBinding HorizontalOffset}" />

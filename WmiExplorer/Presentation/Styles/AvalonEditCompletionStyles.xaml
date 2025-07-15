@@ -50,7 +50,7 @@
                         <ScrollViewer x:Name="ScrollViewer"
                                       CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
                                       HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
-                                      Style="{DynamicResource ModernScrollViewerStyle}"
+                                      Style="{StaticResource ModernScrollViewerStyle}"
                                       VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
                             <ItemsPresenter />
                         </ScrollViewer>

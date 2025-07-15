@@ -33,7 +33,7 @@
                     <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
                             <!--  Event Class  -->
-                            <GroupBox Header="Event Type" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox Header="Event Type" Style="{StaticResource CompactGroupBoxStyle}">
                                 <ComboBox Width="180"
                                           Height="26"
                                           IsEditable="True"
@@ -43,7 +43,7 @@
                                           ToolTip="{StaticResource Tooltip.Watcher.EventType}" />
                             </GroupBox>
                             <!--  Event Property  -->
-                            <GroupBox Header="Event Property" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox Header="Event Property" Style="{StaticResource CompactGroupBoxStyle}">
                                 <ComboBox Width="180"
                                           Height="26"
                                           DisplayMemberPath="Display"
@@ -55,7 +55,7 @@
                                           ToolTip="{StaticResource Tooltip.Watcher.EventProperty}" />
                             </GroupBox>
                             <!--  Event Property Value  -->
-                            <GroupBox Header="Event Property Value [optional]" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox Header="Event Property Value [optional]" Style="{StaticResource CompactGroupBoxStyle}">
                                 <TextBox Width="180"
                                          Height="26"
                                          HorizontalContentAlignment="Left"
@@ -66,7 +66,7 @@
                                          ToolTip="{StaticResource Tooltip.Watcher.EventPropertyValue}" />
                             </GroupBox>
                             <!--  Within (sec)  -->
-                            <GroupBox Header="Within (sec)" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox Header="Within (sec)" Style="{StaticResource CompactGroupBoxStyle}">
                                 <TextBox Width="40"
                                          Height="26"
                                          HorizontalContentAlignment="Center"
@@ -79,7 +79,7 @@
                         </StackPanel>
                         <DockPanel LastChildFill="False">
                             <!--  Target Class  -->
-                            <GroupBox Header="Target Class (ISA)" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox Header="Target Class (ISA)" Style="{StaticResource CompactGroupBoxStyle}">
                                 <ComboBox Width="180"
                                           Height="26"
                                           VerticalContentAlignment="Center"
@@ -91,7 +91,7 @@
                                           ToolTip="{StaticResource Tooltip.Watcher.TargetClass}" />
                             </GroupBox>
                             <!--  Target Class Property  -->
-                            <GroupBox Header="Target Class Property [optional]" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox Header="Target Class Property [optional]" Style="{StaticResource CompactGroupBoxStyle}">
                                 <ComboBox Width="180"
                                           Height="26"
                                           VerticalContentAlignment="Center"
@@ -103,7 +103,7 @@
                                           ToolTip="{StaticResource Tooltip.Watcher.TargetClassProperty}" />
                             </GroupBox>
                             <!--  Target Class Property Value  -->
-                            <GroupBox Header="Target Class Property Value [optional]" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox Header="Target Class Property Value [optional]" Style="{StaticResource CompactGroupBoxStyle}">
                                 <TextBox Width="180"
                                          Height="26"
                                          HorizontalContentAlignment="Left"
@@ -114,7 +114,7 @@
                                          ToolTip="{StaticResource Tooltip.Watcher.TargetClassPropertyValue}" />
                             </GroupBox>
                             <!--  EventDisplayProperty  -->
-                            <GroupBox DockPanel.Dock="Right" Header="Event Display Property [optional]" Style="{DynamicResource CompactGroupBoxStyle}">
+                            <GroupBox DockPanel.Dock="Right" Header="Event Display Property [optional]" Style="{StaticResource CompactGroupBoxStyle}">
                                 <ComboBox Width="180"
                                           Height="26"
                                           HorizontalContentAlignment="Left"
@@ -133,7 +133,7 @@
                               HorizontalContentAlignment="Stretch"
                               BorderThickness="0"
                               Header="Event Query"
-                              Style="{DynamicResource CompactGroupBoxStyle}">
+                              Style="{StaticResource CompactGroupBoxStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />

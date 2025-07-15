@@ -180,7 +180,7 @@
                                           VerticalScrollBarVisibility="Disabled">
                                 <!--  Wrap in a border to provide the background  -->
                                 <Border Background="{DynamicResource SecondaryBackgroundBrush}">
-                                    <GridViewHeaderRowPresenter ColumnHeaderContainerStyle="{DynamicResource ModernGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    <GridViewHeaderRowPresenter ColumnHeaderContainerStyle="{StaticResource ModernGridViewColumnHeaderStyle}" Columns="{Binding Path=(ListView.View).Columns, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </Border>
                             </ScrollViewer>
 
@@ -191,7 +191,7 @@
                                           behaviors:ScrollSynchronizationBehavior.SynchronizeWith="{Binding ElementName=PART_HeaderScrollViewer}"
                                           CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
                                           HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
-                                          Style="{DynamicResource ModernScrollViewerStyle}"
+                                          Style="{StaticResource ModernScrollViewerStyle}"
                                           VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
                                 <ItemsPresenter />
                             </ScrollViewer>

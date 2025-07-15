@@ -222,7 +222,7 @@
             <Setter.Value>
                 <DataTemplate>
                     <Border Width="25">
-                        <TextBlock Style="{DynamicResource ExpanderTextBlockStyle}" Text="{Binding}" />
+                        <TextBlock Style="{StaticResource ExpanderTextBlockStyle}" Text="{Binding}" />
                     </Border>
                 </DataTemplate>
             </Setter.Value>

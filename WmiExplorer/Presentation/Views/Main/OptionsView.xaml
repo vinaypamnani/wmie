@@ -16,7 +16,7 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <GroupBox Grid.Column="0" Header="Computer Name" Style="{DynamicResource CompactGroupBoxStyle}">
+        <GroupBox Grid.Column="0" Header="Computer Name" Style="{StaticResource CompactGroupBoxStyle}">
             <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="160"
                          VerticalContentAlignment="Center"
@@ -64,13 +64,13 @@
                 </StackPanel>
             </StackPanel>
         </GroupBox>
-        <GroupBox Grid.Column="1" Header="Mode" Style="{DynamicResource CompactGroupBoxStyle}">
+        <GroupBox Grid.Column="1" Header="Mode" Style="{StaticResource CompactGroupBoxStyle}">
             <StackPanel Orientation="Horizontal">
                 <RadioButton Content="Asynchronous" IsChecked="{Binding SettingsManager.OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Asynchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.AsynchronousMode}" />
                 <RadioButton Content="Synchronous" IsChecked="{Binding SettingsManager.OperationMode, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Synchronous, Mode=TwoWay}" ToolTip="{StaticResource Tooltip.Options.SynchronousMode}" />
             </StackPanel>
         </GroupBox>
-        <GroupBox Grid.Column="2" Header="Class Enumeration" Style="{DynamicResource CompactGroupBoxStyle}">
+        <GroupBox Grid.Column="2" Header="Class Enumeration" Style="{StaticResource CompactGroupBoxStyle}">
             <StackPanel Orientation="Horizontal">
                 <CheckBox Grid.Row="0"
                           Grid.Column="1"
@@ -97,7 +97,7 @@
                         ToolTip="{StaticResource Tooltip.Options.ReloadClasses}" />
             </StackPanel>
         </GroupBox>
-        <GroupBox Grid.Column="3" Header="Accent Colors" Style="{DynamicResource CompactGroupBoxStyle}">
+        <GroupBox Grid.Column="3" Header="Accent Colors" Style="{StaticResource CompactGroupBoxStyle}">
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                     <TextBlock Margin="{DynamicResource MarginHorizontalMedium}"

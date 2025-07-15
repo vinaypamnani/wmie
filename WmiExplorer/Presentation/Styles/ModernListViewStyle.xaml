@@ -20,7 +20,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer x:Name="ScrollViewer" Padding="{StaticResource PaddingTiny}" Style="{DynamicResource ModernScrollViewerStyle}">
+                        <ScrollViewer x:Name="ScrollViewer" Padding="{StaticResource PaddingTiny}" Style="{StaticResource ModernScrollViewerStyle}">
                             <ItemsPresenter />
                         </ScrollViewer>
                     </Border>
