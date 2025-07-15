@@ -331,6 +331,16 @@ public partial class ColorPicker : Control
         }
     }
 
+    protected override void OnGotFocus(RoutedEventArgs e)
+    {
+        base.OnGotFocus(e);
+        if (_colorButton != null && _colorButton.Focusable)
+        {
+            _colorButton.Focus();
+            e.Handled = true;
+        }
+    }
+
     /// <summary>
     /// Raises the PropertyChanged event for multiple properties.
     /// </summary>
