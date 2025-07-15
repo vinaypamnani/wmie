@@ -35,48 +35,6 @@
         <Setter Property="Padding" Value="{StaticResource PaddingSmall}" />
         <Setter Property="Margin" Value="{StaticResource MarginSmall}" />
         <Setter Property="ContextMenu" Value="{StaticResource TextBoxContextMenu}" />
-
-        <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
-                <Setter Property="BorderThickness" Value="0" />
-            </Trigger>
-            <Trigger Property="IsReadOnly" Value="True">
-                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
-                <Setter Property="BorderThickness" Value="0" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <!--  PasswordBox  -->
-    <Style TargetType="PasswordBox">
-        <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="Padding" Value="{StaticResource PaddingSmall}" />
-        <Setter Property="Margin" Value="{StaticResource MarginSmall}" />
-        <Setter Property="ContextMenu" Value="{StaticResource TextBoxContextMenu}" />
-
-        <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
-                <Setter Property="BorderThickness" Value="0" />
-            </Trigger>
-            <Trigger Property="IsFocused" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                <Setter Property="BorderThickness" Value="1" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <!--  TextBoxWithPlaceholder Style  -->
-    <Style x:Key="TextBoxWithPlaceholder" BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
         <Setter Property="CaretBrush" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="Template">
             <Setter.Value>
@@ -114,7 +72,58 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Trigger>
+            <Trigger Property="IsReadOnly" Value="True">
+                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
+
+    <!--  SimpleTextBox Style: Minimal, no border, background, or placeholder logic -->
+    <Style x:Key="TransparentTextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="CaretBrush" Value="{DynamicResource PrimaryForegroundBrush}" />
+    </Style>
+
+    <!--  PasswordBox  -->
+    <Style TargetType="PasswordBox">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Padding" Value="{StaticResource PaddingSmall}" />
+        <Setter Property="Margin" Value="{StaticResource MarginSmall}" />
+        <Setter Property="ContextMenu" Value="{StaticResource TextBoxContextMenu}" />
+
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--  TextBoxWithPlaceholder Style  - named to avoid updating all code that uses TextBoxWithPlaceholder -->
+    <Style x:Key="TextBoxWithPlaceholder" BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox" />
 
     <!--  TextBoxWithClearButton Style  -->
     <Style x:Key="TextBoxWithClearButton" BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="TextBox">

@@ -65,14 +65,12 @@
                                  HorizontalAlignment="Left"
                                  VerticalAlignment="Center"
                                  Panel.ZIndex="2"
-                                 Background="Transparent"
-                                 BorderThickness="0"
-                                 CaretBrush="{DynamicResource PrimaryForegroundBrush}"
                                  Focusable="True"
                                  Foreground="{TemplateBinding Foreground}"
                                  IsReadOnly="False"
-                                 SelectionBrush="{DynamicResource PrimaryAccentBrush}"
-                                 Visibility="Collapsed" />
+                                 SelectionBrush="{DynamicResource SecondaryAccentBrush}"
+                                 Visibility="Collapsed"
+                                 Style="{StaticResource TransparentTextBox}" />
 
                         <ContentPresenter x:Name="ContentSite"
                                           Grid.Column="0"
