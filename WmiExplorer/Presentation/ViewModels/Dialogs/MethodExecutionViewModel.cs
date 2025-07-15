@@ -342,7 +342,8 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
                 });
                 foreach (var propertyData in orderedParameters)
                 {
-                    var parameterViewModel = new WmiPropertyViewModel(propertyData, _wmiService, _managementScope, isMethodParameter: true, messengerService: _messengerService);
+                    var wmiProperty = new WmiProperty(propertyData, _class.ActualClass);
+                    var parameterViewModel = new WmiPropertyViewModel(wmiProperty, _wmiService, _managementScope, isMethodParameter: true, messengerService: _messengerService);
                     if (parameterViewModel.IsReference)
                     {
                         parameterViewModel.PropertyChanged += WmiPropertyViewModel_PropertyChanged;

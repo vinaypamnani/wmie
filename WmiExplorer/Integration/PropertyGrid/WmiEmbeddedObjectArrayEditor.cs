@@ -150,7 +150,7 @@ public class WmiEmbeddedObjectArrayEditor : WmiPropertyEditorBase
         addButton.HorizontalAlignment = HorizontalAlignment.Left;
         addButton.Click += (s, e) =>
         {
-            var className = viewModel.TargetClassName;
+            var className = viewModel.ObjectReferenceClassName;
             var scope = wmiDescriptor.GetManagementScope();
             if (!string.IsNullOrEmpty(className) && scope != null)
             {

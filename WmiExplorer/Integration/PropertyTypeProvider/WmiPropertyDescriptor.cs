@@ -59,23 +59,23 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public string Description => GetPropertyDescription();
     public string DisplayName => _wmiProperty.Name;
     public bool IsKey => _wmiProperty.IsKey;
-    public bool IsObject => _propertyData.Type == System.Management.CimType.Object;
+    public bool IsObject => _propertyData.Type == CimType.Object;
     public bool IsReadOnly => _forceEditable ? false : _wmiProperty.IsReadOnly;
-    public bool IsReference => _propertyData.Type == System.Management.CimType.Reference;
+    public bool IsReference => _propertyData.Type == CimType.Reference;
     public string Name => _wmiProperty.Name;
-    public System.Management.PropertyData PropertyData => _propertyData;
+    public PropertyData PropertyData => _propertyData;
     public Type? PropertyType => _allowExpansion ? typeof(PropertyData) : GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
     public object Source => _source;
     public object? Value => GetValue();
     public WmiProperty WmiProperty => _wmiProperty;
 
-    public System.Management.ManagementScope? GetManagementScope()
+    public ManagementScope? GetManagementScope()
     {
-        if (_source is System.Management.ManagementObject managementObject)
+        if (_source is ManagementObject managementObject)
         {
             return managementObject.Scope;
         }
-        else if (_source is System.Management.ManagementClass managementClass)
+        else if (_source is ManagementClass managementClass)
         {
             return managementClass.Scope;
         }
@@ -247,10 +247,10 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         string? description = _wmiProperty.Description;
 
         // If it's a referenced or embedded instance/object, add concise information
-        if (_propertyData.Type == System.Management.CimType.Reference || _propertyData.Type == System.Management.CimType.Object)
+        if (_propertyData.Type == CimType.Reference || _propertyData.Type == CimType.Object)
         {
             string? cimType = _wmiProperty.CimType?.ToString();
-            if (_propertyData.Type == System.Management.CimType.Reference)
+            if (_propertyData.Type == CimType.Reference)
             {
                 if (!string.IsNullOrEmpty(cimType))
                 {
@@ -261,7 +261,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
                     typeLine += " (Referenced instance)";
                 }
             }
-            else if (_propertyData.Type == System.Management.CimType.Object)
+            else if (_propertyData.Type == CimType.Object)
             {
                 if (!string.IsNullOrEmpty(cimType))
                 {

@@ -84,7 +84,8 @@ public abstract class WmiPropertyEditorBase : IPropertyEditor, IDisposable
         try
         {
             var scope = wmiDescriptor.GetManagementScope();
-            return new WmiPropertyViewModel(wmiDescriptor.PropertyData, _wmiService, scope, false, _messengerService);
+            var wmiProperty = wmiDescriptor.WmiProperty;
+            return new WmiPropertyViewModel(wmiProperty, _wmiService, scope, false, _messengerService);
         }
         catch (Exception ex)
         {

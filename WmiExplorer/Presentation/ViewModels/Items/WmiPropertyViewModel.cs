@@ -5,6 +5,7 @@ using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Core.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
 
@@ -32,8 +33,6 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     [ObservableProperty]
     private string _objectDisplayText = string.Empty;
 
-    private readonly PropertyData _propertyData;
-
     [ObservableProperty]
     private ReferenceValueLoadState _referenceLoadState = ReferenceValueLoadState.None;
 
@@ -45,17 +44,18 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     [ObservableProperty]
     private object? _value;
 
+    private readonly WmiProperty _wmiProperty;
     private readonly IWmiService _wmiService;
 
     // Remove the manual command property and initialization
     // public IAsyncRelayCommand<object?> EditObjectCommand { get; }
 
-    public WmiPropertyViewModel(PropertyData propertyData, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false, IMessengerService? messengerService = null)
+    public WmiPropertyViewModel(WmiProperty wmiProperty, IWmiService? wmiService = null, ManagementScope? managementScope = null, bool isMethodParameter = false, IMessengerService? messengerService = null)
         : base(messengerService ?? throw new ArgumentNullException(nameof(messengerService)))
     {
-        _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
+        _wmiProperty = wmiProperty ?? throw new ArgumentNullException(nameof(wmiProperty));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-        _value = propertyData.Value;
+        _value = wmiProperty.Value;
 
         _managementScope = managementScope;
         _isMethodParameter = isMethodParameter;
@@ -72,18 +72,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         get
         {
             // First try to get CIMTYPE qualifier which has more detailed info
-            if (_propertyData.Qualifiers != null)
-            {
-                foreach (QualifierData qualifier in _propertyData.Qualifiers)
-                {
-                    if (qualifier.Name.Equals("CIMTYPE", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return qualifier.Value?.ToString();
-                    }
-                }
-            }
-            // Fallback to the basic type
-            return _propertyData.Type.ToString();
+            return _wmiProperty.CimType;
         }
     }
 
@@ -91,17 +80,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     {
         get
         {
-            if (_propertyData.Qualifiers != null)
-            {
-                foreach (QualifierData qualifier in _propertyData.Qualifiers)
-                {
-                    if (qualifier.Name.Equals("Description", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return qualifier.Value?.ToString();
-                    }
-                }
-            }
-            return null;
+            return _wmiProperty.Description;
         }
     }
 
@@ -114,7 +93,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         set => SetDisplayValue(value);
     }
 
-    public bool IsArray => _propertyData.IsArray;
+    public bool IsArray => _wmiProperty.IsArray;
     public bool IsEnabled => IsSelected;
 
     /// <summary>
@@ -122,31 +101,31 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     /// </summary>
     public bool IsInteger => IsIntegerType(CimType);
 
-    public bool IsObject => _propertyData.Type == System.Management.CimType.Object;
-    public bool IsReference => _propertyData.Type == System.Management.CimType.Reference;
-    public string? Name => _propertyData.Name;
-    public PropertyData PropertyData => _propertyData;
+    public bool IsObject => _wmiProperty.Type == "Object";
+    public bool IsReference => _wmiProperty.Type == "Reference";
+    public string? Name => _wmiProperty.Name;
+
+    /// <summary>
+    /// Gets the target WMI class name for object and reference parameters.
+    /// </summary>
+    public string? ObjectReferenceClassName => _wmiProperty.ObjectReferenceClassName;
 
     /// <summary>
     /// Gets the current reference text value for display and editing.
     /// </summary>
     public string ReferenceText
     {
-        get => _propertyData.Value?.ToString() ?? string.Empty;
+        get => _wmiProperty.Value?.ToString() ?? string.Empty;
         set
         {
-            _propertyData.Value = value;
+            _wmiProperty.ActualProperty.Value = value;
             Value = value;
             OnPropertyChanged();
         }
     }
 
-    /// <summary>
-    /// Gets the target WMI class name for object and reference parameters.
-    /// </summary>
-    public string? TargetClassName => GetTargetClassName();
-
-    public string? Type => _propertyData.Type.ToString();
+    public string? Type => _wmiProperty.Type;
+    public WmiProperty WmiProperty => _wmiProperty;
 
     /// <summary>
     /// Command to cancel the loading of reference values
@@ -187,15 +166,15 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     [RelayCommand(CanExecute = nameof(EditObjectCanExecute))]
     private void EditObject()
     {
-        if (_propertyData.Value == null)
+        if (_wmiProperty.Value == null)
         {
             InitializeObjectValue();
         }
 
-        if (_propertyData.Value is ManagementBaseObject currentObject)
+        if (_wmiProperty.Value is ManagementBaseObject currentObject)
         {
             var window = System.Windows.Application.Current.MainWindow;
-            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, currentObject, _messengerService, $"Edit {TargetClassName}", _wmiService, false);
+            var result = Views.Dialogs.PropertyEditorDialog.ShowEditor(window, currentObject, _messengerService, $"Edit {ObjectReferenceClassName}", _wmiService, false);
             if (result != null)
             {
                 if (_isMethodParameter)
@@ -216,7 +195,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
 
     private bool EditObjectCanExecute()
     {
-        return IsObject && !string.IsNullOrEmpty(TargetClassName) && _managementScope != null;
+        return IsObject && !string.IsNullOrEmpty(ObjectReferenceClassName) && _managementScope != null;
     }
 
     /// <summary>
@@ -251,76 +230,6 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Extracts the target class name from qualifiers or existing object value.
-    /// </summary>
-    private string? GetTargetClassName()
-    {
-        // Check the CIMTYPE qualifier which contains the reference class name
-        if (_propertyData.Qualifiers != null)
-        {
-            foreach (QualifierData qualifier in _propertyData.Qualifiers)
-            {
-                if (qualifier.Name.Equals("CIMTYPE", StringComparison.OrdinalIgnoreCase))
-                {
-                    var cimTypeValue = qualifier.Value?.ToString();
-
-                    if (!string.IsNullOrEmpty(cimTypeValue))
-                    {
-                        // Handle "ref:ClassName" or "object:ClassName" patterns
-                        if (cimTypeValue.Contains(':'))
-                        {
-                            var parts = cimTypeValue.Split(':');
-                            if (parts.Length > 1)
-                            {
-                                return parts[1]; // Return the class name after the colon
-                            }
-                        }
-
-                        // Handle direct class name (but skip generic type names)
-                        if (!cimTypeValue.Equals("reference", StringComparison.OrdinalIgnoreCase) &&
-                            !cimTypeValue.Equals("object", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return cimTypeValue;
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Fallback: Try to get class name from CimType (handles multiple patterns)
-        if (!string.IsNullOrEmpty(CimType))
-        {
-            var cimType = CimType;
-
-            // Handle "object:ClassName" or "reference:ClassName" pattern
-            if (cimType.Contains(':'))
-            {
-                var parts = cimType.Split(':');
-                if (parts.Length > 1)
-                {
-                    return parts[1]; // Return the class name after the colon
-                }
-            }
-
-            // Handle direct class name (but skip generic type names)
-            if (!cimType.Equals("reference", StringComparison.OrdinalIgnoreCase) &&
-                !cimType.Equals("object", StringComparison.OrdinalIgnoreCase))
-            {
-                return cimType;
-            }
-        }
-
-        // For object properties, also check if there's an existing object value
-        if (IsObject && _propertyData.Value is ManagementBaseObject mbo)
-        {
-            return mbo.ClassPath?.ClassName;
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Initialize hex display for integer values that are likely to be displayed as hex
     /// </summary>
     private void InitializeHexDisplay()
@@ -342,15 +251,15 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
 
     private void InitializeObjectValue()
     {
-        if (!IsObject || string.IsNullOrEmpty(TargetClassName) || _propertyData.Value != null || _managementScope == null)
+        if (!IsObject || string.IsNullOrEmpty(ObjectReferenceClassName) || _wmiProperty.Value != null || _managementScope == null)
             return;
 
         try
         {
-            var className = TargetClassName;
+            var className = ObjectReferenceClassName;
             ManagementObject? newObject = null;
 
-            if (_propertyData.Value is ManagementBaseObject existingObject)
+            if (_wmiProperty.Value is ManagementBaseObject existingObject)
             {
                 newObject = WmiObjectFactory.CreateTemplateObject(className, _managementScope);
                 if (newObject != null && existingObject.Properties != null)
@@ -386,8 +295,8 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            ObjectDisplayText = $"Error initializing {TargetClassName} object: {ex.Message}";
-            Log.Error(ex, "Error initializing parameter object for {ClassName}", TargetClassName ?? "Unknown");
+            ObjectDisplayText = $"Error initializing {ObjectReferenceClassName} object: {ex.Message}";
+            Log.Error(ex, "Error initializing parameter object for {ClassName}", ObjectReferenceClassName ?? "Unknown");
         }
     }
 
@@ -427,7 +336,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
             ReferenceLoadState = ReferenceValueLoadState.Loading;
 
             // Extract the reference class name from the CimType
-            var referenceClassName = TargetClassName;
+            var referenceClassName = ObjectReferenceClassName;
             if (string.IsNullOrEmpty(referenceClassName))
                 return;
 
@@ -475,7 +384,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
                 ReferenceValues.Clear();
 
                 // Check if there's an existing reference value that should be included
-                var existingValue = _propertyData.Value?.ToString();
+                var existingValue = _wmiProperty.Value?.ToString();
                 var allValues = new List<string>(referenceStrings);
 
                 // Add existing value if it's not already in the list
@@ -535,7 +444,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     /// </summary>
     partial void OnIsSelectedChanged(bool value)
     {
-        if (value && IsObject && !string.IsNullOrEmpty(TargetClassName) && _propertyData.Value == null)
+        if (value && IsObject && !string.IsNullOrEmpty(ObjectReferenceClassName) && _wmiProperty.Value == null)
         {
             InitializeObjectValue();
         }
@@ -554,7 +463,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     /// </summary>
     partial void OnValueChanged(object? value)
     {
-        _propertyData.Value = value;
+        _wmiProperty.ActualProperty.Value = value;
 
         if (IsObject)
         {
@@ -614,13 +523,13 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
             return;
         }
 
-        if (string.IsNullOrEmpty(TargetClassName))
+        if (string.IsNullOrEmpty(ObjectReferenceClassName))
         {
             ObjectDisplayText = "Object parameter (type unknown) - Not supported";
             return;
         }
 
-        bool hasObjectValue = _propertyData.Value is ManagementBaseObject;
+        bool hasObjectValue = _wmiProperty.Value is ManagementBaseObject;
 
         if (hasObjectValue)
         {
@@ -631,12 +540,12 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
             }
             else
             {
-                ObjectDisplayText = $"Embedded: {TargetClassName} object (configured)]";
+                ObjectDisplayText = $"Embedded: {ObjectReferenceClassName} object (configured)]";
             }
         }
         else
         {
-            ObjectDisplayText = $"Embedded: {TargetClassName} object (not configured)]";
+            ObjectDisplayText = $"Embedded: {ObjectReferenceClassName} object (not configured)]";
         }
     }
 
@@ -646,7 +555,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
     {
         if (disposing)
         {
-            if (_propertyData.Value is IDisposable disposable)
+            if (_wmiProperty.Value is IDisposable disposable)
             {
                 disposable.Dispose();
             }

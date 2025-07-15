@@ -113,7 +113,7 @@ public class WmiObjectPropertyEditor : WmiPropertyEditorBase
             var viewModel = CreateViewModel(wmiDescriptor); // Create a new view model for the edit operation
             if (viewModel.Value == null)
             {
-                var className = viewModel.TargetClassName;
+                var className = viewModel.ObjectReferenceClassName;
                 var scope = wmiDescriptor.GetManagementScope();
                 if (!string.IsNullOrEmpty(className) && scope != null)
                 {

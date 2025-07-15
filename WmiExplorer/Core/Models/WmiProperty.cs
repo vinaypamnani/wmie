@@ -140,6 +140,39 @@ public class WmiProperty
     [Category("Property")]
     public string Name => _propertyData.Name;
 
+    public string? ObjectReferenceClassName
+    {
+        get
+        {
+            // Only applies to Reference or Object types
+            if (!(Type.Equals("Reference", StringComparison.OrdinalIgnoreCase) ||
+                  Type.Equals("Object", StringComparison.OrdinalIgnoreCase)))
+                return null;
+
+            var cimTypeValue = CimType;
+            if (!string.IsNullOrEmpty(cimTypeValue))
+            {
+                if (cimTypeValue.Contains(':'))
+                {
+                    var parts = cimTypeValue.Split(':');
+                    if (parts.Length > 1)
+                        return parts[1];
+                }
+                if (!cimTypeValue.Equals("reference", StringComparison.OrdinalIgnoreCase) &&
+                    !cimTypeValue.Equals("object", StringComparison.OrdinalIgnoreCase))
+                {
+                    return cimTypeValue;
+                }
+            }
+            // Fallback: If the value is a ManagementBaseObject, get its class name
+            if (Value is ManagementBaseObject mbo)
+            {
+                return mbo.ClassPath?.ClassName;
+            }
+            return null;
+        }
+    }
+
     [Category("Property")]
     public string Origin => _propertyData.Origin;
 
