@@ -43,6 +43,7 @@
     <SolidColorBrush x:Key="SelectedUnfocusedBackgroundBrush" Opacity="0.4" Color="{StaticResource SecondaryAccentColor}" />
     <SolidColorBrush x:Key="HoverBackgroundBrush" Opacity="0.6" Color="{StaticResource PrimaryAccentColor}" />
     <SolidColorBrush x:Key="ItemPressedBrush" Opacity="0.75" Color="{StaticResource SecondaryAccentColor}" />
+    <SolidColorBrush x:Key="FocusedElementBrush" Opacity="0.75" Color="{StaticResource BaseGreen}" />
 
     <!--  ScrollBar Brushes  -->
     <SolidColorBrush x:Key="ScrollBarTrackBrush" Color="{StaticResource SecondaryBackgroundColor}" />

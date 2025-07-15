@@ -355,6 +355,8 @@
                                  Height="26"
                                  VerticalAlignment="Center"
                                  DockPanel.Dock="Right"
+                                 Style="{StaticResource TextBoxWithPlaceholder}"
+                                 Tag="Max Events"
                                  Text="{Binding MaxEventsInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  ToolTip="Maximum number of events to keep in memory" />
                         <Button Grid.Column="2"

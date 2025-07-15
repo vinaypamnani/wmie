@@ -82,6 +82,7 @@ public partial class Theme : DisposableObservableObject
             ["SelectedUnfocusedBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackKey: "PrimaryAccentColor", fallbackColor: Colors.LightBlue)) { Opacity = 0.4 },
             ["HoverBackgroundBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.DodgerBlue)) { Opacity = 0.6 },
             ["ItemPressedBrush"] = new SolidColorBrush(GetColor("SecondaryAccentColor", fallbackColor: Colors.MediumPurple)) { Opacity = 0.75 },
+            ["FocusedElementBrush"] = new SolidColorBrush(GetColor("BaseGreen", fallbackColor: Colors.LightBlue)) { Opacity = 0.75 },
 
             // ScrollBar brushes with improved contrast and interaction states
             ["ScrollBarTrackBrush"] = new SolidColorBrush(GetColor("SecondaryBackgroundColor", fallbackColor: Colors.LightGray)),

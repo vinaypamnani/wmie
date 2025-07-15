@@ -132,7 +132,7 @@
                             <Setter TargetName="ContentSite" Property="Visibility" Value="Visible" />
                             <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
                         </Trigger>
 
                         <Trigger Property="IsEnabled" Value="False">
@@ -157,7 +157,14 @@
                         </Trigger>
 
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
+                        </Trigger>
+
+                        <!--  Editable ComboBox: highlight border when PART_EditableTextBox is focused  -->
+                        <Trigger SourceName="PART_EditableTextBox" Property="IsFocused" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

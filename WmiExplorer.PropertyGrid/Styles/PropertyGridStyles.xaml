@@ -106,7 +106,8 @@
                             <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
                         </DataTrigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
+                            <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -167,12 +168,12 @@
                             </Viewbox>
                             <!--  Text Content  -->
                             <ScrollViewer x:Name="PART_ContentHost"
-                                          Margin="24,0,24,0"
+                                          Margin="20,0,24,0"
                                           Background="Transparent"
                                           Focusable="false" />
                             <!--  Placeholder  -->
                             <TextBlock x:Name="PlaceholderText"
-                                       Margin="24,0,24,0"
+                                       Margin="26,0,24,0"
                                        Padding="0,0,0,0"
                                        VerticalAlignment="Center"
                                        Foreground="Gray"
@@ -221,7 +222,8 @@
                             <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
                         </MultiDataTrigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
+                            <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -439,10 +441,11 @@
                             <Setter TargetName="PART_Button" Property="Foreground" Value="{DynamicResource PropertyGridDisabledForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="PART_Root" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="PART_Root" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
                         </Trigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="PART_Root" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="PART_Root" Property="BorderBrush" Value="{DynamicResource PropertyGridAccentBrush}" />
+                            <Setter TargetName="PART_Root" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

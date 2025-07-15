@@ -49,6 +49,10 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
                 <Setter Property="BorderThickness" Value="0" />
             </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Trigger>
         </Style.Triggers>
     </Style>
 
@@ -67,6 +71,10 @@
                 <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
                 <Setter Property="BorderThickness" Value="0" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -103,7 +111,8 @@
                             <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
                         </DataTrigger>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -145,11 +154,11 @@
                                 </Canvas>
                             </Viewbox>
                             <ScrollViewer x:Name="PART_ContentHost"
-                                          Margin="24,0,0,0"
+                                          Margin="20,0,0,0"
                                           Background="Transparent"
                                           Focusable="false" />
                             <TextBlock x:Name="PlaceholderText"
-                                       Margin="24,0,0,0"
+                                       Margin="26,0,0,0"
                                        Padding="{StaticResource PaddingLeftTiny}"
                                        VerticalAlignment="Center"
                                        Foreground="Gray"
@@ -200,7 +209,8 @@
                         </DataTrigger>
                         <!--  Default: PART_ClearButton is Visible when Text is not empty or null  -->
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
