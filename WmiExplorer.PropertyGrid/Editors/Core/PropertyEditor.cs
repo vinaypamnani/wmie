@@ -14,10 +14,18 @@ public class PropertyEditor : ContentControl, IPropertyEditor
         DependencyProperty.Register(nameof(PropertyItem), typeof(PropertyHierarchyItem), typeof(PropertyEditor),
             new PropertyMetadata(null, OnPropertyItemChanged));
 
+    public PropertyEditor()
+    {
+        this.Focusable = false;
+        this.IsTabStop = false;
+    }
+
     static PropertyEditor()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(PropertyEditor),
             new FrameworkPropertyMetadata(typeof(PropertyEditor)));
+        FocusableProperty.OverrideMetadata(typeof(PropertyEditor), new FrameworkPropertyMetadata(false));
+        IsTabStopProperty.OverrideMetadata(typeof(PropertyEditor), new FrameworkPropertyMetadata(false));
     }
 
     /// <summary>
@@ -101,6 +109,16 @@ public class PropertyEditor : ContentControl, IPropertyEditor
         else
         {
             return CreateDefaultEditor(propertyItem);
+        }
+    }
+
+    protected override void OnPreviewKeyDown(System.Windows.Input.KeyEventArgs e)
+    {
+        base.OnPreviewKeyDown(e);
+        if (e.Key == System.Windows.Input.Key.Tab)
+        {
+            bool moveBackward = (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Shift) == System.Windows.Input.ModifierKeys.Shift;
+            EditorTabNavigationHelper.HandleTabNavigation(this, moveBackward, e);
         }
     }
 
