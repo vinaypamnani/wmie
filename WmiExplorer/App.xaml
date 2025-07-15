@@ -14,15 +14,33 @@
                 <!--  String resources  -->
                 <ResourceDictionary Source="Resources/TooltipStrings.xaml" />
 
-                <!--  Load modular styles  -->
+                <!--  Load base styles  -->
                 <ResourceDictionary Source="Presentation/Styles/FocusVisualStyle.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
-                <ResourceDictionary Source="Presentation/Styles/AllStyles.xaml" />
 
-                <!--  Control styles  -->
+                <!-- Load icons styles  -->
+                <ResourceDictionary Source="Presentation/Styles/Icons.xaml" />
+
+                <!--  Load control styles  -->
+                <ResourceDictionary Source="Presentation/Styles/TextControlStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ComboBoxStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/TreeStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/MenuStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/NavigationStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/LayoutStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/TooltipStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ScrollBarStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ModernListViewStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ModernGridListViewStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/DataGridStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/SeparatorStyles.xaml" />
+
+                <!--  Load additional control specific styles  -->
                 <ResourceDictionary Source="Presentation/Styles/AvalonEditCompletionStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Controls/ColorPicker/ColorPickerTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGrid.xaml" />
+
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
