@@ -209,6 +209,9 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         DefaultStyleKeyProperty.OverrideMetadata(typeof(PropertyGrid),
             new FrameworkPropertyMetadata(typeof(PropertyGrid)));
 
+        // Set focusable to false by default to prevent focus issues
+        FocusableProperty.OverrideMetadata(typeof(PropertyGrid), new FrameworkPropertyMetadata(false));
+
         // Register the default providers and converters
         RegisterDefaultProvidersAndConverters();
 
