@@ -35,7 +35,8 @@
                                     Background="{DynamicResource SecondaryBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="4">
+                                    CornerRadius="4"
+                                    KeyboardNavigation.TabNavigation="Cycle">
                                 <Grid Width="320">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />

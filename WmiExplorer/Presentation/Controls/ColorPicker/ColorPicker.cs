@@ -411,6 +411,9 @@ public partial class ColorPicker : Control
                 _colorPickerPopup.PreviewKeyDown += ColorPickerPopup_PreviewKeyDown;
                 // Subscribe to Closed event to handle click-away
                 _colorPickerPopup.Closed += ColorPickerPopup_Closed;
+
+                // Set focus to the first focusable element in the popup
+                _okButton?.Focus();
             }
             else
             {

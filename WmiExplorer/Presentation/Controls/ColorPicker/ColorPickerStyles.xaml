@@ -78,6 +78,10 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Border" Property="Opacity" Value="0.5" />
                         </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -117,6 +121,10 @@
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryAccentBrush}" />
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                        </Trigger>
+                         <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="Border" Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -180,8 +188,14 @@
                             </Track.IncreaseRepeatButton>
                         </Track>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="TrackBackground" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="TrackBackground" Property="BorderThickness" Value="2" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
-        </Setter>
+        </Setter>        
     </Style>
 </ResourceDictionary>
