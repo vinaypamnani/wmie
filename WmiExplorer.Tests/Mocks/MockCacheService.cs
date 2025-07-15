@@ -1,4 +1,4 @@
-using WmiExplorer.Core.Cache;
+using WmiExplorer.Common.Cache;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Tests.Mocks;

@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
 using System.IO;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Cache;
+using WmiExplorer.Common.Cache;
 
 namespace WmiExplorer.Services;
 

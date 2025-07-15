@@ -1,4 +1,4 @@
-namespace WmiExplorer.Core.Cache;
+namespace WmiExplorer.Common.Cache;
 
 /// <summary>
 /// Represents a cached WMI property with its name and type.

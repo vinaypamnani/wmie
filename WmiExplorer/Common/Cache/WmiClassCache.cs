@@ -1,4 +1,4 @@
-namespace WmiExplorer.Core.Cache;
+namespace WmiExplorer.Common.Cache;
 
 /// <summary>
 /// Represents lightweight cached metadata for a WMI class.

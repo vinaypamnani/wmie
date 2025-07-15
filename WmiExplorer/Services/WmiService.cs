@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Threading;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Core.Cache;
+using WmiExplorer.Common.Cache;
 
 namespace WmiExplorer.Services;
 
