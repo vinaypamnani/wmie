@@ -248,6 +248,7 @@
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
         <Setter Property="Template" Value="{StaticResource MenuItemControlTemplate}" />
         <Setter Property="Margin" Value="{StaticResource MarginRightTiny}" />
     </Style>
