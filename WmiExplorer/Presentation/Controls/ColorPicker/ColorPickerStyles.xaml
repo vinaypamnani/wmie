@@ -10,16 +10,26 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="2">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
+                    <Grid>
+                        <!--  Focus/MouserOver border, hidden by default  -->
+                        <Border x:Name="FocusVisualBorder"
+                                Margin="-4"
+                                BorderBrush="{DynamicResource FocusedElementBrush}"
+                                BorderThickness="1"
+                                SnapsToDevicePixels="True"
+                                Visibility="Collapsed" />
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="FocusVisualBorder" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Border" Property="Opacity" Value="0.5" />
@@ -43,6 +53,13 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid>
+                        <!--  Focus/MouserOver border, hidden by default  -->
+                        <Border x:Name="FocusVisualBorder"
+                                Margin="-4"
+                                BorderBrush="{DynamicResource FocusedElementBrush}"
+                                BorderThickness="1"
+                                SnapsToDevicePixels="True"
+                                Visibility="Collapsed" />
                         <!--  Checkerboard background for transparency  -->
                         <Grid x:Name="Checkerboard" Visibility="Collapsed">
                             <Rectangle Fill="#FFF" />
@@ -72,6 +89,7 @@
                         </DataTrigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryAccentBrush}" />
+                            <Setter TargetName="FocusVisualBorder" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Border" Property="Opacity" Value="0.5" />
