@@ -261,15 +261,15 @@
                 BorderThickness="0"
                 CornerRadius="3">
             <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-                <TabItem Header="{Binding InstancesTabHeader}">
+                <TabItem Header="{Binding InstancesTabHeader}" TabIndex="0">
                     <!--  Instances View  -->
                     <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />
                 </TabItem>
-                <TabItem Header="{Binding PropertiesTabHeader}">
+                <TabItem Header="{Binding PropertiesTabHeader}" TabIndex="1">
                     <!--  Properties View  -->
                     <tabs:PropertiesTabView DataContext="{Binding PropertiesTabViewModel}" />
                 </TabItem>
-                <TabItem Header="{Binding MethodsTabHeader}">
+                <TabItem Header="{Binding MethodsTabHeader}" TabIndex="2">
                     <!--  Methods View  -->
                     <tabs:MethodsTabView DataContext="{Binding MethodsTabViewModel}" />
                 </TabItem>

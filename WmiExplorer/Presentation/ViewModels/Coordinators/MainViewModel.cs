@@ -315,23 +315,39 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     partial void OnSelectedTabIndexChanged(int value)
     {
-        if (value != 0) // Assuming 0 is the index for Classes tab
-            SelectionManager.PropertyGrid.ClearPropertyGrid();
-        else
+        switch (value)
         {
-            // Set selection in order: Instance, Class, Namespace
-            if (SelectionManager.GetSelectedInstance() != null)
-            {
-                SelectionManager.SetSelectedObject(SelectionManager.GetSelectedInstance(), updatePropertyGrid: true);
-            }
-            else if (SelectionManager.GetSelectedClass() != null)
-            {
-                SelectionManager.SetSelectedObject(SelectionManager.GetSelectedClass(), updatePropertyGrid: true);
-            }
-            else if (SelectionManager.SelectedNamespace != null)
-            {
-                SelectionManager.SetSelectedObject(SelectionManager.SelectedNamespace, updatePropertyGrid: true);
-            }
+            case 1:
+                // Search Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.SelectedNamespace?.SearchTabViewModel?.SelectedResult);
+                break;
+            case 2:
+                // Query Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.SelectedNamespace?.QueryTabViewModel?.SelectedResult);
+                break;
+            case 3:
+                // Watcher Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(NamespacesViewModel?.WatcherTabViewModel?.SelectedEvent);
+                break;
+            case 4:
+                // Log Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(LogTabViewModel?.SelectedLogEntry);
+                break;
+            default:
+                // Classes Tab - Select Instance/Class/Namespace in that order
+                if (SelectionManager.GetSelectedInstance() != null)
+                {
+                    SelectionManager.SetSelectedObject(SelectionManager.GetSelectedInstance(), updatePropertyGrid: true);
+                }
+                else if (SelectionManager.GetSelectedClass() != null)
+                {
+                    SelectionManager.SetSelectedObject(SelectionManager.GetSelectedClass(), updatePropertyGrid: true);
+                }
+                else if (SelectionManager.SelectedNamespace != null)
+                {
+                    SelectionManager.SetSelectedObject(SelectionManager.SelectedNamespace, updatePropertyGrid: true);
+                }
+                break;
         }
     }
 

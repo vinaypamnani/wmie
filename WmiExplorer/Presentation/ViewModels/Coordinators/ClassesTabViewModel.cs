@@ -205,6 +205,31 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Set selections when the selected tab index changes
+    /// </summary>
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        switch (value)
+        {
+            case 1:
+                // Properties Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(PropertiesTabViewModel?.SelectedProperty);
+                break;
+            case 2:
+                // Methods Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(MethodsTabViewModel?.SelectedMethod);
+                break;
+            default:
+                // Instances tab
+                if (SelectionManager.GetSelectedInstance() != null)
+                {
+                    SelectionManager.SetSelectedObject(SelectionManager.GetSelectedInstance(), updatePropertyGrid: true);
+                }
+                break;
+        }
+    }
+
+    /// <summary>
     /// Command to reload the classes of the selected namespace
     /// </summary>
     [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
