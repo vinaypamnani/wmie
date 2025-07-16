@@ -89,6 +89,7 @@
                             <ContentControl x:Name="IconContent"
                                             Width="16"
                                             Height="16"
+                                            Focusable="False"
                                             VerticalAlignment="Center"
                                             Content="{Binding}">
                                 <ContentControl.Style>
