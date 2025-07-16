@@ -28,6 +28,12 @@ public class LogEntry
     public bool HasException => Exception != null;
 
     /// <summary>
+    /// Gets the formatted timestamp for display
+    /// </summary>
+    [Browsable(false)]
+    public string FormattedTimestamp => Timestamp.ToString("HH:mm:ss.fff");
+
+    /// <summary>
     /// Gets or sets the log level
     /// </summary>
     [Category("Log Entry")]
@@ -63,6 +69,17 @@ public class LogEntry
     /// </summary>
     [Category("Log Entry")]
     public DateTime Timestamp { get; set; }
+
+    public override string ToString()
+    {
+        if (Message.Length > 100)
+        {
+            // Truncate long messages for display
+            return $"Log Entry: [{LevelText}] {Message.Substring(0, 100)}...";
+        }
+        // Return full message for shorter entries
+        return $"Log Entry: [{LevelText}] {Message}";
+    }
 }
 
 /// <summary>
