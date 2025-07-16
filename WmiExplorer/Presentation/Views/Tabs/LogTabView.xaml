@@ -205,7 +205,7 @@
                                  FontFamily="Consolas, Courier New, Monospace"
                                  FontSize="11"
                                  IsReadOnly="True"
-                                 Text="{Binding SelectedLogEntry.Exception, Mode=OneWay}"
+                                 Text="{Binding SelectedLogEntry.ExceptionText, Mode=OneWay}"
                                  TextWrapping="Wrap" />
                     </ScrollViewer>
                 </Expander>

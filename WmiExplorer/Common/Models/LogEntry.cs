@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using WmiExplorer.PropertyGrid;
 
 namespace WmiExplorer.Common.Models;
 
@@ -10,21 +11,26 @@ public class LogEntry
     /// <summary>
     /// Gets or sets the exception details, if any
     /// </summary>
-    public string? Exception { get; set; }
+    [Category("Exception")]
+    [ShowChildrenAsParent]
+    public Exception? Exception { get; set; }
 
     /// <summary>
-    /// Gets the formatted timestamp for display
+    /// Gets the string representation of the exception for display
     /// </summary>
-    public string FormattedTimestamp => Timestamp.ToString("HH:mm:ss.fff");
+    [Category("Log Entry")]
+    public string? ExceptionText => Exception?.ToString();
 
     /// <summary>
     /// Gets whether this log entry has exception details
     /// </summary>
-    public bool HasException => !string.IsNullOrEmpty(Exception);
+    [Browsable(false)]
+    public bool HasException => Exception != null;
 
     /// <summary>
     /// Gets or sets the log level
     /// </summary>
+    [Category("Log Entry")]
     public LogLevel Level { get; set; }
 
     /// <summary>
@@ -43,16 +49,19 @@ public class LogEntry
     /// <summary>
     /// Gets or sets the log message
     /// </summary>
+    [Category("Log Entry")]
     public string Message { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the source context (typically the class name)
     /// </summary>
+    [Category("Log Entry")]
     public string Source { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the timestamp when the log entry was created
     /// </summary>
+    [Category("Log Entry")]
     public DateTime Timestamp { get; set; }
 }
 

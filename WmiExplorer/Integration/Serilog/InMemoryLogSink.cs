@@ -132,7 +132,7 @@ public class InMemoryLogSink : ILogEventSink, IDisposable
             Level = ConvertLogLevel(logEvent.Level),
             Source = source,
             Message = message,
-            Exception = logEvent.Exception?.ToString()
+            Exception = logEvent.Exception
         };
     }
 

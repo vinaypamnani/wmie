@@ -180,7 +180,7 @@ public partial class LogTabViewModel : MessagingViewModelBase
             var searchLower = SearchText.ToLowerInvariant();
             return entry.Message.ToLowerInvariant().Contains(searchLower) ||
                    entry.Source.ToLowerInvariant().Contains(searchLower) ||
-                   (entry.Exception?.ToLowerInvariant().Contains(searchLower) == true);
+                   (entry.ExceptionText?.ToLowerInvariant().Contains(searchLower) == true);
         }
 
         return true;
