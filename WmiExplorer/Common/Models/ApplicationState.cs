@@ -18,27 +18,7 @@ public class ApplicationState
     /// <summary>
     /// Optional exception that caused this state
     /// </summary>
-    public Exception? Exception { get; }
-
-    /// <summary>
-    /// Indicates if the application is in a busy state
-    /// </summary>
-    public bool IsBusy => State == AppState.Busy || State == AppState.Indeterminate;
-
-    /// <summary>
-    /// Indicates if the application is in an error state
-    /// </summary>
-    public bool IsError => State == AppState.Error;
-
-    /// <summary>
-    /// Indicates if the application is in an indeterminate state
-    /// </summary>
-    public bool IsIndeterminate => State == AppState.Indeterminate;
-
-    /// <summary>
-    /// Indicates if the application is in a warning state
-    /// </summary>
-    public bool IsWarning => State == AppState.Warning;
+    public Exception? Exception { get; }    
 
     /// <summary>
     /// Message describing the current state
