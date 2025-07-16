@@ -32,6 +32,7 @@
                   Style="{StaticResource ModernListViewStyle}">
             <ListView.InputBindings>
                 <KeyBinding Key="F5" Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance.RefreshInstanceCommand}" />
+                <KeyBinding Key="Enter" Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.SelectedInstance.RefreshInstanceCommand}" />
             </ListView.InputBindings>
             <ListView.ItemContainerStyle>
                 <Style BasedOn="{StaticResource ModernListViewItemStyle}" TargetType="{x:Type ListViewItem}">

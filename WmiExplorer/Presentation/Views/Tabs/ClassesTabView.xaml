@@ -152,6 +152,7 @@
                             </ListView.View>
                             <ListView.InputBindings>
                                 <KeyBinding Key="F5" Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.LoadInstancesCommand}" />
+                                <KeyBinding Key="Enter" Command="{Binding SelectionManager.SelectedNamespace.SelectedClass.LoadInstancesCommand}" />
                             </ListView.InputBindings>
                             <ListView.ItemContainerStyle>
                                 <Style BasedOn="{StaticResource ModernGridListViewItemStyle}" TargetType="{x:Type ListViewItem}">
@@ -173,9 +174,8 @@
                                                     <MenuItem.Icon>
                                                         <ContentControl ContentTemplate="{StaticResource StopIconTemplate}" />
                                                     </MenuItem.Icon>
-                                                </MenuItem>                                                
-                                                <MenuItem Command="{Binding CreateInstanceCommand}"
-                                                          Header="Create instance">
+                                                </MenuItem>
+                                                <MenuItem Command="{Binding CreateInstanceCommand}" Header="Create instance">
                                                     <MenuItem.Icon>
                                                         <ContentControl ContentTemplate="{StaticResource AddIconTemplate}" />
                                                     </MenuItem.Icon>
@@ -238,7 +238,7 @@
                                                             <Setter Property="helpers:LetterIconHelper.LetterIconBackground" Value="{DynamicResource BaseBlueBrush}" />
                                                         </Style>
                                                     </MenuItem.ItemContainerStyle>
-                                                </MenuItem>                                                
+                                                </MenuItem>
                                             </ContextMenu>
                                         </Setter.Value>
                                     </Setter>

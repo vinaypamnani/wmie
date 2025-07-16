@@ -23,6 +23,10 @@
                       Margin="0,0,4,4"
                       behaviors:TreeViewAutoScrollBehavior.AutoScroll="True"
                       ItemsSource="{Binding Namespaces}">
+                <TreeView.InputBindings>
+                    <KeyBinding Key="F5" Command="{Binding SelectionManager.SelectedNamespace.LoadClassesCommand}" />
+                    <KeyBinding Key="Enter" Command="{Binding SelectionManager.SelectedNamespace.LoadClassesCommand}" />
+                </TreeView.InputBindings>
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource ModernTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -32,7 +36,10 @@
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu>
-                                    <MenuItem Command="{Binding LoadClassesCommand}" FontWeight="Bold" Header="Load Classes">
+                                    <MenuItem Command="{Binding LoadClassesCommand}"
+                                              FontWeight="Bold"
+                                              Header="Load Classes"
+                                              InputGestureText="F5">
                                         <MenuItem.Icon>
                                             <ContentControl ContentTemplate="{StaticResource LoadIconTemplate}" />
                                         </MenuItem.Icon>
@@ -89,9 +96,9 @@
                             <ContentControl x:Name="IconContent"
                                             Width="16"
                                             Height="16"
-                                            Focusable="False"
                                             VerticalAlignment="Center"
-                                            Content="{Binding}">
+                                            Content="{Binding}"
+                                            Focusable="False">
                                 <ContentControl.Style>
                                     <Style TargetType="ContentControl">
                                         <!--  Default to namespace icon with state-based coloring  -->
