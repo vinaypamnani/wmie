@@ -26,6 +26,7 @@
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource ModernTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
                         <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
                         <Setter Property="behaviors:ItemDoubleClickBehavior.Command" Value="{Binding LoadClassesCommand}" />
                         <Setter Property="ContextMenu">

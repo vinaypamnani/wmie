@@ -12,7 +12,7 @@
     <SolidColorBrush x:Key="{x:Static SystemColors.InactiveCaptionBrushKey}" Color="{DynamicResource SelectedUnfocusedColor}" />
 
     <!--  Remove focus visual styles  -->
-    <Style x:Key="{x:Static SystemParameters.FocusVisualStyleKey}">
+    <!-- <Style x:Key="{x:Static SystemParameters.FocusVisualStyleKey}">
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
@@ -23,13 +23,13 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
+    </Style> -->
 
     <!--  Completely flat ListViewItem style with no gradients  -->
     <Style x:Key="ModernGridListViewItemStyle" TargetType="{x:Type ListViewItem}">
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="OverridesDefaultStyle" Value="True" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />

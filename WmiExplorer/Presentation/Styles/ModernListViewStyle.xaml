@@ -48,7 +48,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
         <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
         <Setter Property="Template">
             <Setter.Value>

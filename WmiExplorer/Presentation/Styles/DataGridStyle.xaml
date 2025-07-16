@@ -4,6 +4,7 @@
     <Style x:Key="ModernDataGridCellStyle" TargetType="DataGridCell">
         <Setter Property="Padding" Value="{DynamicResource PaddingTiny}" />
         <Setter Property="Margin" Value="{DynamicResource MarginHorizontalSmall}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
