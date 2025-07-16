@@ -70,73 +70,71 @@ public static class ItemSelectionBehavior
 
     private static void OnEnableForceSelectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        // Support TreeViewItem, ListViewItem, and DataGridRow
-        if (d is TreeViewItem or ListViewItem or DataGridRow)
+        // Attach/detach handlers for all supported item types
+        if (d is TreeViewItem || d is ListViewItem || d is DataGridRow)
         {
             var control = (Control)d;
             if ((bool)e.NewValue)
             {
+                control.KeyDown += OnItemKeyDown;
                 control.MouseUp += OnItemMouseUp;
-                control.PreviewKeyDown += OnItemPreviewKeyDown;
+                control.PreviewMouseRightButtonDown += OnItemPreviewMouseRightButtonDown;
             }
             else
             {
+                control.KeyDown -= OnItemKeyDown;
                 control.MouseUp -= OnItemMouseUp;
-                control.PreviewKeyDown -= OnItemPreviewKeyDown;
+                control.PreviewMouseRightButtonDown -= OnItemPreviewMouseRightButtonDown;
             }
         }
     }
 
-    private static void OnItemPreviewKeyDown(object sender, KeyEventArgs e)
+    private static void OnItemKeyDown(object sender, KeyEventArgs e)
     {
-        // Only handle <Space> key
         if (e.Key != Key.Space)
             return;
 
-        var control = (FrameworkElement)sender;
-        var dataContext = control.DataContext;
-
-        // Check if PropertyGrid should be updated
-        bool updatePropertyGrid = GetUpdatePropertyGrid(control);
-
-        // Update selection via SelectionManager (which handles IsSelected management)
-        if (_selectionManager != null)
+        if (sender is TreeViewItem or ListViewItem or DataGridRow)
         {
-            _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid);
-            e.Handled = true; // Prevent default behavior
+            SelectItem((FrameworkElement)sender);
+            e.Handled = true;
         }
     }
 
     private static void OnItemMouseUp(object sender, MouseButtonEventArgs e)
     {
-        // Single click only
-        if (e.ClickCount != 1)
+        // Only handle left-click for all supported item types
+        if (e.ClickCount != 1 || e.ChangedButton != MouseButton.Left)
             return;
 
-        var control = (FrameworkElement)sender;
-        var dataContext = control.DataContext;
+        SelectItem((FrameworkElement)sender);
+        e.Handled = true;
+    }
 
-        // Determine which mouse buttons to process for selectionbased on control type
-        bool processLeftClick = e.ChangedButton == MouseButton.Left;
-        bool processRightClick = e.ChangedButton == MouseButton.Right && control is not TreeViewItem;
+    private static void OnItemPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // Handle right-click selection for all supported item types
+        SelectItem((FrameworkElement)sender);
+        // Do NOT set e.Handled = true; so context menu will show
+    }
 
-        if (!processLeftClick && !processRightClick)
-            return;
-
-        // Check if PropertyGrid should be updated
-        bool updatePropertyGrid = GetUpdatePropertyGrid(control);
-
-        // Update selection via SelectionManager (which handles IsSelected management)
-        if (_selectionManager != null)
+    private static void SelectItem(FrameworkElement control)
+    {
+        // Set IsSelected = true for supported controls to ensure UI state is always consistent
+        switch (control)
         {
-            // SelectionManager will handle IsSelected properties first, then optionally PropertyGrid update
-            _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid);
-
-            // Only Handle left-clicks for all controls to prevent bubbling and allow right-click context menus
-            if (processLeftClick)
-            {
-                e.Handled = true;
-            }
+            case TreeViewItem tvi:
+                tvi.IsSelected = true;
+                break;
+            case ListViewItem lvi:
+                lvi.IsSelected = true;
+                break;
+            case DataGridRow dgr:
+                dgr.IsSelected = true;
+                break;
         }
+        bool updatePropertyGrid = GetUpdatePropertyGrid(control);
+        var dataContext = control.DataContext;
+        _selectionManager?.SetSelectedObject(dataContext, updatePropertyGrid);
     }
 }
