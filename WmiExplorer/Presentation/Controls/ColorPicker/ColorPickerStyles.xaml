@@ -6,7 +6,7 @@
 
     <!--  Button Style for color preview  -->
     <Style x:Key="ColorPickerButtonStyle" TargetType="Button">
-        <Setter Property="FocusVisualStyle" Value="{StaticResource CompactFocusVisualStyle}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource CozyFocusVisualStyle}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
