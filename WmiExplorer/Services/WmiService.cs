@@ -1,9 +1,10 @@
 using System.Management;
 using System.Windows;
 using System.Windows.Threading;
-using WmiExplorer.Common.Enums;
-using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Cache;
+using WmiExplorer.Common.Enums;
+using WmiExplorer.Common.Helpers;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Services;
 
@@ -106,7 +107,7 @@ public class WmiService : IWmiService, IDisposable
 
             // Search in the current namespace
             var currentNamespace = scope.Path?.Path ?? "root";
-            var friendlyNamespace = FormatNamespaceForDisplay(currentNamespace);
+            var friendlyNamespace = WmiServiceHelpers.FormatNamespaceForDisplay(currentNamespace);
             var failureCount = 0;
             progressCallback?.Invoke($"Searching namespace: {friendlyNamespace}", failureCount);
             await SearchInNamespaceAsync(scope, searchType, searchText, results, cancellationToken);
@@ -157,6 +158,12 @@ public class WmiService : IWmiService, IDisposable
             var resultCount = results.Count();
             Log.Debug("[{OperationMode}] WMI query '{Query}' completed successfully. Returned {ResultCount} objects", OperationMode, queryString, resultCount);
             return results;
+        }
+        catch (ManagementException mex)
+        {
+            var wmiException = new WmiException(mex);
+            Log.Error(mex, "[{OperationMode}] ManagementException executing WMI query: {Query} on scope: {Scope} - {ErrorMessage}", OperationMode, queryString, scope.Path?.Path ?? "Unknown", wmiException.Message);
+            throw wmiException;
         }
         catch (Exception ex)
         {
@@ -267,6 +274,12 @@ public class WmiService : IWmiService, IDisposable
 
             return result;
         }
+        catch (ManagementException mex)
+        {
+            var wmiException = new WmiException(mex);
+            Log.Error(mex, "ManagementException connecting to WMI namespace: {NamespacePath} - {ErrorMessage}", namespacePath, wmiException.Message);
+            throw wmiException;
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Error connecting to WMI namespace: {NamespacePath}", namespacePath);
@@ -336,9 +349,9 @@ public class WmiService : IWmiService, IDisposable
             }
             catch (ManagementException mex)
             {
-                var errorMessage = ExtractWmiErrorMessage(mex);
-                Log.Error(mex, "Error saving WMI instance: {ErrorMessage}", errorMessage);
-                throw new ManagementException(errorMessage, mex);
+                var wmiException = new WmiException(mex);
+                Log.Error(mex, "Error saving WMI instance: {ErrorMessage}", wmiException.Message);
+                throw wmiException;
             }
             catch (Exception ex)
             {
@@ -499,9 +512,9 @@ public class WmiService : IWmiService, IDisposable
             }
             catch (ManagementException mex)
             {
-                var errorMessage = ExtractWmiErrorMessage(mex);
-                Log.Error("WMI ManagementException while connecting to scope '{ScopePath}': {ErrorMessage}", scope?.Path?.Path ?? "Unknown", errorMessage);
-                throw new ManagementException(errorMessage, mex);
+                var wmiException = new WmiException(mex);
+                Log.Error("WMI Exception while connecting to scope '{ScopePath}': {ErrorMessage}", scope?.Path?.Path ?? "Unknown", wmiException.Message);
+                throw wmiException;
             }
             catch (UnauthorizedAccessException uex)
             {
@@ -528,9 +541,9 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (ManagementException mex)
         {
-            var errorMessage = ExtractWmiErrorMessage(mex);
-            Log.Error("Error executing WMI static method '{MethodName}' on class: {ErrorMessage}", methodName, errorMessage);
-            throw new ManagementException(errorMessage, mex);
+            var wmiException = new WmiException(mex);
+            Log.Error("Error executing WMI static method '{MethodName}' on class: {ErrorMessage}", methodName, wmiException.Message);
+            throw wmiException;
         }
         catch (Exception ex)
         {
@@ -551,9 +564,9 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (ManagementException mex)
         {
-            var errorMessage = ExtractWmiErrorMessage(mex);
-            Log.Error("Error executing WMI instance method '{MethodName}' on instance: {ErrorMessage}", methodName, errorMessage);
-            throw new ManagementException(errorMessage, mex);
+            var wmiException = new WmiException(mex);
+            Log.Error("Error executing WMI instance method '{MethodName}' on instance: {ErrorMessage}", methodName, wmiException.Message);
+            throw wmiException;
         }
         catch (Exception ex)
         {
@@ -594,9 +607,8 @@ public class WmiService : IWmiService, IDisposable
             }
             catch (AggregateException ex) when (ex.InnerException is ManagementException mex)
             {
-                // Extract meaningful error information from ManagementException
-                var errorMessage = ExtractWmiErrorMessage(mex);
-                throw new ManagementException(errorMessage, mex);
+                var wmiException = new WmiException(mex);
+                throw wmiException;
             }
             catch (AggregateException ex)
             {
@@ -643,8 +655,7 @@ public class WmiService : IWmiService, IDisposable
             }
             else
             {
-                var errorMessage = ExtractWmiErrorMessage(e.StatusObject, e.Status);
-                tcs.TrySetException(new ManagementException(errorMessage));
+                tcs.TrySetException(new WmiException(e.StatusObject, e.Status));
             }
         };
 
@@ -665,8 +676,15 @@ public class WmiService : IWmiService, IDisposable
             {
                 invokeMethod(observer);
             }
+            catch (ManagementException mex)
+            {
+                var wmiException = new WmiException(mex);
+                Log.Error(mex, "WMI error in ExecuteWmiMethodAsync: {ErrorMessage}", wmiException.Message);
+                tcs.TrySetException(wmiException);
+            }
             catch (Exception ex)
             {
+                Log.Error(ex, "Unexpected error in ExecuteWmiMethodAsync");
                 tcs.TrySetException(ex);
             }
             return await tcs.Task.ConfigureAwait(false);
@@ -724,93 +742,6 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Extracts meaningful error information from WMI StatusObject
-    /// </summary>
-    /// <param name="statusObject">The WMI status object containing error details</param>
-    /// <param name="defaultStatus">The default status to use if no detailed information is available</param>
-    /// <returns>A formatted error message with available details</returns>
-    private static string ExtractWmiErrorMessage(ManagementBaseObject? statusObject, ManagementStatus defaultStatus)
-    {
-        var baseMessage = $"Status: {defaultStatus}";
-
-        if (statusObject?.Properties == null)
-            return baseMessage;
-
-        try
-        {
-            var messageId = statusObject.Properties["MessageID"]?.Value?.ToString();
-            var message = statusObject.Properties["Message"]?.Value?.ToString();
-            var windowsErrorMessage = statusObject.Properties["error_WindowsErrorMessage"]?.Value?.ToString();
-
-            var errorDetails = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(messageId))
-                errorDetails.Add($"MessageID: {messageId}");
-
-            if (!string.IsNullOrWhiteSpace(windowsErrorMessage))
-                errorDetails.Add($"Windows Error: {windowsErrorMessage}");
-
-            if (!string.IsNullOrWhiteSpace(message))
-                errorDetails.Add($"Message: {message}");
-
-            if (errorDetails.Any())
-                return $"{baseMessage} - {string.Join(", ", errorDetails)}";
-        }
-        catch (Exception ex)
-        {
-            Log.Debug("Error extracting WMI status object details: {Exception}", ex.Message);
-        }
-
-        return baseMessage;
-    }
-
-    /// <summary>
-    /// Extracts meaningful error information from ManagementException
-    /// </summary>
-    /// <param name="managementException">The ManagementException containing error details</param>
-    /// <returns>A formatted error message with available details</returns>
-    private static string ExtractWmiErrorMessage(ManagementException managementException)
-    {
-        if (managementException?.ErrorInformation != null)
-        {
-            return ExtractWmiErrorMessage(managementException.ErrorInformation, managementException.ErrorCode);
-        }
-
-        var baseMessage = $"Status: {managementException?.ErrorCode ?? ManagementStatus.Failed}";
-
-        if (!string.IsNullOrWhiteSpace(managementException?.Message))
-        {
-            return $"{baseMessage} - {managementException.Message}";
-        }
-
-        return baseMessage;
-    }
-
-    /// <summary>
-    /// Formats a namespace path for user-friendly display
-    /// </summary>
-    /// <param name="namespacePath">The full namespace path (e.g., \\.\root\cimv2)</param>
-    /// <returns>A user-friendly namespace name (e.g., root\cimv2)</returns>
-    private static string FormatNamespaceForDisplay(string namespacePath)
-    {
-        if (string.IsNullOrWhiteSpace(namespacePath))
-            return "root";
-
-        // Remove computer part (\\computer\ or \\.\ for local)
-        if (namespacePath.StartsWith(@"\\"))
-        {
-            var segments = namespacePath.Split('\\', StringSplitOptions.RemoveEmptyEntries);
-            if (segments.Length >= 2)
-            {
-                // Return everything after the computer name
-                return string.Join("\\", segments.Skip(1));
-            }
-        }
-
-        return namespacePath;
-    }
-
-    /// <summary>
     /// Gets a ManagementObject for a given namespace path (synchronous helper)
     /// </summary>
     private ManagementObject? GetManagementObject(string namespacePath, ConnectionOptions connectionOptions, CancellationToken cancellationToken)
@@ -827,9 +758,9 @@ public class WmiService : IWmiService, IDisposable
         }
         catch (ManagementException mex)
         {
-            var errorMessage = ExtractWmiErrorMessage(mex);
-            Log.Error("Error getting management object for '{NamespacePath}': {ErrorMessage}", namespacePath, errorMessage);
-            throw new ManagementException(errorMessage, mex);
+            var wmiException = new WmiException(mex);
+            Log.Error("Error getting management object for '{NamespacePath}': {ErrorMessage}", namespacePath, wmiException.Message);
+            throw wmiException;
         }
         catch (Exception ex)
         {
@@ -855,8 +786,7 @@ public class WmiService : IWmiService, IDisposable
                 tcs.TrySetCanceled(cancellationToken);
             else
             {
-                var errorMessage = ExtractWmiErrorMessage(e.StatusObject, e.Status);
-                tcs.TrySetException(new ManagementException(errorMessage));
+                tcs.TrySetException(new WmiException(e.StatusObject, e.Status));
             }
         };
 
@@ -877,8 +807,15 @@ public class WmiService : IWmiService, IDisposable
             {
                 startAction(observer);
             }
+            catch (ManagementException mex)
+            {
+                var wmiException = new WmiException(mex);
+                Log.Error(mex, "WMI error in PerformWmiActionAsync: {ErrorMessage}", wmiException.Message);
+                tcs.TrySetException(wmiException);
+            }
             catch (Exception ex)
             {
+                Log.Error(ex, "Unexpected error in PerformWmiActionAsync");
                 tcs.TrySetException(ex);
             }
             return await tcs.Task.ConfigureAwait(false);
@@ -917,8 +854,7 @@ public class WmiService : IWmiService, IDisposable
             }
             else
             {
-                var errorMessage = ExtractWmiErrorMessage(e.StatusObject, e.Status);
-                tcs.TrySetException(new ManagementException(errorMessage));
+                tcs.TrySetException(new WmiException(e.StatusObject, e.Status));
             }
         };
 
@@ -968,8 +904,15 @@ public class WmiService : IWmiService, IDisposable
             {
                 startAction(observer);
             }
+            catch (ManagementException mex)
+            {
+                var wmiException = new WmiException(mex);
+                Log.Error(mex, "WMI error in PerformWmiOperationAsync: {ErrorMessage}", wmiException.Message);
+                tcs.TrySetException(wmiException);
+            }
             catch (Exception ex)
             {
+                Log.Error(ex, "Unexpected error in PerformWmiOperationAsync");
                 tcs.TrySetException(ex);
             }
             return await tcs.Task.ConfigureAwait(false);
@@ -986,6 +929,12 @@ public class WmiService : IWmiService, IDisposable
         {
             managementClass.Get();
             return managementClass;
+        }
+        catch (ManagementException mex)
+        {
+            var wmiException = new WmiException(mex);
+            Log.Error(mex, "Error refreshing WMI class {ClassName}: {ErrorMessage}", managementClass.Path?.ClassName ?? "Unknown", wmiException.Message);
+            return null;
         }
         catch (Exception ex)
         {
@@ -1004,6 +953,12 @@ public class WmiService : IWmiService, IDisposable
         {
             instance.Get();
             return instance;
+        }
+        catch (ManagementException mex)
+        {
+            var wmiException = new WmiException(mex);
+            Log.Error(mex, "Error refreshing WMI instance {Path}: {ErrorMessage}", instance.Path?.Path ?? "Unknown", wmiException.Message);
+            return null;
         }
         catch (Exception ex)
         {
@@ -1047,7 +1002,7 @@ public class WmiService : IWmiService, IDisposable
                     var childNamespacePath = $"{parentPath}\\{namespaceName}";
 
                     // Format the namespace for display/exclusion check (used for both purposes)
-                    var friendlyChildNamespace = FormatNamespaceForDisplay(childNamespacePath);
+                    var friendlyChildNamespace = WmiServiceHelpers.FormatNamespaceForDisplay(childNamespacePath);
 
                     // Skip the specific LDAP namespace if excludeLDAP is enabled
                     if (excludeLDAP)
@@ -1168,6 +1123,26 @@ public class WmiService : IWmiService, IDisposable
                     break;
             }
         }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Custom exception to carry full WMI status object for property grid display
+    /// </summary>
+    public class WmiException : ManagementException
+    {
+        public WmiException(ManagementBaseObject? errorDetails, ManagementStatus status, Exception? innerException = null)
+            : base(WmiServiceHelpers.ExtractWmiErrorInformation(errorDetails, status), innerException)
+        {
+            ErrorDetails = errorDetails;
+        }
+
+        public WmiException(ManagementException mex)
+            : base(WmiServiceHelpers.ExtractWmiErrorMessage(mex), mex)
+        {
+            ErrorDetails = mex.ErrorInformation;
+        }
+
+        public ManagementBaseObject? ErrorDetails { get; }
     }
 
     #region IDisposable
