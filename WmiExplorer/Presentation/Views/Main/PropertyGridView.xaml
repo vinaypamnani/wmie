@@ -23,10 +23,27 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Visibility="{Binding IsDebugMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0"
+                                      Margin="0,0,4,4"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Top"
+                                      ItemsSource="{Binding DebugObjects}"
+                                      SelectedItem="{Binding SelectedDebugObject, Mode=TwoWay}" />
+                            <Button Grid.Column="1"
+                                    Margin="0,0,0,4"
+                                    Command="{Binding RefreshDebugObjectCommand}"
+                                    Content="Refresh" />
+                        </Grid>
                         <!--  Header for selected object  -->
-                        <Border Grid.Row="0"
+                        <Border Grid.Row="1"
                                 Padding="{StaticResource PaddingSmall}"
                                 Background="{DynamicResource PrimaryAccentBrush}"
                                 BorderThickness="0">
@@ -37,7 +54,7 @@
                                        TextTrimming="CharacterEllipsis" />
                         </Border>
                         <pg:PropertyGrid x:Name="PropertyGrid"
-                                         Grid.Row="1"
+                                         Grid.Row="2"
                                          Background="{DynamicResource PrimaryBackgroundBrush}"
                                          BorderThickness="0"
                                          EnableVirtualization="True"

@@ -29,6 +29,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     private string _elapsedTimeMessage = string.Empty;
 
     [ObservableProperty]
+    private bool _isDebugMode;
+
+    [ObservableProperty]
     private LogTabViewModel _logTabViewModel = null!;
 
     [ObservableProperty]
@@ -36,6 +39,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
     [ObservableProperty]
     private OptionsViewModel _optionsViewModel = null!;
+
+    [ObservableProperty]
+    private object? _selectedDebugObject;
 
     [ObservableProperty]
     private int _selectedTabIndex;
@@ -65,6 +71,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
+
+        // Dynamically resolve all relevant view models from ServiceProvider
+        DebugObjects = ResolveDebugObjects();
 
         // Initialize the theme properties
         UpdateThemeProperties();
@@ -112,6 +121,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
             return count > 0 ? $"Classes [{count}]" : "Classes";
         }
     }
+
+    public List<object> DebugObjects { get; }
 
     /// <summary>
     /// Gets the header text for the Log tab with entries count
@@ -290,6 +301,15 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         SelectedTabIndex = message.TabIndex;
     }
 
+    partial void OnSelectedDebugObjectChanged(object? value)
+    {
+        // When changing debug selection, update the property grid
+        if (value != null)
+        {
+            SelectionManager.PropertyGrid.SetPropertyGridObject(value, value.ToString() ?? "Debug Object");
+        }
+    }
+
     /// <summary>
     /// Clear selections when the selected tab index changes
     /// </summary>
@@ -338,6 +358,15 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Command to toggle debug mode
+    /// </summary>
+    [RelayCommand]
+    private void RefreshDebugObject()
+    {
+        SelectionManager.PropertyGrid.RefreshPropertyGrid();
+    }
+
+    /// <summary>
     /// Command to reset both Light and Dark themes (preserving accent colors) and refresh the current theme.
     /// </summary>
     [RelayCommand]
@@ -352,6 +381,63 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         {
             Log.Error(ex, "Failed to reset themes to default. Remove %appdata%\\WmiExplorer\\themes.json file manually.");
         }
+    }
+
+    private List<object> ResolveDebugObjects()
+    {
+        var provider = App.ServiceProvider;
+        if (provider == null)
+            return new List<object>();
+
+        // List of types to include in DebugViewModels
+        var types = new[]
+        {
+            // ViewModels
+            typeof(NamespacesViewModel),
+            typeof(OptionsViewModel),
+            typeof(LogTabViewModel),
+            typeof(InstancesTabViewModel),
+            typeof(ClassesTabViewModel),
+            typeof(WatcherTabViewModel),
+            typeof(MethodsTabViewModel),
+            typeof(PropertiesTabViewModel),
+            typeof(QueryTabViewModel),
+            typeof(SearchTabViewModel),
+
+            // Managers
+            typeof(SelectionManager),
+            typeof(SettingsManager),
+            typeof(PropertyGridManager),
+            typeof(UpdateManager),
+            typeof(ThemeManager),
+
+            // Add more as needed
+        };
+        var result = new List<object>();
+        foreach (var type in types)
+        {
+            try
+            {
+                var instance = provider.GetService(type);
+                if (instance != null)
+                    result.Add(instance);
+            }
+            catch { /* ignore missing */ }
+        }
+
+        // Add MainViewModel itself
+        result.Add(this);
+
+        return result.OrderBy(x => x.GetType().FullName).ToList();
+    }
+
+    /// <summary>
+    /// Command to toggle debug mode
+    /// </summary>
+    [RelayCommand]
+    private void ToggleDebugMode()
+    {
+        IsDebugMode = !IsDebugMode;
     }
 
     /// <summary>

@@ -17,6 +17,11 @@
         Icon="/Resources/AppIcon.ico"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
+    <!--  Debug Mode KeyBinding  -->
+    <Window.InputBindings>
+        <KeyBinding Key="Q" Command="{Binding ExitCommand}" Modifiers="Control" />
+        <KeyBinding Key="D" Command="{Binding ToggleDebugModeCommand}" Modifiers="Control" />
+    </Window.InputBindings>
     <Grid Name="MainGrid">
         <Grid.RowDefinitions>
             <!--  Menu  -->
@@ -240,8 +245,8 @@
         <StatusBar Grid.Row="4">
             <StatusBarItem>
                 <controls:EnhancedStatusIndicator AppState="{Binding CurrentApplicationState.State}"
-                                                  Message="{Binding CurrentApplicationState.Message}"
                                                   Exception="{Binding CurrentApplicationState.Exception}"
+                                                  Message="{Binding CurrentApplicationState.Message}"
                                                   ToolTip="{Binding CurrentApplicationState.Message}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
@@ -249,8 +254,4 @@
             </StatusBarItem>
         </StatusBar>
     </Grid>
-
-    <Window.InputBindings>
-        <KeyBinding Key="Q" Command="{Binding ExitCommand}" Modifiers="Control" />
-    </Window.InputBindings>
 </Window>
