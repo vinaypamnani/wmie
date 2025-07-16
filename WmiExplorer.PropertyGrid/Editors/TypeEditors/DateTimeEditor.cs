@@ -1,54 +1,50 @@
-using System.Windows;
 using System.Windows.Controls;
 using WmiExplorer.PropertyGrid.Editors.Core;
 
 namespace WmiExplorer.PropertyGrid.Editors.TypeEditors;
 
 /// <summary>
-/// Specialized editor for DateTime properties providing date picker editing.
+/// Specialized editor for DateTime properties providing text-based editing with validation.
 /// </summary>
 public static class DateTimeEditor
 {
     /// <summary>
-    /// Creates a standardized DatePicker for DateTime property editing
+    /// Creates a standardized TextBox for DateTime property editing
     /// </summary>
-    public static DatePicker Create(PropertyHierarchyItem propertyItem)
+    public static TextBox Create(PropertyHierarchyItem propertyItem)
     {
-        var datePicker = new DatePicker
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Margin = EditorInfrastructure.CONTROL_MARGIN_STANDARD,
-            MinWidth = 180
-        };
-
-        PropertyEditorUtils.InitializeEditor(datePicker, propertyItem);
-
-        // MaxWidth constraint is applied only to the DatePicker for best practice
-        UIHelpers.ApplyMaxWidthConstraint(datePicker);
-
-        var binding = EditorInfrastructure.CreateStandardPropertyBinding(propertyItem);
-        datePicker.SetBinding(DatePicker.SelectedDateProperty, binding);
-        EditorInfrastructure.AttachSelectOnFocus(datePicker, propertyItem);
-
-        // Validation/modified tracking
-        datePicker.SelectedDateChanged += (s, e) => ApplyValidation(datePicker, propertyItem);
-        datePicker.Loaded += (s, e) => ApplyValidation(datePicker, propertyItem);
-
-        return datePicker;
+        // Use the formatted value as the initial text, and provide a placeholder
+        var textBox = PropertyEditorUtils.CreateStandardTextBox(
+            propertyItem.FormattedValue,
+            "Enter date and time (e.g., 2024-06-01 13:45:00)",
+            propertyItem,
+            null,
+            (text, originalValue) => CustomDateTimeValidation(text, originalValue)
+        );
+        return textBox;
     }
 
-    private static void ApplyValidation(DatePicker datePicker, PropertyHierarchyItem propertyItem)
+    private static ValidationManager.ValidationResult CustomDateTimeValidation(string? text, object? originalValue)
     {
-        var current = datePicker.SelectedDate;
-        var original = propertyItem.OriginalValue as DateTime?;
-        if (!ValidationManager.AreValuesEqual(current, original))
+        if (DateTime.TryParse(text, out var parsed))
         {
-            ValidationManager.SetValidationModified(datePicker);
+            DateTime? originalDateTime = null;
+            if (originalValue is DateTime dt)
+            {
+                originalDateTime = dt;
+            }
+            else if (originalValue is string s && DateTime.TryParse(s, out var dtParsed))
+            {
+                originalDateTime = dtParsed;
+            }
+            // If originalValue is not parseable, treat as modified
+            bool isModified = true;
+            if (originalDateTime.HasValue)
+            {
+                isModified = !parsed.Equals(originalDateTime.Value);
+            }
+            return ValidationManager.ValidationResult.Valid(parsed, isModified);
         }
-        else
-        {
-            ValidationManager.SetValidationNormal(datePicker);
-        }
+        return ValidationManager.ValidationResult.Error("Invalid date/time format");
     }
 }

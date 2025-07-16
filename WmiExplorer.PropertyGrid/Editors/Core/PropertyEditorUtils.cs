@@ -76,7 +76,7 @@ public static class PropertyEditorUtils
     /// <summary>
     /// Creates a standardized DatePicker for DateTime property editing
     /// </summary>
-    public static DatePicker CreateDateTimeEditor(PropertyHierarchyItem propertyItem)
+    public static TextBox CreateDateTimeEditor(PropertyHierarchyItem propertyItem)
         => DateTimeEditor.Create(propertyItem);
 
     /// <summary>
