@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace WmiExplorer.Common.Models;
 
 /// <summary>
@@ -28,6 +30,7 @@ public class LogEntry
     /// <summary>
     /// Gets the display text for the log level
     /// </summary>
+    [Browsable(false)]
     public string LevelText => Level switch
     {
         LogLevel.Debug => "DEBUG",

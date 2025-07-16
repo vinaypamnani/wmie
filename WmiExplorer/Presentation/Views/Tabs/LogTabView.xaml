@@ -105,7 +105,7 @@
                           Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.RowStyle>
                         <Style BasedOn="{StaticResource ModernDataGridRowStyle}" TargetType="DataGridRow">
-                            <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="False" />
+                            <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
                         </Style>
                     </DataGrid.RowStyle>
                     <DataGrid.Columns>
