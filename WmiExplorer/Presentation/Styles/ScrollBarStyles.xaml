@@ -29,6 +29,7 @@
     <!--  RepeatButton Style for page buttons  -->
     <Style x:Key="ModernScrollBarPageButtonStyle" TargetType="{x:Type RepeatButton}">
         <Setter Property="OverridesDefaultStyle" Value="true" />
+        <Setter Property="Focusable" Value="False" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
