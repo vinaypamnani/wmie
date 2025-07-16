@@ -20,7 +20,13 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer x:Name="ScrollViewer" Padding="{StaticResource PaddingTiny}" Style="{StaticResource ModernScrollViewerStyle}">
+                        <ScrollViewer x:Name="PART_ScrollViewer"
+                                          Grid.Row="1"
+                                          Padding="{TemplateBinding Padding}"
+                                          Style="{StaticResource ModernScrollViewerStyle}"
+                                          CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                          VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
                             <ItemsPresenter />
                         </ScrollViewer>
                     </Border>
@@ -42,6 +48,7 @@
     <!--  ListViewItem  -->
     <Style x:Key="ModernListViewItemStyle" TargetType="ListViewItem">
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="Padding" Value="{StaticResource PaddingVerticalTiny}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Center" />

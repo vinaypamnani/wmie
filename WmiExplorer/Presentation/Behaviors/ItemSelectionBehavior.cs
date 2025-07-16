@@ -77,11 +77,33 @@ public static class ItemSelectionBehavior
             if ((bool)e.NewValue)
             {
                 control.MouseUp += OnItemMouseUp;
+                control.PreviewKeyDown += OnItemPreviewKeyDown;
             }
             else
             {
                 control.MouseUp -= OnItemMouseUp;
+                control.PreviewKeyDown -= OnItemPreviewKeyDown;
             }
+        }
+    }
+
+    private static void OnItemPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        // Only handle <Space> key
+        if (e.Key != Key.Space)
+            return;
+
+        var control = (FrameworkElement)sender;
+        var dataContext = control.DataContext;
+
+        // Check if PropertyGrid should be updated
+        bool updatePropertyGrid = GetUpdatePropertyGrid(control);
+
+        // Update selection via SelectionManager (which handles IsSelected management)
+        if (_selectionManager != null)
+        {
+            _selectionManager.SetSelectedObject(dataContext, updatePropertyGrid);
+            e.Handled = true; // Prevent default behavior
         }
     }
 
