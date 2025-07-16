@@ -187,7 +187,7 @@
                 BorderBrush="{DynamicResource SecondaryBackgroundBrush}"
                 BorderThickness="0,0,0,4"
                 CornerRadius="0">
-            <main:OptionsView DataContext="{Binding OptionsViewModel}" />
+            <main:OptionsView x:Name="OptionsViewControl" DataContext="{Binding OptionsViewModel}" />
         </Border>
 
         <Grid Name="ContentGrid" Grid.Row="3">

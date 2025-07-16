@@ -22,6 +22,7 @@
             <TreeView Name="WmiNamespaces"
                       Margin="0,0,4,4"
                       behaviors:TreeViewAutoScrollBehavior.AutoScroll="True"
+                      FocusVisualStyle="{StaticResource CompactFocusVisualStyle}"
                       ItemsSource="{Binding Namespaces}">
                 <TreeView.InputBindings>
                     <KeyBinding Key="F5" Command="{Binding SelectionManager.SelectedNamespace.LoadClassesCommand}" />

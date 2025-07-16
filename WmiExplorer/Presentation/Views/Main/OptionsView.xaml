@@ -18,13 +18,14 @@
 
         <GroupBox Grid.Column="0" Header="Computer Name" Style="{StaticResource CompactGroupBoxStyle}">
             <StackPanel Orientation="Horizontal">
-                <TextBox MinWidth="160"
+                <TextBox Name="ComputerNameTextBox"
+                         MinWidth="160"
                          VerticalContentAlignment="Center"
                          Style="{StaticResource TextBoxWithPlaceholder}"
                          Tag="Computer Name..."
                          Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="{StaticResource Tooltip.Options.ComputerName}">
-                    <!-- Bind Enter key to ConnectCommand -->
+                    <!--  Bind Enter key to ConnectCommand  -->
                     <TextBox.InputBindings>
                         <KeyBinding Key="Enter" Command="{Binding ConnectCommand}" />
                     </TextBox.InputBindings>

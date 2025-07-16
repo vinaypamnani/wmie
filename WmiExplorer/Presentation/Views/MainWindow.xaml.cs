@@ -44,6 +44,12 @@ public partial class MainWindow : Window
         // Set an initial application state
         _messengerService.Send(new ApplicationStateMessage(
             ApplicationState.Ready("Application started. Click Connect to begin.")));
+
+        // Focus the computer name textbox in OptionsView when MainWindow is loaded
+        Loaded += (s, e) =>
+        {
+            OptionsViewControl.FocusComputerNameTextBox();
+        };
     }
 
     // Static reference to the current main window for global access

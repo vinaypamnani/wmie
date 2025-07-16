@@ -13,6 +13,13 @@ public partial class OptionsView : UserControl
         InitializeComponent();
     }
 
+    public void FocusComputerNameTextBox()
+    {
+        ComputerNameTextBox.Focus();
+        if (ComputerNameTextBox.Text.Length > 0)
+            ComputerNameTextBox.CaretIndex = ComputerNameTextBox.Text.Length;
+    }
+
     /// <summary>
     /// Handles the dropdown button click to show the context menu
     /// </summary>
