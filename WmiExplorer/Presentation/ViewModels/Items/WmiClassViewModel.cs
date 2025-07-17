@@ -37,11 +37,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private bool _isUpdatingSelection = false;
 
     [ObservableProperty]
-    private Exception? _loadException;
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CancelInstanceLoadCommand))]
-    private InstanceLoadState _loadState = InstanceLoadState.Unknown;
+    private ItemStatus _itemStatus = new();
 
     private ObservableCollection<WmiMethod>? _methods;
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
@@ -73,6 +69,17 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         _applicationService = applicationService;
         _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
         _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+
+        // Subscribe to ItemStatus property changes to notify Tooltip changes
+        ItemStatus.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(ItemStatus.LoadState) ||
+                e.PropertyName == nameof(ItemStatus.StatusMessage) ||
+                e.PropertyName == nameof(ItemStatus.Exception))
+            {
+                OnPropertyChanged(nameof(Tooltip));
+            }
+        };
 
         // The collection view is used for filtering and sorting instances in the UI.
         _instanceFilterHelper = new FilterHelper<WmiInstanceViewModel>(
@@ -111,6 +118,31 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     public ObservableCollection<WmiMethod> Methods => _methods!;
 
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
+
+    public string? Tooltip
+    {
+        get
+        {
+            switch (ItemStatus.LoadState)
+            {
+                case LoadState.Unknown:
+                    return null;
+                case LoadState.Loading:
+                    return "Loading instances";
+                case LoadState.Success:
+                    return $"Success [{Instances?.Count ?? 0} instances]";
+                case LoadState.PartialSuccess:
+                    return $"Loaded Properties and Methods. Double-click to load instances.";
+                case LoadState.Warning:
+                    return !string.IsNullOrWhiteSpace(ItemStatus.StatusMessage) ? ItemStatus.StatusMessage : "Warning";
+                case LoadState.Failed:
+                    return ItemStatus.Exception?.Message ?? "Failed";
+                default:
+                    return null;
+            }
+        }
+    }
+
     public WmiClass WmiClass => _wmiClass;
 
     public static ObservableCollection<WmiClassViewModel> CreateFromCollection(
@@ -194,7 +226,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         }
     }
 
-    private bool CancelInstanceLoadCanExecute() => LoadState == InstanceLoadState.Loading;
+    private bool CancelInstanceLoadCanExecute() => ItemStatus.LoadState == LoadState.Loading;
 
     /// <summary>
     /// Disposes all items in the collection (if IDisposable) and clears the collection.
@@ -398,7 +430,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     [RelayCommand]
     private async Task LoadInstancesAsync()
     {
-        if (LoadState == InstanceLoadState.Loading)
+        if (ItemStatus.LoadState == LoadState.Loading)
             return;
 
         Log.Debug("Loading instances for class {ClassName}", ClassName);
@@ -410,8 +442,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         using var timer = OperationTimer.Start($"Loading instances for {ClassName}", _messengerService);
         try
         {
-            LoadState = InstanceLoadState.Loading;
-            PublishBusyState($"Loading instances for {ClassName}");
+            SetStatusAndPublish(ItemStatus, LoadState.Loading, $"Loading instances for {ClassName}...");
 
             // Build WQL query for instances of this class
             string wqlQuery = $"SELECT * FROM {ClassName}";
@@ -453,54 +484,43 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             // Check if operation was cancelled and show appropriate message
             if (_cts.Token.IsCancellationRequested)
             {
-                LoadState = InstanceLoadState.Warning;
+                SetStatusAndPublish(ItemStatus, LoadState.Warning, $"Found {instanceViewModels.Count} instances for {ClassName} before loading was cancelled");
                 Log.Warning("Found {InstanceCount} instances for {ClassName} before loading was cancelled (token signaled)", instanceViewModels.Count, ClassName);
-                PublishWarningState($"Found {instanceViewModels.Count} instances for {ClassName} before loading was cancelled");
             }
             else
             {
-                LoadException = null;
-                LoadState = InstanceLoadState.Success;
+                SetStatusAndPublish(ItemStatus, LoadState.Success, $"Loaded {instanceViewModels.Count} instances for {ClassName}");
                 Log.Information("Successfully loaded {InstanceCount} instances for {ClassName}", instanceViewModels.Count, ClassName);
-                PublishSuccessState($"Loaded {instanceViewModels.Count} instances for {ClassName}");
             }
         }
         catch (OperationCanceledException ex)
         {
-            LoadState = InstanceLoadState.Warning;
             if (ex.Message.Contains("timed out"))
             {
-                Log.Warning(ex, "Loading instances for class {ClassName} timed out, showing {PartialCount} partial results",
-                    ClassName, _instances.Count);
-                // Synchronous operation timed out
-                PublishWarningState($"Loading instances for {ClassName} timed out - this may indicate a very large result set. Consider switching to asynchronous mode for better cancellation support. Showing {_instances.Count} partial results");
+                var msg = $"Loading instances for {ClassName} timed out - this may indicate a very large result set. Consider switching to asynchronous mode for better cancellation support. Showing {_instances.Count} partial results";
+                SetStatusAndPublish(ItemStatus, LoadState.Warning, msg);
+                Log.Warning(ex, "Loading instances for class {ClassName} timed out, showing {PartialCount} partial results", ClassName, _instances.Count);
             }
             else
             {
-                Log.Warning(ex, "Loading instances for class {ClassName} was cancelled, showing {PartialCount} partial results",
-                    ClassName, _instances.Count);
-                // Regular cancellation
-                PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
+                SetStatusAndPublish(ItemStatus, LoadState.Warning, $"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
+                Log.Warning(ex, "Loading instances for class {ClassName} was cancelled - showing {PartialCount} partial results", ClassName, _instances.Count);
             }
         }
         catch (ManagementException ex) when (ex.ErrorCode == ManagementStatus.CallCanceled || ex.ErrorCode == ManagementStatus.OperationCanceled)
         {
+            SetStatusAndPublish(ItemStatus, LoadState.Warning, $"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
             Log.Warning(ex, "WMI loading instances for class {ClassName} was cancelled (ErrorCode: {ErrorCode}), showing {PartialCount} partial results",
                 ClassName, ex.ErrorCode, _instances.Count);
-            // Handle WMI cancellation errors - show partial results that we already loaded
-            LoadState = InstanceLoadState.Warning;
-            PublishWarningState($"Loading instances for {ClassName} was cancelled - showing {_instances.Count} partial results");
         }
         catch (Exception ex)
         {
+            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Error loading instances for {ClassName}: {ex.Message}", ex);
             Log.Error(ex, "Error loading instances for class: {ClassName}", ClassName);
-            LoadException = ex;
-            LoadState = InstanceLoadState.Failed;
-            PublishErrorState($"Error loading instances for {ClassName}: {ex.Message}", ex);
         }
     }
 
-    private bool LoadInstancesCanExecute() => LoadState != InstanceLoadState.Loading;
+    private bool LoadInstancesCanExecute() => ItemStatus.LoadState != LoadState.Loading;
 
     /// <summary>
     /// Loads the methods available for this class.
@@ -535,6 +555,9 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             {
                 Log.Debug("No methods found for class: {ClassName}", ClassName);
             }
+
+            // Set the status to partial success
+            ItemStatus.LoadState = LoadState.PartialSuccess;
         }
         catch (Exception ex)
         {
@@ -574,6 +597,9 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 _hasLazyProperty = false;
                 Log.Debug("No properties found for class: {ClassName}", ClassName);
             }
+
+            // Set the status to partial success
+            ItemStatus.LoadState = LoadState.PartialSuccess;
         }
         catch (Exception ex)
         {
@@ -672,13 +698,4 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             return false;
         }
     }
-}
-
-public enum InstanceLoadState
-{
-    Unknown,
-    Loading,
-    Warning,
-    Success,
-    Failed
 }

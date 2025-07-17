@@ -178,7 +178,7 @@ public class ClassListManager : DisposableObservableObject
         if (selectedNamespace != null)
         {
             // Prefer in-memory classes if available
-            var inMemoryClassesLoaded = selectedNamespace.ClassLoadState == ClassLoadState.Success;
+            var inMemoryClassesLoaded = selectedNamespace.ItemStatus.LoadState == LoadState.Success;
 
             if (inMemoryClassesLoaded)
             {

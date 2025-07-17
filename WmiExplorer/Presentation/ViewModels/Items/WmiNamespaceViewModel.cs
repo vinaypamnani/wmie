@@ -32,10 +32,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     [NotifyPropertyChangedFor(nameof(ClassesView))]
     private string _classFilterText = string.Empty;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LoadState))]
-    private ClassLoadState _classLoadState = ClassLoadState.Unknown;
-
     private readonly object _collectionLock = new();
 
     [ObservableProperty]
@@ -53,15 +49,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private bool _isSelected;
 
     private bool _isUpdatingSelection = false;
-
-    [ObservableProperty]
-    private Exception? _loadException;
-
     private ManagementScope? _managementScope;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LoadState))]
-    private NamespaceLoadState _namespaceLoadState = NamespaceLoadState.Unknown;
 
     [ObservableProperty]
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
@@ -84,6 +72,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     private readonly WmiNamespace _wmiNamespace;
     private readonly IWmiService _wmiService;
 
+    [ObservableProperty]
+    private ItemStatus itemStatus = new();
+
     public WmiNamespaceViewModel(
            WmiNamespace wmiNamespace,
            IWmiService wmiService,
@@ -101,6 +92,17 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+
+        // Subscribe to ItemStatus property changes to notify Tooltip changes
+        ItemStatus.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(ItemStatus.LoadState) ||
+                e.PropertyName == nameof(ItemStatus.StatusMessage) ||
+                e.PropertyName == nameof(ItemStatus.Exception))
+            {
+                OnPropertyChanged(nameof(Tooltip));
+            }
+        };
 
         // The collection view is used for filtering and sorting classes in the UI.
         _classFilterHelper = new FilterHelper<WmiClassViewModel>(
@@ -148,22 +150,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     /// </summary>
     public virtual bool IsSmsProviderNamespace => false;
 
-    public LoadState LoadState
-    {
-        get
-        {
-            if (NamespaceLoadState == NamespaceLoadState.Loading || ClassLoadState == ClassLoadState.Loading)
-                return LoadState.Loading;
-            if (NamespaceLoadState == NamespaceLoadState.Failed || ClassLoadState == ClassLoadState.Failed)
-                return LoadState.Failed;
-            if (ClassLoadState == ClassLoadState.Warning)
-                return LoadState.Warning;
-            if (NamespaceLoadState == NamespaceLoadState.Success && ClassLoadState == ClassLoadState.Success)
-                return LoadState.Success;
-            return LoadState.Unknown;
-        }
-    }
-
     /// <summary>
     /// Lazily create and cache the ManagementScope for WMI operations.
     /// </summary>
@@ -186,6 +172,33 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     public string NamespacePath => _wmiNamespace.NamespacePath;
     public QueryTabViewModel QueryTabViewModel => _queryTabViewModel;
     public SearchTabViewModel SearchTabViewModel => _searchTabViewModel;
+
+    public string? Tooltip
+    {
+        get
+        {
+            switch (ItemStatus.LoadState)
+            {
+                case LoadState.Unknown:
+                    return null;
+                case LoadState.Loading:
+                    return "Loading";
+                case LoadState.Expanding:
+                    return "Expanding namespace";
+                case LoadState.Expanded:
+                    return GetContextualTooltip($"Expanded [{Children.Count} child namespaces]. Double click to enumerate classes.");
+                case LoadState.Success:
+                    return GetContextualTooltip($"Success [{Classes?.Count ?? 0} classes]");
+                case LoadState.Warning:
+                    return !string.IsNullOrWhiteSpace(ItemStatus.StatusMessage) ? ItemStatus.StatusMessage : "Warning";
+                case LoadState.Failed:
+                    return ItemStatus.Exception?.Message ?? "Failed";
+                default:
+                    return null;
+            }
+        }
+    }
+
     public WmiNamespace? WmiNamespace => _wmiNamespace;
 
     public static ObservableCollection<WmiNamespaceViewModel> CreateFromCollection(
@@ -327,11 +340,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
 
         using var timer = OperationTimer.Start($"Loading child namespaces for {NamespacePath}", _messengerService);
+
         try
         {
-            PublishBusyState($"Loading child namespaces for {NamespacePath}...");
+            SetStatusAndPublish(ItemStatus, LoadState.Expanding, $"Loading child namespaces for {NamespacePath}...");
             Log.Debug("Loading child namespaces for {NamespacePath}", NamespacePath);
-            NamespaceLoadState = NamespaceLoadState.Loading;
 
             // Use the ViewModel's ManagementScope for the service call.
             var childNamespaces = await _wmiService.GetChildNamespacesAsync(
@@ -372,23 +385,18 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
             HasLoadedChildren = true;
             IsExpanded = true;
-            LoadException = null;
-            NamespaceLoadState = NamespaceLoadState.Success;
-            PublishSuccessState($"Loaded child namespaces for {NamespacePath}");
+            SetStatusAndPublish(ItemStatus, LoadState.Expanded, $"Namespace expanded: {NamespacePath} [{_children.Count}] child namespaces]");
             Log.Information("Successfully loaded {ChildCount} child namespaces for {NamespacePath}", _children.Count, NamespacePath);
         }
         catch (OperationCanceledException)
         {
+            SetStatusAndPublish(ItemStatus, LoadState.Warning, $"Loading child namespaces for {NamespacePath} was canceled");
             Log.Warning("Loading child namespaces for {NamespacePath} was canceled", NamespacePath);
-            NamespaceLoadState = NamespaceLoadState.Failed;
-            PublishErrorState($"Loading child namespaces for {NamespacePath} was canceled");
         }
         catch (Exception ex)
         {
+            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Error loading child namespaces for {NamespacePath}: {ex.Message}", ex);
             Log.Error(ex, "Error loading child namespaces for {NamespacePath}", NamespacePath);
-            LoadException = ex;
-            NamespaceLoadState = NamespaceLoadState.Failed;
-            PublishErrorState($"Error loading child namespaces for {NamespacePath}: {ex.Message}", ex);
         }
     }
 
@@ -396,26 +404,22 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     public async Task LoadClassesAsync()
     {
         Log.Debug("Loading classes for {NamespacePath}", NamespacePath);
-        using var timer = OperationTimer.Start($"Loading classes for {NamespacePath}", _messengerService);
         try
         {
-            ClassLoadState = ClassLoadState.Loading;
-            PublishBusyState($"Loading classes for {NamespacePath}...");
+            SetStatusAndPublish(ItemStatus, LoadState.Loading, $"Loading classes for {NamespacePath}...");
 
             var queryString = BuildClassQueryFromFilter(_settingsManager.ClassEnumerationFilter);
             if (IsSmsProviderNamespace && this is ConfigMgr.SmsProviderNamespaceViewModel smsVm)
             {
-                // Use derived class method if available
                 queryString = ConfigMgr.SmsProviderNamespaceViewModel.BuildSmsProviderQueryFromFilter(queryString, _settingsManager.ConfigMgrSettings!);
             }
 
-            // Use the ViewModel's ManagementScope for the service call.
             var wmiClasses = await _wmiService.ExecuteWmiQueryAsync(
                 ManagementScope,
                 queryString,
                 directRead: false,
                 useAmendedQualifiers: true,
-                cacheResults: true, // Ensure class metadata is cached for this namespace
+                cacheResults: true,
                 _cts.Token);
 
             if (_cts.IsCancellationRequested)
@@ -424,7 +428,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 return;
             }
 
-            // Map ManagementObject to WmiClass and create view models for all classes at once.
             var classModels = wmiClasses.Select(mo => new WmiClass(mo));
             var classViewModels = WmiClassViewModel.CreateFromCollection(
                 classModels,
@@ -433,7 +436,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _messengerService,
                 _applicationService,
                 _selectionManager);
-
 
             await RunOnUIThreadAsync(() =>
             {
@@ -451,31 +453,22 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 return Task.CompletedTask;
             });
 
-            LoadException = null;
-            ClassLoadState = ClassLoadState.Success;
+            SetStatusAndPublish(ItemStatus, LoadState.Success, $"Successfully loaded {_classes.Count} classes for {NamespacePath}");
             Log.Information("Successfully loaded {ClassCount} classes for {NamespacePath}", _classes.Count, NamespacePath);
 
-            // Publish message that classes are loaded
             PublishMessage(new ClassesLoadedMessage(this));
-
-            // Publish message that tab count changed
             PublishMessage(new TabCountChangedMessage());
-
-            // Publish message that classes are filtered to update status bar
             PublishMessage(new ClassesFilteredMessage(this));
         }
         catch (OperationCanceledException ocex)
         {
-            ClassLoadState = ClassLoadState.Warning;
+            SetStatusAndPublish(ItemStatus, LoadState.Warning, $"Loading classes for {NamespacePath} was canceled");
             Log.Warning(ocex, "Loading classes for {NamespacePath} was canceled (exception)", NamespacePath);
-            PublishErrorState($"Loading classes for {NamespacePath} was canceled");
         }
         catch (Exception ex)
         {
-            ClassLoadState = ClassLoadState.Failed;
-            LoadException = ex;
+            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Error loading classes for {NamespacePath}: {ex.Message}", ex);
             Log.Error(ex, "Error loading classes for {NamespacePath}", NamespacePath);
-            PublishErrorState($"Error loading classes for {NamespacePath}: {ex.Message}", ex);
         }
     }
 
@@ -623,6 +616,29 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     /// </summary>
     private bool DisconnectCanExecute() => IsRoot;
 
+    /// <summary>
+    /// Generates contextual tooltip text based on the namespace type and properties.
+    /// </summary>
+    /// <param name="baseTooltip">The base tooltip text to enhance with context.</param>
+    /// <returns>Enhanced tooltip text with contextual information.</returns>
+    private string GetContextualTooltip(string baseTooltip)
+    {
+        if (IsSmsClientNamespace)
+        {
+            return $"{baseTooltip} [ConfigMgr Client Namespace. Right click this namespace to see extra options to trigger common client actions]";
+        }
+        else if (IsSmsProviderNamespace)
+        {
+            return $"{baseTooltip} [ConfigMgr Provider Namespace. Use extra options in the Classes Tab to include/exclude Collection and Inventory classes]";
+        }
+        // If this is a root namespace, provide additional context
+        else if (IsRoot)
+        {
+            return $"Root namespace for this connection. Right click to disconnect.";
+        }
+        return baseTooltip;
+    }
+
     // Property change notification methods
     partial void OnClassFilterTextChanged(string value)
     {
@@ -672,30 +688,4 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             SystemClassesCount = _classes.Count(c => c.ClassName != null && c.ClassName.StartsWith("__"));
         }
     }
-}
-
-public enum ClassLoadState
-{
-    Unknown,
-    Loading,
-    Warning,
-    Success,
-    Failed
-}
-
-public enum LoadState
-{
-    Unknown,
-    Loading,
-    Success,
-    Warning,
-    Failed
-}
-
-public enum NamespaceLoadState
-{
-    Unknown,
-    Loading,
-    Success,
-    Failed
 }

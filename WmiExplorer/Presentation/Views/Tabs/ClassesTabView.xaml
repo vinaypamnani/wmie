@@ -120,7 +120,10 @@
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Margin="0,1,0,1" Orientation="Horizontal">
-                                                    <ContentControl Margin="0,0,4,0" Content="{Binding}" ContentTemplate="{StaticResource CircleIconWithStateTemplate}" />
+                                                    <ContentControl Margin="0,0,4,0"
+                                                                    Content="{Binding}"
+                                                                    ContentTemplate="{StaticResource CircleIconWithStateTemplate}"
+                                                                    ToolTip="{Binding Tooltip}" />
                                                     <TextBlock Text="{Binding ClassName}" />
                                                 </StackPanel>
                                             </DataTemplate>

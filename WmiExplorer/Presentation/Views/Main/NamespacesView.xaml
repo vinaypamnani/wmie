@@ -99,7 +99,8 @@
                                             Height="16"
                                             VerticalAlignment="Center"
                                             Content="{Binding}"
-                                            Focusable="False">
+                                            Focusable="False"
+                                            ToolTip="{Binding Tooltip}">
                                 <ContentControl.Style>
                                     <Style TargetType="ContentControl">
                                         <!--  Default to namespace icon with state-based coloring  -->
@@ -108,17 +109,14 @@
                                             <!--  ConfigMgr Provider Namespace  -->
                                             <DataTrigger Binding="{Binding IsSmsProviderNamespace}" Value="True">
                                                 <Setter Property="ContentTemplate" Value="{DynamicResource ConfigMgrProviderIconWithStateTemplate}" />
-                                                <Setter Property="ToolTip" Value="ConfigMgr Provider Namespace. Use extra options in the Classes Tab to include/exclude Collection and Inventory classes." />
                                             </DataTrigger>
                                             <!--  ConfigMgr Client Namespace  -->
                                             <DataTrigger Binding="{Binding IsSmsClientNamespace}" Value="True">
                                                 <Setter Property="ContentTemplate" Value="{DynamicResource ConfigMgrClientIconWithStateTemplate}" />
-                                                <Setter Property="ToolTip" Value="ConfigMgr Client Namespace. Right click on this namesapce to see extra options to trigger common client actions." />
                                             </DataTrigger>
                                             <!--  Root namespace  -->
                                             <DataTrigger Binding="{Binding IsRoot}" Value="True">
                                                 <Setter Property="ContentTemplate" Value="{DynamicResource RootNamespaceIconWithStateTemplate}" />
-                                                <Setter Property="ToolTip" Value="Root namespace for this connection" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>

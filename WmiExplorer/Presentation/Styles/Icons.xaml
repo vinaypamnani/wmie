@@ -12,20 +12,29 @@
         <Setter Property="FontSize" Value="16" />
     </Style>
 
-    <!-- Style for icons with LoadState-based coloring -->
-    <Style x:Key="LoadStateIconTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource IconTextBlockStyle}">
+    <!--  Style for icons with LoadState-based coloring  -->
+    <Style x:Key="LoadStateIconTextBlockStyle" BasedOn="{StaticResource IconTextBlockStyle}" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource TertiaryForegroundBrush}" />
         <Style.Triggers>
-            <DataTrigger Binding="{Binding LoadState}" Value="Loading">
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Loading">
                 <Setter Property="Foreground" Value="{DynamicResource BaseBlueBrush}" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding LoadState}" Value="Success">
-                <Setter Property="Foreground" Value="{DynamicResource BaseGreenBrush}" />
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Expanding">
+                <Setter Property="Foreground" Value="{DynamicResource BaseBlueBrush}" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding LoadState}" Value="Warning">
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Expanded">
                 <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding LoadState}" Value="Failed">
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Success">
+                <Setter Property="Foreground" Value="{DynamicResource BaseGreenBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="PartialSuccess">
+                <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Warning">
+                <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Failed">
                 <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
             </DataTrigger>
         </Style.Triggers>
@@ -72,22 +81,22 @@
 
     <!--  Namespace Icons with LoadState-based coloring  -->
 
-    <!-- ConfigMgr Provider icon with LoadState-based coloring -->
+    <!--  ConfigMgr Provider icon with LoadState-based coloring  -->
     <DataTemplate x:Key="ConfigMgrProviderIconWithStateTemplate">
         <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE82D;" />
     </DataTemplate>
 
-    <!-- ConfigMgr Client icon with LoadState-based coloring -->
+    <!--  ConfigMgr Client icon with LoadState-based coloring  -->
     <DataTemplate x:Key="ConfigMgrClientIconWithStateTemplate">
         <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE70C;" />
     </DataTemplate>
 
-    <!-- Root namespace icon with LoadState-based coloring -->
+    <!--  Root namespace icon with LoadState-based coloring  -->
     <DataTemplate x:Key="RootNamespaceIconWithStateTemplate">
         <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE977;" />
     </DataTemplate>
 
-    <!-- Regular namespace circle icon with LoadState-based coloring -->
+    <!--  Regular namespace circle icon with LoadState-based coloring  -->
     <DataTemplate x:Key="CircleIconWithStateTemplate">
         <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xEDB0;" />
     </DataTemplate>
@@ -202,18 +211,30 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8B3;" />
     </DataTemplate>
 
-    <!-- MessageBox Icons (Fluent, placeholder Unicode) -->
+    <!--  MessageBox Icons (Fluent, placeholder Unicode)  -->
     <DataTemplate x:Key="MessageBoxInfoIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" FontSize="36" Foreground="{DynamicResource BaseGreenBrush}" Text="&#xE946;" />
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseGreenBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xE946;" />
     </DataTemplate>
     <DataTemplate x:Key="MessageBoxWarningIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" FontSize="36" Foreground="{DynamicResource BaseOrangeBrush}" Text="&#xE7BA;" />
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseOrangeBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xE7BA;" />
     </DataTemplate>
     <DataTemplate x:Key="MessageBoxErrorIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" FontSize="36" Foreground="{DynamicResource BaseRedBrush}" Text="&#xEA39;" />
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseRedBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xEA39;" />
     </DataTemplate>
     <DataTemplate x:Key="MessageBoxQuestionIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" FontSize="36" Foreground="{DynamicResource BaseBlueBrush}" Text="&#xE9CE;" />
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseBlueBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xE9CE;" />
     </DataTemplate>
 
 </ResourceDictionary>

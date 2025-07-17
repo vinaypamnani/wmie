@@ -16,14 +16,6 @@ namespace WmiExplorer.Presentation.ViewModels.Items;
 /// </summary>
 public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
 {
-    public enum InstanceState
-    {
-        Unknown,
-        Success,
-        Warning, // used for instance with lazy properties
-        Failed
-    }
-
     private readonly IApplicationService _applicationService;
 
     [ObservableProperty]
@@ -33,14 +25,13 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     private bool _isSelected;
 
     private bool _isUpdatingSelection = false;
-
-    [ObservableProperty]
-    private InstanceState _loadState = InstanceState.Unknown;
-
     private readonly WmiClassViewModel _parentClass;
     private readonly SelectionManager _selectionManager;
     private readonly WmiInstance _wmiInstance;
     private readonly IWmiService _wmiService;
+
+    [ObservableProperty]
+    private ItemStatus itemStatus = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WmiInstanceViewModel"/> class.
@@ -71,6 +62,17 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         _applicationService = applicationService;
         _parentClass = parentClass;
         _selectionManager = selectionManager;
+
+        // Subscribe to ItemStatus property changes to notify Tooltip changes
+        ItemStatus.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(ItemStatus.LoadState) ||
+                e.PropertyName == nameof(ItemStatus.StatusMessage) ||
+                e.PropertyName == nameof(ItemStatus.Exception))
+            {
+                OnPropertyChanged(nameof(Tooltip));
+            }
+        };
     }
 
     /// <summary>
@@ -92,6 +94,30 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     /// The parent namespace ViewModel.
     /// </summary>
     public WmiNamespaceViewModel? ParentNamespace => ParentClass.ParentNamespaceViewModel;
+
+    public string? Tooltip
+    {
+        get
+        {
+            switch (ItemStatus.LoadState)
+            {
+                case LoadState.Unknown:
+                    return null;
+                case LoadState.Loading:
+                    return "Loading";
+                case LoadState.Success:
+                    return "Success";
+                case LoadState.PartialSuccess:
+                    return "Instance has lazy properties. Refresh instance (F5) to load all properties.";
+                case LoadState.Warning:
+                    return !string.IsNullOrWhiteSpace(ItemStatus.StatusMessage) ? ItemStatus.StatusMessage : "Warning";
+                case LoadState.Failed:
+                    return ItemStatus.Exception?.Message ?? "Failed";
+                default:
+                    return null;
+            }
+        }
+    }
 
     /// <summary>
     /// The underlying ManagementObject for this instance.
@@ -387,9 +413,9 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
 
                 // Set state based on parent class properties
                 if (!_parentClass.HasLazyProperty)
-                    LoadState = InstanceState.Success;
+                    SetStatusAndPublish(ItemStatus, LoadState.Success, $"Loaded details for {InstanceName}.");
                 else
-                    LoadState = InstanceState.Warning;
+                    SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded details for {InstanceName} (with lazy properties).");
             }
             finally
             {
@@ -408,19 +434,17 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         {
             // Always reload the instance data
             _wmiService.RefreshInstanceAsync(_wmiInstance.ActualObject);
-            LoadState = InstanceState.Success;
+            SetStatusAndPublish(ItemStatus, LoadState.Success, $"Instance refreshed: {InstanceName}");
 
             // Refresh the property grid to reflect updated values
             _selectionManager.PropertyGrid.RefreshPropertyGrid();
 
-            PublishSuccessState($"Instance refreshed: {InstanceName}");
             Log.Information("Instance refreshed: {InstanceName}", InstanceName);
         }
         catch (Exception ex)
         {
-            LoadState = InstanceState.Failed;
+            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Failed to refresh instance: {ex.Message}", ex);
             Log.Error(ex, "Failed to refresh instance: {InstanceName}", InstanceName);
-            PublishErrorState($"Failed to refresh instance: {ex.Message}", ex);
         }
     }
 

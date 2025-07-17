@@ -138,18 +138,10 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Margin="4,1,0,1" Orientation="Horizontal">
-                        <ContentControl Margin="0,0,4,0" Content="{Binding}" ContentTemplate="{StaticResource CircleIconWithStateTemplate}">
-                            <ContentControl.Style>
-                                <Style TargetType="ContentControl">
-                                    <Setter Property="ToolTip" Value="{x:Null}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding LoadState}" Value="Warning">
-                                            <Setter Property="ToolTip" Value="This instance has lazy properties - Refresh the instance (F5) to see all property values" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ContentControl.Style>
-                        </ContentControl>
+                        <ContentControl Margin="0,0,4,0"
+                                        Content="{Binding}"
+                                        ContentTemplate="{StaticResource CircleIconWithStateTemplate}"
+                                        ToolTip="{Binding Tooltip}" />
                         <TextBlock Text="{Binding InstanceName}" />
                     </StackPanel>
                 </DataTemplate>

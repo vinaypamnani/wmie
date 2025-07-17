@@ -4,6 +4,7 @@ using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -297,7 +298,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
             SelectionManager.SetSelectedObject(nsVm);
 
             // Ensure classes are loaded
-            if (nsVm.ClassLoadState != ClassLoadState.Success)
+            if (nsVm.ItemStatus.LoadState != LoadState.Success)
                 await nsVm.LoadClassesAsync();
 
             // Find the class

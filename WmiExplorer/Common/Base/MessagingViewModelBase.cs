@@ -1,6 +1,7 @@
 using System.Windows;
-using WmiExplorer.Common.Models;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Common.Models;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Common.Base;
@@ -118,6 +119,38 @@ public abstract partial class MessagingViewModelBase : DisposableObservableObjec
         else
         {
             return Application.Current.Dispatcher.InvokeAsync(asyncAction).Task;
+        }
+    }
+
+    /// <summary>
+    /// Helper to set ItemStatus and publish the appropriate application state message.
+    /// </summary>
+    protected void SetStatusAndPublish(ItemStatus status, LoadState state, string message, Exception? ex = null)
+    {
+        status.LoadState = state;
+        status.StatusMessage = message;
+        status.Exception = ex;
+
+        switch (state)
+        {
+            case LoadState.Loading:
+                PublishBusyState(message);
+                break;
+            case LoadState.Expanding:
+                PublishBusyState(message);
+                break;
+            case LoadState.Success:
+                PublishSuccessState(message);
+                break;
+            case LoadState.Failed:
+                PublishErrorState(message, ex);
+                break;
+            case LoadState.Warning:
+                PublishWarningState(message);
+                break;
+            default:
+                PublishReadyState(message);
+                break;
         }
     }
 

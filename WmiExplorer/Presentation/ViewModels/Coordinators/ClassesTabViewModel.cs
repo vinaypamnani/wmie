@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -51,7 +52,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         get
         {
             var selectedClass = SelectionManager.GetSelectedClass();
-            if (selectedClass?.LoadState == InstanceLoadState.Success)
+            if (selectedClass?.ItemStatus.LoadState == LoadState.Success)
             {
                 var count = selectedClass?.Instances?.Count ?? 0;
                 return $"Instances [{count}]";
