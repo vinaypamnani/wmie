@@ -385,7 +385,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
             HasLoadedChildren = true;
             IsExpanded = true;
-            SetStatusAndPublish(ItemStatus, LoadState.Expanded, $"Namespace expanded: {NamespacePath} [{_children.Count}] child namespaces]");
+            SetStatusAndPublish(ItemStatus, LoadState.Expanded, $"Loaded [{_children.Count}] child namespaces for {NamespacePath}. Double click to enumerate classes.");
             Log.Information("Successfully loaded {ChildCount} child namespaces for {NamespacePath}", _children.Count, NamespacePath);
         }
         catch (OperationCanceledException)
@@ -454,11 +454,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             });
 
             SetStatusAndPublish(ItemStatus, LoadState.Success, $"Successfully loaded {_classes.Count} classes for {NamespacePath}");
+            UpdateFilterStatusMessage(); // Update the status bar message with "Showing" message which accounts for system class filtering.
             Log.Information("Successfully loaded {ClassCount} classes for {NamespacePath}", _classes.Count, NamespacePath);
 
             PublishMessage(new ClassesLoadedMessage(this));
             PublishMessage(new TabCountChangedMessage());
-            PublishMessage(new ClassesFilteredMessage(this));
         }
         catch (OperationCanceledException ocex)
         {
@@ -479,7 +479,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     {
         _classFilterHelper.CollectionView.Refresh();
         if (IsSelected)
-            PublishMessage(new ClassesFilteredMessage(this));
+            UpdateFilterStatusMessage();
     }
 
     protected override void Dispose(bool disposing)
@@ -644,7 +644,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     {
         _classFilterHelper.FilterText = value;
         if (IsSelected)
-            PublishMessage(new ClassesFilteredMessage(this));
+            UpdateFilterStatusMessage();
     }
 
     partial void OnIsExpandedChanged(bool value)
@@ -676,6 +676,33 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _isUpdatingSelection = false;
             }
         }
+    }
+
+    /// <summary>
+    /// Updates the status message to reflect the current filtering state
+    /// </summary>
+    private void UpdateFilterStatusMessage()
+    {
+        if (ItemStatus.LoadState != LoadState.Success)
+            return;
+
+        var totalCount = _classes.Count;
+        var filteredCount = ClassesView.Cast<object>().Count();
+
+        string statusMessage;
+        if (string.IsNullOrWhiteSpace(ClassFilterText))
+        {
+            if (totalCount == filteredCount)
+                statusMessage = $"Showing {totalCount} classes for {NamespacePath}";
+            else
+                statusMessage = $"Showing {filteredCount} of {totalCount} classes for {NamespacePath}. Toggle System Classes to see all classes.";
+        }
+        else
+        {
+            statusMessage = $"Filtered {filteredCount} of {totalCount} classes for {NamespacePath} matching '{ClassFilterText}'";
+        }
+
+        SetStatusAndPublish(ItemStatus, LoadState.Success, statusMessage);
     }
 
     /// <summary>

@@ -84,8 +84,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         StrongSubscribe<JumpToClassMessage>(HandleJumpToClassMessage);
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
         StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
-        StrongSubscribe<ClassesFilteredMessage>(HandleClassesFilteredMessage);
-        StrongSubscribe<InstancesFilteredMessage>(HandleInstancesFilteredMessage);
 
         // Subscribe to events that affect tab headers
         StrongSubscribe<TabCountChangedMessage>(_ => UpdateTabHeaders());
@@ -247,18 +245,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Handles classes filtered messages to update the status bar with filtered counts
-    /// </summary>
-    private void HandleClassesFilteredMessage(ClassesFilteredMessage message)
-    {
-        // Only update status bar if the filtered namespace is the currently selected one
-        if (message?.NamespaceViewModel != null && message.NamespaceViewModel == SelectionManager.SelectedNamespace)
-        {
-            UpdateStatusBarForItemStatus(message.NamespaceViewModel.ItemStatus);
-        }
-    }
-
-    /// <summary>
     /// Handles elapsed time messages for long-running operations
     /// </summary>
     private void HandleElapsedTimeMessage(ElapsedTimeMessage message)
@@ -268,18 +254,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         {
             ElapsedTimeMessage = message.Message;
         });
-    }
-
-    /// <summary>
-    /// Handles instances filtered messages to update the status bar with filtered counts
-    /// </summary>
-    private void HandleInstancesFilteredMessage(InstancesFilteredMessage message)
-    {
-        // Only update status bar if the filtered class is the currently selected one
-        if (message?.ClassViewModel != null && message.ClassViewModel == SelectionManager.GetSelectedClass())
-        {
-            UpdateStatusBarForItemStatus(message.ClassViewModel.ItemStatus);
-        }
     }
 
     /// <summary>

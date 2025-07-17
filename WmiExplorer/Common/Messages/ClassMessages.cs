@@ -3,19 +3,6 @@ using WmiExplorer.Presentation.ViewModels.Items;
 namespace WmiExplorer.Common.Messages;
 
 /// <summary>
-/// Message sent when classes are filtered in a namespace (e.g., quick filter or type filter changes)
-/// </summary>
-public class ClassesFilteredMessage : MessageBase
-{
-    public ClassesFilteredMessage(WmiNamespaceViewModel namespaceViewModel)
-    {
-        NamespaceViewModel = namespaceViewModel;
-    }
-
-    public WmiNamespaceViewModel NamespaceViewModel { get; }
-}
-
-/// <summary>
 /// Message sent when classes are loaded in a namespace
 /// </summary>
 public class ClassesLoadedMessage : MessageBase

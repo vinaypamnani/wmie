@@ -6,7 +6,6 @@ using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
@@ -477,8 +476,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     }
                 }
                 // No need to reapply filter or refresh, FilterHelper handles it.
-                PublishMessage(new InstancesFilteredMessage(this));
                 OnPropertyChanged(nameof(InstanceFilterText));
+                UpdateInstanceFilterStatusMessage();
             });
 
             // Check if operation was cancelled and show appropriate message
@@ -615,7 +614,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         {
             _instanceFilterHelper.FilterText = value;
             if (IsSelected)
-                PublishMessage(new InstancesFilteredMessage(this));
+                UpdateInstanceFilterStatusMessage();
         }
     }
 
@@ -697,5 +696,29 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             PublishErrorState($"Failed to get class MOF: {ex.Message}", ex);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Updates the status message to reflect the current instance filtering state
+    /// </summary>
+    private void UpdateInstanceFilterStatusMessage()
+    {
+        if (ItemStatus.LoadState != LoadState.Success)
+            return;
+
+        var totalCount = _instances.Count;
+        var filteredCount = InstancesView.Cast<object>().Count();
+
+        string statusMessage;
+        if (string.IsNullOrWhiteSpace(InstanceFilterText))
+        {
+            statusMessage = $"Loaded {totalCount} instances for {ClassName}";
+        }
+        else
+        {
+            statusMessage = $"Filtered {filteredCount} of {totalCount} instances for {ClassName} matching '{InstanceFilterText}'";
+        }
+
+        SetStatusAndPublish(ItemStatus, LoadState.Success, statusMessage);
     }
 }
