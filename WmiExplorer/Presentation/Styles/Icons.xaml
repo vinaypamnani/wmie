@@ -22,14 +22,11 @@
             <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Expanding">
                 <Setter Property="Foreground" Value="{DynamicResource BaseBlueBrush}" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Expanded">
-                <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
-            </DataTrigger>
             <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Success">
                 <Setter Property="Foreground" Value="{DynamicResource BaseGreenBrush}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="PartialSuccess">
-                <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BaseTanBrush}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Warning">
                 <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
@@ -91,14 +88,14 @@
         <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE70C;" />
     </DataTemplate>
 
-    <!--  Root namespace icon with LoadState-based coloring  -->
-    <DataTemplate x:Key="RootNamespaceIconWithStateTemplate">
-        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE977;" />
-    </DataTemplate>
-
     <!--  Regular namespace circle icon with LoadState-based coloring  -->
     <DataTemplate x:Key="CircleIconWithStateTemplate">
         <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xEDB0;" />
+    </DataTemplate>
+
+    <!--  Root namespace icon with LoadState-based coloring  -->
+    <DataTemplate x:Key="RootNamespaceIconWithStateTemplate">
+        <TextBlock Foreground="{DynamicResource BaseGreenBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE977;" />
     </DataTemplate>
 
     <!--  ConfigMgr icons  -->

@@ -48,6 +48,7 @@ public static class ThemeCollection
             ["BaseGreen"] = (Color)ColorConverter.ConvertFromString("#FF4CD964"),  // Apple-style green
             ["BaseRed"] = (Color)ColorConverter.ConvertFromString("#FFFF5E5E"),    // Soft but distinct red
             ["BaseOrange"] = (Color)ColorConverter.ConvertFromString("#FFFFB340"), // Warm amber
+            ["BaseTan"] = (Color)ColorConverter.ConvertFromString("#FFDEB887"),  // Warm tan for partial success
             ["BaseGray"] = (Color)ColorConverter.ConvertFromString("#FFBFBFBF"),   // Lighter neutral gray
             ["BaseBlue"] = (Color)ColorConverter.ConvertFromString("#FF5CAEFF"),   // Refined soft blue
 
@@ -88,6 +89,7 @@ public static class ThemeCollection
             ["BaseGreen"] = (Color)ColorConverter.ConvertFromString("#FF28A745"), // vibrant accessible green
             ["BaseRed"] = (Color)ColorConverter.ConvertFromString("#FFD13438"), // brighter red
             ["BaseOrange"] = (Color)ColorConverter.ConvertFromString("#FFFFAA44"), // warm amber
+            ["BaseTan"] = (Color)ColorConverter.ConvertFromString("#FF8B4513"), // rich saddle brown for partial success
             ["BaseGray"] = (Color)ColorConverter.ConvertFromString("#FF666666"), // darker gray for better separation
             ["BaseBlue"] = (Color)ColorConverter.ConvertFromString("#FF0078D4"), // accessible vivid blue
 

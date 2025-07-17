@@ -16,6 +16,7 @@ public class AppStateToBrushConverter : IValueConverter
             AppState.Error => "BaseRedBrush",
             AppState.Ready => "BaseGreenBrush",
             AppState.Success => "BaseGreenBrush",
+            AppState.PartialSuccess => "BaseTanBrush",
             AppState.Warning => "BaseOrangeBrush",
             AppState.Busy => "BaseBlueBrush",
             _ => "BaseGrayBrush"

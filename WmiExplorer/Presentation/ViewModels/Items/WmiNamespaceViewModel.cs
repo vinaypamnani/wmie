@@ -185,7 +185,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                     return "Loading";
                 case LoadState.Expanding:
                     return "Expanding namespace";
-                case LoadState.Expanded:
+                case LoadState.PartialSuccess:
                     return GetContextualTooltip($"Expanded [{Children.Count} child namespaces]. Double click to enumerate classes.");
                 case LoadState.Success:
                     return GetContextualTooltip($"Success [{Classes?.Count ?? 0} classes]");
@@ -385,7 +385,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
             HasLoadedChildren = true;
             IsExpanded = true;
-            SetStatusAndPublish(ItemStatus, LoadState.Expanded, $"Loaded [{_children.Count}] child namespaces for {NamespacePath}. Double click to enumerate classes.");
+            SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded [{_children.Count}] child namespaces for {NamespacePath}. Double click to enumerate classes.");
             Log.Information("Successfully loaded {ChildCount} child namespaces for {NamespacePath}", _children.Count, NamespacePath);
         }
         catch (OperationCanceledException)

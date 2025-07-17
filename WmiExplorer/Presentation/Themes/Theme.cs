@@ -55,6 +55,7 @@ public partial class Theme : DisposableObservableObject
             ["BaseGreenBrush"] = new SolidColorBrush(GetColor("BaseGreen", fallbackColor: Colors.Green)),
             ["BaseRedBrush"] = new SolidColorBrush(GetColor("BaseRed", fallbackColor: Colors.Red)),
             ["BaseOrangeBrush"] = new SolidColorBrush(GetColor("BaseOrange", fallbackColor: Colors.Orange)),
+            ["BaseTanBrush"] = new SolidColorBrush(GetColor("BaseTan", fallbackColor: Colors.Tan)),
             ["BaseGrayBrush"] = new SolidColorBrush(GetColor("BaseGray", fallbackColor: Colors.Gray)),
             ["BaseBlueBrush"] = new SolidColorBrush(GetColor("BaseBlue", fallbackColor: Colors.Blue)),
 

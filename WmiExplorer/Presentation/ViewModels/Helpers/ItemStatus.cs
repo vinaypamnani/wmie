@@ -19,9 +19,8 @@ public enum LoadState
     Unknown,
     Loading,
     Expanding, // For namespace expansion
-    Expanded,  // For when a namespace has been expanded
     Success,
-    PartialSuccess, // For lazy properties or partial data loads
+    PartialSuccess, // Expanded for Namespaces, Props/Methods loaded for Classes, lazy properties for Instances
     Warning,
     Failed
 }

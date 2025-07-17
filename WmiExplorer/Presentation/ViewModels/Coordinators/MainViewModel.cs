@@ -452,10 +452,11 @@ public partial class MainViewModel : SelectionAwareViewModelBase
             case LoadState.Loading:
                 PublishBusyState(status.StatusMessage);
                 break;
-            case LoadState.Expanded:
             case LoadState.Success:
-            case LoadState.PartialSuccess:
                 PublishSuccessState(status.StatusMessage);
+                break;
+            case LoadState.PartialSuccess:
+                PublishPartialSuccessState(status.StatusMessage);
                 break;
             case LoadState.Warning:
                 PublishWarningState(status.StatusMessage);

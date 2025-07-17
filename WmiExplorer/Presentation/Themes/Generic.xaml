@@ -15,6 +15,7 @@
     <Color x:Key="BaseGreen">#FF0F7B0F</Color>
     <Color x:Key="BaseRed">#FFE81123</Color>
     <Color x:Key="BaseOrange">#FFFF8C00</Color>
+    <Color x:Key="BaseTan">#FFA0522D</Color>
     <Color x:Key="BaseGray">#FF767676</Color>
     <Color x:Key="BaseBlue">#FF0063B1</Color>
 
@@ -22,6 +23,7 @@
     <SolidColorBrush x:Key="BaseGreenBrush" Color="{StaticResource BaseGreen}" />
     <SolidColorBrush x:Key="BaseRedBrush" Color="{StaticResource BaseRed}" />
     <SolidColorBrush x:Key="BaseOrangeBrush" Color="{StaticResource BaseOrange}" />
+    <SolidColorBrush x:Key="BaseTanBrush" Color="{StaticResource BaseTan}" />
     <SolidColorBrush x:Key="BaseGrayBrush" Color="{StaticResource BaseGray}" />
     <SolidColorBrush x:Key="BaseBlueBrush" Color="{StaticResource BaseBlue}" />
 

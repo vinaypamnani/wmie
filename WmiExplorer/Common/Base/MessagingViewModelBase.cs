@@ -63,6 +63,15 @@ public abstract partial class MessagingViewModelBase : DisposableObservableObjec
     }
 
     /// <summary>
+    /// Helper method for publishing partial success application state
+    /// </summary>
+    /// <param name="message">The message to display</param>
+    protected void PublishPartialSuccessState(string message)
+    {
+        PublishMessage(new ApplicationStateMessage(ApplicationState.PartialSuccess(message)));
+    }
+
+    /// <summary>
     /// Helper method for publishing ready application state
     /// </summary>
     /// <param name="message">The message to display</param>
@@ -143,7 +152,7 @@ public abstract partial class MessagingViewModelBase : DisposableObservableObjec
                 PublishSuccessState(message);
                 break;
             case LoadState.PartialSuccess:
-                PublishSuccessState(message);
+                PublishPartialSuccessState(message);
                 break;
             case LoadState.Failed:
                 PublishErrorState(message, ex);

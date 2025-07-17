@@ -18,7 +18,7 @@ public class ApplicationState
     /// <summary>
     /// Optional exception that caused this state
     /// </summary>
-    public Exception? Exception { get; }    
+    public Exception? Exception { get; }
 
     /// <summary>
     /// Message describing the current state
@@ -52,6 +52,12 @@ public class ApplicationState
     /// </summary>
     public static ApplicationState Indeterminate(string message = "Working...")
         => new ApplicationState(AppState.Indeterminate, message);
+
+    /// <summary>
+    /// Creates a PartialSuccess state
+    /// </summary>
+    public static ApplicationState PartialSuccess(string message)
+        => new ApplicationState(AppState.PartialSuccess, message);
 
     /// <summary>
     /// Creates a Ready state

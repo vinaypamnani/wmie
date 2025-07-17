@@ -9,6 +9,7 @@ public enum AppState
     Busy,
     Error,
     Success,
+    PartialSuccess,
     Warning,
     Indeterminate
 }
