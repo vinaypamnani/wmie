@@ -413,9 +413,9 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
 
                 // Set state based on parent class properties
                 if (!_parentClass.HasLazyProperty)
-                    SetStatusAndPublish(ItemStatus, LoadState.Success, $"Loaded details for {InstanceName}.");
+                    SetStatusAndPublish(ItemStatus, LoadState.Success, $"Showing details for {InstanceName}.");
                 else
-                    SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded details for {InstanceName} (with lazy properties).");
+                    SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Showing details for {InstanceName} (with lazy properties).");
             }
             finally
             {

@@ -437,6 +437,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _applicationService,
                 _selectionManager);
 
+            // Use RunOnUIThreadAsync for asynchronous UI updates to avoid hanging
             await RunOnUIThreadAsync(() =>
             {
                 ClearAndDisposeClasses();
@@ -449,7 +450,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 }
 
                 UpdateSystemClassesCount();
-                ClassesView.Refresh();
+                // Let FilterHelper handle collection view updates
+                OnPropertyChanged(nameof(ClassFilterText));
                 return Task.CompletedTask;
             });
 
@@ -479,7 +481,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     {
         _classFilterHelper.CollectionView.Refresh();
         if (IsSelected)
+        {
             UpdateFilterStatusMessage();
+        }
     }
 
     protected override void Dispose(bool disposing)
@@ -642,9 +646,11 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     // Property change notification methods
     partial void OnClassFilterTextChanged(string value)
     {
-        _classFilterHelper.FilterText = value;
-        if (IsSelected)
-            UpdateFilterStatusMessage();
+        _classFilterHelper.SetFilterText(value, () =>
+        {
+            if (IsSelected)
+                UpdateFilterStatusMessage();
+        });
     }
 
     partial void OnIsExpandedChanged(bool value)

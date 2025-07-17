@@ -26,24 +26,7 @@ public class FilterHelper<T> : IDisposable
     public string FilterText
     {
         get => _filterText;
-        set
-        {
-            if (_filterText != value)
-            {
-                _filterText = value; _debouncer.Debounce(() =>
-                {
-                    if (_collectionView is CollectionView cv && cv.Dispatcher != null && !cv.Dispatcher.CheckAccess())
-                    {
-                        // Use InvokeAsync instead of Invoke to avoid blocking the calling thread
-                        cv.Dispatcher.InvokeAsync(() => _collectionView.Refresh());
-                    }
-                    else
-                    {
-                        _collectionView.Refresh();
-                    }
-                });
-            }
-        }
+        set => SetFilterText(value);
     }
 
     /// <summary>
@@ -56,6 +39,41 @@ public class FilterHelper<T> : IDisposable
         _collectionView = CollectionViewSource.GetDefaultView(collection);
         _filterPredicate = filterPredicate ?? throw new ArgumentNullException(nameof(filterPredicate));
         _collectionView.Filter = FilterPredicate;
+    }
+
+    /// <summary>
+    /// Sets the filter text with an optional completion callback.
+    /// </summary>
+    /// <param name="value">The filter text to set.</param>
+    /// <param name="onComplete">Optional callback to invoke when filtering completes.</param>
+    public void SetFilterText(string value, Action? onComplete = null)
+    {
+        if (_filterText != value)
+        {
+            _filterText = value;
+            _debouncer.Debounce(() =>
+            {
+                if (_collectionView is CollectionView cv && cv.Dispatcher != null && !cv.Dispatcher.CheckAccess())
+                {
+                    // Use InvokeAsync instead of Invoke to avoid blocking the calling thread
+                    cv.Dispatcher.InvokeAsync(() =>
+                    {
+                        _collectionView.Refresh();
+                        onComplete?.Invoke();
+                    });
+                }
+                else
+                {
+                    _collectionView.Refresh();
+                    onComplete?.Invoke();
+                }
+            });
+        }
+        else
+        {
+            // If the value hasn't changed, still invoke the callback immediately
+            onComplete?.Invoke();
+        }
     }
 
     private bool FilterPredicate(object item)

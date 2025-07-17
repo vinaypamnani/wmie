@@ -40,8 +40,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
 
     private ObservableCollection<WmiMethod>? _methods;
     private readonly WmiNamespaceViewModel _parentNamespaceViewModel;
-
-    [ObservableProperty]
     private ObservableCollection<WmiProperty>? _properties;
 
     [ObservableProperty]
@@ -117,6 +115,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     public ObservableCollection<WmiMethod> Methods => _methods!;
 
     public WmiNamespaceViewModel ParentNamespaceViewModel => _parentNamespaceViewModel;
+
+    /// <summary>
+    /// Collection of all properties available for this class.
+    /// </summary>
+    public ObservableCollection<WmiProperty> Properties => _properties!;
 
     public string? Tooltip
     {
@@ -464,8 +467,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 _selectionManager,
                 this);
 
-            // Use RunOnUIThread for synchronous UI updates to avoid hanging
-            RunOnUIThread(() =>
+            // Use RunOnUIThreadAsync for asynchronous UI updates to avoid hanging
+            await RunOnUIThreadAsync(() =>
             {
                 ClearAndDisposeInstances();
                 lock (_collectionLock)
@@ -477,7 +480,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 }
                 // No need to reapply filter or refresh, FilterHelper handles it.
                 OnPropertyChanged(nameof(InstanceFilterText));
-                UpdateInstanceFilterStatusMessage();
+                return Task.CompletedTask;
             });
 
             // Check if operation was cancelled and show appropriate message
@@ -489,6 +492,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             else
             {
                 SetStatusAndPublish(ItemStatus, LoadState.Success, $"Loaded {instanceViewModels.Count} instances for {ClassName}");
+                UpdateInstanceFilterStatusMessage(); // Update the status bar message with "Showing" message which accounts for instance filtering.
                 Log.Information("Successfully loaded {InstanceCount} instances for {ClassName}", instanceViewModels.Count, ClassName);
             }
         }
@@ -554,9 +558,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             {
                 Log.Debug("No methods found for class: {ClassName}", ClassName);
             }
-
-            // Set the status to partial success
-            ItemStatus.LoadState = LoadState.PartialSuccess;
         }
         catch (Exception ex)
         {
@@ -570,7 +571,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private void LoadProperties()
     {
         // Log.Debug("Loading properties for class: {ClassName}", ClassName);
-        Properties = new ObservableCollection<WmiProperty>();
+        _properties = new ObservableCollection<WmiProperty>();
         try
         {
             // Get properties from the WmiClass
@@ -584,7 +585,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     .ToList();
                 foreach (var wmiProperty in wmiProperties)
                 {
-                    Properties.Add(wmiProperty);
+                    _properties.Add(wmiProperty);
                 }
                 _hasWriteProperty = wmiProperties.Any(p => !p.IsReadOnly);
                 _hasLazyProperty = wmiProperties.Any(p => p.IsLazy);
@@ -596,9 +597,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 _hasLazyProperty = false;
                 Log.Debug("No properties found for class: {ClassName}", ClassName);
             }
-
-            // Set the status to partial success
-            ItemStatus.LoadState = LoadState.PartialSuccess;
         }
         catch (Exception ex)
         {
@@ -612,9 +610,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     {
         if (_instanceFilterHelper.FilterText != value)
         {
-            _instanceFilterHelper.FilterText = value;
-            if (IsSelected)
-                UpdateInstanceFilterStatusMessage();
+            _instanceFilterHelper.SetFilterText(value, () =>
+            {
+                if (IsSelected)
+                    UpdateInstanceFilterStatusMessage();
+            });
         }
     }
 
@@ -628,13 +628,19 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             {
                 _isUpdatingSelection = true;
 
-                // Load methods for this class
-                if (_methods == null)
-                    LoadMethods();
+                if (_methods == null || _properties == null)
+                {
+                    // Load methods for this class
+                    if (_methods == null)
+                        LoadMethods();
 
-                // Load properties for this class
-                if (_properties == null)
-                    LoadProperties();
+                    // Load properties for this class
+                    if (_properties == null)
+                        LoadProperties();
+
+                    // Set the status to partial success
+                    SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Methods.Count} methods and {Properties.Count} properties for {ClassName}. Double click to load instances.");
+                }
             }
             finally
             {
@@ -712,7 +718,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         string statusMessage;
         if (string.IsNullOrWhiteSpace(InstanceFilterText))
         {
-            statusMessage = $"Loaded {totalCount} instances for {ClassName}";
+            statusMessage = $"Showing {totalCount} instances for {ClassName}";
         }
         else
         {
