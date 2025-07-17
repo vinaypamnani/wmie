@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using WmiExplorer.Common.Enums;
 
 namespace WmiExplorer.Presentation.Controls.UserControls;
@@ -48,7 +49,7 @@ public partial class IconIndicator : UserControl
 
     private void UpdateTooltip(Exception? exception)
     {
-        if (FindName("ErrorEllipse") is System.Windows.Shapes.Ellipse errorEllipse)
+        if (FindName("StatusEllipse") is System.Windows.Shapes.Ellipse statusEllipse)
         {
             if (exception != null)
             {
@@ -83,11 +84,11 @@ public partial class IconIndicator : UserControl
                     TextWrapping = TextWrapping.Wrap
                 };
                 stackPanel.Children.Add(stackTraceText);
-                errorEllipse.ToolTip = new ToolTip { Content = stackPanel };
+                statusEllipse.ToolTip = new ToolTip { Content = stackPanel, Placement = PlacementMode.Top };
             }
             else
             {
-                errorEllipse.ToolTip = null;
+                statusEllipse.ToolTip = null;
             }
         }
     }
