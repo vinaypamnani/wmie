@@ -43,6 +43,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     [NotifyCanExecuteChangedFor(nameof(JumpToClassCommand))]
     private WmiSearchResult? _selectedResult;
 
+    private readonly SelectionManager _selectionManager;
     private readonly IWmiService _wmiService;
 
     public SearchTabViewModel(
@@ -51,10 +52,13 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
            SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // Initialize LDAP enabled state
         UpdateExcludeLdapEnabled();
     }
+
+    public SelectionManager SelectionManager => _selectionManager;
 
     // Clear results for the current search type only
     public void ClearCurrentTypeResults()
@@ -77,11 +81,6 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             _cts?.Dispose();
         }
         base.Dispose(disposing);
-    }
-
-    protected override void OnSelectedNamespaceChanged(WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel? selectedNamespace)
-    {
-        UpdateExcludeLdapEnabled();
     }
 
     protected override bool ResultsFilterPredicate(WmiSearchResult result, string filter)
@@ -259,7 +258,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private bool JumpToClassCanExecute() => SelectedResult != null;
 
-    // Override property setter to update LDAP enabled state when Recursive changes
+    // Update LDAP enabled state when Recursive changes
     partial void OnRecursiveChanged(bool value)
     {
         UpdateExcludeLdapEnabled();

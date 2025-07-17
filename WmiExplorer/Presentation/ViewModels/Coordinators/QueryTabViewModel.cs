@@ -39,6 +39,8 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     [ObservableProperty]
     private WmiInstance? _selectedResult;
 
+    private readonly SelectionManager _selectionManager;
+
     [ObservableProperty]
     private bool _useAmendedQualifiers = true;
 
@@ -52,12 +54,14 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // Update columns when results change
         _results.CollectionChanged += (s, e) => UpdateResultColumns();
     }
 
     public ObservableCollection<DataGridColumn> ResultColumns { get; } = new();
+    public SelectionManager SelectionManager => _selectionManager;
 
     protected override bool ResultsFilterPredicate(WmiInstance instance, string filter)
     {

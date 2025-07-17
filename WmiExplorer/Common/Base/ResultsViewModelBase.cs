@@ -10,9 +10,8 @@ namespace WmiExplorer.Common.Base;
 
 /// <summary>
 /// Base class for view models that manage a results collection, filter helper, and collection view.
-/// Also provides SelectionManager functionality for all results-based ViewModels.
 /// </summary>
-public abstract partial class ResultsViewModelBase<T> : SelectionAwareViewModelBase
+public abstract partial class ResultsViewModelBase<T> : MessagingViewModelBase
 {
     protected FilterHelper<T> _filterHelper;
     protected ObservableCollection<T> _results = new();
@@ -36,7 +35,7 @@ public abstract partial class ResultsViewModelBase<T> : SelectionAwareViewModelB
     /// </summary>
     protected abstract bool ResultsFilterPredicate(T instance, string filter);
 
-    protected ResultsViewModelBase(IMessengerService messengerService, SelectionManager selectionManager) : base(messengerService, selectionManager)
+    protected ResultsViewModelBase(IMessengerService messengerService, SelectionManager selectionManager) : base(messengerService)
     {
         _filterHelper = new FilterHelper<T>(_results, ResultsFilterPredicate);
         _resultsView = _filterHelper.CollectionView;
