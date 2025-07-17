@@ -17,4 +17,5 @@
     <conv:SafePropertyValueConverter x:Key="SafePropertyValueConverter" />
     <conv:MultiBooleanAndToVisibilityConverter x:Key="MultiBooleanAndToVisibilityConverter" />
     <conv:StringNullOrEmptyToNullConverter x:Key="StringNullOrEmptyToNullConverter" />
+    <conv:AppStateToBrushConverter x:Key="AppStateToBrushConverter" />
 </ResourceDictionary>
