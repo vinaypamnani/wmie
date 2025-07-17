@@ -17,11 +17,11 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
 {
     public event EventHandler? CloseRequested;
 
+    [ObservableProperty]
+    private AppState _appState = AppState.Ready;
+
     private readonly WmiClass? _class;
     private CancellationTokenSource _cts = new();
-
-    [ObservableProperty]
-    private AppState _executionState = AppState.Ready;
 
     [ObservableProperty]
     private bool _hasOutputParameters;
@@ -29,7 +29,7 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
     private readonly WmiInstance? _instance;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ExecutionState))]
+    [NotifyPropertyChangedFor(nameof(AppState))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExecuteMethodCommand))]
     private bool _isExecuting;
@@ -222,7 +222,7 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
         {
             // Set executing state
             IsExecuting = true;
-            ExecutionState = AppState.Busy;
+            AppState = AppState.Busy;
             StatusMessage = $"Executing method {MethodName}...";
 
             // Reset output parameters
@@ -285,7 +285,7 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
             }
 
             // Update status
-            ExecutionState = AppState.Success;
+            AppState = AppState.Success;
             StatusMessage = "Method executed successfully";
 
             // Switch to Output tab to show results
@@ -293,12 +293,12 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
         }
         catch (OperationCanceledException)
         {
-            ExecutionState = AppState.Warning;
+            AppState = AppState.Warning;
             StatusMessage = "Method execution was cancelled";
         }
         catch (Exception ex)
         {
-            ExecutionState = AppState.Error;
+            AppState = AppState.Error;
             StatusMessage = $"Error: {ex.Message}";
         }
         finally
@@ -358,7 +358,7 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
     {
         if (value)
         {
-            ExecutionState = AppState.Busy;
+            AppState = AppState.Busy;
             StatusMessage = "Executing method...";
         }
     }
@@ -380,19 +380,19 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
             {
                 case ReferenceValueLoadState.Loading:
                     StatusMessage = "Loading reference values...";
-                    ExecutionState = AppState.Busy;
+                    AppState = AppState.Busy;
                     break;
                 case ReferenceValueLoadState.Loaded:
                     StatusMessage = "Reference values loaded.";
-                    ExecutionState = AppState.Success;
+                    AppState = AppState.Success;
                     break;
                 case ReferenceValueLoadState.Cancelled:
                     StatusMessage = "Reference value loading cancelled.";
-                    ExecutionState = AppState.Warning;
+                    AppState = AppState.Warning;
                     break;
                 case ReferenceValueLoadState.Error:
                     StatusMessage = "Error loading reference values.";
-                    ExecutionState = AppState.Error;
+                    AppState = AppState.Error;
                     break;
                 default:
                     break;

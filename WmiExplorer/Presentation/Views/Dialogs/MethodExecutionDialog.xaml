@@ -346,7 +346,14 @@
                 <!--  Status Bar  -->
                 <StatusBar Background="{DynamicResource SecondaryBackgroundBrush}" DockPanel.Dock="Bottom" Foreground="{DynamicResource PrimaryForegroundBrush}">
                     <StatusBarItem>
-                        <uc:EnhancedStatusIndicator AppState="{Binding ExecutionState}" Message="{Binding StatusMessage}" ToolTip="{Binding StatusMessage, Converter={StaticResource StringNullOrEmptyToNullConverter}}" />
+                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                            <uc:IconIndicator AppState="{Binding AppState}" />
+                            <uc:ProgressBarIndicator AppState="{Binding AppState}" />
+                            <TextBlock Margin="4,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding StatusMessage}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
                     </StatusBarItem>
                 </StatusBar>
 

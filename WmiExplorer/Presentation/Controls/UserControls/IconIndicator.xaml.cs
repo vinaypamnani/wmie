@@ -4,33 +4,23 @@ using WmiExplorer.Common.Enums;
 
 namespace WmiExplorer.Presentation.Controls.UserControls;
 
-/// <summary>
-/// Enhanced status indicator that combines the visual state indicator and status message
-/// </summary>
-public partial class EnhancedStatusIndicator : UserControl
+public partial class IconIndicator : UserControl
 {
     public static readonly DependencyProperty AppStateProperty =
         DependencyProperty.Register(
             nameof(AppState),
             typeof(AppState),
-            typeof(EnhancedStatusIndicator),
+            typeof(IconIndicator),
             new PropertyMetadata(null));
 
     public static readonly DependencyProperty ExceptionProperty =
         DependencyProperty.Register(
             nameof(Exception),
             typeof(Exception),
-            typeof(EnhancedStatusIndicator),
+            typeof(IconIndicator),
             new PropertyMetadata(null, OnExceptionChanged));
 
-    public static readonly DependencyProperty MessageProperty =
-        DependencyProperty.Register(
-            nameof(Message),
-            typeof(string),
-            typeof(EnhancedStatusIndicator),
-            new PropertyMetadata(string.Empty));
-
-    public EnhancedStatusIndicator()
+    public IconIndicator()
     {
         InitializeComponent();
     }
@@ -47,67 +37,53 @@ public partial class EnhancedStatusIndicator : UserControl
         set => SetValue(ExceptionProperty, value);
     }
 
-    public string Message
-    {
-        get => (string)GetValue(MessageProperty);
-        set => SetValue(MessageProperty, value);
-    }
-
     private static void OnExceptionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is EnhancedStatusIndicator control)
+        if (d is IconIndicator control)
         {
             var exception = e.NewValue as Exception;
-
-            // Update the tooltip programmatically
             control.UpdateTooltip(exception);
         }
     }
 
     private void UpdateTooltip(Exception? exception)
     {
-        // Find the error ellipse by name
         if (FindName("ErrorEllipse") is System.Windows.Shapes.Ellipse errorEllipse)
         {
             if (exception != null)
             {
-                var stackPanel = new System.Windows.Controls.StackPanel { MaxWidth = 600 };
-
-                var headerText = new System.Windows.Controls.TextBlock
+                var stackPanel = new StackPanel { MaxWidth = 600 };
+                var headerText = new TextBlock
                 {
                     Text = "Exception Details:",
-                    FontWeight = System.Windows.FontWeights.Bold
+                    FontWeight = FontWeights.Bold
                 };
                 stackPanel.Children.Add(headerText);
-
-                var logText = new System.Windows.Controls.TextBlock
+                var logText = new TextBlock
                 {
                     Text = "See Log tab for more details",
-                    Margin = new System.Windows.Thickness(0, 2, 0, 0),
-                    FontStyle = System.Windows.FontStyles.Italic,
+                    Margin = new Thickness(0, 2, 0, 0),
+                    FontStyle = FontStyles.Italic,
                     FontSize = 11
                 };
                 stackPanel.Children.Add(logText);
-
-                var messageText = new System.Windows.Controls.TextBlock
+                var messageText = new TextBlock
                 {
                     Text = exception.Message ?? "No message available",
-                    Margin = new System.Windows.Thickness(0, 4, 0, 0),
-                    TextWrapping = System.Windows.TextWrapping.Wrap
+                    Margin = new Thickness(0, 4, 0, 0),
+                    TextWrapping = TextWrapping.Wrap
                 };
                 stackPanel.Children.Add(messageText);
-
-                var stackTraceText = new System.Windows.Controls.TextBlock
+                var stackTraceText = new TextBlock
                 {
                     Text = exception.StackTrace ?? "No stack trace available",
-                    Margin = new System.Windows.Thickness(0, 4, 0, 0),
+                    Margin = new Thickness(0, 4, 0, 0),
                     FontFamily = new System.Windows.Media.FontFamily("Consolas"),
                     FontSize = 10,
-                    TextWrapping = System.Windows.TextWrapping.Wrap
+                    TextWrapping = TextWrapping.Wrap
                 };
                 stackPanel.Children.Add(stackTraceText);
-
-                errorEllipse.ToolTip = new System.Windows.Controls.ToolTip { Content = stackPanel };
+                errorEllipse.ToolTip = new ToolTip { Content = stackPanel };
             }
             else
             {

@@ -244,10 +244,14 @@
         <!--  Status Bar  -->
         <StatusBar Grid.Row="4">
             <StatusBarItem>
-                <controls:EnhancedStatusIndicator AppState="{Binding CurrentApplicationState.State}"
-                                                  Exception="{Binding CurrentApplicationState.Exception}"
-                                                  Message="{Binding CurrentApplicationState.Message}"
-                                                  ToolTip="{Binding CurrentApplicationState.Message}" />
+                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <controls:IconIndicator AppState="{Binding CurrentApplicationState.State}" Exception="{Binding CurrentApplicationState.Exception}" />
+                    <controls:ProgressBarIndicator AppState="{Binding CurrentApplicationState.State}" />
+                    <TextBlock Margin="4,0,0,0"
+                               VerticalAlignment="Center"
+                               Text="{Binding CurrentApplicationState.Message}"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Foreground="{DynamicResource PrimaryForegroundBrush}" Text="{Binding ElapsedTimeMessage}" />
