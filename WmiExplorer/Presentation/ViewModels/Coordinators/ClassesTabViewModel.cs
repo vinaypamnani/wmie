@@ -202,49 +202,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
-    /// Set selections when the selected tab index changes
-    /// </summary>
-    partial void OnSelectedTabIndexChanged(int value)
-    {
-        switch (value)
-        {
-            case 1:
-                // Properties Tab
-                if (PropertiesTabViewModel?.SelectedProperty == null)
-                {
-                    // If no property is selected, set a default message
-                    PublishReadyState("Select a property to view details.");
-                }
-                else
-                {
-                    // Set the selected property in the property grid
-                    PublishReadyState($"Showing details for property: {PropertiesTabViewModel.SelectedProperty.Name}");
-                }
-                SelectionManager.PropertyGrid.SetPropertyGridObject(PropertiesTabViewModel?.SelectedProperty);
-                break;
-            case 2:
-                // Methods Tab
-                if (MethodsTabViewModel?.SelectedMethod == null)
-                {
-                    PublishReadyState("Select a method to view details.");
-                }
-                else
-                {
-                    PublishReadyState($"Showing details for method: {MethodsTabViewModel.SelectedMethod.Name}");
-                }
-                SelectionManager.PropertyGrid.SetPropertyGridObject(MethodsTabViewModel?.SelectedMethod);
-                break;
-            default:
-                // Instances tab
-                if (SelectionManager.GetSelectedInstance() != null)
-                {
-                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedInstance());
-                }
-                break;
-        }
-    }
-
-    /// <summary>
     /// Command to reload the classes of the selected namespace
     /// </summary>
     [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]

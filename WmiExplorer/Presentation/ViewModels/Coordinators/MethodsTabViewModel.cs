@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -29,10 +30,15 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
     [ObservableProperty]
     private WmiParameter? _selectedMethodParameter;
 
+    [ObservableProperty]
+    private TabStatus _tabStatus;
+
     public MethodsTabViewModel(
            IMessengerService messengerService,
            SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
+        // Initialize tab status with messenger service
+        _tabStatus = new TabStatus(messengerService, AppState.Ready, "Select a method to view details", "WMI Methods");
     }
 
     /// <summary>
@@ -94,14 +100,20 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
 
         UpdateHelpText();
 
-        // Update status bar
-        PublishReadyState($"Showing details for method: {value?.Name ?? "None"}");
+        // Update tab status
+        if (value != null)
+        {
+            TabStatus.SetSuccess($"Showing details for method: {value.Name}");
+        }
     }
 
     partial void OnSelectedMethodParameterChanged(WmiParameter? value)
     {
-        // Update status bar
-        PublishReadyState($"Showing details for parameter: {value?.Name ?? "None"}");
+        // Update tab status
+        if (value != null)
+        {
+            TabStatus.SetSuccess($"Showing details for parameter: {value.Name}");
+        }
     }
 
     /// <summary>

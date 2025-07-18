@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -28,10 +29,15 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     [ObservableProperty]
     private WmiProperty? _selectedProperty;
 
+    [ObservableProperty]
+    private TabStatus _tabStatus;
+
     public PropertiesTabViewModel(
                  IMessengerService messengerService,
                  SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
+        // Initialize tab status with messenger service
+        _tabStatus = new TabStatus(messengerService, AppState.Ready, "Select a property to view details", "WMI Properties");
     }
 
     /// <summary>
@@ -80,8 +86,11 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     {
         UpdateHelpText();
 
-        // Update status bar
-        PublishReadyState($"Showing details for property: {value?.Name ?? "None"}");
+        // Update tab status
+        if (value != null)
+        {
+            TabStatus.SetSuccess($"Showing details for property: {value.Name}");
+        }
     }
 
     /// <summary>

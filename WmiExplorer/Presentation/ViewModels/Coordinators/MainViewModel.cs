@@ -19,6 +19,9 @@ namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 public partial class MainViewModel : SelectionAwareViewModelBase
 {
     [ObservableProperty]
+    private ClassesTabViewModel _classesTabViewModel = null!;
+
+    [ObservableProperty]
     private ApplicationState _currentApplicationState = ApplicationState.Ready();
 
     [ObservableProperty]
@@ -72,6 +75,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         SelectionManager selectionManager,
         SettingsManager settingsManager,
         UpdateManager updateManager,
+        ClassesTabViewModel classesTabViewModel,
         NamespacesViewModel namespacesViewModel,
         OptionsViewModel optionsViewModel,
         LogTabViewModel logTabViewModel,
@@ -80,6 +84,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         WatcherTabViewModel watcherTabViewModel) : base(messengerService, selectionManager)
     {
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
+        _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
@@ -106,6 +111,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
         // Subscribe to SwitchMainTabMessage to handle tab switching requests
         StrongSubscribe<SwitchMainTabMessage>(HandleSwitchMainTabMessage);
+
+        // Subscribe to ClassesTabViewModel property changes
+        ClassesTabViewModel.PropertyChanged += HandleClassesTabViewModelPropertyChanged;
 
         // Test logging
         Log.Information("Application started successfully. IsPortable: {IsPortable}", UpdateManager.IsPortable);
@@ -258,6 +266,44 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
         // Log state change for debugging
         System.Diagnostics.Debug.WriteLine($"[MainViewModel] Application state changed: {message.State.State}, Message: {message.State.Message}");
+    }
+
+    /// <summary>
+    /// Handles child tab index changes within the Classes tab
+    /// </summary>
+    private void HandleClassesChildTabIndexChanged(int selectedTabIndex)
+    {
+        switch (selectedTabIndex)
+        {
+            case 0: // Instances tab
+                UpdateStatusBarForTabSelection();
+                SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedInstance());
+                break;
+            case 1: // Properties tab
+                UpdateStatusBarFromTabStatus(ClassesTabViewModel.PropertiesTabViewModel?.TabStatus);
+                SelectionManager.PropertyGrid.SetPropertyGridObject(ClassesTabViewModel.PropertiesTabViewModel?.SelectedProperty);
+                break;
+            case 2: // Methods tab
+                UpdateStatusBarFromTabStatus(ClassesTabViewModel.MethodsTabViewModel?.TabStatus);
+                SelectionManager.PropertyGrid.SetPropertyGridObject(ClassesTabViewModel.MethodsTabViewModel?.SelectedMethod);
+                break;
+            default:
+                UpdateStatusBarForTabSelection();
+                SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedClass());
+                break;
+
+        }
+    }
+
+    /// <summary>
+    /// Handles ClassesTabViewModel property changes
+    /// </summary>
+    private void HandleClassesTabViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ClassesTabViewModel.SelectedTabIndex))
+        {
+            HandleClassesChildTabIndexChanged(ClassesTabViewModel.SelectedTabIndex);
+        }
     }
 
     /// <summary>
@@ -466,6 +512,29 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         }
     }
 
+    /// <summary>
+    /// Updates the status bar for the Classes tab, handling child tab status
+    /// </summary>
+    private void UpdateStatusBarForClassesTab()
+    {
+        // Check which child tab is selected within the Classes tab
+        switch (ClassesTabViewModel.SelectedTabIndex)
+        {
+            case 0: // Instances tab
+                UpdateStatusBarForTabSelection();
+                break;
+            case 1: // Properties tab
+                UpdateStatusBarFromTabStatus(ClassesTabViewModel.PropertiesTabViewModel?.TabStatus);
+                break;
+            case 2: // Methods tab
+                UpdateStatusBarFromTabStatus(ClassesTabViewModel.MethodsTabViewModel?.TabStatus);
+                break;
+            default:
+                UpdateStatusBarForTabSelection();
+                break;
+        }
+    }
+
     private void UpdateStatusBarForItemStatus(ItemStatus status, string fallback = "Ready")
     {
         // Check if we already have the same application state to avoid unnecessary updates
@@ -524,7 +593,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         switch (tabIndex)
         {
             case 0: // Classes Tab
-                UpdateStatusBarForSelection(SelectionManager);
+                UpdateStatusBarForClassesTab();
                 break;
             case 1: // Search Tab
                 UpdateStatusBarFromTabStatus(SearchTabViewModel?.TabStatus);
@@ -539,9 +608,40 @@ public partial class MainViewModel : SelectionAwareViewModelBase
                 UpdateStatusBarFromTabStatus(LogTabViewModel?.TabStatus);
                 break;
             default: // Default case
-                UpdateStatusBarForSelection(SelectionManager);
+                UpdateStatusBarForTabSelection();
                 break;
         }
+    }
+
+    /// <summary>
+    /// Updates the status bar based on the selection hierarchy (Instance -> Class -> Namespace)
+    /// </summary>
+    private void UpdateStatusBarForTabSelection()
+    {
+        // Check selection hierarchy in order: Instance -> Class -> Namespace
+        var selectedInstance = SelectionManager.GetSelectedInstance();
+        if (selectedInstance != null)
+        {
+            UpdateStatusBarForItemStatus(selectedInstance.ItemStatus);
+            return;
+        }
+
+        var selectedClass = SelectionManager.GetSelectedClass();
+        if (selectedClass != null)
+        {
+            UpdateStatusBarForItemStatus(selectedClass.ItemStatus);
+            return;
+        }
+
+        var selectedNamespace = SelectionManager.SelectedNamespace;
+        if (selectedNamespace != null)
+        {
+            UpdateStatusBarForItemStatus(selectedNamespace.ItemStatus);
+            return;
+        }
+
+        // Default fallback
+        PublishReadyState("Ready");
     }
 
     /// <summary>

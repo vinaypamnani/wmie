@@ -212,8 +212,8 @@
                     BorderThickness="0"
                     CornerRadius="3">
                 <TabControl SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-                    <TabItem Header="{Binding ClassesTabHeader}" TabIndex="0">
-                        <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
+                    <TabItem Header="{Binding ClassesTabHeader}" TabIndex="0" ToolTip="{Binding ClassesTabHeader}">
+                        <tabs:ClassesTabView DataContext="{Binding ClassesTabViewModel}" />
                     </TabItem>
                     <TabItem Header="{Binding SearchTabHeader}" TabIndex="1" ToolTip="{Binding SearchTabViewModel.TabStatus.Tooltip}">
                         <!--  Search View  -->

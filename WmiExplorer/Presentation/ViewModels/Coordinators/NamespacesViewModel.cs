@@ -19,7 +19,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
 {
     private readonly IApplicationService _applicationService;
     private readonly ICacheService _cacheService;
-    private readonly ClassesTabViewModel _classesTabViewModel;
     private readonly CancellationTokenSource _cts = new();
     private readonly SettingsManager _settingsManager;
     private readonly IWmiService _wmiService;
@@ -30,14 +29,12 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
               IWmiService wmiService,
               IApplicationService applicationService,
               ICacheService cacheService,
-              ClassesTabViewModel classesTabViewModel,
               SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
-        _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
@@ -49,11 +46,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
             npc.PropertyChanged += SettingsManager_PropertyChanged;
         }
     }
-
-    /// <summary>
-    /// Gets the ClassesTabViewModel
-    /// </summary>
-    public ClassesTabViewModel ClassesTabViewModel => _classesTabViewModel;
 
     /// <summary>
     /// Collection of WMI namespaces in the tree
