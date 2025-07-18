@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Models;
@@ -16,6 +17,11 @@ public class WatcherManager : DisposableObservableObject
     /// Event raised when the watcher collection changes
     /// </summary>
     public event EventHandler? WatchersChanged;
+
+    /// <summary>
+    /// Event raised when an individual watcher's state changes
+    /// </summary>
+    public event EventHandler<WmiEventWatcherViewModel>? WatcherStateChanged;
 
     private readonly IMessengerService _messengerService;
     private int _watcherId = 1;
@@ -72,11 +78,15 @@ public class WatcherManager : DisposableObservableObject
             var watcher = new WmiEventWatcher(watcherName, query, scope, eventClass, displayProperty);
 
             // Start the watcher before adding to the collection
-            watcher.Start(); var watcherItem = new WmiEventWatcherViewModel(
+            watcher.Start();
+            var watcherItem = new WmiEventWatcherViewModel(
                 watcher,
                 w => RemoveWatcher(w),
                 onEventReceived
             );
+
+            // Subscribe to watcher property changes
+            watcherItem.PropertyChanged += OnWatcherPropertyChanged;
 
             _watchers.Add(watcherItem);
             _watcherId++; // Increment for next watcher
@@ -137,6 +147,8 @@ public class WatcherManager : DisposableObservableObject
 
         if (_watchers.Remove(watcher))
         {
+            // Unsubscribe from property changes before disposing
+            watcher.PropertyChanged -= OnWatcherPropertyChanged;
             watcher.Dispose();
             return true;
         }
@@ -215,6 +227,17 @@ public class WatcherManager : DisposableObservableObject
             WatcherNames.Clear();
         }
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Handles property changes from individual watchers
+    /// </summary>
+    private void OnWatcherPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is WmiEventWatcherViewModel watcher && e.PropertyName == nameof(WmiEventWatcherViewModel.IsRunning))
+        {
+            WatcherStateChanged?.Invoke(this, watcher);
+        }
     }
 
     /// <summary>

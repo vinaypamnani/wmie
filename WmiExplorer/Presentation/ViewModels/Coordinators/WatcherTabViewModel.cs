@@ -307,12 +307,12 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     /// <summary>
     /// Determines if the StartAllWatchers command can execute
     /// </summary>
-    private bool CanStartAllWatchers() => HasWatchers;
+    private bool CanStartAllWatchers() => HasWatchers && Watchers.Any(w => !w.IsRunning);
 
     /// <summary>
     /// Determines if the StopAllWatchers command can execute
     /// </summary>
-    private bool CanStopAllWatchers() => HasWatchers;
+    private bool CanStopAllWatchers() => HasWatchers && Watchers.Any(w => w.IsRunning);
 
     /// <summary>
     /// Command to clear events
@@ -460,6 +460,14 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
             // Notify computed properties and commands that state changed
             OnPropertyChanged(nameof(HasWatchers));
             RemoveAllWatchersCommand.NotifyCanExecuteChanged();
+            StartAllWatchersCommand.NotifyCanExecuteChanged();
+            StopAllWatchersCommand.NotifyCanExecuteChanged();
+        };
+
+        // Subscribe to individual watcher state changes
+        _watcherManager.WatcherStateChanged += (s, watcher) =>
+        {
+            // Update command states when individual watcher states change
             StartAllWatchersCommand.NotifyCanExecuteChanged();
             StopAllWatchersCommand.NotifyCanExecuteChanged();
         };
