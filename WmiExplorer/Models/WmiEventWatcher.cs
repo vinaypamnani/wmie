@@ -32,7 +32,7 @@ public class WmiEventWatcher : IDisposable
         Query = query ?? throw new ArgumentNullException(nameof(query));
         EventClass = eventClass ?? throw new ArgumentNullException(nameof(eventClass));
         DisplayPropertyName = displayPropertyName ?? string.Empty;
-        Namespace = scope.Path.NamespacePath;
+        Namespace = scope.Path.Path;
     }
 
     /// <summary>

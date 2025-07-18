@@ -109,6 +109,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         // Subscribe to SwitchMainTabMessage to handle tab switching requests
         StrongSubscribe<SwitchMainTabMessage>(HandleSwitchMainTabMessage);
 
+        // Subscribe to DisconnectNamespaceMessage to reset view models when namespace is disconnected
+        StrongSubscribe<DisconnectNamespaceMessage>(HandleDisconnectNamespaceMessage);
+
         // Subscribe to ClassesTabViewModel property changes
         ClassesTabViewModel.PropertyChanged += HandleClassesTabViewModelPropertyChanged;
 
@@ -240,6 +243,58 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         {
             HandleClassesChildTabIndexChanged(ClassesTabViewModel.SelectedTabIndex);
         }
+    }
+
+    /// <summary>
+    /// Handles DisconnectNamespaceMessage to reset view models when namespace is disconnected
+    /// </summary>
+    private void HandleDisconnectNamespaceMessage(DisconnectNamespaceMessage message)
+    {
+        if (message?.NamespaceViewModel == null)
+        {
+            PublishWarningState("Cannot disconnect namespace. NamespacePath is null.");
+            return;
+        }
+
+        var namespacePath = message.NamespaceViewModel.NamespacePath;
+
+        if (!message.NamespaceViewModel.IsRoot)
+        {
+            PublishWarningState($"Cannot disconnect non-root namespace. NamespacePath: {namespacePath}. IsRoot: {message.NamespaceViewModel.IsRoot}");
+            return;
+        }
+
+        var removedWatchers = 0;
+        var clearedEvents = 0;
+
+        RunOnUIThread(() =>
+        {
+            // Clear search tab states for this namespace and its children
+            SearchTabViewModel.ClearNamespaceStatesForPath(namespacePath);
+
+            // Clear query tab states for this namespace and its children
+            QueryTabViewModel.ClearNamespaceStatesForPath(namespacePath);
+
+            // Clear events for this namespace and its children BEFORE removing watchers
+            clearedEvents = WatcherTabViewModel.ClearEventsForNamespace(namespacePath);
+
+            // Remove watchers for this namespace and its children
+            removedWatchers = WatcherTabViewModel.RemoveWatchersForNamespace(namespacePath);
+
+            // Clear selections if the disconnected namespace was selected
+            if (SelectionManager.SelectedNamespace?.NamespacePath != null &&
+                SelectionManager.SelectedNamespace.NamespacePath.StartsWith(namespacePath, StringComparison.OrdinalIgnoreCase))
+            {
+                SelectionManager.ClearSelections();
+            }
+
+            // Disconnect the namespace from the tree
+            NamespacesViewModel.DisconnectRoot(message.NamespaceViewModel);
+        });
+
+        // Publish success state after all operations
+        PublishSuccessState($"Disconnected from namespace: '{namespacePath}'.");
+        Log.Information("Disconnected from namespace: {NamespacePath}. Removed {RemovedWatchers} watchers, cleared {ClearedEvents} events.", namespacePath, removedWatchers, clearedEvents);
     }
 
     /// <summary>

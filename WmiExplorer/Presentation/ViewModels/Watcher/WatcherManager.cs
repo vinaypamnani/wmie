@@ -145,6 +145,29 @@ public class WatcherManager : DisposableObservableObject
     }
 
     /// <summary>
+    /// Removes watchers for a specific namespace and all its children
+    /// </summary>
+    /// <param name="namespacePath">The namespace path to remove watchers for</param>
+    /// <returns>The number of watchers that were removed</returns>
+    public int RemoveWatchersForNamespace(string namespacePath)
+    {
+        if (string.IsNullOrEmpty(namespacePath))
+            return 0;
+
+        var toRemove = _watchers.Where(w =>
+            w.Namespace.StartsWith(namespacePath, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        int count = 0;
+        foreach (var watcher in toRemove)
+        {
+            if (RemoveWatcher(watcher))
+                count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>
     /// Starts all watchers that are not currently running
     /// </summary>
     /// <returns>The number of watchers that were started</returns>

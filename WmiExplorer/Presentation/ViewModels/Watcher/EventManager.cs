@@ -96,6 +96,55 @@ public partial class EventManager : DisposableObservableObject
     }
 
     /// <summary>
+    /// Clears events for specific watcher names
+    /// </summary>
+    /// <param name="watcherNames">The watcher names whose events should be cleared</param>
+    /// <returns>The number of events that were cleared</returns>
+    public int ClearEventsForWatchers(IEnumerable<string> watcherNames)
+    {
+        if (watcherNames == null || !watcherNames.Any())
+            return 0;
+
+        var watcherNameSet = new HashSet<string>(watcherNames, StringComparer.OrdinalIgnoreCase);
+        var eventsToRemove = new List<WmiEvent>();
+
+        // Find events to remove
+        foreach (var evt in _events)
+        {
+            if (watcherNameSet.Contains(evt.WatcherName))
+            {
+                eventsToRemove.Add(evt);
+            }
+        }
+
+        // Remove and dispose the events
+        int count = 0;
+        foreach (var evt in eventsToRemove)
+        {
+            if (_events.Remove(evt))
+            {
+                try
+                {
+                    evt.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Error disposing WmiEvent during targeted clear operation");
+                }
+                count++;
+            }
+        }
+
+        // Notify that properties dependent on collection count have changed
+        if (count > 0)
+        {
+            OnPropertyChanged(nameof(Events));
+        }
+
+        return count;
+    }
+
+    /// <summary>
     /// Gets the total count of events in the collection
     /// </summary>
     /// <returns>The number of events</returns>

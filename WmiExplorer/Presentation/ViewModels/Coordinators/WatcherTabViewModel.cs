@@ -193,6 +193,36 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     public ReadOnlyObservableCollection<WmiEventWatcherViewModel> Watchers => _watcherManager.Watchers;
 
     /// <summary>
+    /// Clears events for watchers of a specific namespace and all its children
+    /// </summary>
+    /// <param name="namespacePath">The namespace path to clear events for</param>
+    /// <returns>The number of events that were cleared</returns>
+    public int ClearEventsForNamespace(string namespacePath)
+    {
+        if (string.IsNullOrEmpty(namespacePath))
+            return 0;
+
+        // Get watcher names for the specified namespace (now using full paths)
+        var watcherNames = Watchers
+            .Where(w => w.Namespace.StartsWith(namespacePath, StringComparison.OrdinalIgnoreCase))
+            .Select(w => w.Name)
+            .ToList();
+
+        // Clear events for those watchers
+        return _eventManager.ClearEventsForWatchers(watcherNames);
+    }
+
+    /// <summary>
+    /// Removes watchers for a specific namespace and all its children
+    /// </summary>
+    /// <param name="namespacePath">The namespace path to remove watchers for</param>
+    /// <returns>The number of watchers that were removed</returns>
+    public int RemoveWatchersForNamespace(string namespacePath)
+    {
+        return _watcherManager.RemoveWatchersForNamespace(namespacePath);
+    }
+
+    /// <summary>
     /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
     /// </summary>
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)

@@ -98,6 +98,48 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         _namespaceStates.Clear();
     }
 
+    /// <summary>
+    /// Clears namespace states for a specific namespace and all its children
+    /// </summary>
+    /// <param name="namespacePath">The root namespace path to clear</param>
+    public void ClearNamespaceStatesForPath(string namespacePath)
+    {
+        if (string.IsNullOrEmpty(namespacePath))
+            return;
+
+        var pathsToRemove = new List<string>();
+
+        // Find all namespace paths that start with the given path (including children)
+        foreach (var kvp in _namespaceStates)
+        {
+            if (kvp.Key.StartsWith(namespacePath, StringComparison.OrdinalIgnoreCase))
+            {
+                pathsToRemove.Add(kvp.Key);
+            }
+        }
+
+        // Remove the found paths and dispose their results
+        foreach (var path in pathsToRemove)
+        {
+            if (_namespaceStates.TryGetValue(path, out var state))
+            {
+                foreach (var searchState in state.SearchTypeStates.Values)
+                {
+                    DisposeResults(searchState.Results);
+                }
+                _namespaceStates.Remove(path);
+            }
+        }
+
+        // If we cleared the current namespace, also clear current results
+        if (SelectionManager.SelectedNamespace?.NamespacePath != null &&
+            SelectionManager.SelectedNamespace.NamespacePath.StartsWith(namespacePath, StringComparison.OrdinalIgnoreCase))
+        {
+            ClearCurrentTypeResults();
+            ClearCurrentState();
+        }
+    }
+
     // Clear results for the current search type only
     public void ClearCurrentTypeResults()
     {

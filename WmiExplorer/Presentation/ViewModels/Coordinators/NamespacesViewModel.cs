@@ -38,7 +38,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
-        StrongSubscribe<DisconnectNamespaceMessage>(HandleDisconnectNamespaceMessage);
 
         // Subscribe to settings property changes for ShowSystemClasses
         if (_settingsManager is System.ComponentModel.INotifyPropertyChanged npc)
@@ -147,6 +146,18 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         }
     }
 
+    public void DisconnectRoot(WmiNamespaceViewModel namespaceToRemove)
+    {
+        // Remove the namespace from the collection
+        RunOnUIThread(() =>
+        {
+            Namespaces.Remove(namespaceToRemove);
+        });
+
+        // Dispose the namespace and all its children, classes, and instances
+        namespaceToRemove.Dispose();
+    }
+
     /// <summary>
     /// Cleanup resources on disposal
     /// </summary>
@@ -167,21 +178,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     {
         // Notify command state changes
         ReloadClassesCommand.NotifyCanExecuteChanged();
-    }
-
-    private void DisconnectRoot(WmiNamespaceViewModel namespaceToRemove)
-    {
-        // Remove the namespace from the collection
-        RunOnUIThread(() =>
-        {
-            Namespaces.Remove(namespaceToRemove);
-        });
-
-        // Dispose the namespace and all its children, classes, and instances
-        namespaceToRemove.Dispose();
-
-        PublishSuccessState($"Disconnected from namespace: {namespaceToRemove.NamespacePath}");
-        Log.Information("Disconnected from namespace: {NamespacePath}", namespaceToRemove.NamespacePath);
     }
 
     /// <summary>
@@ -244,17 +240,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
 
         // Recursively continue down the specific path
         return await FindOrExpandNamespaceByPathAsync(targetChild, target);
-    }
-
-    /// <summary>
-    /// Handles disconnect namespace message to remove root namespace from tree
-    /// </summary>
-    private void HandleDisconnectNamespaceMessage(DisconnectNamespaceMessage message)
-    {
-        if (message?.NamespaceViewModel == null || !message.NamespaceViewModel.IsRoot)
-            return;
-
-        DisconnectRoot(message.NamespaceViewModel);
     }
 
     /// <summary>
