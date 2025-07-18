@@ -641,7 +641,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     if (ItemStatus.LoadState == LoadState.Unknown)
                     {
                         // Set the status to partial success
-                        SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Methods.Count} methods and {Properties.Count} properties for {ClassName}. Double click to load instances.");
+                        SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Properties.Count} properties and {Methods.Count} methods for {ClassName}. Double click to load instances.");
                     }
                 }
             }
