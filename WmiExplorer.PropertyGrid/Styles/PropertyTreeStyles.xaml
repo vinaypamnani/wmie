@@ -10,6 +10,7 @@
 
     <!--  Converters  -->
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    <conv:StringNotEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter" Invert="True" />
     <conv:NewlineToSpaceSingleConverter x:Key="NewlineToSpaceSingleConverter" />
     <conv:NameValueToStringConverter x:Key="NameValueToStringConverter" />
     <conv:TextHighlightConverter x:Key="TextHighlightConverter" />

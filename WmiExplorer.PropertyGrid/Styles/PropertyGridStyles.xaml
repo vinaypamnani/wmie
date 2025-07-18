@@ -79,8 +79,11 @@
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource PropertyGridDisabledForegroundBrush}"
                                        IsHitTestVisible="False"
-                                       Text="{TemplateBinding Tag}"
-                                       Visibility="Collapsed" />
+                                       Text="{TemplateBinding Tag}">
+                                <TextBlock.Visibility>
+                                    <Binding Converter="{StaticResource StringEmptyToVisibilityConverter}" Path="Text" RelativeSource="{RelativeSource TemplatedParent}" />
+                                </TextBlock.Visibility>
+                            </TextBlock>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -97,14 +100,7 @@
                             </MultiDataTrigger.Conditions>
                             <Setter TargetName="PART_ContentHost" Property="Margin" Value="0,4,0,4" />
                         </MultiDataTrigger>
-                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
-                        </DataTrigger>
+
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridFocusedElementBrush}" />
                             <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
@@ -178,8 +174,11 @@
                                        VerticalAlignment="Center"
                                        Foreground="Gray"
                                        IsHitTestVisible="False"
-                                       Text="{TemplateBinding Tag}"
-                                       Visibility="Collapsed" />
+                                       Text="{TemplateBinding Tag}">
+                                <TextBlock.Visibility>
+                                    <Binding Converter="{StaticResource StringEmptyToVisibilityConverter}" Path="Text" RelativeSource="{RelativeSource TemplatedParent}" />
+                                </TextBlock.Visibility>
+                            </TextBlock>
                             <!--  Clear Button  -->
                             <Button x:Name="PART_ClearButton"
                                     Width="18"
@@ -195,6 +194,9 @@
                                     Cursor="Hand"
                                     Focusable="False"
                                     ToolTip="Clear">
+                                <Button.Visibility>
+                                    <Binding Converter="{StaticResource StringNotEmptyToVisibilityConverter}" Path="Text" RelativeSource="{RelativeSource TemplatedParent}" />
+                                </Button.Visibility>
                                 <Path Data="M3,3 L9,9 M9,3 L3,9"
                                       Stroke="Gray"
                                       StrokeEndLineCap="Round"
@@ -204,23 +206,6 @@
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <!--  Show placeholder and hide clear button if empty or null  -->
-                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
-                            <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                        <!--  Show clear button only when Text is not empty or null  -->
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="" />
-                                <Condition Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}" />
-                            </MultiDataTrigger.Conditions>
-                            <Setter TargetName="PART_ClearButton" Property="Visibility" Value="Collapsed" />
-                        </MultiDataTrigger>
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridFocusedElementBrush}" />
                             <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
@@ -356,18 +341,14 @@
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource PropertyGridDisabledForegroundBrush}"
                                        IsHitTestVisible="False"
-                                       Text="Select Date"
-                                       Visibility="Collapsed" />
+                                       Text="Select Date">
+                                <TextBlock.Visibility>
+                                    <Binding Converter="{StaticResource StringEmptyToVisibilityConverter}" Path="Text" RelativeSource="{RelativeSource TemplatedParent}" />
+                                </TextBlock.Visibility>
+                            </TextBlock>
                         </Grid>
                     </Border>
-                    <ControlTemplate.Triggers>
-                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
-                            <Setter TargetName="PART_Watermark" Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
-                            <Setter TargetName="PART_Watermark" Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </ControlTemplate.Triggers>
+                    <ControlTemplate.Triggers />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
