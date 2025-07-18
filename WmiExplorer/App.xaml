@@ -15,10 +15,11 @@
                 <ResourceDictionary Source="Resources/TooltipStrings.xaml" />
 
                 <!--  Load base styles  -->
+                <ResourceDictionary Source="Presentation/Styles/StoryboardStyles.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/FocusVisualStyle.xaml" />
                 <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
 
-                <!-- Load icons styles  -->
+                <!--  Load icons styles  -->
                 <ResourceDictionary Source="Presentation/Styles/Icons.xaml" />
 
                 <!--  Load control styles  -->

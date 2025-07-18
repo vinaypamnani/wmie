@@ -345,14 +345,21 @@
 
                         <!--  Mouse over on Button  -->
                         <Trigger SourceName="ExpanderButton" Property="IsMouseOver" Value="True">
-                            <!--<Setter TargetName="ContentBorder" Property="Margin" Value="4" />
-                            <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="2" />
-                            <Setter TargetName="HeaderBorder" Property="CornerRadius" Value="3" />
-                            <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />-->
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="HoverDelayStoryboard" Storyboard="{StaticResource HoverDelayStoryboard}" />
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <StopStoryboard BeginStoryboardName="HoverDelayStoryboard" />
+                                <BeginStoryboard Storyboard="{StaticResource HoverResetStoryboard}" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <!--  Delayed hover effect for Button  -->
+                        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="HoverDelayed">
                             <Setter TargetName="ContentBorder" Property="BorderThickness" Value="2" />
                             <Setter TargetName="ContentBorder" Property="CornerRadius" Value="3" />
                             <Setter TargetName="ContentBorder" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
-                        </Trigger>
+                        </DataTrigger>
 
                         <!--  Animation Triggers for better user experience  -->
                         <EventTrigger RoutedEvent="Expander.Expanded">
