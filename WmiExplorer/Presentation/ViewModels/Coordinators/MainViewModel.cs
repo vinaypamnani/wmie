@@ -458,9 +458,14 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
     private void UpdateStatusBarForItemStatus(ItemStatus status, string fallback = "Ready")
     {
+        // Check if we already have the same application state to avoid unnecessary updates
+        var equivalentAppState = ItemStatus.MapLoadStateToAppState(status.LoadState);
+        if (status.StatusMessage == CurrentApplicationState.Message && equivalentAppState == CurrentApplicationState.State)
+            return;
+
         switch (status.LoadState)
         {
-            case LoadState.Failed:
+            case LoadState.Error:
                 PublishErrorState(status.StatusMessage, status.Exception);
                 break;
             case LoadState.Expanding:

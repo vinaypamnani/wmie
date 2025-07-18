@@ -9,10 +9,10 @@ public class AppStateToBrushConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var state = value as AppState? ?? AppState.Indeterminate;
+        var state = value as AppState? ?? AppState.Unknown;
         string brushKey = state switch
         {
-            AppState.Indeterminate => "BaseGrayBrush",
+            AppState.Unknown => "BaseGrayBrush",
             AppState.Error => "BaseRedBrush",
             AppState.Ready => "BaseGreenBrush",
             AppState.Success => "BaseGreenBrush",

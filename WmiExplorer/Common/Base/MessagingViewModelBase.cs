@@ -154,7 +154,7 @@ public abstract partial class MessagingViewModelBase : DisposableObservableObjec
             case LoadState.PartialSuccess:
                 PublishPartialSuccessState(message);
                 break;
-            case LoadState.Failed:
+            case LoadState.Error:
                 PublishErrorState(message, ex);
                 break;
             case LoadState.Warning:

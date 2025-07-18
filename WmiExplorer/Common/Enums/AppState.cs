@@ -11,5 +11,5 @@ public enum AppState
     Success,
     PartialSuccess,
     Warning,
-    Indeterminate
+    Unknown
 }

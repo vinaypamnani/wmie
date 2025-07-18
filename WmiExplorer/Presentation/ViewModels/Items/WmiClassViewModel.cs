@@ -137,7 +137,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     return $"Loaded Properties and Methods. Double-click to load instances.";
                 case LoadState.Warning:
                     return !string.IsNullOrWhiteSpace(ItemStatus.StatusMessage) ? ItemStatus.StatusMessage : "Warning";
-                case LoadState.Failed:
+                case LoadState.Error:
                     return ItemStatus.Exception?.Message ?? "Failed";
                 default:
                     return null;
@@ -518,7 +518,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
-            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Error loading instances for {ClassName}: {ex.Message}", ex);
+            SetStatusAndPublish(ItemStatus, LoadState.Error, $"Error loading instances for {ClassName}: {ex.Message}", ex);
             Log.Error(ex, "Error loading instances for class: {ClassName}", ClassName);
         }
     }
@@ -638,8 +638,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     if (_properties == null)
                         LoadProperties();
 
-                    // Set the status to partial success
-                    SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Methods.Count} methods and {Properties.Count} properties for {ClassName}. Double click to load instances.");
+                    if (ItemStatus.LoadState == LoadState.Unknown)
+                    {
+                        // Set the status to partial success
+                        SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Methods.Count} methods and {Properties.Count} properties for {ClassName}. Double click to load instances.");
+                    }
                 }
             }
             finally

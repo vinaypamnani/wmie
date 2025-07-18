@@ -111,7 +111,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                     return "Instance has lazy properties. Refresh instance (F5) to load all properties.";
                 case LoadState.Warning:
                     return !string.IsNullOrWhiteSpace(ItemStatus.StatusMessage) ? ItemStatus.StatusMessage : "Warning";
-                case LoadState.Failed:
+                case LoadState.Error:
                     return ItemStatus.Exception?.Message ?? "Failed";
                 default:
                     return null;
@@ -412,10 +412,13 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                 LoadInstanceMethods();
 
                 // Set state based on parent class properties
-                if (!_parentClass.HasLazyProperty)
-                    SetStatusAndPublish(ItemStatus, LoadState.Success, $"Showing details for {InstanceName}.");
-                else
-                    SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Showing details for {InstanceName} (with lazy properties).");
+                if (ItemStatus.LoadState == LoadState.Unknown)
+                {
+                    if (!_parentClass.HasLazyProperty)
+                        SetStatusAndPublish(ItemStatus, LoadState.Success, $"Showing details for {InstanceName}.");
+                    else
+                        SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Showing details for {InstanceName} (with lazy properties).");
+                }
             }
             finally
             {
@@ -443,7 +446,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Failed to refresh instance: {ex.Message}", ex);
+            SetStatusAndPublish(ItemStatus, LoadState.Error, $"Failed to refresh instance: {ex.Message}", ex);
             Log.Error(ex, "Failed to refresh instance: {InstanceName}", InstanceName);
         }
     }

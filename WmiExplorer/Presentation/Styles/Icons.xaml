@@ -31,7 +31,7 @@
             <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Warning">
                 <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Failed">
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Error">
                 <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
             </DataTrigger>
         </Style.Triggers>

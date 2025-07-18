@@ -178,7 +178,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                     return GetContextualTooltip($"Success [{Classes?.Count ?? 0} classes]");
                 case LoadState.Warning:
                     return !string.IsNullOrWhiteSpace(ItemStatus.StatusMessage) ? ItemStatus.StatusMessage : "Warning";
-                case LoadState.Failed:
+                case LoadState.Error:
                     return ItemStatus.Exception?.Message ?? "Failed";
                 default:
                     return null;
@@ -322,7 +322,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
     {
         if (HasLoadedChildren)
         {
-            IsExpanded = true;
+            // Don't set IsExpanded to true here, we are here because it was set to true.
             return;
         }
 
@@ -371,7 +371,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             });
 
             HasLoadedChildren = true;
-            IsExpanded = true;
             SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded [{_children.Count}] child namespaces for {NamespacePath}. Double click to enumerate classes.");
             Log.Information("Successfully loaded {ChildCount} child namespaces for {NamespacePath}", _children.Count, NamespacePath);
         }
@@ -382,7 +381,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
-            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Error loading child namespaces for {NamespacePath}: {ex.Message}", ex);
+            SetStatusAndPublish(ItemStatus, LoadState.Error, $"Error loading child namespaces for {NamespacePath}: {ex.Message}", ex);
             Log.Error(ex, "Error loading child namespaces for {NamespacePath}", NamespacePath);
         }
     }
@@ -456,7 +455,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         }
         catch (Exception ex)
         {
-            SetStatusAndPublish(ItemStatus, LoadState.Failed, $"Error loading classes for {NamespacePath}: {ex.Message}", ex);
+            SetStatusAndPublish(ItemStatus, LoadState.Error, $"Error loading classes for {NamespacePath}: {ex.Message}", ex);
             Log.Error(ex, "Error loading classes for {NamespacePath}", NamespacePath);
         }
     }

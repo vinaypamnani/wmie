@@ -48,12 +48,6 @@ public class ApplicationState
         => new ApplicationState(AppState.Error, message, exception);
 
     /// <summary>
-    /// Creates an Indeterminate state
-    /// </summary>
-    public static ApplicationState Indeterminate(string message = "Working...")
-        => new ApplicationState(AppState.Indeterminate, message);
-
-    /// <summary>
     /// Creates a PartialSuccess state
     /// </summary>
     public static ApplicationState PartialSuccess(string message)
@@ -70,6 +64,12 @@ public class ApplicationState
     /// </summary>
     public static ApplicationState Success(string message)
         => new ApplicationState(AppState.Success, message);
+
+    /// <summary>
+    /// Creates an Unknown state
+    /// </summary>
+    public static ApplicationState Unknown(string message = "Working...")
+        => new ApplicationState(AppState.Unknown, message);
 
     /// <summary>
     /// Creates a Warning state

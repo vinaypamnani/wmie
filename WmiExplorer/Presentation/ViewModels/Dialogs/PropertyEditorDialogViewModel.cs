@@ -109,7 +109,7 @@ public partial class PropertyEditorDialogViewModel : MessagingViewModelBase
     {
         // Optionally set status before closing
         StatusMessage = "Edit cancelled.";
-        AppState = AppState.Indeterminate;
+        AppState = AppState.Unknown;
         Result = null;
         _window.DialogResult = false;
         _window.Close();
