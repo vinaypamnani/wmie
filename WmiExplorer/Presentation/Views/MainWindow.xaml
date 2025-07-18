@@ -212,22 +212,37 @@
                     BorderThickness="0"
                     CornerRadius="3">
                 <TabControl SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-                    <TabItem Header="{Binding ClassesTabViewModel.TabHeader}" TabIndex="0" ToolTip="{Binding ClassesTabViewModel.TabHeader}">
+                    <TabItem TabIndex="0">
+                        <TabItem.Header>
+                            <TextBlock Text="{Binding ClassesTabViewModel.TabHeader}" ToolTip="{Binding ClassesTabViewModel.TabHeader}" />
+                        </TabItem.Header>
                         <tabs:ClassesTabView DataContext="{Binding ClassesTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding SearchTabViewModel.TabHeader}" TabIndex="1" ToolTip="{Binding SearchTabViewModel.TabStatus.Tooltip}">
+                    <TabItem TabIndex="1">
+                        <TabItem.Header>
+                            <TextBlock Text="{Binding SearchTabViewModel.TabHeader}" ToolTip="{Binding SearchTabViewModel.TabStatus.Tooltip}" />
+                        </TabItem.Header>
                         <!--  Search View  -->
                         <tabs:SearchTabView DataContext="{Binding SearchTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding QueryTabViewModel.TabHeader}" TabIndex="2" ToolTip="{Binding QueryTabViewModel.TabStatus.Tooltip}">
+                    <TabItem TabIndex="2">
+                        <TabItem.Header>
+                            <TextBlock Text="{Binding QueryTabViewModel.TabHeader}" ToolTip="{Binding QueryTabViewModel.TabStatus.Tooltip}" />
+                        </TabItem.Header>
                         <!--  Query View  -->
                         <tabs:QueryTabView DataContext="{Binding QueryTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding WatcherTabViewModel.TabHeader}" TabIndex="3" ToolTip="{Binding WatcherTabViewModel.TabStatus.Tooltip}">
+                    <TabItem TabIndex="3">
+                        <TabItem.Header>
+                            <TextBlock Text="{Binding WatcherTabViewModel.TabHeader}" ToolTip="{Binding WatcherTabViewModel.TabStatus.Tooltip}" />
+                        </TabItem.Header>
                         <!--  Event Watcher View  -->
                         <tabs:WatcherTabView DataContext="{Binding WatcherTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding LogTabViewModel.TabHeader}" TabIndex="4" ToolTip="{Binding LogTabViewModel.TabStatus.Tooltip}">
+                    <TabItem TabIndex="4">
+                        <TabItem.Header>
+                            <TextBlock Text="{Binding LogTabViewModel.TabHeader}" ToolTip="{Binding LogTabViewModel.TabStatus.Tooltip}" />
+                        </TabItem.Header>
                         <!--  Log View  -->
                         <tabs:LogTabView DataContext="{Binding LogTabViewModel}" />
                     </TabItem>
