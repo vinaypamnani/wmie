@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
-using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -42,24 +41,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
 
         // Subscribe to messages
-        StrongSubscribe<TabCountChangedMessage>(message => UpdateTabHeaders());
-    }
-
-    /// <summary>
-    /// Gets the header text for the Instances tab with count
-    /// </summary>
-    public string InstancesTabHeader
-    {
-        get
-        {
-            var selectedClass = SelectionManager.GetSelectedClass();
-            if (selectedClass?.ItemStatus.LoadState == LoadState.Success)
-            {
-                var count = selectedClass?.Instances?.Count ?? 0;
-                return $"Instances [{count}]";
-            }
-            return "Instances";
-        }
+        // No longer need to subscribe to TabCountChangedMessage since each child ViewModel handles its own updates
     }
 
     /// <summary>
@@ -68,44 +50,9 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     public InstancesTabViewModel InstancesTabViewModel => _instancesTabViewModel;
 
     /// <summary>
-    /// Gets the header text for the Methods tab with count
-    /// </summary>
-    public string MethodsTabHeader
-    {
-        get
-        {
-            var selectedClass = SelectionManager.GetSelectedClass();
-            if (selectedClass?.Methods is not null)
-            {
-                var count = selectedClass?.Methods?.Count ?? 0;
-                return $"Methods [{count}]";
-            }
-            return "Methods";
-        }
-    }
-
-    /// <summary>
     /// Gets the MethodsTabViewModel
     /// </summary>
     public MethodsTabViewModel MethodsTabViewModel => _methodsTabViewModel;
-
-    /// <summary>
-    /// Gets the header text for the Properties tab with count
-    /// </summary>
-    public string PropertiesTabHeader
-    {
-        get
-        {
-            var selectedClass = SelectionManager.GetSelectedClass();
-            if (selectedClass?.Properties is not null)
-            {
-                // Count the properties in the selected class
-                var count = selectedClass?.Properties?.Count ?? 0;
-                return $"Properties [{count}]";
-            }
-            return "Properties";
-        }
-    }
 
     /// <summary>
     /// Gets the PropertiesTabViewModel
@@ -119,7 +66,6 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
     {
-        UpdateTabHeaders();
         UpdateAutoQueryText(selectedClass!);
     }
 
@@ -136,7 +82,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
     {
-        UpdateTabHeaders();
+        // No longer need to update tab headers - each child ViewModel handles its own
     }
 
     /// <summary>
@@ -254,15 +200,5 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         {
             AutoQueryText = string.Empty;
         }
-    }
-
-    /// <summary>
-    /// Updates tab header properties to trigger UI refresh
-    /// </summary>
-    private void UpdateTabHeaders()
-    {
-        OnPropertyChanged(nameof(InstancesTabHeader));
-        OnPropertyChanged(nameof(PropertiesTabHeader));
-        OnPropertyChanged(nameof(MethodsTabHeader));
     }
 }

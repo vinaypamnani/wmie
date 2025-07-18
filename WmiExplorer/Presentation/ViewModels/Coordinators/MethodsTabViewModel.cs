@@ -47,6 +47,22 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
     public ICollectionView? FilteredMethodsView => _methodFilterHelper?.CollectionView;
 
     /// <summary>
+    /// Gets the header text for the Methods tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var filteredCount = FilteredMethodsView?.Cast<object>().Count();
+            if (filteredCount.HasValue)
+            {
+                return $"Methods [{filteredCount.Value}]";
+            }
+            return "Methods";
+        }
+    }
+
+    /// <summary>
     /// Cleanup resources on disposal
     /// </summary>
     protected override void Dispose(bool disposing)
@@ -65,6 +81,9 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
     {
         // Update filtered methods when class selection changes
         UpdateFilteredMethods(selectedClass);
+
+        // Notify that TabHeader has changed
+        OnPropertyChanged(nameof(TabHeader));
     }
 
     /// <summary>
@@ -87,6 +106,8 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
         if (_methodFilterHelper != null)
         {
             _methodFilterHelper.FilterText = value;
+            // Notify that TabHeader has changed since the filtered count may have changed
+            OnPropertyChanged(nameof(TabHeader));
         }
     }
 

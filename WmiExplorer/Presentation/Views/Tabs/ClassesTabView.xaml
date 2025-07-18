@@ -264,15 +264,15 @@
                 BorderThickness="0"
                 CornerRadius="3">
             <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-                <TabItem Header="{Binding InstancesTabHeader}" TabIndex="0" ToolTip="{Binding InstancesTabHeader}">
+                <TabItem Header="{Binding InstancesTabViewModel.TabHeader}" TabIndex="0" ToolTip="{Binding InstancesTabViewModel.TabHeader}">
                     <!--  Instances View  -->
                     <tabs:InstancesTabView DataContext="{Binding InstancesTabViewModel}" />
                 </TabItem>
-                <TabItem Header="{Binding PropertiesTabHeader}" TabIndex="1" ToolTip="{Binding PropertiesTabViewModel.TabStatus.Tooltip}">
+                <TabItem Header="{Binding PropertiesTabViewModel.TabHeader}" TabIndex="1" ToolTip="{Binding PropertiesTabViewModel.TabStatus.Tooltip}">
                     <!--  Properties View  -->
                     <tabs:PropertiesTabView DataContext="{Binding PropertiesTabViewModel}" />
                 </TabItem>
-                <TabItem Header="{Binding MethodsTabHeader}" TabIndex="2" ToolTip="{Binding MethodsTabViewModel.TabStatus.Tooltip}">
+                <TabItem Header="{Binding MethodsTabViewModel.TabHeader}" TabIndex="2" ToolTip="{Binding MethodsTabViewModel.TabStatus.Tooltip}">
                     <!--  Methods View  -->
                     <tabs:MethodsTabView DataContext="{Binding MethodsTabViewModel}" />
                 </TabItem>

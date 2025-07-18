@@ -46,6 +46,22 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     public ICollectionView? FilteredPropertiesView => _propertyFilterHelper?.CollectionView;
 
     /// <summary>
+    /// Gets the header text for the Properties tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var filteredCount = FilteredPropertiesView?.Cast<object>().Count();
+            if (filteredCount.HasValue)
+            {
+                return $"Properties [{filteredCount.Value}]";
+            }
+            return "Properties";
+        }
+    }
+
+    /// <summary>
     /// Cleanup resources on disposal
     /// </summary>
     protected override void Dispose(bool disposing)
@@ -66,6 +82,9 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     {
         // Update filtered properties when class selection changes
         UpdateFilteredProperties(selectedClass);
+
+        // Notify that TabHeader has changed
+        OnPropertyChanged(nameof(TabHeader));
     }
 
     /// <summary>
@@ -76,6 +95,8 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
         if (_propertyFilterHelper != null)
         {
             _propertyFilterHelper.FilterText = value;
+            // Notify that TabHeader has changed since the filtered count may have changed
+            OnPropertyChanged(nameof(TabHeader));
         }
     }
 
