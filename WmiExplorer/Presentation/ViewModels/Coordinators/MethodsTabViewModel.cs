@@ -197,5 +197,7 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
         {
             HelpText = "Non-Static Method - Right click an instance of this class to execute this method";
         }
+
+        TabStatus.Message = HelpText;
     }
 }

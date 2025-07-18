@@ -186,5 +186,7 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
             var keyText = SelectedProperty.IsKey ? " [Key Property]" : "";
             HelpText = $"Property: {SelectedProperty.Name} ({SelectedProperty.Type}){keyText}{lazyText}";
         }
+
+        TabStatus.Message = HelpText;
     }
 }
