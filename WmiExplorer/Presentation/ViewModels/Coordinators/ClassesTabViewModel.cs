@@ -220,7 +220,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
                 // Instances tab
                 if (SelectionManager.GetSelectedInstance() != null)
                 {
-                    SelectionManager.SetSelectedObject(SelectionManager.GetSelectedInstance(), updatePropertyGrid: true);
+                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedInstance());
                 }
                 break;
         }

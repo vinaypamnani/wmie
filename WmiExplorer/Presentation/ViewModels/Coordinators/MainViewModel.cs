@@ -327,15 +327,15 @@ public partial class MainViewModel : SelectionAwareViewModelBase
                 // Classes Tab - Select Instance/Class/Namespace in that order
                 if (SelectionManager.GetSelectedInstance() != null)
                 {
-                    SelectionManager.SetSelectedObject(SelectionManager.GetSelectedInstance(), updatePropertyGrid: true);
+                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedInstance());
                 }
                 else if (SelectionManager.GetSelectedClass() != null)
                 {
-                    SelectionManager.SetSelectedObject(SelectionManager.GetSelectedClass(), updatePropertyGrid: true);
+                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedClass());
                 }
                 else if (SelectionManager.SelectedNamespace != null)
                 {
-                    SelectionManager.SetSelectedObject(SelectionManager.SelectedNamespace, updatePropertyGrid: true);
+                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.SelectedNamespace);
                 }
                 break;
         }
