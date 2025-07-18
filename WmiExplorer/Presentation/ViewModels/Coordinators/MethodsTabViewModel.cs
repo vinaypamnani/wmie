@@ -87,12 +87,21 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
     /// <summary>
     /// Called when the selected method changes
     /// </summary>
-    partial void OnSelectedMethodChanged(WmiMethod? oldValue, WmiMethod? newValue)
+    partial void OnSelectedMethodChanged(WmiMethod? value)
     {
         // Clear selected parameter when method changes since parameters are method-specific
         SelectedMethodParameter = null;
 
         UpdateHelpText();
+
+        // Update status bar
+        PublishReadyState($"Showing details for method: {value?.Name ?? "None"}");
+    }
+
+    partial void OnSelectedMethodParameterChanged(WmiParameter? value)
+    {
+        // Update status bar
+        PublishReadyState($"Showing details for parameter: {value?.Name ?? "None"}");
     }
 
     /// <summary>

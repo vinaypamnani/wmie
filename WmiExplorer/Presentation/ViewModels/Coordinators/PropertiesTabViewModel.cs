@@ -76,9 +76,12 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     /// <summary>
     /// Called when the selected property changes
     /// </summary>
-    partial void OnSelectedPropertyChanged(WmiProperty? oldValue, WmiProperty? newValue)
+    partial void OnSelectedPropertyChanged(WmiProperty? value)
     {
         UpdateHelpText();
+
+        // Update status bar
+        PublishReadyState($"Showing details for property: {value?.Name ?? "None"}");
     }
 
     /// <summary>

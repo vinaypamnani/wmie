@@ -210,10 +210,28 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         {
             case 1:
                 // Properties Tab
+                if (PropertiesTabViewModel?.SelectedProperty == null)
+                {
+                    // If no property is selected, set a default message
+                    PublishReadyState("Select a property to view details.");
+                }
+                else
+                {
+                    // Set the selected property in the property grid
+                    PublishReadyState($"Showing details for property: {PropertiesTabViewModel.SelectedProperty.Name}");
+                }
                 SelectionManager.PropertyGrid.SetPropertyGridObject(PropertiesTabViewModel?.SelectedProperty);
                 break;
             case 2:
                 // Methods Tab
+                if (MethodsTabViewModel?.SelectedMethod == null)
+                {
+                    PublishReadyState("Select a method to view details.");
+                }
+                else
+                {
+                    PublishReadyState($"Showing details for method: {MethodsTabViewModel.SelectedMethod.Name}");
+                }
                 SelectionManager.PropertyGrid.SetPropertyGridObject(MethodsTabViewModel?.SelectedMethod);
                 break;
             default:
