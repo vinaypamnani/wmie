@@ -300,8 +300,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0"
-                         IsReadOnly="True"
-                         Style="{StaticResource TextBoxWithPlaceholder}"
+                         IsReadOnly="True"                         
                          Tag="Automatically created query..."
                          Text="{Binding AutoQueryText, Mode=OneWay}" />
                 <Button Grid.Column="1"

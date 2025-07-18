@@ -41,7 +41,7 @@
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="TextBorder"
                             Background="{TemplateBinding Background}"
-                            BorderBrush="{DynamicResource PrimaryAccentBrush}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost" Background="Transparent" Focusable="false" />
@@ -60,27 +60,23 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsReadOnly" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource SecondaryForegroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
-                <Setter Property="BorderThickness" Value="0" />
-            </Trigger>
-            <Trigger Property="IsReadOnly" Value="True">
-                <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
-                <Setter Property="BorderThickness" Value="0" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <!--  SimpleTextBox Style: Minimal, no border, background, or placeholder logic  -->
@@ -108,7 +104,7 @@
                 <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
-                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="BorderThickness" Value="1" />
             </Trigger>
             <Trigger Property="IsFocused" Value="True">
                 <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
@@ -128,7 +124,7 @@
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="TextBorder"
                             Background="{TemplateBinding Background}"
-                            BorderBrush="{DynamicResource PrimaryAccentBrush}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid VerticalAlignment="Center">
                             <!--  Search Icon  -->
@@ -195,8 +191,8 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
-                            <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter Property="BorderThickness" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

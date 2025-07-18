@@ -193,7 +193,7 @@
                                                                             <!--  Value Input  -->
                                                                             <TextBox Grid.Column="0" HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}">
                                                                                 <TextBox.Style>
-                                                                                    <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
+                                                                                    <Style BasedOn="{StaticResource TextBoxWithClearButton}" TargetType="{x:Type TextBox}">
                                                                                         <Setter Property="Tag" Value="Enter value..." />
                                                                                         <Setter Property="Text" Value="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
                                                                                         <Style.Triggers>
