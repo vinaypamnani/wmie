@@ -141,7 +141,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
     {
-        UpdateStatusBarForSelection(SelectionManager);
+        // Update status bar based on current tab
+        UpdateStatusBarForTab(SelectedTabIndex);
     }
 
     /// <summary>
@@ -149,7 +150,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedInstanceChanged(WmiInstanceViewModel? selectedInstance)
     {
-        UpdateStatusBarForSelection(SelectionManager);
+        // Update status bar based on current tab
+        UpdateStatusBarForTab(SelectedTabIndex);
     }
 
     /// <summary>
@@ -157,8 +159,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
     {
-        // Tab headers are now handled by their respective ViewModels
-        UpdateStatusBarForSelection(SelectionManager);
+        // Update status bar based on current tab
+        UpdateStatusBarForTab(SelectedTabIndex);
     }
 
     /// <summary>
@@ -215,7 +217,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         switch (selectedTabIndex)
         {
             case 0: // Instances tab
-                UpdateStatusBarForTabSelection();
+                UpdateStatusBarForSelectionHierarchy();
                 SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedInstance());
                 break;
             case 1: // Properties tab
@@ -227,7 +229,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
                 SelectionManager.PropertyGrid.SetPropertyGridObject(ClassesTabViewModel.MethodsTabViewModel?.SelectedMethod);
                 break;
             default:
-                UpdateStatusBarForTabSelection();
+                UpdateStatusBarForSelectionHierarchy();
                 SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedClass());
                 break;
 
@@ -506,13 +508,13 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// <summary>
     /// Updates the status bar for the Classes tab, handling child tab status
     /// </summary>
-    private void UpdateStatusBarForClassesTab()
+    private void UpdateStatusBarForClassesTab(int childTabIndex)
     {
         // Check which child tab is selected within the Classes tab
-        switch (ClassesTabViewModel.SelectedTabIndex)
+        switch (childTabIndex)
         {
             case 0: // Instances tab
-                UpdateStatusBarForTabSelection();
+                UpdateStatusBarForSelectionHierarchy();
                 break;
             case 1: // Properties tab
                 UpdateStatusBarFromTabStatus(ClassesTabViewModel.PropertiesTabViewModel?.TabStatus);
@@ -521,7 +523,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
                 UpdateStatusBarFromTabStatus(ClassesTabViewModel.MethodsTabViewModel?.TabStatus);
                 break;
             default:
-                UpdateStatusBarForTabSelection();
+                UpdateStatusBarForSelectionHierarchy();
                 break;
         }
     }
@@ -557,57 +559,10 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         }
     }
 
-    private void UpdateStatusBarForSelection(SelectionManager selectionManager)
-    {
-        switch (selectionManager.SelectedObject)
-        {
-            case WmiNamespaceViewModel ns:
-                UpdateStatusBarForItemStatus(ns.ItemStatus);
-                break;
-            case WmiClassViewModel wmiClass:
-                UpdateStatusBarForItemStatus(wmiClass.ItemStatus);
-                break;
-            case WmiInstanceViewModel instance:
-                UpdateStatusBarForItemStatus(instance.ItemStatus);
-                break;
-            default:
-                PublishReadyState("Ready");
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Updates the status bar based on the selected tab's status
-    /// </summary>
-    private void UpdateStatusBarForTab(int tabIndex)
-    {
-        switch (tabIndex)
-        {
-            case 0: // Classes Tab
-                UpdateStatusBarForClassesTab();
-                break;
-            case 1: // Search Tab
-                UpdateStatusBarFromTabStatus(SearchTabViewModel?.TabStatus);
-                break;
-            case 2: // Query Tab
-                UpdateStatusBarFromTabStatus(QueryTabViewModel?.TabStatus);
-                break;
-            case 3: // Watcher Tab
-                UpdateStatusBarFromTabStatus(WatcherTabViewModel?.TabStatus);
-                break;
-            case 4: // Log Tab
-                UpdateStatusBarFromTabStatus(LogTabViewModel?.TabStatus);
-                break;
-            default: // Default case
-                UpdateStatusBarForTabSelection();
-                break;
-        }
-    }
-
     /// <summary>
     /// Updates the status bar based on the selection hierarchy (Instance -> Class -> Namespace)
     /// </summary>
-    private void UpdateStatusBarForTabSelection()
+    private void UpdateStatusBarForSelectionHierarchy()
     {
         // Check selection hierarchy in order: Instance -> Class -> Namespace
         var selectedInstance = SelectionManager.GetSelectedInstance();
@@ -633,6 +588,34 @@ public partial class MainViewModel : SelectionAwareViewModelBase
 
         // Default fallback
         PublishReadyState("Ready");
+    }
+
+    /// <summary>
+    /// Updates the status bar based on the selected tab's status
+    /// </summary>
+    private void UpdateStatusBarForTab(int tabIndex)
+    {
+        switch (tabIndex)
+        {
+            case 0: // Classes Tab
+                UpdateStatusBarForClassesTab(ClassesTabViewModel.SelectedTabIndex);
+                break;
+            case 1: // Search Tab
+                UpdateStatusBarFromTabStatus(SearchTabViewModel?.TabStatus);
+                break;
+            case 2: // Query Tab
+                UpdateStatusBarFromTabStatus(QueryTabViewModel?.TabStatus);
+                break;
+            case 3: // Watcher Tab
+                UpdateStatusBarFromTabStatus(WatcherTabViewModel?.TabStatus);
+                break;
+            case 4: // Log Tab
+                UpdateStatusBarFromTabStatus(LogTabViewModel?.TabStatus);
+                break;
+            default: // Default case
+                UpdateStatusBarForSelectionHierarchy();
+                break;
+        }
     }
 
     /// <summary>
