@@ -1,4 +1,5 @@
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
@@ -16,6 +17,7 @@ public partial class InstancesTabViewModel : SelectionAwareViewModelBase
                     IMessengerService messengerService,
                     SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
+        StrongSubscribe<InstancesLoadedMessage>(message => OnPropertyChanged(nameof(TabHeader)));
     }
 
     /// <summary>

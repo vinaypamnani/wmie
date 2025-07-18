@@ -7,7 +7,6 @@ using System.Windows.Data;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
-using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
@@ -102,6 +101,22 @@ public partial class LogTabViewModel : MessagingViewModelBase
 
     // Add a property for direct binding if needed
     public SettingsManager SettingsManager => _settingsManager;
+
+    /// <summary>
+    /// Gets the header text for the Log tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var filteredCount = LogEntries.Count;
+            if (filteredCount > 0)
+            {
+                return $"Log [{filteredCount}]";
+            }
+            return "Log";
+        }
+    }
 
     /// <summary>
     /// Disposes the LogTabViewModel and cleans up resources
@@ -267,10 +282,7 @@ public partial class LogTabViewModel : MessagingViewModelBase
         _logEntries.CollectionChanged += (s, e) =>
         {
             OnPropertyChanged(nameof(HasLogEntries));
-
-            // Send message that tab count changed
-            PublishMessage(new TabCountChangedMessage());
-
+            OnPropertyChanged(nameof(TabHeader));
             // Auto-scroll to the latest entry if enabled
             if (AutoScroll && _logEntries.Count > 0)
             {

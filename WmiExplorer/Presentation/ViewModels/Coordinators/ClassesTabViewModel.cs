@@ -40,8 +40,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
         _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
         _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
 
-        // Subscribe to messages
-        // No longer need to subscribe to TabCountChangedMessage since each child ViewModel handles its own updates
+        StrongSubscribe<ClassesLoadedMessage>(_ => OnPropertyChanged(nameof(TabHeader)));
     }
 
     /// <summary>
@@ -60,6 +59,22 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
 
     public SettingsManager SettingsManager => _settingsManager;
+
+    /// <summary>
+    /// Gets the header text for the Classes tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var count = SelectionManager.SelectedNamespace?.Classes?.Count ?? 0;
+            if (count > 0)
+            {
+                return $"Classes [{count}]";
+            }
+            return "Classes";
+        }
+    }
 
     /// <summary>
     /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
@@ -83,6 +98,7 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
     {
         // No longer need to update tab headers - each child ViewModel handles its own
+        OnPropertyChanged(nameof(TabHeader));
     }
 
     /// <summary>

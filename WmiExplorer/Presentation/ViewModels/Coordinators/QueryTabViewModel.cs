@@ -72,6 +72,22 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     public ObservableCollection<DataGridColumn> ResultColumns { get; } = new();
 
     /// <summary>
+    /// Gets the header text for the Query tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var filteredCount = Results.Count;
+            if (filteredCount > 0)
+            {
+                return $"Query [{filteredCount}]";
+            }
+            return "Query";
+        }
+    }
+
+    /// <summary>
     /// Clears all namespace states (useful for cleanup)
     /// </summary>
     public void ClearAllNamespaceStates()
@@ -94,6 +110,15 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     }
 
     /// <summary>
+    /// Called after results are updated. Re-subscribes to the new collection view and updates tab header.
+    /// </summary>
+    protected override void OnResultsUpdated()
+    {
+        // Immediately update tab header since results just changed
+        OnPropertyChanged(nameof(TabHeader));
+    }
+
+    /// <summary>
     /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
     /// Restores state for the new namespace.
     /// </summary>
@@ -101,6 +126,9 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     {
         // Restore state for the new namespace
         RestoreNamespaceState(selectedNamespace);
+
+        // Update tab header
+        OnPropertyChanged(nameof(TabHeader));
     }
 
     /// <summary>

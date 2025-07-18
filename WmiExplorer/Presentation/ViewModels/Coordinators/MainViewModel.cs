@@ -106,9 +106,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         StrongSubscribe<ElapsedTimeMessage>(HandleElapsedTimeMessage);
         StrongSubscribe<ThemeChangedMessage>(_ => UpdateThemeProperties());
 
-        // Subscribe to events that affect tab headers
-        StrongSubscribe<TabCountChangedMessage>(_ => UpdateTabHeaders());
-
         // Subscribe to SwitchMainTabMessage to handle tab switching requests
         StrongSubscribe<SwitchMainTabMessage>(HandleSwitchMainTabMessage);
 
@@ -133,69 +130,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         //     Application.Current.MainWindow);
     }
 
-    /// <summary>
-    /// Gets the header text for the Classes tab with count
-    /// </summary>
-    public string ClassesTabHeader
-    {
-        get
-        {
-            var count = SelectionManager.SelectedNamespace?.Classes?.Count ?? 0;
-            return count > 0 ? $"Classes [{count}]" : "Classes";
-        }
-    }
-
     public List<object> DebugObjects { get; }
-
-    /// <summary>
-    /// Gets the header text for the Log tab with entries count
-    /// </summary>
-    public string LogTabHeader
-    {
-        get
-        {
-            var count = LogTabViewModel?.LogEntries?.Count ?? 0;
-            return count > 0 ? $"Log [{count}]" : "Log";
-        }
-    }
-
-    /// <summary>
-    /// Gets the header text for the Query tab with results count
-    /// </summary>
-    public string QueryTabHeader
-    {
-        get
-        {
-            var count = QueryTabViewModel?.Results?.Count ?? 0;
-            return count > 0 ? $"Query [{count}]" : "Query";
-        }
-    }
-
-    /// <summary>
-    /// Gets the header text for the Search tab with count
-    /// </summary>
-    public string SearchTabHeader
-    {
-        get
-        {
-            var count = SearchTabViewModel?.Results?.Count ?? 0;
-            return count > 0 ? $"Search [{count}]" : "Search";
-        }
-    }
-
     public SettingsManager SettingsManager => _settingsManager;
-
-    /// <summary>
-    /// Gets the header text for the Watcher tab with events count
-    /// </summary>
-    public string WatcherTabHeader
-    {
-        get
-        {
-            var count = WatcherTabViewModel?.Events?.Count ?? 0;
-            return count > 0 ? $"Watcher [{count}]" : "Watcher";
-        }
-    }
 
     /// <summary>
     /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
@@ -218,7 +154,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
     {
-        UpdateTabHeaders();
+        // Tab headers are now handled by their respective ViewModels
         UpdateStatusBarForSelection(SelectionManager);
     }
 
@@ -680,18 +616,6 @@ public partial class MainViewModel : SelectionAwareViewModelBase
                 PublishReadyState(tabStatus.Message);
                 break;
         }
-    }
-
-    /// <summary>
-    /// Updates tab header property change notifications
-    /// </summary>
-    private void UpdateTabHeaders()
-    {
-        OnPropertyChanged(nameof(ClassesTabHeader));
-        OnPropertyChanged(nameof(SearchTabHeader));
-        OnPropertyChanged(nameof(QueryTabHeader));
-        OnPropertyChanged(nameof(WatcherTabHeader));
-        OnPropertyChanged(nameof(LogTabHeader));
     }
 
     /// <summary>

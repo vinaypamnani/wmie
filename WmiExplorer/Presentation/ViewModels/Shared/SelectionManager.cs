@@ -36,9 +36,9 @@ public partial class SelectionManager : ObservableObject
 
     // Previous selection properties for state management
     public WmiClassViewModel? PreviousClass { get; private set; }
+
     public WmiInstanceViewModel? PreviousInstance { get; private set; }
     public WmiNamespaceViewModel? PreviousNamespace { get; private set; }
-
     public object? PreviousObject { get; private set; }
 
     /// <summary>
@@ -48,6 +48,7 @@ public partial class SelectionManager : ObservableObject
 
     // Convenience properties for PropertyChanged notifications (internal use only)
     public WmiClassViewModel? SelectedClass => SelectedNamespace?.SelectedClass;
+
     public WmiInstanceViewModel? SelectedInstance => SelectedNamespace?.SelectedClass?.SelectedInstance;
 
     // Selection state for coordination between ViewModels
@@ -71,9 +72,6 @@ public partial class SelectionManager : ObservableObject
 
             // Publish a message to notify other ViewModels
             PublishSelectionChanged();
-
-            // Publish messsage to update the tab count
-            _messengerService.Send(new TabCountChangedMessage());
         }
         catch (Exception ex)
         {

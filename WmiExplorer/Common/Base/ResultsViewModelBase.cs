@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -31,6 +30,13 @@ public abstract partial class ResultsViewModelBase<T> : SelectionAwareViewModelB
     public ICollectionView ResultsView => _resultsView!;
 
     /// <summary>
+    /// Called after results are updated. Override in derived classes to add custom behavior.
+    /// </summary>
+    protected virtual void OnResultsUpdated()
+    {
+    }
+
+    /// <summary>
     /// Override to provide custom filtering logic.
     /// </summary>
     protected abstract bool ResultsFilterPredicate(T instance, string filter);
@@ -56,8 +62,8 @@ public abstract partial class ResultsViewModelBase<T> : SelectionAwareViewModelB
         OnPropertyChanged(nameof(ResultsView));
         _resultsView?.Refresh();
 
-        // Send message that tab count changed
-        PublishMessage(new TabCountChangedMessage());
+        // Notify derived classes that results have been updated
+        OnResultsUpdated();
     }
 
     /// <summary>

@@ -16,6 +16,19 @@ public class ClassesLoadedMessage : MessageBase
 }
 
 /// <summary>
+/// Message sent when classes are loaded in a namespace
+/// </summary>
+public class InstancesLoadedMessage : MessageBase
+{
+    public InstancesLoadedMessage(WmiClassViewModel classViewModel)
+    {
+        ClassViewModel = classViewModel;
+    }
+
+    public WmiClassViewModel ClassViewModel { get; }
+}
+
+/// <summary>
 /// Message sent to request navigation to a class in a namespace (from search results)
 /// </summary>
 public class JumpToClassMessage : MessageBase

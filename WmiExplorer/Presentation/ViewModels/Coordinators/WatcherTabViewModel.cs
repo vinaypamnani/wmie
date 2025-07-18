@@ -3,15 +3,15 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
-using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Watcher;
 using WmiExplorer.Services;
-using WmiExplorer.Common.Enums;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
@@ -173,6 +173,22 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
         set => SetProperty(_eventManager.SelectedWatcherName, value, _eventManager, (manager, newValue) => manager.SelectedWatcherName = newValue);
     }
 
+    /// <summary>
+    /// Gets the header text for the Watcher tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var filteredCount = EventsView?.Cast<object>().Count();
+            if (filteredCount.HasValue && filteredCount.Value > 0)
+            {
+                return $"Watcher [{filteredCount.Value}]";
+            }
+            return "Watcher";
+        }
+    }
+
     public ObservableCollection<string> WatcherNames => _watcherManager.WatcherNames;
     public ReadOnlyObservableCollection<WmiEventWatcherViewModel> Watchers => _watcherManager.Watchers;
 
@@ -285,8 +301,8 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     {
         if (e.PropertyName == nameof(_eventManager.Events))
         {
-            // Send message that tab count changed
-            PublishMessage(new TabCountChangedMessage());
+            // Update tab header
+            OnPropertyChanged(nameof(TabHeader));
 
             // Update HasEvents property for UI binding
             OnPropertyChanged(nameof(HasEvents));
@@ -349,6 +365,14 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     {
         _eventManager.SetMaxEvents(value);
         MaxEventsInput = value.ToString(); // keep input in sync
+    }
+
+    partial void OnSelectedEventChanged(WmiEvent? value)
+    {
+        if (value != null)
+        {
+            TabStatus.SetSuccess($"Selected event: {value.EventClassName}.{value.EventDisplayPropertyName}={value.EventDisplayPropertyValue} at {value.EventTimestamp}");
+        }
     }
 
     /// <summary>

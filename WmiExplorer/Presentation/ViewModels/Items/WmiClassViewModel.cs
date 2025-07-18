@@ -6,6 +6,7 @@ using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
@@ -429,7 +430,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                instance.InstanceName.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
-    [RelayCommand (CanExecute = nameof(LoadInstancesCanExecute))]
+    [RelayCommand(CanExecute = nameof(LoadInstancesCanExecute))]
     private async Task LoadInstancesAsync()
     {
         if (ItemStatus.LoadState == LoadState.Loading)
@@ -495,6 +496,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 UpdateInstanceFilterStatusMessage(); // Update the status bar message with "Showing" message which accounts for instance filtering.
                 Log.Information("Successfully loaded {InstanceCount} instances for {ClassName}", instanceViewModels.Count, ClassName);
             }
+
+            PublishMessage(new InstancesLoadedMessage(this));
         }
         catch (OperationCanceledException ex)
         {

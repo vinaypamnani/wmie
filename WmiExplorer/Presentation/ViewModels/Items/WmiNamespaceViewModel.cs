@@ -446,7 +446,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             Log.Information("Successfully loaded {ClassCount} classes for {NamespacePath}", _classes.Count, NamespacePath);
 
             PublishMessage(new ClassesLoadedMessage(this));
-            PublishMessage(new TabCountChangedMessage());
         }
         catch (OperationCanceledException ocex)
         {

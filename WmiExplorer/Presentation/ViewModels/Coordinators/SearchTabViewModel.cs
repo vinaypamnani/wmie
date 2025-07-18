@@ -68,6 +68,22 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     }
 
     /// <summary>
+    /// Gets the header text for the Search tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var filteredCount = Results.Count;
+            if (filteredCount > 0)
+            {
+                return $"Search [{filteredCount}]";
+            }
+            return "Search";
+        }
+    }
+
+    /// <summary>
     /// Clears all namespace states (useful for cleanup)
     /// </summary>
     public void ClearAllNamespaceStates()
@@ -106,6 +122,15 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     }
 
     /// <summary>
+    /// Called after results are updated. Re-subscribes to the new collection view and updates tab header.
+    /// </summary>
+    protected override void OnResultsUpdated()
+    {
+        // Immediately update tab header since results just changed
+        OnPropertyChanged(nameof(TabHeader));
+    }
+
+    /// <summary>
     /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
     /// Restores state for the new namespace.
     /// </summary>
@@ -116,6 +141,9 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
         // Update LDAP enabled state for the new namespace
         UpdateExcludeLdapEnabled();
+
+        // Update tab header
+        OnPropertyChanged(nameof(TabHeader));
     }
 
     /// <summary>
@@ -271,7 +299,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
             // Store results and query for this type after search
             _searchTypeStates[SearchType].Results = new List<WmiSearchResult>(_results);
-            _searchTypeStates[SearchType].SearchQuery = SearchQuery;             if (_cts.IsCancellationRequested)
+            _searchTypeStates[SearchType].SearchQuery = SearchQuery; if (_cts.IsCancellationRequested)
             {
                 if (failureCount > 0)
                 {
