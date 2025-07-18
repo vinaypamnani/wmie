@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Management;
@@ -10,7 +9,6 @@ using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
-using WmiExplorer.Presentation.ViewModels.Coordinators;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -53,9 +51,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     [ObservableProperty]
     private WmiNamespaceViewModel? _parentNamespaceViewModel;
-
-    private QueryTabViewModel _queryTabViewModel;
-    private SearchTabViewModel _searchTabViewModel;
 
     [ObservableProperty]
     private WmiClassViewModel? _selectedClass;
@@ -115,12 +110,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
         // Set parent namespace if provided
         ParentNamespaceViewModel = parentNamespaceViewModel;
-
-        // Initialize query and search view models using DI - transient.
-        _searchTabViewModel = App.ServiceProvider?.GetRequiredService<SearchTabViewModel>() ??
-            throw new InvalidOperationException("Failed to resolve WmiSearchViewModel from service provider");
-        _queryTabViewModel = App.ServiceProvider?.GetRequiredService<QueryTabViewModel>() ??
-            throw new InvalidOperationException("Failed to resolve QueryTabViewModel from service provider");
     }
 
     /// <summary>
@@ -170,8 +159,6 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     public string Name => _wmiNamespace.IsRoot ? _wmiNamespace.NamespacePath : _wmiNamespace.NamespaceName;
     public string NamespacePath => _wmiNamespace.NamespacePath;
-    public QueryTabViewModel QueryTabViewModel => _queryTabViewModel;
-    public SearchTabViewModel SearchTabViewModel => _searchTabViewModel;
 
     public string? Tooltip
     {

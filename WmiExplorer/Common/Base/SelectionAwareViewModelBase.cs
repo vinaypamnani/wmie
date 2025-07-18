@@ -12,10 +12,10 @@ namespace WmiExplorer.Common.Base;
 /// </summary>
 public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBase
 {
-    private object? _lastProcessedClass;
-    private object? _lastProcessedInstance;
-
     // Track the last processed selections to prevent duplicate processing
+    private object? _lastProcessedClass;
+
+    private object? _lastProcessedInstance;
     private object? _lastProcessedNamespace;
 
     /// <summary>
@@ -38,6 +38,9 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
         // Subscribe to SelectionManager property changes for value changes
         SelectionManager.PropertyChanged += OnSelectionManagerPropertyChanged;
 
+        // Subscribe to SelectionManager property changing events to call virtual methods
+        SelectionManager.PropertyChanging += OnSelectionManagerPropertyChanging;
+
         // Subscribe to SelectionChangedMessage for force refresh scenarios (re-selection of same item)
         StrongSubscribe<SelectionChangedMessage>(OnSelectionChangedMessage);
     }
@@ -48,6 +51,7 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
         {
             // Unsubscribe from SelectionManager property changes
             SelectionManager.PropertyChanged -= OnSelectionManagerPropertyChanged;
+            SelectionManager.PropertyChanging -= OnSelectionManagerPropertyChanging;
         }
         base.Dispose(disposing);
     }
@@ -62,10 +66,28 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
     }
 
     /// <summary>
+    /// Called when the selected class changes. Override in derived classes to handle class selection changes.
+    /// </summary>
+    /// <param name="currentClass">The currently selected class (about to become previous)</param>
+    protected virtual void OnSelectedClassChanging(WmiExplorer.Presentation.ViewModels.Items.WmiClassViewModel? currentClass)
+    {
+        // Default implementation does nothing - override in derived classes as needed
+    }
+
+    /// <summary>
     /// Called when the selected instance changes. Override in derived classes to handle instance selection changes.
     /// </summary>
     /// <param name="selectedInstance">The newly selected instance</param>
     protected virtual void OnSelectedInstanceChanged(WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel? selectedInstance)
+    {
+        // Default implementation does nothing - override in derived classes as needed
+    }
+
+    /// <summary>
+    /// Called when the selected instance changes. Override in derived classes to handle instance selection changes.
+    /// </summary>
+    /// <param name="currentInstance">The currently selected instance (about to become previous)</param>
+    protected virtual void OnSelectedInstanceChanging(WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel? currentInstance)
     {
         // Default implementation does nothing - override in derived classes as needed
     }
@@ -77,6 +99,72 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
     protected virtual void OnSelectedNamespaceChanged(WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel? selectedNamespace)
     {
         // Default implementation does nothing - override in derived classes as needed
+    }
+
+    /// <summary>
+    /// Called before the selected namespace changes. Override in derived classes to save state before the change.
+    /// </summary>
+    /// <param name="currentNamespace">The currently selected namespace (about to become previous)</param>
+    protected virtual void OnSelectedNamespaceChanging(WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel? currentNamespace)
+    {
+        // Default implementation does nothing - override in derived classes as needed
+    }
+
+    protected virtual void OnSelectionManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(SelectionManager.SelectedNamespace):
+                var selectedNamespace = SelectionManager.SelectedNamespace;
+                if (!ReferenceEquals(_lastProcessedNamespace, selectedNamespace))
+                {
+                    _lastProcessedNamespace = selectedNamespace;
+                    OnSelectedNamespaceChanged(selectedNamespace);
+                }
+                break;
+            case nameof(SelectionManager.SelectedClass):
+                var selectedClass = SelectionManager.GetSelectedClass();
+                if (!ReferenceEquals(_lastProcessedClass, selectedClass))
+                {
+                    _lastProcessedClass = selectedClass;
+                    OnSelectedClassChanged(selectedClass);
+                }
+                break;
+            case nameof(SelectionManager.SelectedInstance):
+                var selectedInstance = SelectionManager.GetSelectedInstance();
+                if (!ReferenceEquals(_lastProcessedInstance, selectedInstance))
+                {
+                    _lastProcessedInstance = selectedInstance;
+                    OnSelectedInstanceChanged(selectedInstance);
+                }
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Handles SelectionManager property changes. Routes to specific virtual methods based on the property name.
+    /// Uses tracking to prevent duplicate processing.
+    /// Override the specific On*Changed methods in derived classes instead of this method.
+    /// </summary>
+
+
+    /// <summary>
+    /// Handles SelectionManager property changing events. Calls virtual methods before properties change.
+    /// </summary>
+    protected virtual void OnSelectionManagerPropertyChanging(object? sender, PropertyChangingEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(SelectionManager.SelectedNamespace):
+                OnSelectedNamespaceChanging(SelectionManager.SelectedNamespace);
+                break;
+            case nameof(SelectionManager.SelectedClass):
+                OnSelectedClassChanging(SelectionManager.GetSelectedClass());
+                break;
+            case nameof(SelectionManager.SelectedInstance):
+                OnSelectedInstanceChanging(SelectionManager.GetSelectedInstance());
+                break;
+        }
     }
 
     /// <summary>
@@ -118,42 +206,6 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
                 {
                     _lastProcessedInstance = instanceVm;
                     OnSelectedInstanceChanged(instanceVm);
-                }
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Handles SelectionManager property changes. Routes to specific virtual methods based on the property name.
-    /// Uses tracking to prevent duplicate processing.
-    /// Override the specific On*Changed methods in derived classes instead of this method.
-    /// </summary>
-    private void OnSelectionManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
-            case nameof(SelectionManager.SelectedNamespace):
-                var selectedNamespace = SelectionManager.SelectedNamespace;
-                if (!ReferenceEquals(_lastProcessedNamespace, selectedNamespace))
-                {
-                    _lastProcessedNamespace = selectedNamespace;
-                    OnSelectedNamespaceChanged(selectedNamespace);
-                }
-                break;
-            case nameof(SelectionManager.SelectedClass):
-                var selectedClass = SelectionManager.GetSelectedClass();
-                if (!ReferenceEquals(_lastProcessedClass, selectedClass))
-                {
-                    _lastProcessedClass = selectedClass;
-                    OnSelectedClassChanged(selectedClass);
-                }
-                break;
-            case nameof(SelectionManager.SelectedInstance):
-                var selectedInstance = SelectionManager.GetSelectedInstance();
-                if (!ReferenceEquals(_lastProcessedInstance, selectedInstance))
-                {
-                    _lastProcessedInstance = selectedInstance;
-                    OnSelectedInstanceChanged(selectedInstance);
                 }
                 break;
         }

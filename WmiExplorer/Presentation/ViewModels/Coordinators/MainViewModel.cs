@@ -42,6 +42,12 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     private OptionsViewModel _optionsViewModel = null!;
 
     [ObservableProperty]
+    private QueryTabViewModel _queryTabViewModel = null!;
+
+    [ObservableProperty]
+    private SearchTabViewModel _searchTabViewModel = null!;
+
+    [ObservableProperty]
     private object? _selectedDebugObject;
 
     [ObservableProperty]
@@ -64,12 +70,16 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         UpdateManager updateManager,
         NamespacesViewModel namespacesViewModel,
         OptionsViewModel optionsViewModel,
-        LogTabViewModel logTabViewModel) : base(messengerService, selectionManager)
+        LogTabViewModel logTabViewModel,
+        QueryTabViewModel queryTabViewModel,
+        SearchTabViewModel searchTabViewModel) : base(messengerService, selectionManager)
     {
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
         _optionsViewModel = optionsViewModel ?? throw new ArgumentNullException(nameof(optionsViewModel));
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
+        _queryTabViewModel = queryTabViewModel ?? throw new ArgumentNullException(nameof(queryTabViewModel));
+        _searchTabViewModel = searchTabViewModel ?? throw new ArgumentNullException(nameof(searchTabViewModel));
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
@@ -142,7 +152,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = SelectionManager.SelectedNamespace?.QueryTabViewModel?.Results?.Count ?? 0;
+            var count = QueryTabViewModel?.Results?.Count ?? 0;
             return count > 0 ? $"Query [{count}]" : "Query";
         }
     }
@@ -154,7 +164,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = SelectionManager.SelectedNamespace?.SearchTabViewModel?.Results?.Count ?? 0;
+            var count = SearchTabViewModel?.Results?.Count ?? 0;
             return count > 0 ? $"Search [{count}]" : "Search";
         }
     }
@@ -294,11 +304,11 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         {
             case 1:
                 // Search Tab
-                SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.SelectedNamespace?.SearchTabViewModel?.SelectedResult);
+                SelectionManager.PropertyGrid.SetPropertyGridObject(SearchTabViewModel?.SelectedResult);
                 break;
             case 2:
                 // Query Tab
-                SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.SelectedNamespace?.QueryTabViewModel?.SelectedResult);
+                SelectionManager.PropertyGrid.SetPropertyGridObject(QueryTabViewModel?.SelectedResult);
                 break;
             case 3:
                 // Watcher Tab

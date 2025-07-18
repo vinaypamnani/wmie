@@ -34,6 +34,11 @@ public partial class SelectionManager : ObservableObject
         _propertyGrid = propertyGridManager ?? throw new ArgumentNullException(nameof(propertyGridManager));
     }
 
+    // Previous selection properties for state management
+    public WmiClassViewModel? PreviousClass { get; private set; }
+    public WmiInstanceViewModel? PreviousInstance { get; private set; }
+    public WmiNamespaceViewModel? PreviousNamespace { get; private set; }
+
     public object? PreviousObject { get; private set; }
 
     /// <summary>
@@ -43,7 +48,6 @@ public partial class SelectionManager : ObservableObject
 
     // Convenience properties for PropertyChanged notifications (internal use only)
     public WmiClassViewModel? SelectedClass => SelectedNamespace?.SelectedClass;
-
     public WmiInstanceViewModel? SelectedInstance => SelectedNamespace?.SelectedClass?.SelectedInstance;
 
     // Selection state for coordination between ViewModels
@@ -185,21 +189,32 @@ public partial class SelectionManager : ObservableObject
             case WmiNamespaceViewModel namespaceVm:
                 // Direct namespace selection
                 if (SelectedNamespace != namespaceVm)
+                {
+                    // Raise PropertyChanging event before changing the selection
+                    PreviousNamespace = SelectedNamespace;
+                    OnPropertyChanging(nameof(SelectedNamespace));
                     SelectedNamespace = namespaceVm;
+                }
                 break;
 
             case WmiClassViewModel classVm:
-
                 // Update the namespace's selected class
                 if (SelectedNamespace?.SelectedClass != classVm)
+                {
+                    PreviousClass = GetSelectedClass();
+                    OnPropertyChanging(nameof(SelectedClass));
                     SelectedNamespace!.SelectedClass = classVm;
+                }
                 break;
 
             case WmiInstanceViewModel instanceVm:
-
                 // Update the class's selected instance
                 if (SelectedNamespace?.SelectedClass?.SelectedInstance != instanceVm)
+                {
+                    PreviousInstance = GetSelectedInstance();
+                    OnPropertyChanging(nameof(SelectedInstance));
                     SelectedNamespace!.SelectedClass!.SelectedInstance = instanceVm;
+                }
                 break;
             default:
                 // For non-hierarchy objects, do nothing

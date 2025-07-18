@@ -142,10 +142,8 @@ public partial class App : Application
         services.AddSingleton<MethodsTabViewModel>();
         services.AddSingleton<PropertiesTabViewModel>();
         services.AddSingleton<LogTabViewModel>();
-
-        // Register additional ViewModels that have multiple instances
-        services.AddTransient<QueryTabViewModel>();
-        services.AddTransient<SearchTabViewModel>();
+        services.AddSingleton<QueryTabViewModel>();
+        services.AddSingleton<SearchTabViewModel>();
 
         // Build the service provider
         ServiceProvider = services.BuildServiceProvider();

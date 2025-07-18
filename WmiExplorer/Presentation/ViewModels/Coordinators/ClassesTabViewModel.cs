@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Presentation.ViewModels.Helpers;
@@ -155,20 +156,15 @@ public partial class ClassesTabViewModel : SelectionAwareViewModelBase
             // Request MainViewModel to switch to the Query tab via message
             _messengerService.Send(new SwitchMainTabMessage(QueryTabIndex));
 
-            // Get the QueryTabViewModel for the currently selected namespace
-            var selectedNamespace = SelectionManager.SelectedNamespace;
-            if (selectedNamespace == null)
+            // Get the QueryTabViewModel from MainViewModel
+            var mainViewModel = App.ServiceProvider?.GetRequiredService<MainViewModel>();
+            if (mainViewModel?.QueryTabViewModel == null)
             {
-                PublishErrorState("No namespace selected.");
+                PublishErrorState("Query tab is not available.");
                 return;
             }
 
-            var queryTabViewModel = selectedNamespace.QueryTabViewModel;
-            if (queryTabViewModel == null)
-            {
-                PublishErrorState("Query tab is not available for the selected namespace.");
-                return;
-            }
+            var queryTabViewModel = mainViewModel.QueryTabViewModel;
 
             // Set the query text
             queryTabViewModel.QueryText = AutoQueryText;

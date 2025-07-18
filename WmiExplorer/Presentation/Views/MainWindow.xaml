@@ -217,11 +217,11 @@
                     </TabItem>
                     <TabItem Header="{Binding SearchTabHeader}" TabIndex="1">
                         <!--  Search View  -->
-                        <tabs:SearchTabView DataContext="{Binding SelectionManager.SelectedNamespace.SearchTabViewModel}" />
+                        <tabs:SearchTabView DataContext="{Binding SearchTabViewModel}" />
                     </TabItem>
                     <TabItem Header="{Binding QueryTabHeader}" TabIndex="2">
                         <!--  Query View  -->
-                        <tabs:QueryTabView DataContext="{Binding SelectionManager.SelectedNamespace.QueryTabViewModel}" />
+                        <tabs:QueryTabView DataContext="{Binding QueryTabViewModel}" />
                     </TabItem>
                     <TabItem Header="{Binding WatcherTabHeader}" TabIndex="3">
                         <!--  Event Watcher View  -->

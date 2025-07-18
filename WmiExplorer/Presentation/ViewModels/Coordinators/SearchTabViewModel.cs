@@ -7,6 +7,7 @@ using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
+using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
@@ -27,6 +28,9 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     [NotifyCanExecuteChangedFor(nameof(CancelSearchCommand))]
     private bool _isSearching;
 
+    // Dictionary to store state per namespace
+    private readonly Dictionary<string, SearchNamespaceState> _namespaceStates = new();
+
     [ObservableProperty]
     private bool _recursive;
 
@@ -43,7 +47,6 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     [NotifyCanExecuteChangedFor(nameof(JumpToClassCommand))]
     private WmiSearchResult? _selectedResult;
 
-    private readonly SelectionManager _selectionManager;
     private readonly IWmiService _wmiService;
 
     public SearchTabViewModel(
@@ -52,13 +55,25 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
            SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
-        _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
 
         // Initialize LDAP enabled state
         UpdateExcludeLdapEnabled();
     }
 
-    public SelectionManager SelectionManager => _selectionManager;
+    /// <summary>
+    /// Clears all namespace states (useful for cleanup)
+    /// </summary>
+    public void ClearAllNamespaceStates()
+    {
+        foreach (var state in _namespaceStates.Values)
+        {
+            foreach (var searchState in state.SearchTypeStates.Values)
+            {
+                DisposeResults(searchState.Results);
+            }
+        }
+        _namespaceStates.Clear();
+    }
 
     // Clear results for the current search type only
     public void ClearCurrentTypeResults()
@@ -81,6 +96,29 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             _cts?.Dispose();
         }
         base.Dispose(disposing);
+    }
+
+    /// <summary>
+    /// Called when the selected namespace changes. Override from SelectionAwareViewModelBase.
+    /// Restores state for the new namespace.
+    /// </summary>
+    protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
+    {
+        // Restore state for the new namespace
+        RestoreNamespaceState(selectedNamespace);
+
+        // Update LDAP enabled state for the new namespace
+        UpdateExcludeLdapEnabled();
+    }
+
+    /// <summary>
+    /// Called before the selected namespace changes. Override from SelectionAwareViewModelBase.
+    /// Saves state for the current namespace before it changes.
+    /// </summary>
+    protected override void OnSelectedNamespaceChanging(WmiNamespaceViewModel? currentNamespace)
+    {
+        // Save state for the current namespace before it changes
+        SaveCurrentNamespaceState(currentNamespace);
     }
 
     protected override bool ResultsFilterPredicate(WmiSearchResult result, string filter)
@@ -250,6 +288,16 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private bool ExecuteSearchCanExecute() => !string.IsNullOrWhiteSpace(SearchQuery) && !IsSearching;
 
+    private void ClearCurrentState()
+    {
+        SearchQuery = string.Empty;
+        SearchType = WmiSearchType.Class;
+        Recursive = false;
+        ExcludeLDAP = true;
+        _results.Clear();
+        _searchTypeStates.Clear();
+    }
+
     [RelayCommand(CanExecute = nameof(JumpToClassCanExecute))]
     private void JumpToClass()
     {
@@ -299,6 +347,65 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         _resultsView?.Refresh();
     }
 
+    private void RestoreNamespaceState(WmiNamespaceViewModel? selectedNamespace)
+    {
+        if (selectedNamespace?.NamespacePath == null)
+        {
+            // Clear everything if no namespace selected
+            ClearCurrentState();
+            return;
+        }
+
+        if (_namespaceStates.TryGetValue(selectedNamespace.NamespacePath, out var state))
+        {
+            // Restore state for this namespace
+            SearchQuery = state.SearchQuery;
+            SearchType = state.SearchType;
+            Recursive = state.Recursive;
+            ExcludeLDAP = state.ExcludeLDAP;
+
+            // Restore search type states
+            _searchTypeStates.Clear();
+            foreach (var kvp in state.SearchTypeStates)
+            {
+                _searchTypeStates[kvp.Key] = kvp.Value;
+            }
+
+            // Restore current results
+            _results.Clear();
+            if (_searchTypeStates.TryGetValue(SearchType, out var currentState))
+            {
+                foreach (var result in currentState.Results)
+                {
+                    _results.Add(result);
+                }
+            }
+        }
+        else
+        {
+            // New namespace - clear everything
+            ClearCurrentState();
+        }
+    }
+
+    private void SaveCurrentNamespaceState(WmiNamespaceViewModel? namespaceViewModel = null)
+    {
+        // Use provided namespace or fall back to previous namespace from SelectionManager
+        var namespaceToSave = namespaceViewModel ?? SelectionManager.PreviousNamespace;
+        if (namespaceToSave?.NamespacePath == null) return;
+
+        var state = new SearchNamespaceState
+        {
+            SearchQuery = SearchQuery,
+            SearchType = SearchType,
+            Recursive = Recursive,
+            ExcludeLDAP = ExcludeLDAP,
+            SearchTypeStates = new Dictionary<WmiSearchType, SearchTypeState>(_searchTypeStates)
+        };
+
+        _namespaceStates[namespaceToSave.NamespacePath] = state;
+    }
+
     private void UpdateExcludeLdapEnabled()
     {
         var selectedNamespace = SelectionManager.SelectedNamespace;
@@ -319,6 +426,15 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         bool isAtDirectoryWithRecursive = namespacePath == "root\\directory" && Recursive;
 
         ExcludeLdapEnabled = isAtRootWithRecursive || isAtDirectoryWithRecursive;
+    }
+
+    private class SearchNamespaceState
+    {
+        public bool ExcludeLDAP { get; set; } = true;
+        public bool Recursive { get; set; } = false;
+        public string SearchQuery { get; set; } = string.Empty;
+        public WmiSearchType SearchType { get; set; } = WmiSearchType.Class;
+        public Dictionary<WmiSearchType, SearchTypeState> SearchTypeStates { get; set; } = new();
     }
 
     private class SearchTypeState
