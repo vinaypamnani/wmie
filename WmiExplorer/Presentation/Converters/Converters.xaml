@@ -12,6 +12,7 @@
     <conv:NullToVisibilityConverter x:Key="NotNullToVisibilityConverter" Invert="True" />
     <conv:NewLineToSpaceConverter x:Key="NewLineToSpaceConverter" />
     <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    <conv:StringNotEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter" Invert="True" />
     <conv:DebugConverter x:Key="DebugConverter" />
     <conv:TopLevelMenuIconColumnWidthConverter x:Key="TopLevelMenuIconColumnWidthConverter" />
     <conv:SafePropertyValueConverter x:Key="SafePropertyValueConverter" />
