@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
@@ -305,40 +306,11 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     /// </summary>
     partial void OnSelectedTabIndexChanged(int value)
     {
-        switch (value)
-        {
-            case 1:
-                // Search Tab
-                SelectionManager.PropertyGrid.SetPropertyGridObject(SearchTabViewModel?.SelectedResult);
-                break;
-            case 2:
-                // Query Tab
-                SelectionManager.PropertyGrid.SetPropertyGridObject(QueryTabViewModel?.SelectedResult);
-                break;
-            case 3:
-                // Watcher Tab
-                SelectionManager.PropertyGrid.SetPropertyGridObject(WatcherTabViewModel?.SelectedEvent);
-                break;
-            case 4:
-                // Log Tab
-                SelectionManager.PropertyGrid.SetPropertyGridObject(LogTabViewModel?.SelectedLogEntry);
-                break;
-            default:
-                // Classes Tab - Select Instance/Class/Namespace in that order
-                if (SelectionManager.GetSelectedInstance() != null)
-                {
-                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedInstance());
-                }
-                else if (SelectionManager.GetSelectedClass() != null)
-                {
-                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedClass());
-                }
-                else if (SelectionManager.SelectedNamespace != null)
-                {
-                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.SelectedNamespace);
-                }
-                break;
-        }
+        // Update property grid based on selected tab
+        UpdatePropertyGridForTab(value);
+
+        // Update status bar based on tab status
+        UpdateStatusBarForTab(value);
     }
 
     /// <summary>
@@ -456,6 +428,44 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         Log.Debug("Changed Current theme to: {ThemeName}", _themeManager.CurrentTheme?.ThemeName ?? "Unknown");
     }
 
+    /// <summary>
+    /// Updates the property grid object based on the selected tab
+    /// </summary>
+    private void UpdatePropertyGridForTab(int tabIndex)
+    {
+        switch (tabIndex)
+        {
+            case 0: // Classes Tab
+                if (SelectionManager.GetSelectedInstance() != null)
+                {
+                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedInstance());
+                }
+                else if (SelectionManager.GetSelectedClass() != null)
+                {
+                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.GetSelectedClass());
+                }
+                else if (SelectionManager.SelectedNamespace != null)
+                {
+                    SelectionManager.PropertyGrid.SetPropertyGridObject(SelectionManager.SelectedNamespace);
+                }
+                break;
+            case 1: // Search Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(SearchTabViewModel?.SelectedResult);
+                break;
+            case 2: // Query Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(QueryTabViewModel?.SelectedResult);
+                break;
+            case 3: // Watcher Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(WatcherTabViewModel?.SelectedEvent);
+                break;
+            case 4: // Log Tab
+                SelectionManager.PropertyGrid.SetPropertyGridObject(LogTabViewModel?.SelectedLogEntry);
+                break;
+            default:
+                break;
+        }
+    }
+
     private void UpdateStatusBarForItemStatus(ItemStatus status, string fallback = "Ready")
     {
         // Check if we already have the same application state to avoid unnecessary updates
@@ -502,6 +512,72 @@ public partial class MainViewModel : SelectionAwareViewModelBase
                 break;
             default:
                 PublishReadyState("Ready");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates the status bar based on the selected tab's status
+    /// </summary>
+    private void UpdateStatusBarForTab(int tabIndex)
+    {
+        switch (tabIndex)
+        {
+            case 0: // Classes Tab
+                UpdateStatusBarForSelection(SelectionManager);
+                break;
+            case 1: // Search Tab
+                UpdateStatusBarFromTabStatus(SearchTabViewModel?.TabStatus);
+                break;
+            case 2: // Query Tab
+                UpdateStatusBarFromTabStatus(QueryTabViewModel?.TabStatus);
+                break;
+            case 3: // Watcher Tab
+                UpdateStatusBarFromTabStatus(WatcherTabViewModel?.TabStatus);
+                break;
+            case 4: // Log Tab
+                UpdateStatusBarFromTabStatus(LogTabViewModel?.TabStatus);
+                break;
+            default: // Default case
+                UpdateStatusBarForSelection(SelectionManager);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Updates the status bar from a TabStatus object
+    /// </summary>
+    private void UpdateStatusBarFromTabStatus(TabStatus? tabStatus)
+    {
+        if (tabStatus == null)
+        {
+            PublishReadyState("Ready");
+            return;
+        }
+
+        // Check if we already have the same application state to avoid unnecessary updates
+        if (tabStatus.Message == CurrentApplicationState.Message && tabStatus.AppState == CurrentApplicationState.State)
+            return;
+
+        switch (tabStatus.AppState)
+        {
+            case AppState.Error:
+                PublishErrorState(tabStatus.Message, tabStatus.Exception);
+                break;
+            case AppState.Busy:
+                PublishBusyState(tabStatus.Message);
+                break;
+            case AppState.Success:
+                PublishSuccessState(tabStatus.Message);
+                break;
+            case AppState.PartialSuccess:
+                PublishPartialSuccessState(tabStatus.Message);
+                break;
+            case AppState.Warning:
+                PublishWarningState(tabStatus.Message);
+                break;
+            default:
+                PublishReadyState(tabStatus.Message);
                 break;
         }
     }

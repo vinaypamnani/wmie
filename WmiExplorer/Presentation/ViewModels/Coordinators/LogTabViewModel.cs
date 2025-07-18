@@ -5,9 +5,11 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows.Data;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Common.Models;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
 
@@ -37,6 +39,9 @@ public partial class LogTabViewModel : MessagingViewModelBase
 
     private readonly SettingsManager _settingsManager;
 
+    [ObservableProperty]
+    private TabStatus _tabStatus;
+
     /// <summary>
     /// Initializes a new instance of the LogTabViewModel class
     /// </summary>
@@ -51,6 +56,9 @@ public partial class LogTabViewModel : MessagingViewModelBase
         _filterLogLevel = _settingsManager.LogLevel;
 
         LogEntries = new ReadOnlyObservableCollection<LogEntry>(_logEntries);
+
+        // Initialize tab status with messenger service
+        _tabStatus = new TabStatus(messengerService, AppState.Ready, "Application log", "Application log");
 
         // Load existing log entries that were created before this ViewModel was initialized
         LoadExistingLogEntries();

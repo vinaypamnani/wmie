@@ -7,6 +7,7 @@ using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -47,6 +48,9 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     [NotifyCanExecuteChangedFor(nameof(JumpToClassCommand))]
     private WmiSearchResult? _selectedResult;
 
+    [ObservableProperty]
+    private TabStatus _tabStatus;
+
     private readonly IWmiService _wmiService;
 
     public SearchTabViewModel(
@@ -55,6 +59,9 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
            SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
+
+        // Initialize tab status with messenger service
+        _tabStatus = new TabStatus(messengerService, AppState.Ready, "Enter a search term and click Search.", "Search for WMI objects");
 
         // Initialize LDAP enabled state
         UpdateExcludeLdapEnabled();
@@ -155,6 +162,16 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
     private bool CancelSearchCanExecute() => IsSearching;
 
+    private void ClearCurrentState()
+    {
+        SearchQuery = string.Empty;
+        SearchType = WmiSearchType.Class;
+        Recursive = false;
+        ExcludeLDAP = true;
+        _results.Clear();
+        _searchTypeStates.Clear();
+    }
+
     [RelayCommand]
     private void ClearResults()
     {
@@ -201,7 +218,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     private async Task ExecuteSearchAsync()
     {
         IsSearching = true;
-        PublishBusyState("Executing search...");
+        TabStatus.SetBusy($"Executing search for '{SearchQuery}' [{SearchType}]...");
         _results.Clear();
 
         // Only clear the stored state for the current search type
@@ -222,7 +239,7 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         {
             if (SelectionManager.SelectedNamespace == null)
             {
-                PublishErrorState("No namespace selected.");
+                TabStatus.SetError("No namespace selected.");
                 return;
             }
             var scope = SelectionManager.SelectedNamespace.ManagementScope;
@@ -254,30 +271,38 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
 
             // Store results and query for this type after search
             _searchTypeStates[SearchType].Results = new List<WmiSearchResult>(_results);
-            _searchTypeStates[SearchType].SearchQuery = SearchQuery; if (_cts.IsCancellationRequested)
+            _searchTypeStates[SearchType].SearchQuery = SearchQuery;             if (_cts.IsCancellationRequested)
             {
                 if (failureCount > 0)
-                    PublishWarningState($"Found {_results.Count} results before search was cancelled. {failureCount} namespace access failures occurred. Check the Log tab for details.");
+                {
+                    TabStatus.SetWarning($"Found {_results.Count} results before search was cancelled. {failureCount} namespace access failures occurred. Check the Log tab for details.");
+                }
                 else
-                    PublishWarningState($"Found {_results.Count} results before search was cancelled.");
+                {
+                    TabStatus.SetWarning($"Found {_results.Count} results before search was cancelled.");
+                }
             }
             else
             {
                 if (failureCount > 0)
-                    PublishWarningState($"Found {_results.Count} results. {failureCount} namespace access failures occurred. Check the Log tab for details.");
+                {
+                    TabStatus.SetWarning($"Found {_results.Count} results. {failureCount} namespace access failures occurred. Check the Log tab for details.");
+                }
                 else
-                    PublishSuccessState($"Found {_results.Count} results.");
+                {
+                    TabStatus.SetSuccess($"Found {_results.Count} results for '{SearchQuery}' [{SearchType}].");
+                }
             }
         }
         catch (OperationCanceledException)
         {
             Log.Warning("WMI search cancelled: SearchType={SearchType}, SearchQuery={SearchQuery}", SearchType, SearchQuery);
-            PublishWarningState("Search cancelled.");
+            TabStatus.SetWarning("Search cancelled.");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "WMI search execution failed: SearchType={SearchType}, SearchQuery={SearchQuery}", SearchType, SearchQuery);
-            PublishErrorState($"Search failed: {ex.Message}");
+            TabStatus.SetError($"Search failed: {ex.Message}", ex);
         }
         finally
         {
@@ -287,16 +312,6 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
     }
 
     private bool ExecuteSearchCanExecute() => !string.IsNullOrWhiteSpace(SearchQuery) && !IsSearching;
-
-    private void ClearCurrentState()
-    {
-        SearchQuery = string.Empty;
-        SearchType = WmiSearchType.Class;
-        Recursive = false;
-        ExcludeLDAP = true;
-        _results.Clear();
-        _searchTypeStates.Clear();
-    }
 
     [RelayCommand(CanExecute = nameof(JumpToClassCanExecute))]
     private void JumpToClass()
@@ -335,7 +350,6 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         _results.Clear();
         SelectionManager.PropertyGrid.ClearPropertyGrid();
 
-        // SearchQuery = string.Empty;
 
         // Restore state for the new type if available
         if (_searchTypeStates.TryGetValue(newValue, out var state) && state.Results.Count > 0)
@@ -343,8 +357,22 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             foreach (var result in state.Results)
                 _results.Add(result);
             SearchQuery = state.SearchQuery;
+
+            // Update the current search query to match the stored one
+            PublishReadyState($"Restored {state.Results.Count} results for '{state.SearchQuery}' [{newValue}].");
+        }
+        else
+        {
+            // Update status bar to indicate the active search type
+            PublishReadyState($"Search type changed to: {newValue}");
         }
         _resultsView?.Refresh();
+    }
+
+    partial void OnSelectedResultChanged(WmiSearchResult? value)
+    {
+        // Update status bar
+        PublishReadyState($"Showing details for search result: {value?.Name} [{value?.SearchType}]");
     }
 
     private void RestoreNamespaceState(WmiNamespaceViewModel? selectedNamespace)

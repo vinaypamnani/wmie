@@ -5,9 +5,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Models;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
 using WmiExplorer.Services;
@@ -44,6 +46,9 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     private WmiInstance? _selectedResult;
 
     [ObservableProperty]
+    private TabStatus _tabStatus;
+
+    [ObservableProperty]
     private bool _useAmendedQualifiers = true;
 
     private readonly IWmiService _wmiService;
@@ -56,6 +61,9 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     {
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+
+        // Initialize tab status with messenger service
+        _tabStatus = new TabStatus(messengerService, AppState.Ready, "Enter a query and click Execute.", "Query for WMI objects");
 
         // Update columns when results change
         _results.CollectionChanged += (s, e) => UpdateResultColumns();
@@ -191,7 +199,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     private async Task ExecuteQueryAsync()
     {
         IsQuerying = true;
-        PublishBusyState("Executing query...");
+        TabStatus.SetBusy("Executing query...");
 
         var tempResults = new List<WmiInstance>();
 
@@ -205,13 +213,13 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         {
             if (SelectionManager.SelectedNamespace == null)
             {
-                PublishErrorState("No namespace selected.");
+                TabStatus.SetError("No namespace selected.");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(QueryText))
             {
-                PublishErrorState("Query text is empty.");
+                TabStatus.SetError("Query text is empty.");
                 return;
             }
 
@@ -245,26 +253,26 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
 
             if (_results.Count == 0)
             {
-                PublishWarningState("No results returned.");
+                TabStatus.SetWarning("No results returned.");
             }
             else if (token.IsCancellationRequested)
             {
-                PublishWarningState($"Query cancelled. Found {_results.Count} results before cancellation.");
+                TabStatus.SetWarning($"Query cancelled. Found {_results.Count} results before cancellation.");
             }
             else
             {
-                PublishSuccessState($"Query returned {_results.Count} result(s).");
+                TabStatus.SetSuccess($"Query returned {_results.Count} result(s).");
             }
         }
         catch (OperationCanceledException)
         {
             Log.Warning("Query cancelled. Found {Count} results before cancellation.", _results.Count);
-            PublishWarningState($"Query cancelled. Found {_results.Count} results before cancellation.");
+            TabStatus.SetWarning($"Query cancelled. Found {_results.Count} results before cancellation.");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "WMI query execution failed: {QueryText}", QueryText);
-            PublishErrorState($"Query failed: {ex.Message}");
+            TabStatus.SetError($"Query failed: {ex.Message}", ex);
         }
         finally
         {

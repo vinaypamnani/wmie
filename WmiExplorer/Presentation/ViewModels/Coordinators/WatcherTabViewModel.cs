@@ -8,8 +8,10 @@ using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
+using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Watcher;
 using WmiExplorer.Services;
+using WmiExplorer.Common.Enums;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
 
@@ -43,6 +45,9 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     [NotifyPropertyChangedFor(nameof(HasSelectedEvent))]
     private WmiEvent? _selectedEvent;
 
+    [ObservableProperty]
+    private TabStatus _tabStatus;
+
     private readonly PropertyListManager _targetPropertyManager;
     private readonly WatcherManager _watcherManager;
 
@@ -66,6 +71,9 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
         _eventManager = TrackDisposable(new EventManager(MaxEvents));
 
         _eventQueryBuilder = new WatcherQueryBuilder();
+
+        // Initialize tab status with messenger service
+        _tabStatus = new TabStatus(messengerService, AppState.Ready, "Build an event monitor query and click Add Watcher to start monitoring.", "Monitor WMI events");
 
         // Subscribe to essential messages only
         StrongSubscribe<ClassesLoadedMessage>(HandleClassesLoadedMessage);
@@ -194,7 +202,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     {
         if (SelectionManager.SelectedNamespace == null)
         {
-            PublishErrorState("No namespace selected.");
+            TabStatus.SetError("No namespace selected.");
             return;
         }
 
@@ -213,20 +221,20 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
             {
                 Log.Information("Watcher added successfully: EventClass={EventClass}, EventQuery={EventQuery}",
                     EventQueryBuilder.EventClass ?? "Unknown", EventQueryBuilder.EventQuery ?? "Empty");
-                PublishSuccessState("Watcher added successfully.");
+                TabStatus.SetSuccess("Watcher added successfully.");
             }
             else
             {
                 Log.Warning("Failed to add watcher: EventClass={EventClass}, EventQuery={EventQuery}",
                     EventQueryBuilder.EventClass ?? "Unknown", EventQueryBuilder.EventQuery ?? "Empty");
-                PublishErrorState("Failed to add watcher.");
+                TabStatus.SetError("Failed to add watcher.");
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception occurred while adding watcher: EventClass={EventClass}, EventQuery={EventQuery}",
                 EventQueryBuilder.EventClass ?? "Unknown", EventQueryBuilder.EventQuery ?? "Empty");
-            PublishErrorState($"Error adding watcher: {ex.Message}");
+            TabStatus.SetError($"Error adding watcher: {ex.Message}", ex);
         }
     }
 
@@ -267,7 +275,7 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
     private void ClearEvents()
     {
         _eventManager.ClearEvents();
-        PublishSuccessState("Events cleared.");
+        TabStatus.SetSuccess("Events cleared.");
     }
 
     /// <summary>

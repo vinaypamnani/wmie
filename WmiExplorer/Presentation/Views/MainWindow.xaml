@@ -215,19 +215,19 @@
                     <TabItem Header="{Binding ClassesTabHeader}" TabIndex="0">
                         <tabs:ClassesTabView DataContext="{Binding NamespacesViewModel.ClassesTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding SearchTabHeader}" TabIndex="1">
+                    <TabItem Header="{Binding SearchTabHeader}" TabIndex="1" ToolTip="{Binding SearchTabViewModel.TabStatus.Tooltip}">
                         <!--  Search View  -->
                         <tabs:SearchTabView DataContext="{Binding SearchTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding QueryTabHeader}" TabIndex="2">
+                    <TabItem Header="{Binding QueryTabHeader}" TabIndex="2" ToolTip="{Binding QueryTabViewModel.TabStatus.Tooltip}">
                         <!--  Query View  -->
                         <tabs:QueryTabView DataContext="{Binding QueryTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding WatcherTabHeader}" TabIndex="3">
+                    <TabItem Header="{Binding WatcherTabHeader}" TabIndex="3" ToolTip="{Binding WatcherTabViewModel.TabStatus.Tooltip}">
                         <!--  Event Watcher View  -->
                         <tabs:WatcherTabView DataContext="{Binding WatcherTabViewModel}" />
                     </TabItem>
-                    <TabItem Header="{Binding LogTabHeader}" TabIndex="4">
+                    <TabItem Header="{Binding LogTabHeader}" TabIndex="4" ToolTip="{Binding LogTabViewModel.TabStatus.Tooltip}">
                         <!--  Log View  -->
                         <tabs:LogTabView DataContext="{Binding LogTabViewModel}" />
                     </TabItem>
