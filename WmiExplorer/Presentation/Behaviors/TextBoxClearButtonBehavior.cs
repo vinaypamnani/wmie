@@ -1,10 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace WmiExplorer.Presentation.Behaviors;
 
 /// <summary>
-/// Provides an attached behavior to clear a TextBox when the clear button is clicked.
+/// Provides an attached behavior to clear a TextBox when the clear button is clicked or Escape key is pressed.
 /// </summary>
 public static class TextBoxClearButtonBehavior
 {
@@ -55,11 +56,22 @@ public static class TextBoxClearButtonBehavior
             if ((bool)e.NewValue)
             {
                 textBox.Loaded += TextBox_Loaded;
+                textBox.KeyDown += TextBox_KeyDown;
             }
             else
             {
                 textBox.Loaded -= TextBox_Loaded;
+                textBox.KeyDown -= TextBox_KeyDown;
             }
+        }
+    }
+
+    private static void TextBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && sender is TextBox textBox)
+        {
+            textBox.Clear();
+            e.Handled = true;
         }
     }
 
