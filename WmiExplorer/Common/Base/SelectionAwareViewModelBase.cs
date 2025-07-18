@@ -184,7 +184,7 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
             case WmiExplorer.Presentation.ViewModels.Items.WmiNamespaceViewModel namespaceVm:
                 // Only process if this is different from last processed or if it's a re-selection
                 var currentNamespace = SelectionManager.SelectedNamespace;
-                if (currentNamespace == namespaceVm || !ReferenceEquals(_lastProcessedNamespace, namespaceVm))
+                if (currentNamespace == namespaceVm && !ReferenceEquals(SelectionManager.PreviousObject, namespaceVm))
                 {
                     _lastProcessedNamespace = namespaceVm;
                     OnSelectedNamespaceChanged(namespaceVm);
@@ -193,7 +193,7 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
             case WmiExplorer.Presentation.ViewModels.Items.WmiClassViewModel classVm:
                 // Only process if this is different from last processed or if it's a re-selection
                 var currentClass = SelectionManager.GetSelectedClass();
-                if (currentClass == classVm || !ReferenceEquals(_lastProcessedClass, classVm))
+                if (currentClass == classVm && !ReferenceEquals(SelectionManager.PreviousObject, classVm))
                 {
                     _lastProcessedClass = classVm;
                     OnSelectedClassChanged(classVm);
@@ -202,7 +202,7 @@ public abstract partial class SelectionAwareViewModelBase : MessagingViewModelBa
             case WmiExplorer.Presentation.ViewModels.Items.WmiInstanceViewModel instanceVm:
                 // Only process if this is different from last processed or if it's a re-selection
                 var currentInstance = SelectionManager.GetSelectedInstance();
-                if (currentInstance == instanceVm || !ReferenceEquals(_lastProcessedInstance, instanceVm))
+                if (currentInstance == instanceVm && !ReferenceEquals(SelectionManager.PreviousObject, instanceVm))
                 {
                     _lastProcessedInstance = instanceVm;
                     OnSelectedInstanceChanged(instanceVm);
