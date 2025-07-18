@@ -34,7 +34,6 @@
                             <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                         </Trigger>
-                        <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -90,7 +89,6 @@
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
                         </Trigger>
-                        <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.5" />
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" />
@@ -158,7 +156,6 @@
                             <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
                             <Setter Property="Opacity" Value="0.5" />
                         </Trigger>
-                        <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -188,7 +185,6 @@
             <Trigger Property="IsPressed" Value="True">
                 <Setter Property="Foreground" Value="#005A9E" />
             </Trigger>
-            <!--  Removed IsFocused trigger, focus handled by FocusVisualStyle  -->
         </Style.Triggers>
     </Style>
 
@@ -253,7 +249,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="TrackBackground" Property="BorderBrush" Value="{DynamicResource FocusedElementBrush}" />
+                            <Setter TargetName="TrackBackground" Property="BorderBrush" Value="{DynamicResource SecondaryAccentBrush}" />
                             <Setter TargetName="TrackBackground" Property="BorderThickness" Value="2" />
                         </Trigger>
                     </ControlTemplate.Triggers>
