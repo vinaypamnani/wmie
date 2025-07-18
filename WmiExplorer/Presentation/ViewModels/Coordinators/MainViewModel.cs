@@ -62,6 +62,9 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     [ObservableProperty]
     private string _versionText = WmiExplorer.VersionInfo.AppVersion;
 
+    [ObservableProperty]
+    private WatcherTabViewModel _watcherTabViewModel = null!;
+
     public MainViewModel(
         IMessengerService messengerService,
         ThemeManager themeManager,
@@ -72,7 +75,8 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         OptionsViewModel optionsViewModel,
         LogTabViewModel logTabViewModel,
         QueryTabViewModel queryTabViewModel,
-        SearchTabViewModel searchTabViewModel) : base(messengerService, selectionManager)
+        SearchTabViewModel searchTabViewModel,
+        WatcherTabViewModel watcherTabViewModel) : base(messengerService, selectionManager)
     {
         _themeManager = themeManager ?? throw new ArgumentNullException(nameof(themeManager));
         _namespacesViewModel = namespacesViewModel ?? throw new ArgumentNullException(nameof(namespacesViewModel));
@@ -80,6 +84,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         _logTabViewModel = logTabViewModel ?? throw new ArgumentNullException(nameof(logTabViewModel));
         _queryTabViewModel = queryTabViewModel ?? throw new ArgumentNullException(nameof(queryTabViewModel));
         _searchTabViewModel = searchTabViewModel ?? throw new ArgumentNullException(nameof(searchTabViewModel));
+        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel));
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
 
@@ -178,7 +183,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     {
         get
         {
-            var count = NamespacesViewModel?.WatcherTabViewModel?.Events?.Count ?? 0;
+            var count = WatcherTabViewModel?.Events?.Count ?? 0;
             return count > 0 ? $"Watcher [{count}]" : "Watcher";
         }
     }
@@ -312,7 +317,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
                 break;
             case 3:
                 // Watcher Tab
-                SelectionManager.PropertyGrid.SetPropertyGridObject(NamespacesViewModel?.WatcherTabViewModel?.SelectedEvent);
+                SelectionManager.PropertyGrid.SetPropertyGridObject(WatcherTabViewModel?.SelectedEvent);
                 break;
             case 4:
                 // Log Tab

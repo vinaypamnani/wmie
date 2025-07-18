@@ -134,16 +134,16 @@ public partial class App : Application
 
         // Register all ViewModel classes for DI - order matters for dependencies
         services.AddSingleton<InstancesTabViewModel>();
+        services.AddSingleton<MethodsTabViewModel>();
+        services.AddSingleton<PropertiesTabViewModel>();
         services.AddSingleton<ClassesTabViewModel>();
         services.AddSingleton<NamespacesViewModel>();
         services.AddSingleton<OptionsViewModel>();
-        services.AddSingleton<MainViewModel>();
         services.AddSingleton<WatcherTabViewModel>();
-        services.AddSingleton<MethodsTabViewModel>();
-        services.AddSingleton<PropertiesTabViewModel>();
         services.AddSingleton<LogTabViewModel>();
         services.AddSingleton<QueryTabViewModel>();
         services.AddSingleton<SearchTabViewModel>();
+        services.AddSingleton<MainViewModel>();
 
         // Build the service provider
         ServiceProvider = services.BuildServiceProvider();

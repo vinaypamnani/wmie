@@ -225,7 +225,7 @@
                     </TabItem>
                     <TabItem Header="{Binding WatcherTabHeader}" TabIndex="3">
                         <!--  Event Watcher View  -->
-                        <tabs:WatcherTabView DataContext="{Binding NamespacesViewModel.WatcherTabViewModel}" />
+                        <tabs:WatcherTabView DataContext="{Binding WatcherTabViewModel}" />
                     </TabItem>
                     <TabItem Header="{Binding LogTabHeader}" TabIndex="4">
                         <!--  Log View  -->

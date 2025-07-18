@@ -22,7 +22,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     private readonly ClassesTabViewModel _classesTabViewModel;
     private readonly CancellationTokenSource _cts = new();
     private readonly SettingsManager _settingsManager;
-    private readonly WatcherTabViewModel _watcherTabViewModel;
     private readonly IWmiService _wmiService;
 
     public NamespacesViewModel(
@@ -32,7 +31,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
               IApplicationService applicationService,
               ICacheService cacheService,
               ClassesTabViewModel classesTabViewModel,
-              WatcherTabViewModel watcherTabViewModel,
               SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
@@ -40,7 +38,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _classesTabViewModel = classesTabViewModel ?? throw new ArgumentNullException(nameof(classesTabViewModel));
-        _watcherTabViewModel = watcherTabViewModel ?? throw new ArgumentNullException(nameof(watcherTabViewModel));
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
@@ -67,11 +64,6 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     /// Gets the SettingsManager
     /// </summary>
     public SettingsManager SettingsManager => _settingsManager;
-
-    /// <summary>
-    /// Gets the view model for the WMI Event Watcher
-    /// </summary>
-    public WatcherTabViewModel WatcherTabViewModel => _watcherTabViewModel;
 
     /// <summary>
     /// Connects to the specified computer or namespace path with specified connection options
