@@ -629,6 +629,13 @@ public partial class MainViewModel : SelectionAwareViewModelBase
             return;
         }
 
+        // Ensure we have a valid message and state
+        if (tabStatus.AppState == AppState.Unknown || string.IsNullOrEmpty(tabStatus.Message))
+        {
+            // Simple tab status with just tooltip
+            return;
+        }
+
         // Check if we already have the same application state to avoid unnecessary updates
         if (tabStatus.Message == CurrentApplicationState.Message && tabStatus.AppState == CurrentApplicationState.State)
             return;

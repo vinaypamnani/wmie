@@ -47,6 +47,17 @@ public partial class TabStatus : ObservableObject
     }
 
     /// <summary>
+    /// Simple tab status with just tooltip
+    /// </summary>
+    public TabStatus(string tooltip)
+    {
+        _tooltip = tooltip;
+        _appState = AppState.Unknown;
+        _message = string.Empty;
+        _exception = null;
+    }
+
+    /// <summary>
     /// Sets the status to Ready state
     /// </summary>
     public void SetReady(string message = "Ready", string? tooltip = null)
@@ -168,4 +179,4 @@ public partial class TabStatus : ObservableObject
             _ => ApplicationState.Ready(Message)
         };
     }
-} 
+}

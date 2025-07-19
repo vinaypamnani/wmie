@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
-using WmiExplorer.Common.Enums;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -38,7 +37,7 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
            SelectionManager selectionManager) : base(messengerService, selectionManager)
     {
         // Initialize tab status with messenger service
-        _tabStatus = new TabStatus(messengerService, AppState.Ready, "Select a method to view details", "WMI Methods");
+        _tabStatus = new TabStatus("WMI Methods");
     }
 
     /// <summary>
@@ -120,21 +119,10 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
         SelectedMethodParameter = null;
 
         UpdateHelpText();
-
-        // Update tab status
-        if (value != null)
-        {
-            TabStatus.SetSuccess($"Showing details for method: {value.Name}");
-        }
     }
 
     partial void OnSelectedMethodParameterChanged(WmiParameter? value)
     {
-        // Update tab status
-        if (value != null)
-        {
-            TabStatus.SetSuccess($"Showing details for parameter: {value.Name}");
-        }
     }
 
     /// <summary>
@@ -197,7 +185,5 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
         {
             HelpText = "Non-Static Method - Right click an instance of this class to execute this method";
         }
-
-        TabStatus.Message = HelpText;
     }
 }
