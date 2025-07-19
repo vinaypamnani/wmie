@@ -398,7 +398,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     Presentation.Views.Dialogs.MethodExecutionDialog.ShowDialog(
                         mainWindow,
                         _wmiService,
-                        _parentNamespaceViewModel.WmiNamespace,
+                        _parentNamespaceViewModel,
                         _wmiClass,
                         method,
                         _messengerService);
@@ -638,7 +638,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     {
                         // Set the status to partial success
                         SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Properties.Count} properties and {Methods.Count} methods for {ClassName}. Double click to load instances.");
-                        Log.Information("Loaded {PropertyCount} properties and {MethodCount} methods for class {ClassName}",Properties.Count, Methods.Count, ClassName);
+                        Log.Information("Loaded {PropertyCount} properties and {MethodCount} methods for class {ClassName}", Properties.Count, Methods.Count, ClassName);
                     }
                 }
             }

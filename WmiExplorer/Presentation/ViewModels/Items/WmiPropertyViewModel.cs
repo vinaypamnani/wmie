@@ -93,6 +93,11 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
         set => SetDisplayValue(value);
     }
 
+    /// <summary>
+    /// Indicates whether this property has the 'optional' qualifier. Useful for method parameters.
+    /// </summary>
+    public bool HasOptionalQualifier => _wmiProperty.HasOptionalQualifier;
+
     public bool IsArray => _wmiProperty.IsArray;
     public bool IsEnabled => IsSelected;
 

@@ -46,6 +46,19 @@ public class WmiMethod
     }
 
     /// <summary>
+    /// Indicates whether this method has any input parameters marked as optional.
+    /// </summary>
+    [Category("Parameters")]
+    [Description("Indicates whether this method has any input parameters marked as optional.")]
+    public bool HasOptionalParams
+    {
+        get
+        {
+            return InParameters.Any(parameter => parameter.HasOptionalQualifier);
+        }
+    }
+
+    /// <summary>
     /// Indicates whether this method has possible values (enumeration or value map) on the method itself.
     /// </summary>
     [Category("Advanced")]

@@ -21,6 +21,27 @@ public class WmiParameter
     [Category("Parameter")]
     public bool IsLocal { get; set; }
 
+    /// <summary>
+    /// Indicates whether this parameter is optional based on the 'optional' qualifier.
+    /// </summary>
+    [Category("Parameter")]
+    [Description("Indicates whether this parameter is optional based on the 'optional' qualifier. This is not guaranteed to be accurate for all WMI methods, as some may not use the 'optional' qualifier.")]
+    public bool HasOptionalQualifier
+    {
+        get
+        {
+            if (Qualifiers == null) return false;
+            foreach (System.Management.QualifierData qualifier in Qualifiers)
+            {
+                if (qualifier.Name.Equals("optional", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     [Category("Parameter")]
     public string? Name { get; set; }
 

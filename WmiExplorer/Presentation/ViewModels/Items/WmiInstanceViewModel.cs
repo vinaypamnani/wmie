@@ -305,7 +305,7 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                     Presentation.Views.Dialogs.MethodExecutionDialog.ShowDialog(
                         mainWindow,
                         _wmiService,
-                        ParentNamespace.WmiNamespace,
+                        ParentNamespace,
                         _parentClass.WmiClass,
                         method,
                         _messengerService,

@@ -44,6 +44,26 @@ public class WmiProperty
     }
 
     /// <summary>
+    /// Determines if this property has the 'optional' qualifier. Useful for method params.
+    /// </summary>
+    [Browsable(false)]
+    public bool HasOptionalQualifier
+    {
+        get
+        {
+            try
+            {
+                return _propertyData.Qualifiers?.Cast<QualifierData>()
+                    .Any(q => q.Name.Equals("optional", StringComparison.OrdinalIgnoreCase)) ?? false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
     /// Indicates whether this property has possible values (enumeration or value map).
     /// </summary>
     [Category("Advanced")]

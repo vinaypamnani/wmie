@@ -36,7 +36,7 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
 
     private ManagementScope _managementScope;
     private readonly WmiMethod? _method;
-    private readonly WmiNamespace? _namespace;
+    private readonly WmiNamespaceViewModel _namespaceViewModel;
 
     [ObservableProperty]
     private WmiBaseObject? _outputParameters;
@@ -53,21 +53,23 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MethodExecutionDialogViewModel"/> class.
-    /// </summary>    /// <param name="wmiNamespace">The WMI namespace containing the class.</param>
+    /// </summary>
+    /// <param name="wmiService">The WMI service for executing methods.</param>
+    /// <param name="namespaceViewModel">The WMI namespace view model containing the class.</param>
     /// <param name="wmiClass">The WMI class containing the method.</param>
     /// <param name="wmiMethod">The WMI method to execute.</param>
+    /// <param name="messengerService">The messenger service.</param>
     /// <param name="wmiInstance">The WMI instance for non-static methods (optional).</param>
-    /// <param name="wmiService">The WMI service for executing methods.</param>
     public MethodExecutionDialogViewModel(
         IWmiService wmiService,
-        WmiNamespace wmiNamespace,
+        WmiNamespaceViewModel namespaceViewModel,
         WmiClass wmiClass,
         WmiMethod wmiMethod,
         IMessengerService messengerService,
         WmiInstance? wmiInstance = null)
         : base(messengerService)
     {
-        _namespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
+        _namespaceViewModel = namespaceViewModel ?? throw new ArgumentNullException(nameof(namespaceViewModel));
         _class = wmiClass ?? throw new ArgumentNullException(nameof(wmiClass));
         _method = wmiMethod ?? throw new ArgumentNullException(nameof(wmiMethod));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
@@ -348,6 +350,10 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
                     {
                         parameterViewModel.PropertyChanged += WmiPropertyViewModel_PropertyChanged;
                     }
+
+                    // Set default selection based on the new logic
+                    SetDefaultParameterSelection(parameterViewModel, propertyData);
+
                     _parameters.Add(parameterViewModel);
                 }
             }
@@ -367,6 +373,29 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
     {
         // Dispose previous value before changing
         OutputParameters?.Dispose();
+    }
+
+    /// <summary>
+    /// Sets the default selection state for a parameter based on the new logic:
+    /// - If method has optional params: Optional = unchecked, not optional = checked
+    /// - If method has no optional params:
+    ///   - If IsSms* namespace: All params checked by default
+    ///   - Else: All params unchecked by default
+    /// </summary>
+    private void SetDefaultParameterSelection(WmiPropertyViewModel parameterViewModel, PropertyData propertyData)
+    {
+        if (_method!.HasOptionalParams)
+        {
+            // Check if this specific parameter is optional using the ViewModel property
+            bool isOptional = parameterViewModel.HasOptionalQualifier;
+            parameterViewModel.IsSelected = !isOptional; // Optional = unchecked, not optional = checked
+        }
+        else
+        {
+            // Check if it's an SMS namespace using the view model properties
+            bool isSmsNamespace = _namespaceViewModel.IsSmsClientNamespace || _namespaceViewModel.IsSmsProviderNamespace;
+            parameterViewModel.IsSelected = isSmsNamespace; // All checked for SMS, all unchecked for others
+        }
     }
 
     private void WmiPropertyViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
