@@ -177,15 +177,32 @@ public class DefaultPropertyDescriptor : IPropertyDescriptor
         string arrayIndicator = PropertyType.IsArray ? " (Array)" : "";
         string typeDescription = $"Type: {PropertyType.Name}{arrayIndicator}";
 
-        // If we have an attribute description, include it after the type information
+        // Get the current value and check if it's multi-line
+        var currentValue = Value;
+        string? valueInfo = null;
+        if (currentValue != null)
+        {
+            var valueString = currentValue.ToString();
+            if (!string.IsNullOrEmpty(valueString) && valueString.Contains('\n'))
+            {
+                valueInfo = $"Value:\n{valueString}";
+            }
+        }
+
+        // Build the description
+        var parts = new List<string> { typeDescription };
+        
         if (!string.IsNullOrEmpty(attributeDescription))
         {
-            return $"{typeDescription}\n{attributeDescription}";
+            parts.Add(attributeDescription);
         }
-        else
+        
+        if (!string.IsNullOrEmpty(valueInfo))
         {
-            return typeDescription;
+            parts.Add(valueInfo);
         }
+
+        return string.Join("\n", parts);
     }
 
     /// <summary>
