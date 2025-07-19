@@ -60,14 +60,18 @@
 
     <!--  TextBoxWithPlaceholder Style  -->
     <Style x:Key="PropertyGridTextBoxWithPlaceholder" BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
-        <Setter Property="CaretBrush" Value="{DynamicResource PropertyGridForegroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource PropertyGridBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
         <Setter Property="ContextMenu" Value="{StaticResource PropertyGridTextBoxContextMenu}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource PropertyGridForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="TextBorder"
                             Background="{TemplateBinding Background}"
-                            BorderBrush="{DynamicResource PrimaryAccentBrush}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost"
@@ -103,8 +107,18 @@
                         </MultiDataTrigger>
 
                         <Trigger Property="IsFocused" Value="True">
-                            <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource PropertyGridFocusedElementBrush}" />
-                            <Setter TargetName="TextBorder" Property="BorderThickness" Value="1" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridFocusedElementBrush}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource PropertyGridSecondaryBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsReadOnly" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource PropertyGridSecondaryBackgroundBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource PropertyGridBorderBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
