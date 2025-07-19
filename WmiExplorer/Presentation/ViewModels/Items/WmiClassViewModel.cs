@@ -555,11 +555,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                         StaticMethods.Add(method);
                     }
                 }
-                Log.Debug("Loaded {MethodCount} methods for class: {ClassName}", methods.Count, ClassName);
-            }
-            else
-            {
-                Log.Debug("No methods found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
@@ -592,13 +587,11 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 }
                 _hasWriteProperty = wmiProperties.Any(p => !p.IsReadOnly);
                 _hasLazyProperty = wmiProperties.Any(p => p.IsLazy);
-                Log.Debug("Loaded {PropertyCount} properties for class: {ClassName}", properties.Count, ClassName);
             }
             else
             {
                 _hasWriteProperty = false;
                 _hasLazyProperty = false;
-                Log.Debug("No properties found for class: {ClassName}", ClassName);
             }
         }
         catch (Exception ex)
@@ -645,6 +638,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                     {
                         // Set the status to partial success
                         SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Properties.Count} properties and {Methods.Count} methods for {ClassName}. Double click to load instances.");
+                        Log.Information("Loaded {PropertyCount} properties and {MethodCount} methods for class {ClassName}",Properties.Count, Methods.Count, ClassName);
                     }
                 }
             }
