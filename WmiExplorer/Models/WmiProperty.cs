@@ -113,9 +113,9 @@ public class WmiProperty
         get
         {
             // Use GetQualifierFromClassOrInstance for all qualifier checks
-            // var isKey = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "key") is bool keyBool && keyBool;
-            // if (isKey)
-            //     return true; // keys are always read-only
+            var isKey = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "key") is bool keyBool && keyBool;
+            if (isKey)
+                return true; // keys are always read-only
 
             var writeQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "write");
             if (writeQualifier is bool writeBool)
