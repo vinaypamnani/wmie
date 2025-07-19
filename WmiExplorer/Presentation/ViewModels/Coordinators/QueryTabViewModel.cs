@@ -49,7 +49,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     private TabStatus _tabStatus;
 
     [ObservableProperty]
-    private bool _useAmendedQualifiers = true;
+    private bool _useAmendedQualifiers = false;
 
     private readonly IWmiService _wmiService;
 

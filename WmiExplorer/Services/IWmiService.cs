@@ -69,7 +69,12 @@ public interface IWmiService
     /// <param name="useAmendedQualifiers">Whether to use amended qualifiers</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>A list of ManagementObject representing the query results</returns>
-    Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(ManagementScope scope, string queryString, bool directRead, bool useAmendedQualifiers, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ManagementObject>> ExecuteWmiQueryAsync(
+            ManagementScope scope,
+            string queryString,
+            bool directRead,
+            bool useAmendedQualifiers,
+            CancellationToken cancellationToken = default);
     /// <summary>
     /// Executes a WMI query asynchronously, with optional caching of class metadata if cacheResults is true.
     /// </summary>
