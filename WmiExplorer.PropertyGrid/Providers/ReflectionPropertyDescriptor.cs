@@ -93,7 +93,10 @@ public class DefaultPropertyDescriptor : IPropertyDescriptor
         {
             try
             {
-                return _propertyInfo.GetValue(_source);
+                var rawValue = _propertyInfo.GetValue(_source);
+                // Only apply enhanced formatting for integer types
+                var enhancedValue = GetEnhancedValue(rawValue);
+                return enhancedValue ?? rawValue;
             }
             catch
             {
@@ -122,6 +125,48 @@ public class DefaultPropertyDescriptor : IPropertyDescriptor
     }
 
     /// <summary>
+    /// Helper to format integer values as hex.
+    /// </summary>
+    /// <param name="value">The value to format</param>
+    /// <param name="propertyType">The property type</param>
+    /// <returns>Hex formatted string or empty string if not applicable</returns>
+    private static string FormatIntegerAsHex(object value, Type? propertyType)
+    {
+        if (value == null) return string.Empty;
+
+        try
+        {
+            return propertyType switch
+            {
+                var t when t == typeof(byte) || t == typeof(byte?) =>
+                    $"0x{Convert.ToByte(value):X2}",
+                var t when t == typeof(sbyte) || t == typeof(sbyte?) =>
+                    $"0x{(byte)Convert.ToSByte(value):X2}",
+                var t when t == typeof(ushort) || t == typeof(ushort?) =>
+                    $"0x{Convert.ToUInt16(value):X4}",
+                var t when t == typeof(short) || t == typeof(short?) =>
+                    $"0x{(ushort)Convert.ToInt16(value):X4}",
+                var t when t == typeof(uint) || t == typeof(uint?) =>
+                    $"0x{Convert.ToUInt32(value):X8}",
+                var t when t == typeof(int) || t == typeof(int?) =>
+                    $"0x{(uint)Convert.ToInt32(value):X8}",
+                var t when t == typeof(ulong) || t == typeof(ulong?) =>
+                    $"0x{Convert.ToUInt64(value):X16}",
+                var t when t == typeof(long) || t == typeof(long?) =>
+                    $"0x{(ulong)Convert.ToInt64(value):X16}",
+                var t when t == typeof(char) || t == typeof(char?) =>
+                    $"0x{Convert.ToUInt16(value):X4}", // Char as UTF-16 hex
+                _ => string.Empty
+            };
+        }
+        catch
+        {
+            // Return empty string instead of forcing ToString() to avoid potential issues
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
     /// Formats the property description according to the standard format.
     /// </summary>
     /// <param name="attributeDescription">The original description from attribute if any</param>
@@ -141,5 +186,25 @@ public class DefaultPropertyDescriptor : IPropertyDescriptor
         {
             return typeDescription;
         }
+    }
+
+    /// <summary>
+    /// Enhanced value display with hex formatting for integer types.
+    /// </summary>
+    /// <param name="rawValue">The raw value to enhance</param>
+    /// <returns>Enhanced value with hex formatting if applicable</returns>
+    private object? GetEnhancedValue(object? rawValue)
+    {
+        if (rawValue == null)
+            return null;
+
+        // Add hex formatting for integer types
+        var hex = FormatIntegerAsHex(rawValue, PropertyType);
+        if (!string.IsNullOrEmpty(hex))
+        {
+            return $"{rawValue} [{hex}]";
+        }
+
+        return rawValue;
     }
 }
