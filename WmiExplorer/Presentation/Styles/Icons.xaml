@@ -234,4 +234,10 @@
                    Text="&#xE9CE;" />
     </DataTemplate>
 
+    <!--  Script Generation Icons  -->
+
+    <DataTemplate x:Key="ScriptIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE9D9;" />
+    </DataTemplate>
+
 </ResourceDictionary>

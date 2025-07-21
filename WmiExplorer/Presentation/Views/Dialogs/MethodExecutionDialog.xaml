@@ -337,7 +337,7 @@
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource DisabledForegroundBrush}"
                                    Text="Output parameters will appear here after execution"
-                                   Visibility="{Binding HasOutputParameters, Converter={StaticResource InverseBooleanConverter}}" />
+                                   Visibility="{Binding HasOutputParameters, Converter={StaticResource InverseBooleanVisibilityConverter}}" />
                     </Grid>
                 </TabItem>
             </TabControl>

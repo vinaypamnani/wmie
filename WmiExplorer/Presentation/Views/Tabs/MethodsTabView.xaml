@@ -75,6 +75,11 @@
                                 <ContentControl ContentTemplate="{StaticResource ExecMethodIconTemplate}" />
                             </MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem Command="{Binding GenerateScriptCommand}" Header="Generate PowerShell Script...">
+                            <MenuItem.Icon>
+                                <ContentControl ContentTemplate="{StaticResource ScriptIconTemplate}" />
+                            </MenuItem.Icon>
+                        </MenuItem>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>

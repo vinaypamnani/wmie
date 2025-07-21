@@ -1,0 +1,236 @@
+<Window x:Class="WmiExplorer.Presentation.Views.Dialogs.GenerateScriptDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:vm="clr-namespace:WmiExplorer.Presentation.ViewModels.Dialogs"
+        Width="1024"
+        Height="768"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        mc:Ignorable="d">
+
+    <Window.Resources>
+        <!--  Enum ObjectDataProvider for WmiModule  -->
+        <ObjectDataProvider x:Key="WmiModuleValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="vm:GenerateScriptDialogViewModel+WmiModule" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
+
+    <Border behaviors:HyperlinkNavigationBehavior.IsEnabled="True"
+            Background="{DynamicResource PrimaryBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="3">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--  Header Area  -->
+            <Border Grid.Row="0"
+                    Margin="8,0,8,0"
+                    Padding="8"
+                    behaviors:WindowDragBehavior.IsDragEnabled="True"
+                    Background="{DynamicResource PrimaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <ContentControl Margin="0,0,8,0" ContentTemplate="{StaticResource ScriptIconTemplate}" />
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="Generate PowerShell Script" />
+                    </StackPanel>
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="13"
+                               Foreground="{DynamicResource SecondaryForegroundBrush}"
+                               Text="{Binding SelectedItemName, StringFormat='Generate PowerShell script for: {0}'}" />
+                    <TextBlock Margin="0,2,0,0"
+                               FontSize="11"
+                               Foreground="{DynamicResource SecondaryForegroundBrush}"
+                               Text="{Binding ScriptTypeDescription}" />
+                    <TextBlock Margin="0,2,0,0"
+                               FontSize="11"
+                               Foreground="{DynamicResource SecondaryForegroundBrush}"
+                               Text="{Binding NamespacePath, StringFormat='Namespace: {0}'}" />
+
+                    <!--  Accent underline  -->
+                    <Rectangle Height="2"
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource PrimaryAccentBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!--  Content Area  -->
+            <Grid Grid.Row="1" Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!--  Options Panel  -->
+                <StackPanel Grid.Column="0" Margin="0,0,8,0" Orientation="Vertical">
+
+                    <!--  Script Type Selection  -->
+                    <GroupBox Margin="0,0,0,8" Header="WMI Module">
+                        <StackPanel Margin="4">
+                            <TextBlock Margin="0,4,0,2" FontWeight="SemiBold" Text="Module:" />
+                            <ComboBox Margin="0,4" ItemsSource="{Binding Source={StaticResource WmiModuleValues}}" SelectedItem="{Binding SelectedModule}" />
+                            <TextBlock Margin="0,4,0,0"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                       Text="Choose the PowerShell module to use for WMI operations. Legacy Module uses Get-WmiObject/Invoke-WmiMethod, CimCmdlets uses Get-CimInstance/Invoke-CimMethod."
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!--  Connection Options  -->
+                    <GroupBox Margin="0,0,0,8" Header="Connection Options">
+                        <StackPanel Margin="4">
+                            <CheckBox Margin="0,4" Content="Use Computer Name" IsChecked="{Binding UseComputerName}" />
+                            <TextBlock Margin="0,4,0,2" Text="Computer Name:" />
+                            <TextBox Margin="0,0,0,4" IsEnabled="{Binding UseComputerName}" Text="{Binding ComputerName, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <CheckBox Margin="0,8,0,4" Content="Use Full Namespace Path" IsChecked="{Binding UseFullNamespace}" />
+                            <TextBlock FontSize="10"
+                                       Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                       Text="When unchecked, uses relative namespace (e.g., 'root\cimv2'). When checked, uses full path with computer name."
+                                       TextWrapping="Wrap" />
+
+                            <CheckBox Margin="0,8,0,4" Content="Use Credentials" IsChecked="{Binding UseCredentials}" />
+                            <TextBlock FontSize="10"
+                                       Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                       Text="Note: Username and password will be added as placeholders in the script for you to fill in."
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!--  Script Options  -->
+                    <GroupBox Margin="0,0,0,8" Header="Script Options">
+                        <StackPanel Margin="4">
+                            <CheckBox Margin="0,4" Content="Include Error Handling" IsChecked="{Binding IncludeErrorHandling}" />
+                            <CheckBox Margin="0,4" Content="Include Comments" IsChecked="{Binding IncludeComments}" />
+                            <CheckBox Margin="0,8,0,4" Content="Use PS7 (pwsh.exe)" IsChecked="{Binding UsePS7}" />
+                            <TextBlock FontSize="10"
+                                       Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                       Text="When checked, uses PowerShell 7 (pwsh.exe). When unchecked, uses Windows PowerShell (powershell.exe)."
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </GroupBox>
+
+                </StackPanel>
+
+                <!--  Script Preview  -->
+                <Border Grid.Column="1"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="3">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="1*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="1*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!--  Script Preview Header  -->
+                        <Border Grid.Row="0" Padding="8,4" Background="{DynamicResource SecondaryBackgroundBrush}">
+                            <TextBlock FontWeight="SemiBold" Text="Generated Script Preview" />
+                        </Border>
+
+                        <!--  Script Options and Actions  -->
+                        <Border Grid.Row="1" Padding="8,4" Background="{DynamicResource PrimaryBackgroundBrush}">
+                            <DockPanel>
+                                <!--  Edit Script Toggle  -->
+                                <CheckBox VerticalAlignment="Center"
+                                          Content="Edit Script"
+                                          DockPanel.Dock="Left"
+                                          IsChecked="{Binding IsScriptEditable}">
+                                    <CheckBox.ToolTip>
+                                        <TextBlock MaxWidth="300" Text="When checked, you can edit the generated script directly. When unchecked, the script is read-only and will be regenerated when options change." TextWrapping="Wrap" />
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
+                                <!--  Script Action Buttons  -->
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Button Command="{Binding ExecuteScriptCommand}" Content="Execute" IsEnabled="{Binding IsExecuting, Converter={StaticResource BooleanInverterConverter}}" />
+                                    <Button Command="{Binding CopyToClipboardCommand}" Content="Copy Script" />
+                                    <Button Command="{Binding SaveToFileCommand}" Content="Save" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <!--  Script Text Area  -->
+                        <TextBox Grid.Row="2"
+                                 Padding="8"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 BorderThickness="0"
+                                 FontFamily="Consolas"
+                                 FontSize="11"
+                                 HorizontalScrollBarVisibility="Disabled"
+                                 IsReadOnly="{Binding IsScriptEditable, Converter={StaticResource BooleanInverterConverter}}"
+                                 Text="{Binding GeneratedScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto" />
+
+                        <!--  GridSplitter  -->
+                        <GridSplitter Grid.Row="3"
+                                      Margin="4,0,4,4"
+                                      ResizeDirection="Rows"
+                                      Style="{StaticResource HorizontalGridSplitterStyle}" />
+
+                        <!--  Execution Output Header  -->
+                        <Border Grid.Row="4" Padding="8,4" Background="{DynamicResource SecondaryBackgroundBrush}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontWeight="SemiBold" Text="Execution Output" />
+                                <TextBlock Margin="0,0,0,0"
+                                           Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                           Text="Executing..."
+                                           Visibility="{Binding IsExecuting, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!--  Execution Output Text  -->
+                        <TextBox Grid.Row="5"
+                                 BorderThickness="0"
+                                 FontFamily="Consolas"
+                                 FontSize="11"
+                                 IsReadOnly="True"
+                                 Text="{Binding ExecutionOutput}"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto" />
+
+                        <!--  Output Action Buttons  -->
+                        <Border Grid.Row="6"
+                                Padding="0,4"
+                                Background="{DynamicResource PrimaryBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="0,1,0,0">
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                <Button Command="{Binding CopyOutputCommand}" Content="Copy Output" />
+                                <Button Command="{Binding CancelCommand}" Content="Close" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+
+
+        </Grid>
+    </Border>
+</Window>

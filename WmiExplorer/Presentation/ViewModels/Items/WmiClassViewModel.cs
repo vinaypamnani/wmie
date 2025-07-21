@@ -424,6 +424,32 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         return parameter is WmiMethod method && method.IsStatic;
     }
 
+    /// <summary>
+    /// Command to generate PowerShell script for this WMI class.
+    /// </summary>
+    [RelayCommand]
+    private void GenerateScript()
+    {
+        try
+        {
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            var managementScope = ManagementScope;
+
+            // Show the GenerateScriptDialog
+            WmiExplorer.Presentation.Views.Dialogs.GenerateScriptDialog.ShowDialog(
+                mainWindow,
+                _wmiClass,
+                managementScope);
+
+            Log.Information("Generated PowerShell script for class: {ClassName}", ClassName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error generating PowerShell script for class: {ClassName}", ClassName);
+            PublishErrorState($"Error generating PowerShell script: {ex.Message}", ex);
+        }
+    }
+
     private bool InstanceFilterPredicate(WmiInstanceViewModel instance, string filter)
     {
         return string.IsNullOrWhiteSpace(filter) ||

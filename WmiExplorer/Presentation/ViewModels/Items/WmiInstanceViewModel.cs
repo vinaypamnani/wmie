@@ -329,6 +329,39 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// Command to generate PowerShell script for this WMI instance.
+    /// </summary>
+    [RelayCommand]
+    private void GenerateScript()
+    {
+        try
+        {
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            var managementScope = ParentNamespace?.ManagementScope;
+
+            if (managementScope != null)
+            {
+                // Show the GenerateScriptDialog
+                WmiExplorer.Presentation.Views.Dialogs.GenerateScriptDialog.ShowDialog(
+                    mainWindow,
+                    _wmiInstance,
+                    managementScope);
+
+                Log.Information("Generated PowerShell script for instance: {InstanceName}", InstanceName);
+            }
+            else
+            {
+                PublishErrorState("Cannot generate script: No namespace scope available.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error generating PowerShell script for instance: {InstanceName}", InstanceName);
+            PublishErrorState($"Error generating PowerShell script: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
     /// Loads the methods available for this instance from the parent class.
     /// </summary>
     private void LoadInstanceMethods()

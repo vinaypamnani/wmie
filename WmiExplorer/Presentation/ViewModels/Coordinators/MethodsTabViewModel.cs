@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -83,6 +85,43 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
 
         // Notify that TabHeader has changed
         OnPropertyChanged(nameof(TabHeader));
+    }
+
+    /// <summary>
+    /// Command to generate PowerShell script for the selected method.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(GenerateScriptCanExecute))]
+    private void GenerateScript()
+    {
+        try
+        {
+            if (SelectedMethod == null || SelectionManager.SelectedNamespace?.SelectedClass == null)
+                return;
+
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            var managementScope = SelectionManager.SelectedNamespace.ManagementScope;
+
+            // Show the GenerateScriptDialog
+            WmiExplorer.Presentation.Views.Dialogs.GenerateScriptDialog.ShowDialog(
+                mainWindow,
+                SelectedMethod,
+                managementScope);
+
+            Log.Information("Generated PowerShell script for method: {MethodName}", SelectedMethod.Name);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error generating PowerShell script for method: {MethodName}", SelectedMethod?.Name ?? "Unknown");
+            // Note: We don't have access to PublishErrorState here, so we'll just log the error
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the GenerateScript command can execute.
+    /// </summary>
+    private bool GenerateScriptCanExecute()
+    {
+        return SelectedMethod != null && SelectionManager.SelectedNamespace?.SelectedClass != null;
     }
 
     /// <summary>

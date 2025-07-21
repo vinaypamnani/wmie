@@ -251,7 +251,7 @@
                                                         Background="Transparent"
                                                         Command="{Binding StartCommand}"
                                                         ToolTip="Start"
-                                                        Visibility="{Binding IsRunning, Converter={StaticResource InverseBooleanConverter}}">
+                                                        Visibility="{Binding IsRunning, Converter={StaticResource InverseBooleanVisibilityConverter}}">
                                                     <Path Width="12"
                                                           Height="12"
                                                           HorizontalAlignment="Center"

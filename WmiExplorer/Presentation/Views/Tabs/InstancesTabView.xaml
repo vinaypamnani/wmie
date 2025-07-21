@@ -99,6 +99,11 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
                                 <Separator Style="{StaticResource ModernSeparatorStyle}" />
+                                <MenuItem Command="{Binding GenerateScriptCommand}" Header="Generate PowerShell Script...">
+                                    <MenuItem.Icon>
+                                        <ContentControl ContentTemplate="{StaticResource ScriptIconTemplate}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
                                 <MenuItem ItemsSource="{Binding InstanceMethods}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
