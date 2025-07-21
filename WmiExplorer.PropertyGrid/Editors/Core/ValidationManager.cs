@@ -88,7 +88,7 @@ public static class ValidationManager
                         propertyItem.Value = result.ParsedValue; // Update value immediately
                         if (result.IsModified)
                         {
-                            SetValidationModified(tb, "Modified value (will be rounded or truncated if needed, depending on property type)");
+                            SetValidationModified(tb, propertyItem);
                         }
                         else
                         {
@@ -111,7 +111,7 @@ public static class ValidationManager
                             bool valueModified = !AreValuesEqual(storedOriginalValue, convertedValue);
                             if (valueModified)
                             {
-                                SetValidationModified(tb, "Modified value (will be rounded or truncated if needed, depending on property type)");
+                                SetValidationModified(tb, propertyItem);
                             }
                             else
                             {
@@ -316,6 +316,15 @@ public static class ValidationManager
     }
 
     /// <summary>
+    /// Sets the validation state to modified for a Control with appropriate message based on property type
+    /// </summary>
+    public static void SetValidationModified(Control control, PropertyHierarchyItem propertyItem)
+    {
+        string message = GetModifiedValueMessage(propertyItem);
+        SetValidationModified(control, message);
+    }
+
+    /// <summary>
     /// Sets the validation state to normal for a Control
     /// </summary>
     public static void SetValidationNormal(Control control)
@@ -434,6 +443,18 @@ public static class ValidationManager
             mainMessage: successMessage,
             showSecondaryText: showSecondaryText
         );
+    }
+
+    /// <summary>
+    /// Gets the appropriate modified value message based on property type
+    /// </summary>
+    private static string GetModifiedValueMessage(PropertyHierarchyItem propertyItem)
+    {
+        if (EditorInfrastructure.IsIntegerType(propertyItem.PropertyType))
+        {
+            return "Modified value (will be rounded or truncated if needed, depending on property type)";
+        }
+        return "Value modified";
     }
 
     /// <summary>
@@ -667,7 +688,7 @@ public static class ValidationManager
 
                         if (valueModified)
                         {
-                            SetValidationModified(textBox, "Modified value (will be rounded or truncated if needed, depending on property type)");
+                            SetValidationModified(textBox, propertyItem);
                         }
                         else
                         {
@@ -683,7 +704,7 @@ public static class ValidationManager
 
                         if (valueModified)
                         {
-                            SetValidationModified(textBox, "Modified value (will be rounded or truncated if needed, depending on property type)");
+                            SetValidationModified(textBox, propertyItem);
                         }
                         else
                         {
