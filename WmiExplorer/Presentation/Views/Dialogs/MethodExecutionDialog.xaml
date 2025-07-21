@@ -358,14 +358,32 @@
                 </StatusBar>
 
                 <!--  Button Panel  -->
-                <StackPanel Margin="12,4"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal">
-                    <Button Width="80" Command="{Binding ExecuteMethodCommand}" Content="Execute" />
-                    <Button Width="80" Command="{Binding CancelCommand}" Content="Cancel" />
-                    <Button Width="80" Command="{Binding CloseDialogCommand}" Content="Close" />
-                </StackPanel>
+                <Border Margin="12,4"
+                        Padding="0,8,0,0"
+                        VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Left side - Generate Script button  -->
+                        <Button Grid.Column="0"
+                                Width="120"
+                                Command="{Binding GenerateScriptCommand}"
+                                Content="Generate Script" />
+
+                        <!--  Right side - Action buttons  -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Button Width="80" Command="{Binding ExecuteMethodCommand}" Content="Execute" />
+                            <Button Width="80" Command="{Binding CancelCommand}" Content="Cancel" />
+                            <Button Width="80" Command="{Binding CloseDialogCommand}" Content="Close" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </DockPanel>
         </Grid>
     </Border>

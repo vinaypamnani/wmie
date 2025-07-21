@@ -45,6 +45,7 @@ public partial class GenerateScriptDialogViewModel : DisposableObservableObject
     private bool _isScriptEditable = false;
 
     private readonly ManagementScope _managementScope;
+    private readonly Dictionary<string, object>? _parameterValues;
 
     [ObservableProperty]
     private string _scriptTitle = "Generated PowerShell Script";
@@ -75,10 +76,23 @@ public partial class GenerateScriptDialogViewModel : DisposableObservableObject
     /// <param name="selectedItem">The WMI item to generate script for (WmiClass, WmiInstance, or WmiMethod)</param>
     /// <param name="managementScope">The WMI management scope</param>
     public GenerateScriptDialogViewModel(Window window, object selectedItem, ManagementScope managementScope)
+        : this(window, selectedItem, managementScope, null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the GenerateScriptDialogViewModel with parameter values.
+    /// </summary>
+    /// <param name="window">The dialog window instance</param>
+    /// <param name="selectedItem">The WMI item to generate script for (WmiClass, WmiInstance, or WmiMethod)</param>
+    /// <param name="managementScope">The WMI management scope</param>
+    /// <param name="parameterValues">Dictionary of parameter names and their values (for methods)</param>
+    public GenerateScriptDialogViewModel(Window window, object selectedItem, ManagementScope managementScope, Dictionary<string, object>? parameterValues)
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _selectedItem = selectedItem ?? throw new ArgumentNullException(nameof(selectedItem));
         _managementScope = managementScope ?? throw new ArgumentNullException(nameof(managementScope));
+        _parameterValues = parameterValues;
 
         // Set computer name from scope if available
         if (!string.IsNullOrWhiteSpace(_managementScope.Path?.Server))
@@ -148,9 +162,9 @@ public partial class GenerateScriptDialogViewModel : DisposableObservableObject
         {
             return _selectedItem switch
             {
-                WmiClass wmiClass => wmiClass.ClassName,
-                WmiInstance wmiInstance => $"{wmiInstance.ClassPath?.ClassName} Instance",
-                WmiMethod wmiMethod => $"{wmiMethod.Name} Method",
+                WmiClass wmiClass => wmiClass.ClassName ?? "Unknown Class",
+                WmiInstance wmiInstance => $"{wmiInstance.ClassPath?.ClassName ?? "Unknown"} Instance",
+                WmiMethod wmiMethod => $"{wmiMethod.Name ?? "Unknown"} Method",
                 _ => "Unknown Item"
             };
         }
@@ -336,6 +350,28 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
     }
 
     /// <summary>
+    /// Formats a parameter value for PowerShell script output.
+    /// </summary>
+    private string FormatParameterValue(object value, WmiParameter parameter)
+    {
+        if (value == null)
+            return "$null";
+
+        var cimType = parameter.CimType?.ToLowerInvariant() ?? parameter.Type?.ToLowerInvariant() ?? "";
+
+        return value switch
+        {
+            string str => $"'{str.Replace("'", "''")}'", // Escape single quotes
+            bool b => b ? "$true" : "$false",
+            int or long or short or byte => value.ToString() ?? "0",
+            uint or ulong or ushort or sbyte => value.ToString() ?? "0",
+            float or double or decimal => value.ToString() ?? "0.0",
+            DateTime dt => $"Get-Date '{dt:yyyy-MM-dd HH:mm:ss}'",
+            _ => $"'{value?.ToString() ?? "null"}'" // Default to string representation
+        };
+    }
+
+    /// <summary>
     /// Command to generate the script.
     /// </summary>
 
@@ -509,11 +545,25 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
         if (wmiMethod.InParameters.Count > 0)
         {
             scriptBuilder.AppendLine();
-            scriptBuilder.AppendLine("# Method Parameters - Update these values as needed:");
+            scriptBuilder.AppendLine("# Method Parameters:");
             foreach (var param in wmiMethod.InParameters)
             {
-                var defaultValue = GetParameterDefaultValue(param);
-                scriptBuilder.AppendLine($"${param.Name} = {defaultValue}  # {param.CimType ?? param.Type ?? "Unknown"}");
+                if (string.IsNullOrEmpty(param.Name))
+                    continue;
+
+                string paramValue;
+                if (_parameterValues != null && _parameterValues.TryGetValue(param.Name, out var value))
+                {
+                    // Use the provided parameter value
+                    paramValue = FormatParameterValue(value, param);
+                    scriptBuilder.AppendLine($"${param.Name} = {paramValue}  # {param.CimType ?? param.Type ?? "Unknown"} (from dialog)");
+                }
+                else
+                {
+                    // Use default value
+                    var defaultValue = GetParameterDefaultValue(param);
+                    scriptBuilder.AppendLine($"${param.Name} = {defaultValue}  # {param.CimType ?? param.Type ?? "Unknown"} (default)");
+                }
             }
         }
 
@@ -677,8 +727,8 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
     {
         return _selectedItem switch
         {
-            WmiClass wmiClass => wmiClass.Path.NamespacePath,
-            WmiInstance wmiInstance => wmiInstance.Path.NamespacePath,
+            WmiClass wmiClass => wmiClass.Path?.NamespacePath ?? "ROOT\\CIMV2",
+            WmiInstance wmiInstance => wmiInstance.Path?.NamespacePath ?? "ROOT\\CIMV2",
             WmiMethod wmiMethod => _managementScope.Path?.NamespacePath ?? "ROOT\\CIMV2",
             _ => "ROOT\\CIMV2"
         };

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Management;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
+using WmiExplorer.Common.Logging;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Services;
@@ -314,6 +315,47 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
     /// Determines if the execute method command can be executed
     /// </summary>
     private bool ExecuteMethodCanExecute() => !IsExecuting;
+
+    /// <summary>
+    /// Command to generate PowerShell script for the method
+    /// </summary>
+    [RelayCommand]
+    private void GenerateScript()
+    {
+        try
+        {
+            if (_method == null)
+            {
+                Log.Warning("Cannot generate script: method is null");
+                return;
+            }
+
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            var managementScope = _managementScope;
+
+            // Collect parameter values from the UI
+            var parameterValues = new Dictionary<string, object>();
+            foreach (var param in _parameters.Where(p => p.IsSelected && p.Value != null && !string.IsNullOrEmpty(p.Name)))
+            {
+                parameterValues[param.Name!] = param.Value!;
+            }
+
+            // Show the GenerateScriptDialog with parameter values
+            WmiExplorer.Presentation.Views.Dialogs.GenerateScriptDialog.ShowDialog(
+                mainWindow,
+                _method,
+                managementScope,
+                parameterValues);
+
+            Log.Information("Generated PowerShell script for method: {MethodName} of class: {ClassName} with {ParameterCount} parameters",
+                MethodName, ClassName, parameterValues.Count);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error generating PowerShell script for method: {MethodName} of class: {ClassName}", MethodName, ClassName);
+            PublishErrorState($"Error generating PowerShell script: {ex.Message}", ex);
+        }
+    }
 
     private void LoadMethodParameters()
     {
