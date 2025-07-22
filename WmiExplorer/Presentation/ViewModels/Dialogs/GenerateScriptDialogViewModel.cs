@@ -201,6 +201,31 @@ public partial class GenerateScriptDialogViewModel : DisposableObservableObject
     }
 
     /// <summary>
+    /// Builds a WQL WHERE clause from a WMI instance path.
+    /// </summary>
+    /// <param name="instancePath">The WMI instance path</param>
+    /// <param name="className">The class name</param>
+    /// <returns>The WHERE clause for filtering the instance</returns>
+    private string BuildWhereClauseFromPath(string instancePath, string className)
+    {
+        if (string.IsNullOrWhiteSpace(instancePath))
+            return "";
+
+        // Remove the class name from the beginning of the path
+        var pathWithoutClass = instancePath;
+        if (instancePath.StartsWith($"{className}.", StringComparison.OrdinalIgnoreCase))
+        {
+            pathWithoutClass = instancePath.Substring(className.Length + 1);
+        }
+
+        // Convert the path format to WQL WHERE clause
+        // Example: "Name='notepad.exe',ProcessId=1234" becomes "Name='notepad.exe' AND ProcessId=1234"
+        var whereClause = pathWithoutClass.Replace(",", " AND ");
+
+        return whereClause;
+    }
+
+    /// <summary>
     /// Command to cancel the dialog.
     /// </summary>
     [RelayCommand]
@@ -457,6 +482,7 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
         var instancePath = wmiInstance.Path?.RelativePath ?? "";
         var indentation = IncludeErrorHandling ? "    " : "";
 
+        scriptBuilder.AppendLine($"$ClassName = '{className}'");
         scriptBuilder.AppendLine($"$InstancePath = '{instancePath}'");
         scriptBuilder.AppendLine();
         if (IncludeErrorHandling)
@@ -477,26 +503,31 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
         }
         else // CimCmdlets
         {
+            // For CIM cmdlets, we need to construct a WQL query with WHERE clause
+            // Extract the key properties from the instance path to build the WHERE clause
+            var whereClause = BuildWhereClauseFromPath(instancePath, className);
+            scriptBuilder.AppendLine($"{indentation}$WhereClause = '{whereClause}'");
+
             if (UseComputerName && !string.IsNullOrWhiteSpace(ComputerName))
             {
                 if (UseCredentials)
                 {
-                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -Path $InstancePath -ComputerName $ComputerName -Credential $Credential");
+                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -ClassName $ClassName -Namespace $Namespace -Filter $WhereClause -ComputerName $ComputerName -Credential $Credential");
                 }
                 else
                 {
-                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -Path $InstancePath -ComputerName $ComputerName");
+                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -ClassName $ClassName -Namespace $Namespace -Filter $WhereClause -ComputerName $ComputerName");
                 }
             }
             else
             {
                 if (UseCredentials)
                 {
-                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -Path $InstancePath -Credential $Credential");
+                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -ClassName $ClassName -Namespace $Namespace -Filter $WhereClause -Credential $Credential");
                 }
                 else
                 {
-                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -Path $InstancePath");
+                    scriptBuilder.AppendLine($"{indentation}$Instance = Get-CimInstance -ClassName $ClassName -Namespace $Namespace -Filter $WhereClause");
                 }
             }
         }
