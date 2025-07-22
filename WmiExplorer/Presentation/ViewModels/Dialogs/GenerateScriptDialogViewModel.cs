@@ -582,19 +582,22 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
                 if (string.IsNullOrEmpty(param.Name))
                     continue;
 
-                string paramValue;
+                var paramType = param.CimType?.ToLowerInvariant() ?? param.Type?.ToLowerInvariant() ?? "";
+
+                // Check if this is an Object type parameter (not supported)
+                if (paramType == "object")
+                {
+                    scriptBuilder.AppendLine($"# ${param.Name} = <not supported - Object type parameters are not supported>  # {param.CimType ?? param.Type ?? "Unknown"} (Object type)");
+                    continue;
+                }
+
+                // Only include parameters that were actually provided in the dialog
                 if (_parameterValues != null && _parameterValues.TryGetValue(param.Name, out var value))
                 {
-                    // Use the provided parameter value
-                    paramValue = FormatParameterValue(value, param);
+                    var paramValue = FormatParameterValue(value, param);
                     scriptBuilder.AppendLine($"${param.Name} = {paramValue}  # {param.CimType ?? param.Type ?? "Unknown"} (from dialog)");
                 }
-                else
-                {
-                    // Use default value
-                    var defaultValue = GetParameterDefaultValue(param);
-                    scriptBuilder.AppendLine($"${param.Name} = {defaultValue}  # {param.CimType ?? param.Type ?? "Unknown"} (default)");
-                }
+                // Skip all parameters that weren't provided, regardless of optional/required status
             }
         }
 
@@ -619,8 +622,16 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
             // Execute method using Legacy Module
             if (wmiMethod.InParameters.Count > 0)
             {
-                var paramList = string.Join(", ", wmiMethod.InParameters.Select(p => $"${p.Name}"));
-                scriptBuilder.AppendLine($"{indentation}$Result = $Class.$MethodName({paramList})");
+                var providedParams = GetProvidedParameters(wmiMethod.InParameters);
+                if (providedParams.Count > 0)
+                {
+                    var paramList = string.Join(", ", providedParams.Select(p => $"${p.Name}"));
+                    scriptBuilder.AppendLine($"{indentation}$Result = $Class.$MethodName({paramList})");
+                }
+                else
+                {
+                    scriptBuilder.AppendLine($"{indentation}$Result = $Class.$MethodName()");
+                }
             }
             else
             {
@@ -656,13 +667,21 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
             // Execute method using CIM Module
             if (wmiMethod.InParameters.Count > 0)
             {
-                scriptBuilder.AppendLine($"{indentation}$Params = @{{");
-                foreach (var param in wmiMethod.InParameters)
+                var providedParams = GetProvidedParameters(wmiMethod.InParameters);
+                if (providedParams.Count > 0)
                 {
-                    scriptBuilder.AppendLine($"{indentation}    {param.Name} = ${param.Name}");
+                    scriptBuilder.AppendLine($"{indentation}$Params = @{{");
+                    foreach (var param in providedParams)
+                    {
+                        scriptBuilder.AppendLine($"{indentation}    {param.Name} = ${param.Name}");
+                    }
+                    scriptBuilder.AppendLine($"{indentation}}}");
+                    scriptBuilder.AppendLine($"{indentation}$Result = Invoke-CimMethod -CimClass $Class -MethodName $MethodName -Arguments $Params");
                 }
-                scriptBuilder.AppendLine($"{indentation}}}");
-                scriptBuilder.AppendLine($"{indentation}$Result = Invoke-CimMethod -CimClass $Class -MethodName $MethodName -Arguments $Params");
+                else
+                {
+                    scriptBuilder.AppendLine($"{indentation}$Result = Invoke-CimMethod -CimClass $Class -MethodName $MethodName");
+                }
             }
             else
             {
@@ -748,6 +767,37 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
             "object" => "$null",
             _ => "$null"
         };
+    }
+
+    /// <summary>
+    /// Gets the list of parameters that were provided and are supported.
+    /// </summary>
+    /// <param name="parameters">The list of method parameters</param>
+    /// <returns>List of parameters that should be included in the method call</returns>
+    private List<WmiParameter> GetProvidedParameters(IEnumerable<WmiParameter> parameters)
+    {
+        var providedParams = new List<WmiParameter>();
+
+        foreach (var param in parameters)
+        {
+            if (string.IsNullOrEmpty(param.Name))
+                continue;
+
+            var paramType = param.CimType?.ToLowerInvariant() ?? param.Type?.ToLowerInvariant() ?? "";
+
+            // Skip Object type parameters (not supported)
+            if (paramType == "object")
+                continue;
+
+            // Only include parameters that were actually provided in the dialog
+            if (_parameterValues != null && _parameterValues.TryGetValue(param.Name, out _))
+            {
+                providedParams.Add(param);
+            }
+            // Don't include any parameters that weren't provided, regardless of optional/required status
+        }
+
+        return providedParams;
     }
 
     /// <summary>
