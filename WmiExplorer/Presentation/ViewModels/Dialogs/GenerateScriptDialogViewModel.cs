@@ -591,13 +591,23 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
                     continue;
                 }
 
-                // Only include parameters that were actually provided in the dialog
-                if (_parameterValues != null && _parameterValues.TryGetValue(param.Name, out var value))
+                // Handle parameters based on whether we have values from dialog or not
+                if (_parameterValues != null)
                 {
-                    var paramValue = FormatParameterValue(value, param);
-                    scriptBuilder.AppendLine($"${param.Name} = {paramValue}  # {param.CimType ?? param.Type ?? "Unknown"} (from dialog)");
+                    // Dialog was shown - only include parameters that were actually provided
+                    if (_parameterValues.TryGetValue(param.Name, out var value))
+                    {
+                        var paramValue = FormatParameterValue(value, param);
+                        scriptBuilder.AppendLine($"${param.Name} = {paramValue}  # {param.CimType ?? param.Type ?? "Unknown"} (from dialog)");
+                    }
+                    // Skip parameters that weren't provided in dialog
                 }
-                // Skip all parameters that weren't provided, regardless of optional/required status
+                else
+                {
+                    // No dialog shown - list all supported parameters for user to fill out
+                    var defaultValue = GetParameterDefaultValue(param);
+                    scriptBuilder.AppendLine($"${param.Name} = {defaultValue}  # {param.CimType ?? param.Type ?? "Unknown"} (fill in value)");
+                }
             }
         }
 
@@ -789,12 +799,20 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
             if (paramType == "object")
                 continue;
 
-            // Only include parameters that were actually provided in the dialog
-            if (_parameterValues != null && _parameterValues.TryGetValue(param.Name, out _))
+            if (_parameterValues != null)
             {
+                // Dialog was shown - only include parameters that were actually provided
+                if (_parameterValues.TryGetValue(param.Name, out _))
+                {
+                    providedParams.Add(param);
+                }
+                // Skip parameters that weren't provided in dialog
+            }
+            else
+            {
+                // No dialog shown - include all supported parameters
                 providedParams.Add(param);
             }
-            // Don't include any parameters that weren't provided, regardless of optional/required status
         }
 
         return providedParams;
