@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Windows;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
@@ -446,6 +447,42 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         result.Add(this);
 
         return result.OrderBy(x => x.GetType().FullName).ToList();
+    }
+
+    /// <summary>
+    /// Command to show the About dialog
+    /// </summary>
+    [RelayCommand]
+    private void ShowAbout()
+    {
+        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        var version = assembly.GetName().Version;
+        var versionString = version != null ? version.ToString() : "Unknown";
+
+        var aboutMessage = $@"WMI Explorer v{versionString}
+
+A powerful Windows Management Instrumentation (WMI) exploration and management tool.
+
+Features:
+• Browse WMI namespaces, classes, and instances
+• Execute WMI methods
+• Execute WMI queries with syntax highlighting
+• Real-time event monitoring
+• Edit or create WMI instances
+• Advanced filtering and search capabilities
+• Modern, responsive UI
+
+Built with .NET 8 and WPF
+
+© 2025 Vinay Pamnani";
+
+        WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialog.Show(
+            aboutMessage,
+            "About WMI Explorer",
+            WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialogButton.OK,
+            WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialogIcon.Information,
+            Application.Current.MainWindow,
+            showCopyButton: false);
     }
 
     /// <summary>

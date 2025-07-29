@@ -82,7 +82,7 @@
             </MenuItem>
 
             <MenuItem Header="_About">
-                <MenuItem Header="About WmiExplorer" ToolTip="Show information about WmiExplorer">
+                <MenuItem Command="{Binding ShowAboutCommand}" Header="About WmiExplorer" ToolTip="Show information about WmiExplorer">
                     <MenuItem.Icon>
                         <ContentControl ContentTemplate="{StaticResource InfoIconTemplate}" />
                     </MenuItem.Icon>
