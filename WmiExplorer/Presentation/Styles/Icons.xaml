@@ -100,10 +100,6 @@
 
     <!--  ConfigMgr icons  -->
 
-    <DataTemplate x:Key="ConfigMgrModeIconTemplate">
-        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE975;" />
-    </DataTemplate>
-
     <DataTemplate x:Key="ConfigMgrClientIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE70C;" />
     </DataTemplate>
