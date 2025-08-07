@@ -90,7 +90,7 @@ public class WmiPropertyValueConverter : IPropertyValueConverter
             if (propertyData.Value != null)
                 return propertyData.Value.ToString() ?? "<null value>";
 
-            return "PropertyData";
+            return propertyData.Type.ToString() ?? "PropertyData";
         }
 
         if (value is QualifierData qualifierData)
