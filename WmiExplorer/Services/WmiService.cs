@@ -13,9 +13,10 @@ public class WmiService : IWmiService, IDisposable
     private readonly ICacheService _cacheService;
     private readonly List<IDisposable> _disposables = new();
 
-    // Cache for provider CLSIDs to avoid repeated WMI queries
-    private readonly Dictionary<string, string?> _providerClsidCache = new();
+    // Cache for provider instances per namespace
+    private readonly Dictionary<string, Dictionary<string, ManagementObject>> _providerCache = new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly object _providerCacheLock = new();
     private readonly ISettingsService _settingsService;
 
     public WmiService(ICacheService cacheService, ISettingsService settingsService)
@@ -29,12 +30,113 @@ public class WmiService : IWmiService, IDisposable
     public WmiOperationMode OperationMode { get; set; } = WmiOperationMode.Asynchronous;
 
     /// <summary>
-    /// Creates a connected ManagementScope for a namespace path and optional connection options
+    /// Gets provider instances from the __provider class in a namespace, using cache if available
+    /// </summary>
+    public async Task<IEnumerable<ManagementObject>> CacheProviderInstancesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
+    {
+        if (scope == null)
+            throw new ArgumentNullException(nameof(scope));
+
+        var namespacePath = scope.Path?.Path ?? string.Empty; // Use full path for consistent caching
+        if (string.IsNullOrEmpty(namespacePath))
+            throw new ArgumentException("Scope must have a valid namespace path", nameof(scope));
+
+        // Check cache first
+        lock (_providerCacheLock)
+        {
+            if (_providerCache.TryGetValue(namespacePath, out var cachedProviders))
+            {
+                Log.Debug("Returning {ProviderCount} cached providers for namespace: {NamespacePath}", cachedProviders.Count, namespacePath);
+                return cachedProviders.Values.ToList();
+            }
+        }
+
+        try
+        {
+            var providerInstances = await ExecuteWmiQueryAsync(
+                scope,
+                "SELECT * FROM __provider",
+                directRead: false,
+                useAmendedQualifiers: true,
+                enableLogging: false,
+                cancellationToken);
+
+            // Cache the providers
+            var providerDict = new Dictionary<string, ManagementObject>(StringComparer.OrdinalIgnoreCase);
+            foreach (var providerInstance in providerInstances)
+            {
+                var providerName = providerInstance["Name"]?.ToString() ?? string.Empty;
+                if (!string.IsNullOrEmpty(providerName))
+                {
+                    providerDict[providerName] = providerInstance;
+                }
+            }
+
+            lock (_providerCacheLock)
+            {
+                _providerCache[namespacePath] = providerDict;
+            }
+
+            Log.Debug("Cached {ProviderCount} providers for namespace: {NamespacePath}", providerDict.Count, namespacePath);
+            return providerInstances;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("Error retrieving provider instances from namespace: {NamespacePath} - {ErrorMessage}", namespacePath, ex.Message ?? "Unknown error");
+            return Enumerable.Empty<ManagementObject>();
+        }
+    }
+
+    /// <summary>
+    /// Clears all provider caches
+    /// </summary>
+    public void ClearAllProviderCaches()
+    {
+        lock (_providerCacheLock)
+        {
+            foreach (var providers in _providerCache.Values)
+            {
+                foreach (var provider in providers.Values)
+                {
+                    provider?.Dispose();
+                }
+            }
+            _providerCache.Clear();
+            Log.Debug("Cleared all provider caches");
+        }
+    }
+
+    /// <summary>
+    /// Clears the provider cache for a specific namespace
+    /// </summary>
+    /// <param name="namespacePath">The namespace path to clear cache for</param>
+    public void ClearProviderCache(string namespacePath)
+    {
+        if (string.IsNullOrEmpty(namespacePath))
+            return;
+
+        lock (_providerCacheLock)
+        {
+            if (_providerCache.TryGetValue(namespacePath, out var providers))
+            {
+                foreach (var provider in providers.Values)
+                {
+                    provider?.Dispose();
+                }
+                _providerCache.Remove(namespacePath);
+                Log.Debug("Cleared provider cache for namespace: {NamespacePath}", namespacePath);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a ManagementScope for a given namespace path and optional connection options
     /// </summary>
     public ManagementScope CreateManagementScope(string namespacePath, ConnectionOptions connectionOptions)
     {
         if (string.IsNullOrWhiteSpace(namespacePath))
             throw new ArgumentException("Namespace path cannot be null or empty", nameof(namespacePath));
+
         if (connectionOptions == null)
             throw new ArgumentNullException(nameof(connectionOptions));
 
@@ -130,6 +232,7 @@ public class WmiService : IWmiService, IDisposable
         string queryString,
         bool directRead,
         bool useAmendedQualifiers,
+        bool enableLogging = true,
         CancellationToken cancellationToken = default)
     {
         // Log.Debug("Executing WMI query: {Query} on scope: {Scope}", queryString, scope.Path?.Path ?? "Unknown");
@@ -156,18 +259,27 @@ public class WmiService : IWmiService, IDisposable
             }
 
             var resultCount = results.Count();
-            Log.Debug("[{OperationMode}] WMI query '{Query}' completed successfully. Returned {ResultCount} objects", OperationMode, queryString, resultCount);
+            if (enableLogging)
+            {
+                Log.Debug("[{OperationMode}] WMI query '{Query}' completed successfully. Returned {ResultCount} objects", OperationMode, queryString, resultCount);
+            }
             return results;
         }
         catch (ManagementException mex)
         {
             var wmiException = new WmiException(mex);
-            Log.Error(mex, "[{OperationMode}] ManagementException executing WMI query: {Query} on scope: {Scope} - {ErrorMessage}", OperationMode, queryString, scope.Path?.Path ?? "Unknown", wmiException.Message);
+            if (enableLogging)
+            {
+                Log.Error(mex, "[{OperationMode}] ManagementException executing WMI query: {Query} on scope: {Scope} - {ErrorMessage}", OperationMode, queryString, scope.Path?.Path ?? "Unknown", wmiException.Message);
+            }
             throw wmiException;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "[{OperationMode}] Failed to execute WMI query: {Query} on scope: {Scope}", OperationMode, queryString, scope.Path?.Path ?? "Unknown");
+            if (enableLogging)
+            {
+                Log.Error(ex, "[{OperationMode}] Failed to execute WMI query: {Query} on scope: {Scope}", OperationMode, queryString, scope.Path?.Path ?? "Unknown");
+            }
             throw;
         }
     }
@@ -181,9 +293,10 @@ public class WmiService : IWmiService, IDisposable
         bool directRead,
         bool useAmendedQualifiers,
         bool cacheResults,
+        bool enableLogging = true,
         CancellationToken cancellationToken = default)
     {
-        var results = await ExecuteWmiQueryAsync(scope, queryString, directRead, useAmendedQualifiers, cancellationToken);
+        var results = await ExecuteWmiQueryAsync(scope, queryString, directRead, useAmendedQualifiers, enableLogging, cancellationToken);
         if (cacheResults && scope?.Path?.Path is string nsPath && !string.IsNullOrWhiteSpace(nsPath))
         {
             await CacheNamespaceClassMetadata(nsPath, results);
@@ -192,63 +305,67 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
+    /// Gets a cached provider instance for a specific class in a namespace
+    /// </summary>
+    /// <param name="namespacePath">The namespace path</param>
+    /// <param name="className">The class name</param>
+    /// <param name="classObject">The ManagementBaseObject representing the class</param>
+    /// <returns>The provider instance if found, null otherwise</returns>
+    public ManagementObject? GetCachedProviderForClass(string namespacePath, string className, ManagementBaseObject classObject)
+    {
+        if (string.IsNullOrEmpty(namespacePath) || string.IsNullOrEmpty(className) || classObject?.Qualifiers == null)
+            return null;
+
+        try
+        {
+            var providerQualifier = classObject.Qualifiers.Cast<QualifierData>()
+                .FirstOrDefault(q => string.Equals(q.Name, "provider", StringComparison.OrdinalIgnoreCase));
+
+            if (providerQualifier?.Value is string providerName && !string.IsNullOrEmpty(providerName))
+            {
+                lock (_providerCacheLock)
+                {
+                    if (_providerCache.TryGetValue(namespacePath, out var providers) &&
+                        providers.TryGetValue(providerName, out var providerInstance))
+                    {
+                        return providerInstance;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Return null if there's any error accessing qualifiers
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Executes a WMI query to enumerate child namespaces (instances of __namespace).
     /// </summary>
     public async Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default)
     {
-        return await ExecuteWmiQueryAsync(
+        var result = await ExecuteWmiQueryAsync(
             scope,
             "SELECT * FROM __namespace",
             directRead: false,
             useAmendedQualifiers: false,
+            enableLogging: false,
             cancellationToken);
-    }
 
-    /// <summary>
-    /// Gets the CLSID for a WMI provider by name (synchronous, returns null if not found or error)
-    /// </summary>
-    public string? GetProviderClsid(ManagementScope scope, string providerName)
-    {
-        if (string.IsNullOrWhiteSpace(providerName))
-            return null;
-
-        if (scope == null)
-            throw new ArgumentNullException(nameof(scope));
-
-        var cacheKey = providerName.Trim();
-        // If cache is populated, only use cache
-        if (_providerClsidCache.Count > 0)
+        // Preload providers for the current namespace to improve performance (after core functionality)
+        // Only call if not already cached to avoid duplicate logging
+        var namespacePath = scope.Path?.Path ?? string.Empty;
+        lock (_providerCacheLock)
         {
-            return _providerClsidCache.TryGetValue(cacheKey, out var cachedClsid) ? cachedClsid : null;
-        }
-
-        // Populate cache with all provider CLSIDs on first run
-        try
-        {
-            var server = scope.Path?.Server;
-            var options = scope.Options;
-            var rootDefaultPath = !string.IsNullOrWhiteSpace(server)
-                ? $"\\\\{server}\\root\\default"
-                : "\\.\\root\\default";
-            var rootDefaultScope = CreateManagementScope(rootDefaultPath, options);
-            var query = new ObjectQuery("SELECT Name, CLSID FROM __Win32Provider");
-            using var searcher = new ManagementObjectSearcher(rootDefaultScope, query);
-            foreach (ManagementObject obj in searcher.Get())
+            if (!_providerCache.ContainsKey(namespacePath))
             {
-                var name = obj["Name"]?.ToString();
-                var clsid = obj["CLSID"]?.ToString();
-                if (!string.IsNullOrWhiteSpace(name) && !_providerClsidCache.ContainsKey(name))
-                    _providerClsidCache[name] = clsid;
+                _ = CacheProviderInstancesAsync(scope, cancellationToken);
             }
-            // After populating, return from cache
-            return _providerClsidCache.TryGetValue(cacheKey, out var result) ? result : null;
         }
-        catch
-        {
-            // Ignore errors, return null
-            Log.Debug("Error retrieving WMI provider CLSID for: {ProviderName}", providerName);
-        }
-        return null;
+
+        return result;
     }
 
     /// <summary>
@@ -462,8 +579,7 @@ public class WmiService : IWmiService, IDisposable
     }
 
     /// <summary>
-    /// Optimized: Ensures scope is connected only if not already connected
-    /// Uses a safe approach that works regardless of dispatcher state
+    /// Ensures that a ManagementScope is connected
     /// </summary>
     private void EnsureScopeConnected(ManagementScope scope)
     {
@@ -513,7 +629,7 @@ public class WmiService : IWmiService, IDisposable
             catch (ManagementException mex)
             {
                 var wmiException = new WmiException(mex);
-                Log.Error("WMI Exception while connecting to scope '{ScopePath}': {ErrorMessage}", scope?.Path?.Path ?? "Unknown", wmiException.Message);
+                Log.Error(wmiException, "WMI Exception while connecting to scope '{ScopePath}': {ErrorMessage}", scope?.Path?.Path ?? "Unknown", wmiException.Message);
                 throw wmiException;
             }
             catch (UnauthorizedAccessException uex)
@@ -1162,6 +1278,9 @@ public class WmiService : IWmiService, IDisposable
                     disposable?.Dispose();
                 }
                 _disposables.Clear();
+
+                // Clear provider cache
+                ClearAllProviderCaches();
             }
 
             _disposed = true;

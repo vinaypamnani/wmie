@@ -80,8 +80,7 @@ public partial class App : Application
         themeManager.InitializeTheme();
 
         // Register Base WMI providers for PropertyGrid using the new generic method
-        var wmiService = ServiceProvider.GetRequiredService<IWmiService>();
-        ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(wmiService), new WmiPropertyValueConverter());
+        ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(), new WmiPropertyValueConverter());
 
         // Register WMI-specific property editor as singleton for proper disposal
         var wmiPropertyEditor = ServiceProvider.GetRequiredService<WmiPropertyEditor>();

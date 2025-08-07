@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Management;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Models;
 
@@ -9,26 +10,29 @@ namespace WmiExplorer.Models;
 public class WmiNamespace : IDisposable
 {
     private ManagementObject _actualObject;
+    private readonly IWmiService? _wmiService;
 
     /// <summary>
     /// Constructor for a WMI namespace, optionally with ConnectionOptions (root if specified)
     /// </summary>
-    public WmiNamespace(ManagementObject actualObject, string namespacePath, ConnectionOptions connectionOptions)
+    public WmiNamespace(ManagementObject actualObject, string namespacePath, ConnectionOptions connectionOptions, IWmiService? wmiService = null)
     {
         _actualObject = actualObject;
         NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
         ConnectionOptions = connectionOptions;
+        _wmiService = wmiService;
         IsRoot = true;
     }
 
     /// <summary>
     /// Constructor for a child WMI namespace, propagating ConnectionOptions from the parent
     /// </summary>
-    public WmiNamespace(ManagementObject actualObject, string namespacePath, WmiNamespace parent)
+    public WmiNamespace(ManagementObject actualObject, string namespacePath, WmiNamespace parent, IWmiService? wmiService = null)
     {
         _actualObject = actualObject;
         NamespacePath = namespacePath ?? throw new ArgumentNullException(nameof(namespacePath));
         ConnectionOptions = parent.ConnectionOptions;
+        _wmiService = wmiService;
         IsRoot = false;
     }
 
@@ -55,7 +59,7 @@ public class WmiNamespace : IDisposable
     /// </summary>
     [Category("Namespace")]
     public string NamespaceName => string.IsNullOrEmpty(NamespacePath) ? string.Empty : NamespacePath.Contains("\\")
-                                        ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
+                                                            ? NamespacePath.Substring(NamespacePath.LastIndexOf("\\") + 1) : NamespacePath;
 
     /// <summary>
     /// The path of the namespace (e.g., "root\\cimv2")
@@ -90,6 +94,18 @@ public class WmiNamespace : IDisposable
             }
             return path;
         }
+    }
+
+    /// <summary>
+    /// Creates a ManagementScope for this namespace
+    /// </summary>
+    /// <returns>ManagementScope for this namespace</returns>
+    public ManagementScope CreateManagementScope()
+    {
+        if (_wmiService == null)
+            throw new InvalidOperationException("WmiService is required to create ManagementScope");
+
+        return _wmiService.CreateManagementScope(NamespacePath, ConnectionOptions);
     }
 
     /// <summary>

@@ -296,6 +296,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
                 queryString,
                 DirectRead,
                 UseAmendedQualifiers,
+                enableLogging: true,
                 cancellationToken: token);
 
             foreach (var mo in managementObjects)

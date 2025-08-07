@@ -9,14 +9,14 @@ namespace WmiExplorer.Integration.PropertyTypeProvider;
 public class WmiQualifierPropertyDescriptor : IPropertyDescriptor
 {
     private readonly string _category;
-    private readonly string? _providerClsid;
     private readonly QualifierData _qualifier;
+    private object _source;
 
-    public WmiQualifierPropertyDescriptor(QualifierData qualifier, string category, string? providerClsid = null)
+    public WmiQualifierPropertyDescriptor(QualifierData qualifier, string category, object? source = null)
     {
         _qualifier = qualifier;
         _category = category;
-        _providerClsid = providerClsid;
+        _source = source ?? qualifier;
     }
 
     public string Category => _category;
@@ -25,12 +25,7 @@ public class WmiQualifierPropertyDescriptor : IPropertyDescriptor
     {
         get
         {
-            var desc = _qualifier.Value != null ? $"Type: {_qualifier.Value.GetType().Name}" : string.Empty;
-            if (_providerClsid != null)
-            {
-                desc += $"; CLSID from __Win32Provider: {_providerClsid}";
-            }
-            return desc;
+            return _qualifier.Value != null ? $"Type: {_qualifier.Value.GetType().Name}" : string.Empty;
         }
     }
 
@@ -39,13 +34,7 @@ public class WmiQualifierPropertyDescriptor : IPropertyDescriptor
     public bool IsReadOnly => true;
     public string Name => _qualifier.Name;
     public Type? PropertyType => typeof(QualifierData);
-
-    // Return the QualifierData object itself
-    public string? ProviderClsid => _providerClsid;
-
-    // Mark as expandable
-    public object Source => _qualifier;
-
+    public object Source => _source;
     public object? Value => _qualifier;
 
     public bool SetValue(object? value)

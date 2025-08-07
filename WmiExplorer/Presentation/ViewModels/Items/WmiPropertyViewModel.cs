@@ -354,6 +354,7 @@ public partial class WmiPropertyViewModel : MessagingViewModelBase, IDisposable
                 wqlQuery,
                 false, // directRead: false for instance enumeration
                 false, // useAmendedQualifiers: false for instances
+                enableLogging: true,
                 _referenceValuesCts.Token);
 
             // Convert instances to string representations for the ComboBox

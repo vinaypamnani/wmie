@@ -1,5 +1,6 @@
 using System.Management;
 using WmiExplorer.Common.Enums;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Models;
 
@@ -8,7 +9,7 @@ namespace WmiExplorer.Models;
 /// </summary>
 public class WmiSearchResult
 {
-    public WmiSearchResult(WmiSearchType searchType, object match, ManagementBaseObject parent)
+    public WmiSearchResult(WmiSearchType searchType, object match, ManagementBaseObject parent, IWmiService? wmiService = null)
     {
         SearchType = searchType;
         Match = match ?? throw new ArgumentNullException(nameof(match));
@@ -18,7 +19,7 @@ public class WmiSearchResult
         switch (searchType)
         {
             case WmiSearchType.Class when match is ManagementClass managementClass:
-                Class = new WmiClass(managementClass);
+                Class = new WmiClass(managementClass, wmiService);
                 NamespacePath = Class.Scope?.Path?.Path ?? string.Empty; // Use full path (\\machine\root\cimv2)
                 break;
             case WmiSearchType.Method when match is MethodData methodData && parent is ManagementClass parentClass:

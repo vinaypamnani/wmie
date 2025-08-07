@@ -98,6 +98,20 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
         _namespaceStates.Clear();
     }
 
+    // Clear results for the current search type only
+    public void ClearCurrentTypeResults()
+    {
+        _results.Clear();
+        if (_searchTypeStates.ContainsKey(SearchType))
+        {
+            DisposeResults(_searchTypeStates[SearchType].Results);
+            _searchTypeStates[SearchType].Results.Clear();
+            // _searchTypeStates[SearchType].SearchQuery = string.Empty;
+        }
+        // SearchQuery = string.Empty;
+        _resultsView?.Refresh();
+    }
+
     /// <summary>
     /// Clears namespace states for a specific namespace and all its children
     /// </summary>
@@ -138,20 +152,6 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             ClearCurrentTypeResults();
             ClearCurrentState();
         }
-    }
-
-    // Clear results for the current search type only
-    public void ClearCurrentTypeResults()
-    {
-        _results.Clear();
-        if (_searchTypeStates.ContainsKey(SearchType))
-        {
-            DisposeResults(_searchTypeStates[SearchType].Results);
-            _searchTypeStates[SearchType].Results.Clear();
-            // _searchTypeStates[SearchType].SearchQuery = string.Empty;
-        }
-        // SearchQuery = string.Empty;
-        _resultsView?.Refresh();
     }
 
     protected override void Dispose(bool disposing)
@@ -332,10 +332,11 @@ public partial class SearchTabViewModel : ResultsViewModelBase<WmiSearchResult>
             var tempResults = new List<WmiSearchResult>();
             foreach (var (match, parent) in searchResults)
             {
-                // Build the search result object for each match
-                var searchResult = new WmiSearchResult(SearchType, match, parent);
+                // Build the search result object for each match with provider information
+                var searchResult = new WmiSearchResult(SearchType, match, parent, _wmiService);
                 tempResults.Add(searchResult);
             }
+
             // Use the base class method to update results and related helpers
             SetResults(tempResults);
 

@@ -99,16 +99,14 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             }
         };
 
-        // The collection view is used for filtering and sorting classes in the UI.
-        _classFilterHelper = new FilterHelper<WmiClassViewModel>(
-            _classes,
-            ClassFilterPredicate
-        );
+        // Initialize filter helper for classes
+        _classFilterHelper = new FilterHelper<WmiClassViewModel>(_classes, ClassFilterPredicate);
 
+        // Set up read-only collections
         Children = new ReadOnlyObservableCollection<WmiNamespaceViewModel>(_children);
         Classes = new ReadOnlyObservableCollection<WmiClassViewModel>(_classes);
 
-        // Set parent namespace if provided
+        // Set parent namespace
         ParentNamespaceViewModel = parentNamespaceViewModel;
     }
 
@@ -148,9 +146,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         {
             if (_managementScope == null)
             {
-                var options = _wmiNamespace.ConnectionOptions;
-                var scopePath = _wmiNamespace.NamespacePath;
-                _managementScope = _wmiService.CreateManagementScope(scopePath, options);
+                _managementScope = _wmiNamespace.CreateManagementScope();
                 _wmiNamespace.IsConnected = true;
             }
             return _managementScope;
@@ -210,7 +206,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 throw new InvalidOperationException("Unable to determine child namespace path from ManagementObject.");
 
             string nsPath = $"{mo.Scope.Path.Path}\\{name}";
-            var wmiNamespace = new WmiNamespace(mo, nsPath, parentNamespaceModel);
+            var wmiNamespace = new WmiNamespace(mo, nsPath, parentNamespaceModel, wmiService);
             WmiNamespaceViewModel vm;
             // Debug.WriteLine($"Creating WmiNamespaceViewModel for path: {nsPath}");
             if (ConfigMgr.SmsClientNamespaceViewModel.IsSmsClientNamespacePath(wmiNamespace.RelativePath))
@@ -274,7 +270,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             throw new ArgumentException("Namespace path cannot be empty", nameof(namespacePath));
 
         var rootMbo = await wmiService.GetRootNamespaceAsync(namespacePath, connectionOptions, cancellationToken);
-        var rootNamespace = new WmiNamespace(rootMbo!, namespacePath, connectionOptions);
+        var rootNamespace = new WmiNamespace(rootMbo!, namespacePath, connectionOptions, wmiService);
         WmiNamespaceViewModel rootViewModel;
         string nsPath = namespacePath;
         if (ConfigMgr.SmsClientNamespaceViewModel.IsSmsClientNamespacePath(rootNamespace.RelativePath))
@@ -406,6 +402,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 directRead: false,
                 useAmendedQualifiers: true,
                 cacheResults: true,
+                enableLogging: false,
                 _cts.Token);
 
             if (_cts.IsCancellationRequested)
@@ -414,7 +411,12 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 return;
             }
 
-            var classModels = wmiClasses.Select(mo => new WmiClass(mo));
+            var classModels = wmiClasses.Select(mo => new WmiClass(mo, _wmiService));
+
+            // Count classes with providers for logging
+            var classesWithProviders = classModels.Count(c => c.Provider != null);
+            Log.Debug("Loaded {ClassCount} classes with {ProviderCount} providers for {NamespacePath}", classModels.Count(), classesWithProviders, NamespacePath);
+
             var classViewModels = WmiClassViewModel.CreateFromCollection(
                 classModels,
                 this,
@@ -482,6 +484,12 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
             _cts.Cancel();
             _cts.Dispose();
             _classFilterHelper.Dispose();
+
+            // Clear provider cache for this namespace when disposing
+            if (!string.IsNullOrEmpty(NamespacePath))
+            {
+                _wmiService.ClearProviderCache(NamespacePath);
+            }
         }
         base.Dispose(disposing);
     }

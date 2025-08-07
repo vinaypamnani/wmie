@@ -4,7 +4,6 @@ using System.Reflection;
 using WmiExplorer.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Providers;
-using WmiExplorer.Services;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
 
@@ -13,11 +12,8 @@ namespace WmiExplorer.Integration.PropertyTypeProvider;
 /// </summary>
 public class WmiPropertyTypeProvider : IPropertyTypeProvider
 {
-    private readonly IWmiService? _wmiService;
-
-    public WmiPropertyTypeProvider(IWmiService? wmiService = null)
+    public WmiPropertyTypeProvider()
     {
-        _wmiService = wmiService;
     }
 
     /// <summary>
@@ -246,14 +242,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     /// </summary>
     private IPropertyDescriptor CreateQualifierDescriptor(QualifierData qualifier, string category, object? source = null)
     {
-        string? providerClsid = null;
-        if (_wmiService != null && string.Equals(qualifier.Name, "provider", StringComparison.OrdinalIgnoreCase) && qualifier.Value is string providerName)
-        {
-            var scope = GetManagementScopeFromSource(source);
-            if (scope != null)
-                providerClsid = _wmiService.GetProviderClsid(scope, providerName);
-        }
-        return new WmiQualifierPropertyDescriptor(qualifier, category, providerClsid);
+        return new WmiQualifierPropertyDescriptor(qualifier, category, source);
     }
 
     /// <summary>
@@ -263,40 +252,6 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
     {
         var categoryAttr = prop.GetCustomAttribute<System.ComponentModel.CategoryAttribute>();
         return categoryAttr?.Category ?? "Misc"; // Use "Misc" as the default if no attribute
-    }
-
-    /// <summary>
-    /// Helper to extract ConnectionOptions from various WMI-related source objects
-    /// </summary>
-    private static ConnectionOptions? GetConnectionOptionsFromSource(object? source)
-    {
-        if (source is ManagementObject mo && mo.Scope != null)
-            return mo.Scope.Options;
-        if (source is ManagementClass mc && mc.Scope != null)
-            return mc.Scope.Options;
-        if (source is WmiClass wmiClass && wmiClass.Scope != null)
-            return wmiClass.Scope.Options;
-        if (source is WmiInstance wmiInstance && wmiInstance.Scope != null)
-            return wmiInstance.Scope.Options;
-        if (source is WmiNamespace wmiNamespace && wmiNamespace.ConnectionOptions != null)
-            return wmiNamespace.ConnectionOptions;
-        return null;
-    }
-
-    /// <summary>
-    /// Helper to extract ManagementScope from various WMI-related source objects
-    /// </summary>
-    private static ManagementScope? GetManagementScopeFromSource(object? source)
-    {
-        if (source is ManagementObject mo && mo.Scope != null)
-            return mo.Scope;
-        if (source is ManagementClass mc && mc.Scope != null)
-            return mc.Scope;
-        if (source is WmiClass wmiClass && wmiClass.Scope != null)
-            return wmiClass.Scope;
-        if (source is WmiInstance wmiInstance && wmiInstance.Scope != null)
-            return wmiInstance.Scope;
-        return null;
     }
 
     /// <summary>

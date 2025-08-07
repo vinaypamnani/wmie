@@ -482,6 +482,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 wqlQuery,
                 false, // directRead: false for instance enumeration
                 false, // useAmendedQualifiers: false for instances
+                enableLogging: false,
                 _cts.Token);
 
             // Map ManagementObject to WmiInstance and create view models for all instances at once.

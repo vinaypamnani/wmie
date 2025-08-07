@@ -11,6 +11,19 @@ public interface IWmiService
     WmiOperationMode OperationMode { get; set; }
 
     /// <summary>
+    /// Gets provider instances from the __provider class in a namespace
+    /// </summary>
+    Task<IEnumerable<ManagementObject>> CacheProviderInstancesAsync(ManagementScope scope, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Clears all provider caches
+    /// </summary>
+    void ClearAllProviderCaches();
+    /// <summary>
+    /// Clears the provider cache for a specific namespace
+    /// </summary>
+    /// <param name="namespacePath">The namespace path to clear cache for</param>
+    void ClearProviderCache(string namespacePath);
+    /// <summary>
     /// Creates a ManagementScope for a given namespace path and optional connection options
     /// </summary>
     /// <param name="namespacePath">The namespace path</param>
@@ -74,6 +87,7 @@ public interface IWmiService
             string queryString,
             bool directRead,
             bool useAmendedQualifiers,
+            bool enableLogging = true,
             CancellationToken cancellationToken = default);
     /// <summary>
     /// Executes a WMI query asynchronously, with optional caching of class metadata if cacheResults is true.
@@ -91,15 +105,20 @@ public interface IWmiService
         bool directRead,
         bool useAmendedQualifiers,
         bool cacheResults,
+        bool enableLogging = true,
         CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Gets a cached provider instance for a specific class in a namespace
+    /// </summary>
+    /// <param name="namespacePath">The namespace path</param>
+    /// <param name="className">The class name</param>
+    /// <param name="classObject">The ManagementBaseObject representing the class</param>
+    /// <returns>The provider instance if found, null otherwise</returns>
+    ManagementObject? GetCachedProviderForClass(string namespacePath, string className, ManagementBaseObject classObject);
     /// <summary>
     /// Enumerates child namespaces for a given WMI namespace (instances of __namespace).
     /// </summary>
     Task<IEnumerable<ManagementObject>> GetChildNamespacesAsync(ManagementScope scope, CancellationToken cancellationToken = default);
-    /// <summary>
-    /// Gets the CLSID for a WMI provider by name (synchronous, returns null if not found or error)
-    /// </summary>
-    string? GetProviderClsid(ManagementScope scope, string providerName);
     /// <summary>
     /// Gets a root ManagementObject for a given namespace path
     /// </summary>
