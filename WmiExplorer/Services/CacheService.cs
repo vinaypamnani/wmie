@@ -426,7 +426,7 @@ public class CacheService : ICacheService
                 )";
             await markPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
-                        // Permanently remove records that have been expired for longer than the prune interval
+            // Permanently remove records that have been expired for longer than the prune interval
             await using var delPropCmd = conn.CreateCommand();
             delPropCmd.CommandText = @"
                 DELETE FROM ClassProperties
