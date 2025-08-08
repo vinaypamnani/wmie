@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
 using System.IO;
-using WmiExplorer.Common.Logging;
 using WmiExplorer.Common.Cache;
+using WmiExplorer.Common.Logging;
 
 namespace WmiExplorer.Services;
 
@@ -10,7 +10,7 @@ namespace WmiExplorer.Services;
 /// </summary>
 public class CacheService : ICacheService
 {
-    private const int CurrentSchemaVersion = 1;
+    private const int CurrentSchemaVersion = 2;
 
     private readonly object _lock = new();
     private Dictionary<string, WmiNamespaceCache>? _memoryCache;
@@ -20,7 +20,8 @@ public class CacheService : ICacheService
         "WmiExplorer",
         "Cache.db");
 
-    private static readonly TimeSpan Expiration = TimeSpan.FromDays(7);
+    private static readonly TimeSpan Expiration = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan PruneInterval = TimeSpan.FromDays(45);
 
     public CacheService()
     {
@@ -106,7 +107,7 @@ public class CacheService : ICacheService
 
             // Load namespaces
             await using var nsCmd = conn.CreateCommand();
-            nsCmd.CommandText = "SELECT NamespaceId, NamespacePath, LastUpdatedUtc FROM Namespaces";
+            nsCmd.CommandText = "SELECT NamespaceId, NamespacePath, LastUpdatedUtc FROM Namespaces WHERE IsExpired = 0";
             await using var reader = await nsCmd.ExecuteReaderAsync().ConfigureAwait(false);
 
             var namespacesData = new List<(int nsId, string nsPath, DateTime lastUpdated)>();
@@ -131,7 +132,7 @@ public class CacheService : ICacheService
 
                 // Load classes for this namespace
                 await using var classCmd = conn.CreateCommand();
-                classCmd.CommandText = "SELECT ClassId, ClassName, IsSystemClass, IsEventClass FROM Classes WHERE NamespaceId = @nsId";
+                classCmd.CommandText = "SELECT ClassId, ClassName, IsSystemClass, IsEventClass FROM Classes WHERE NamespaceId = @nsId AND IsExpired = 0";
                 classCmd.Parameters.AddWithValue("@nsId", nsId);
                 await using var classReader = await classCmd.ExecuteReaderAsync().ConfigureAwait(false);
 
@@ -159,7 +160,7 @@ public class CacheService : ICacheService
 
                     // Load properties for this class
                     await using var propCmd = conn.CreateCommand();
-                    propCmd.CommandText = "SELECT PropertyName, PropertyType FROM ClassProperties WHERE ClassId = @classId";
+                    propCmd.CommandText = "SELECT PropertyName, PropertyType FROM ClassProperties WHERE ClassId = @classId AND IsExpired = 0";
                     propCmd.Parameters.AddWithValue("@classId", classId);
                     await using var propReader = await propCmd.ExecuteReaderAsync().ConfigureAwait(false);
                     while (await propReader.ReadAsync().ConfigureAwait(false))
@@ -248,7 +249,8 @@ public class CacheService : ICacheService
     CREATE TABLE IF NOT EXISTS Namespaces (
         NamespaceId INTEGER PRIMARY KEY AUTOINCREMENT,
         NamespacePath TEXT UNIQUE,
-        LastUpdatedUtc TEXT
+        LastUpdatedUtc TEXT,
+        IsExpired INTEGER DEFAULT 0
     );
     CREATE TABLE IF NOT EXISTS Classes (
         ClassId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -256,17 +258,22 @@ public class CacheService : ICacheService
         ClassName TEXT,
         IsSystemClass INTEGER,
         IsEventClass INTEGER,
+        IsExpired INTEGER DEFAULT 0,
         FOREIGN KEY(NamespaceId) REFERENCES Namespaces(NamespaceId) ON DELETE CASCADE
     );
     CREATE INDEX IF NOT EXISTS idx_Classes_NamespaceId ON Classes(NamespaceId);
+    CREATE INDEX IF NOT EXISTS idx_Classes_IsExpired ON Classes(IsExpired);
     CREATE TABLE IF NOT EXISTS ClassProperties (
         PropertyId INTEGER PRIMARY KEY AUTOINCREMENT,
         ClassId INTEGER,
         PropertyName TEXT,
         PropertyType TEXT,
+        IsExpired INTEGER DEFAULT 0,
         FOREIGN KEY(ClassId) REFERENCES Classes(ClassId) ON DELETE CASCADE
     );
     CREATE INDEX IF NOT EXISTS idx_ClassProperties_ClassId ON ClassProperties(ClassId);
+    CREATE INDEX IF NOT EXISTS idx_ClassProperties_IsExpired ON ClassProperties(IsExpired);
+    CREATE INDEX IF NOT EXISTS idx_Namespaces_IsExpired ON Namespaces(IsExpired);
 ";
         cmd.ExecuteNonQuery();
 
@@ -379,7 +386,8 @@ public class CacheService : ICacheService
     }
 
     /// <summary>
-    /// Asynchronously removes expired namespace cache entries and their related data from the database.
+    /// Asynchronously marks expired namespace cache entries and their related data as expired in the database,
+    /// and permanently removes records that have been expired for longer than the prune interval.
     /// </summary>
     private async Task PruneExpiredCacheAsync()
     {
@@ -387,88 +395,78 @@ public class CacheService : ICacheService
         {
             await using var conn = new SqliteConnection($"Data Source={CacheFilePath}");
             await conn.OpenAsync().ConfigureAwait(false);
-
-            // Select expired namespace IDs and paths together
-            var expiredNamespaces = new Dictionary<long, string>();
-            await using (var selectCmd = conn.CreateCommand())
-            {
-                selectCmd.CommandText = @"
-                SELECT NamespaceId, NamespacePath FROM Namespaces
-                WHERE datetime(LastUpdatedUtc) < datetime('now', @expiration)";
-                selectCmd.Parameters.AddWithValue("@expiration", $"-{Expiration.TotalDays} days");
-
-                await using var reader = await selectCmd.ExecuteReaderAsync().ConfigureAwait(false);
-                while (await reader.ReadAsync().ConfigureAwait(false))
-                {
-                    var nsId = reader.GetInt64(0);
-                    var nsPath = reader.GetString(1);
-                    expiredNamespaces.Add(nsId, nsPath);
-                }
-            }
-
-            if (expiredNamespaces.Count == 0)
-                return; // Nothing to do
-
-            // Now delete the data with a transaction
             await using var tx = await conn.BeginTransactionAsync().ConfigureAwait(false);
 
-            foreach (var nsId in expiredNamespaces.Keys)
-            {
-                // Delete properties for all classes in this namespace
-                await using (var delPropCmd = conn.CreateCommand())
-                {
-                    delPropCmd.CommandText = @"
-                    DELETE FROM ClassProperties WHERE ClassId IN
-                    (SELECT ClassId FROM Classes WHERE NamespaceId = @nsId)";
-                    delPropCmd.Parameters.AddWithValue("@nsId", nsId);
-                    await delPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+            // Mark expired namespaces (soft delete)
+            await using var markNsCmd = conn.CreateCommand();
+            markNsCmd.CommandText = @"
+                UPDATE Namespaces
+                SET IsExpired = 1
+                WHERE datetime(LastUpdatedUtc) < datetime('now', @expiration)";
+            markNsCmd.Parameters.AddWithValue("@expiration", $"-{Expiration.TotalDays} days");
+            await markNsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
-                // Delete classes for this namespace
-                await using (var delClassCmd = conn.CreateCommand())
-                {
-                    delClassCmd.CommandText = "DELETE FROM Classes WHERE NamespaceId = @nsId";
-                    delClassCmd.Parameters.AddWithValue("@nsId", nsId);
-                    await delClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+            // Mark expired classes (soft delete)
+            await using var markClassCmd = conn.CreateCommand();
+            markClassCmd.CommandText = @"
+                UPDATE Classes
+                SET IsExpired = 1
+                WHERE NamespaceId IN (
+                    SELECT NamespaceId FROM Namespaces WHERE IsExpired = 1
+                )";
+            await markClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
-                // Delete the namespace itself
-                await using (var delNsCmd = conn.CreateCommand())
-                {
-                    delNsCmd.CommandText = "DELETE FROM Namespaces WHERE NamespaceId = @nsId";
-                    delNsCmd.Parameters.AddWithValue("@nsId", nsId);
-                    await delNsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
-            }
+            // Mark expired properties (soft delete)
+            await using var markPropCmd = conn.CreateCommand();
+            markPropCmd.CommandText = @"
+                UPDATE ClassProperties
+                SET IsExpired = 1
+                WHERE ClassId IN (
+                    SELECT ClassId FROM Classes WHERE IsExpired = 1
+                )";
+            await markPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+                        // Permanently remove records that have been expired for longer than the prune interval
+            await using var delPropCmd = conn.CreateCommand();
+            delPropCmd.CommandText = @"
+                DELETE FROM ClassProperties
+                WHERE IsExpired = 1
+                AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)";
+            delPropCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
+            await delPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+            await using var delClassCmd = conn.CreateCommand();
+            delClassCmd.CommandText = @"
+                DELETE FROM Classes
+                WHERE IsExpired = 1
+                AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)";
+            delClassCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
+            await delClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+            await using var delNsCmd = conn.CreateCommand();
+            delNsCmd.CommandText = @"
+                DELETE FROM Namespaces
+                WHERE IsExpired = 1
+                AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)";
+            delNsCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
+            await delNsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
             await tx.CommitAsync().ConfigureAwait(false);
 
-            // Now update the in-memory cache with the paths we saved earlier
-            bool removed = false;
+            // Update in-memory cache to remove expired entries
             lock (_lock)
             {
                 if (_memoryCache != null)
                 {
-                    foreach (var nsPath in expiredNamespaces.Values)
-                    {
-                        if (_memoryCache.Remove(nsPath))
-                            removed = true;
-                    }
-                }
-            }
+                    var expiredPaths = _memoryCache
+                        .Where(kvp => kvp.Value.LastUpdatedUtc.Add(Expiration) < DateTime.UtcNow)
+                        .Select(kvp => kvp.Key)
+                        .ToList();
 
-            // Only reclaim disk space by running VACUUM if something was actually removed
-            if (removed)
-            {
-                try
-                {
-                    await using var vacuumCmd = conn.CreateCommand();
-                    vacuumCmd.CommandText = "VACUUM;";
-                    await vacuumCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
-                catch (Exception exVacuum)
-                {
-                    Log.Error(exVacuum, "Error running VACUUM after pruning expired cache");
+                    foreach (var path in expiredPaths)
+                    {
+                        _memoryCache.Remove(path);
+                    }
                 }
             }
         }
@@ -548,40 +546,47 @@ public class CacheService : ICacheService
     /// </summary>
     private static async Task<long> UpsertClassAsync(SqliteConnection conn, long nsId, WmiClassCache classCache)
     {
-        // Try update first
-        await using (var updateCmd = conn.CreateCommand())
+        // Check if class exists (including expired)
+        await using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT ClassId, IsExpired FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
+        checkCmd.Parameters.AddWithValue("@nsId", nsId);
+        checkCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
+
+        var result = await checkCmd.ExecuteScalarAsync().ConfigureAwait(false);
+
+        if (result != null)
         {
-            updateCmd.CommandText = @"UPDATE Classes SET IsSystemClass = @sys, IsEventClass = @evt
-                                      WHERE NamespaceId = @nsId AND ClassName = @cn";
+            // Class exists - reactivate and update
+            var classId = Convert.ToInt64(result);
+
+            await using var updateCmd = conn.CreateCommand();
+            updateCmd.CommandText = @"
+                UPDATE Classes
+                SET IsSystemClass = @sys, IsEventClass = @evt, IsExpired = 0
+                WHERE ClassId = @classId";
             updateCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
             updateCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
-            updateCmd.Parameters.AddWithValue("@nsId", nsId);
-            updateCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
-            int rows = await updateCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+            updateCmd.Parameters.AddWithValue("@classId", classId);
+            await updateCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
-            if (rows > 0)
-            {
-                // Get ClassId
-                await using var getCmd = conn.CreateCommand();
-                getCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
-                getCmd.Parameters.AddWithValue("@nsId", nsId);
-                getCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
-                return (long)(await getCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
-            }
+            return classId;
         }
+        else
+        {
+            // Class doesn't exist - create new
+            await using var insertCmd = conn.CreateCommand();
+            insertCmd.CommandText = @"
+                INSERT INTO Classes (NamespaceId, ClassName, IsSystemClass, IsEventClass, IsExpired)
+                VALUES (@nsId, @cn, @sys, @evt, 0)";
+            insertCmd.Parameters.AddWithValue("@nsId", nsId);
+            insertCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
+            insertCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
+            insertCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
+            await insertCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
-        // Insert if not exists
-        await using var insCmd = conn.CreateCommand();
-        insCmd.CommandText = @"INSERT INTO Classes (NamespaceId, ClassName, IsSystemClass, IsEventClass)
-                               VALUES (@nsId, @cn, @sys, @evt);";
-        insCmd.Parameters.AddWithValue("@nsId", nsId);
-        insCmd.Parameters.AddWithValue("@cn", classCache.ClassName);
-        insCmd.Parameters.AddWithValue("@sys", classCache.IsSystemClass ? 1 : 0);
-        insCmd.Parameters.AddWithValue("@evt", classCache.IsEventClass ? 1 : 0);
-        await insCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-
-        insCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
-        return (long)(await insCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+            insertCmd.CommandText = "SELECT ClassId FROM Classes WHERE NamespaceId = @nsId AND ClassName = @cn";
+            return (long)(await insertCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+        }
     }
 
     /// <summary>
@@ -589,15 +594,43 @@ public class CacheService : ICacheService
     /// </summary>
     private static async Task<long> UpsertNamespaceAsync(SqliteConnection conn, WmiNamespaceCache namespaceCache)
     {
-        await using var nsCmd = conn.CreateCommand();
-        nsCmd.CommandText = @"INSERT INTO Namespaces (NamespacePath, LastUpdatedUtc) VALUES (@ns, @dt)
-                              ON CONFLICT(NamespacePath) DO UPDATE SET LastUpdatedUtc = excluded.LastUpdatedUtc;";
-        nsCmd.Parameters.AddWithValue("@ns", namespaceCache.NamespacePath);
-        nsCmd.Parameters.AddWithValue("@dt", namespaceCache.LastUpdatedUtc.ToString("o"));
-        await nsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+        // First, check if namespace exists (including expired ones)
+        await using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT NamespaceId, IsExpired FROM Namespaces WHERE NamespacePath = @ns";
+        checkCmd.Parameters.AddWithValue("@ns", namespaceCache.NamespacePath);
 
-        nsCmd.CommandText = "SELECT NamespaceId FROM Namespaces WHERE NamespacePath = @ns";
-        return (long)(await nsCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+        var result = await checkCmd.ExecuteScalarAsync().ConfigureAwait(false);
+
+        if (result != null)
+        {
+            // Namespace exists - reactivate and update
+            var nsId = Convert.ToInt64(result);
+
+            await using var updateCmd = conn.CreateCommand();
+            updateCmd.CommandText = @"
+                UPDATE Namespaces
+                SET LastUpdatedUtc = @dt, IsExpired = 0
+                WHERE NamespaceId = @nsId";
+            updateCmd.Parameters.AddWithValue("@dt", namespaceCache.LastUpdatedUtc.ToString("o"));
+            updateCmd.Parameters.AddWithValue("@nsId", nsId);
+            await updateCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+            return nsId;
+        }
+        else
+        {
+            // Namespace doesn't exist - create new
+            await using var insertCmd = conn.CreateCommand();
+            insertCmd.CommandText = @"
+                INSERT INTO Namespaces (NamespacePath, LastUpdatedUtc, IsExpired)
+                VALUES (@ns, @dt, 0)";
+            insertCmd.Parameters.AddWithValue("@ns", namespaceCache.NamespacePath);
+            insertCmd.Parameters.AddWithValue("@dt", namespaceCache.LastUpdatedUtc.ToString("o"));
+            await insertCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+            insertCmd.CommandText = "SELECT NamespaceId FROM Namespaces WHERE NamespacePath = @ns";
+            return (long)(await insertCmd.ExecuteScalarAsync().ConfigureAwait(false))!;
+        }
     }
 
     /// <summary>
@@ -605,27 +638,38 @@ public class CacheService : ICacheService
     /// </summary>
     private static async Task UpsertPropertyAsync(SqliteConnection conn, long classId, WmiPropertyCache prop)
     {
-        // Try update first
-        await using (var updateCmd = conn.CreateCommand())
+        // Check if property exists (including expired)
+        await using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT PropertyId, IsExpired FROM ClassProperties WHERE ClassId = @classId AND PropertyName = @pn";
+        checkCmd.Parameters.AddWithValue("@classId", classId);
+        checkCmd.Parameters.AddWithValue("@pn", prop.Name);
+
+        var result = await checkCmd.ExecuteScalarAsync().ConfigureAwait(false);
+
+        if (result != null)
         {
-            updateCmd.CommandText = @"UPDATE ClassProperties SET PropertyType = @pt
-                                      WHERE ClassId = @classId AND PropertyName = @pn";
+            // Property exists - reactivate and update
+            await using var updateCmd = conn.CreateCommand();
+            updateCmd.CommandText = @"
+                UPDATE ClassProperties
+                SET PropertyType = @pt, IsExpired = 0
+                WHERE ClassId = @classId AND PropertyName = @pn";
             updateCmd.Parameters.AddWithValue("@pt", prop.Type);
             updateCmd.Parameters.AddWithValue("@classId", classId);
             updateCmd.Parameters.AddWithValue("@pn", prop.Name);
-            int rows = await updateCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
-
-            if (rows > 0)
-                return;
+            await updateCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
-
-        // Insert if not exists
-        await using var insCmd = conn.CreateCommand();
-        insCmd.CommandText = @"INSERT INTO ClassProperties (ClassId, PropertyName, PropertyType)
-                               VALUES (@classId, @pn, @pt)";
-        insCmd.Parameters.AddWithValue("@classId", classId);
-        insCmd.Parameters.AddWithValue("@pn", prop.Name);
-        insCmd.Parameters.AddWithValue("@pt", prop.Type);
-        await insCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+        else
+        {
+            // Property doesn't exist - create new
+            await using var insertCmd = conn.CreateCommand();
+            insertCmd.CommandText = @"
+                INSERT INTO ClassProperties (ClassId, PropertyName, PropertyType, IsExpired)
+                VALUES (@classId, @pn, @pt, 0)";
+            insertCmd.Parameters.AddWithValue("@classId", classId);
+            insertCmd.Parameters.AddWithValue("@pn", prop.Name);
+            insertCmd.Parameters.AddWithValue("@pt", prop.Type);
+            await insertCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+        }
     }
 }
