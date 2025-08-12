@@ -29,12 +29,11 @@
             </Grid.RowDefinitions>
             <!--  Header Area - Draggable  -->
             <Border Grid.Row="0"
-                    Padding="16,8,16,8"
+                    Padding="8"
                     behaviors:HyperlinkNavigationBehavior.IsEnabled="True"
                     behaviors:WindowDragBehavior.IsDragEnabled="True"
-                    Background="{DynamicResource PrimaryBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="0,0,0,0">
+                    Background="{DynamicResource SecondaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}">
                 <!--  Header content with subtle accent strip  -->
                 <StackPanel Orientation="Vertical">
 
@@ -115,7 +114,7 @@
 
                     <!--  Accent underline  -->
                     <Rectangle Height="2"
-                               Margin="0,2,0,2"
+                               Margin="0,8,0,0"
                                HorizontalAlignment="Stretch"
                                Fill="{DynamicResource PrimaryAccentBrush}" />
                 </StackPanel>

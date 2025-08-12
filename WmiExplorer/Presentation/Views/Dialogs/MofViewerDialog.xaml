@@ -18,7 +18,7 @@
     <Border Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
-            CornerRadius="6">
+            CornerRadius="3">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -28,10 +28,9 @@
 
             <!--  Header Area  -->
             <Border Grid.Row="0"
-                    Margin="8,0,8,0"
                     Padding="8"
                     behaviors:WindowDragBehavior.IsDragEnabled="True"
-                    Background="{DynamicResource PrimaryBackgroundBrush}"
+                    Background="{DynamicResource SecondaryBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}">
                 <StackPanel Orientation="Vertical">
                     <TextBlock FontSize="18"

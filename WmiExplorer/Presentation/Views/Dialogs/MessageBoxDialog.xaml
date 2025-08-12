@@ -20,18 +20,24 @@
     <Border Background="{DynamicResource PrimaryBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
-            CornerRadius="8">
+            CornerRadius="3">
         <DockPanel LastChildFill="True">
             <!--  Custom Title Bar  -->
-            <Border Padding="16,8,16,8"
+            <Border Padding="8"
                     behaviors:WindowDragBehavior.IsDragEnabled="True"
                     Background="{DynamicResource SecondaryBackgroundBrush}"
-                    CornerRadius="8,8,0,0"
+                    BorderBrush="{DynamicResource BorderBrush}"
                     DockPanel.Dock="Top">
-                <TextBlock FontSize="16"
-                           FontWeight="Bold"
-                           Foreground="{DynamicResource PrimaryForegroundBrush}"
-                           Text="{Binding Title}" />
+                <StackPanel Orientation="Vertical">
+                    <TextBlock FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryForegroundBrush}"
+                               Text="{Binding Title}" />
+                    <Rectangle Height="2"
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource PrimaryAccentBrush}" />
+                </StackPanel>
             </Border>
             <!--  Main Content  -->
             <Grid Margin="16">

@@ -33,11 +33,10 @@
 
             <!--  Header Area  -->
             <Border Grid.Row="0"
-                    Padding="16,12,16,12"
+                    Padding="8"
                     behaviors:WindowDragBehavior.IsDragEnabled="True"
-                    Background="{DynamicResource PrimaryBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="0,0,0,1">
+                    Background="{DynamicResource SecondaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}">
                 <StackPanel Orientation="Vertical">
 
                     <StackPanel Orientation="Horizontal">
