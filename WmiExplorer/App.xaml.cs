@@ -75,9 +75,21 @@ public partial class App : Application
         var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
         Log.SetMinimumLevel(settingsService.LogLevel);
 
-        // Initialize theme
+        // Initialize theme first (loads current accent colors from file)
         var themeManager = ServiceProvider.GetRequiredService<ThemeManager>();
         themeManager.InitializeTheme();
+
+        // Check if app version is higher than stored version and reset themes if needed
+        var themesWereReset = CheckForVersionUpdateAndResetThemes(settingsService);
+
+        // Set the current version in auto-update settings
+        settingsService.AutoUpdateSettings.CurrentVersion = VersionInfo.AppVersion;
+
+        // Re-apply theme if it was reset (to ensure reset themes are applied)
+        if (themesWereReset)
+        {
+            themeManager.ApplyTheme(themeManager.CurrentThemeName);
+        }
 
         // Register Base WMI providers for PropertyGrid using the new generic method
         ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(), new WmiPropertyValueConverter());
@@ -96,6 +108,42 @@ public partial class App : Application
 
     [DllImport("kernel32.dll")]
     private static extern bool AttachConsole(int dwProcessId);
+
+    private bool CheckForVersionUpdateAndResetThemes(ISettingsService settingsService)
+    {
+        var currentAppVersion = VersionInfo.AppVersion;
+        var storedVersion = settingsService.AutoUpdateSettings.CurrentVersion;
+
+        if (!string.IsNullOrEmpty(storedVersion) && !string.IsNullOrEmpty(currentAppVersion))
+        {
+            if (Version.TryParse(currentAppVersion, out var current) && Version.TryParse(storedVersion, out var stored))
+            {
+                if (current > stored)
+                {
+                    Log.Information($"App updated from version {stored} to {current}. Resetting themes to defaults.");
+                    ThemeManager.ResetAllThemesToDefaultsPreservingAccents();
+                    return true; // Indicate that themes were reset
+                }
+                else if (current == stored)
+                {
+                    Log.Debug($"App version unchanged: {currentAppVersion}");
+                }
+                else
+                {
+                    Log.Warning($"Stored version {stored} is higher than current app version {current}. This may indicate a downgrade or version mismatch.");
+                }
+            }
+            else
+            {
+                Log.Warning($"Version parsing failed. Stored: '{storedVersion}', Current: '{currentAppVersion}'");
+            }
+        }
+        else
+        {
+            Log.Information($"First run or no stored version. Current app version: {currentAppVersion}");
+        }
+        return false; // Indicate that themes were not reset
+    }
 
     /// <summary>
     /// Configures the service locator with all required services

@@ -11,6 +11,9 @@ public partial class AutoUpdateSettings : ObservableObject
     private bool _checkOnStartup = true;
 
     [ObservableProperty]
+    private string _currentVersion = string.Empty;
+
+    [ObservableProperty]
     private int _intervalDays = 7;
 
     [ObservableProperty]

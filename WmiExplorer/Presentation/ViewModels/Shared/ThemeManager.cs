@@ -216,6 +216,16 @@ public partial class ThemeManager : ObservableObject
     }
 
     /// <summary>
+    /// Resets both Light and Dark themes to their defaults, preserving accent colors.
+    /// </summary>
+    public static void ResetAllThemesToDefaultsPreservingAccents()
+    {
+        ResetThemeColorsPreservingAccents(ThemeCollection.DarkTheme.ThemeName);
+        ResetThemeColorsPreservingAccents(ThemeCollection.LightTheme.ThemeName);
+        SaveThemesToFile();
+    }
+
+    /// <summary>
     /// Resets both Light and Dark themes (preserving accent colors) and refreshes the current theme.
     /// Intended for Help -> Reset Theme menu action.
     /// </summary>
@@ -266,16 +276,6 @@ public partial class ThemeManager : ObservableObject
             SaveThemesToFile();
             ApplyTheme(CurrentThemeName); // Refresh theme
         }
-    }
-
-    /// <summary>
-    /// Resets both Light and Dark themes to their defaults, preserving accent colors.
-    /// </summary>
-    private static void ResetAllThemesToDefaultsPreservingAccents()
-    {
-        ResetThemeColorsPreservingAccents(ThemeCollection.DarkTheme.ThemeName);
-        ResetThemeColorsPreservingAccents(ThemeCollection.LightTheme.ThemeName);
-        SaveThemesToFile();
     }
 
     /// <summary>
