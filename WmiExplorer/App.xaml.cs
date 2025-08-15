@@ -120,7 +120,7 @@ public partial class App : Application
             {
                 if (current > stored)
                 {
-                    Log.Information($"App updated from version {stored} to {current}. Resetting themes to defaults.");
+                    Log.Information($"App updated from version {stored} to {current}. Resetting themes to defaults, preserving accent colors.");
                     ThemeManager.ResetAllThemesToDefaultsPreservingAccents();
                     return true; // Indicate that themes were reset
                 }
