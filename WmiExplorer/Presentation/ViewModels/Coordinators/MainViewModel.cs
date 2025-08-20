@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Diagnostics;
+using System.Security.Principal;
 using System.Windows;
 using WmiExplorer.Common.Base;
 using WmiExplorer.Common.Enums;
@@ -134,7 +136,18 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         //     Application.Current.MainWindow);
     }
 
+    /// <summary>
+    /// Gets whether the "Run as Administrator" menu item should be enabled
+    /// </summary>
+    public bool CanRunAsAdministrator => !IsRunningAsAdministrator;
+
     public List<object> DebugObjects { get; }
+
+    /// <summary>
+    /// Gets whether the application is currently running as administrator
+    /// </summary>
+    public bool IsRunningAsAdministrator => IsElevated();
+
     public SettingsManager SettingsManager => _settingsManager;
 
     /// <summary>
@@ -332,6 +345,25 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         SelectedTabIndex = message.TabIndex;
     }
 
+    /// <summary>
+    /// Checks if the current process is running with elevated privileges
+    /// </summary>
+    /// <returns>True if the process is running as administrator, false otherwise</returns>
+    private static bool IsElevated()
+    {
+        try
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+        catch
+        {
+            // If we can't determine elevation status, assume not elevated for safety
+            return false;
+        }
+    }
+
     partial void OnSelectedDebugObjectChanged(object? value)
     {
         // When changing debug selection, update the property grid
@@ -447,6 +479,38 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         result.Add(this);
 
         return result.OrderBy(x => x.GetType().FullName).ToList();
+    }
+
+    /// <summary>
+    /// Command to restart the application as administrator
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanRunAsAdministrator))]
+    private void RunAsAdministrator()
+    {
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = Process.GetCurrentProcess().MainModule?.FileName ?? System.Reflection.Assembly.GetExecutingAssembly().Location,
+                UseShellExecute = true,
+                Verb = "runas"
+            };
+
+            Process.Start(startInfo);
+
+            // Exit the current instance
+            Exit();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to restart application as administrator");
+            WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialog.Show(
+                "Failed to restart as administrator. Please right-click the application and select 'Run as administrator'.",
+                "Error",
+                WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialogButton.OK,
+                WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialogIcon.Error,
+                Application.Current.MainWindow);
+        }
     }
 
     /// <summary>

@@ -60,6 +60,10 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE711;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="ShieldIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE7EF;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="InfoIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE946;" />
     </DataTemplate>

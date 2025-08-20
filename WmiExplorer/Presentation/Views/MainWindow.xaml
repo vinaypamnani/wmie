@@ -44,6 +44,12 @@
             </Menu.ItemsPanel>
 
             <MenuItem Header="_File">
+                <MenuItem Command="{Binding RunAsAdministratorCommand}" Header="Run as _Administrator" ToolTip="Restart the application with administrator privileges">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource ShieldIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator Style="{StaticResource ModernSeparatorStyle}" />
                 <MenuItem Command="{Binding ExitCommand}"
                           Header="E_xit"
                           InputGestureText="Ctrl+Q"
