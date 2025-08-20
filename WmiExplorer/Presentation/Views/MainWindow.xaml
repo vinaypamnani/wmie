@@ -76,6 +76,24 @@
                 </MenuItem>
             </MenuItem>
 
+            <MenuItem Header="_Start">
+                <MenuItem Command="{Binding LaunchWbemtestCommand}" Header="_Wbemtest.exe" ToolTip="Launch Windows WMI Tester (wbemtest.exe)">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource WbemtestIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Command="{Binding LaunchWmiMgmtCommand}" Header="_WmiMgmt.msc" ToolTip="Launch Windows WMI Management Console (wmimgmt.msc)">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource WmiMgmtIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Command="{Binding LaunchDcomCnfgCommand}" Header="_DCOMCnfg.exe" ToolTip="Launch Windows Component Services (dcomcnfg.exe)">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource DcomCnfgIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+
             <MenuItem Header="_Help">
                 <MenuItem Command="{Binding ShowAboutCommand}" Header="About WmiExplorer" ToolTip="Show information about WmiExplorer">
                     <MenuItem.Icon>
@@ -88,7 +106,6 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-
 
             <MenuItem helpers:MenuItemHelper.IsHyperlinkMenuItem="True"
                       Command="{Binding UpdateManager.OpenReleaseUrlCommand}"

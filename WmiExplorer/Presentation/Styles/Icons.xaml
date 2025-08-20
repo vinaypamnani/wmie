@@ -64,6 +64,18 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE7EF;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="WbemtestIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE756;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="WmiMgmtIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE756;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="DcomCnfgIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE756;" />
+    </DataTemplate>
+
     <DataTemplate x:Key="InfoIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE946;" />
     </DataTemplate>

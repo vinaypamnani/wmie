@@ -364,6 +364,60 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         }
     }
 
+    /// <summary>
+    /// Command to launch Windows Component Services (dcomcnfg.exe)
+    /// </summary>
+    [RelayCommand]
+    private void LaunchDcomCnfg()
+    {
+        LaunchExternalProcess("dcomcnfg.exe", "Component Services");
+    }
+
+    /// <summary>
+    /// Common method to launch external processes with error handling
+    /// </summary>
+    /// <param name="fileName">The name of the executable or file to launch</param>
+    /// <param name="displayName">The display name for error messages</param>
+    private void LaunchExternalProcess(string fileName, string displayName)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = fileName,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to launch {FileName}", fileName);
+            WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialog.Show(
+                $"Failed to launch {displayName} ({fileName}). Please ensure it is available on your system.",
+                "Error",
+                WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialogButton.OK,
+                WmiExplorer.Presentation.Views.Dialogs.MessageBoxDialogIcon.Error,
+                Application.Current.MainWindow);
+        }
+    }
+
+    /// <summary>
+    /// Command to launch Windows WMI Tester (wbemtest.exe)
+    /// </summary>
+    [RelayCommand]
+    private void LaunchWbemtest()
+    {
+        LaunchExternalProcess("wbemtest.exe", "WMI Tester");
+    }
+
+    /// <summary>
+    /// Command to launch Windows WMI Management Console (wmimgmt.msc)
+    /// </summary>
+    [RelayCommand]
+    private void LaunchWmiMgmt()
+    {
+        LaunchExternalProcess("wmimgmt.msc", "WMI Management Console");
+    }
+
     partial void OnSelectedDebugObjectChanged(object? value)
     {
         // When changing debug selection, update the property grid
