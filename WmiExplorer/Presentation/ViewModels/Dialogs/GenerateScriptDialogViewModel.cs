@@ -27,6 +27,7 @@ public partial class GenerateScriptDialogViewModel : DisposableObservableObject
     private string _computerName = Environment.MachineName;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CopyOutputCommand), nameof(SaveOutputCommand))]
     private string _executionOutput = string.Empty;
 
     [ObservableProperty]
@@ -238,20 +239,13 @@ public partial class GenerateScriptDialogViewModel : DisposableObservableObject
     /// <summary>
     /// Command to copy the execution output to clipboard.
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HasOutput))]
     private void CopyOutput()
     {
         try
         {
-            if (!string.IsNullOrWhiteSpace(ExecutionOutput))
-            {
-                Clipboard.SetText(ExecutionOutput);
-                Log.Information("Execution output copied to clipboard");
-            }
-            else
-            {
-                MessageBoxDialog.Show("No execution output to copy.", "Copy Output", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Information, _window);
-            }
+            Clipboard.SetText(ExecutionOutput);
+            Log.Information("Execution output copied to clipboard");
         }
         catch (Exception ex)
         {
@@ -833,6 +827,11 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
         };
     }
 
+    /// <summary>
+    /// Determines if the copy output command can be executed.
+    /// </summary>
+    private bool HasOutput() => !string.IsNullOrWhiteSpace(ExecutionOutput);
+
     partial void OnComputerNameChanged(string value)
     {
         if (!IsScriptEditable)
@@ -904,6 +903,35 @@ $Host.UI.RawUI.BackgroundColor = 'Black'
     partial void OnUsePS7Changed(bool value)
     {
         // No need to regenerate script for this change
+    }
+
+    /// <summary>
+    /// Command to save the execution output to a file.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HasOutput))]
+    private void SaveOutput()
+    {
+        try
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Text Files (*.txt)|*.txt|Log Files (*.log)|*.log|All Files (*.*)|*.*",
+                DefaultExt = "txt",
+                FileName = $"WMI_Output_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                File.WriteAllText(saveFileDialog.FileName, ExecutionOutput, Encoding.UTF8);
+                Log.Information("Execution output saved to file: {FileName}", saveFileDialog.FileName);
+                MessageBoxDialog.Show($"Execution output saved successfully to:\n{saveFileDialog.FileName}", "Save Successful", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Information, _window);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to save execution output to file");
+            MessageBoxDialog.Show($"Failed to save execution output to file: {ex.Message}", "Save Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Error, _window);
+        }
     }
 
     /// <summary>

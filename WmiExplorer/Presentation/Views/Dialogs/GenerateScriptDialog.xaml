@@ -120,7 +120,7 @@
                         <StackPanel Margin="4">
                             <CheckBox Margin="0,4" Content="Include Error Handling" IsChecked="{Binding IncludeErrorHandling}" />
                             <CheckBox Margin="0,4" Content="Include Comments" IsChecked="{Binding IncludeComments}" />
-                            <CheckBox Margin="0,8,0,4" Content="Use PS7 (pwsh.exe)" IsChecked="{Binding UsePS7}" />
+                            <CheckBox Margin="0,4" Content="Use PS7 (pwsh.exe)" IsChecked="{Binding UsePS7}" />
                             <TextBlock FontSize="10"
                                        Foreground="{DynamicResource SecondaryForegroundBrush}"
                                        Text="When checked, uses PowerShell 7 (pwsh.exe). When unchecked, uses Windows PowerShell (powershell.exe)."
@@ -154,6 +154,14 @@
 
                                 <!--  Script Options and Actions  -->
                                 <StackPanel VerticalAlignment="Center" DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <!--  Script Action Buttons  -->
+                                    <Button Command="{Binding ExecuteScriptCommand}" Content="Execute" IsEnabled="{Binding IsExecuting, Converter={StaticResource BooleanInverterConverter}}" />
+                                    <Button Command="{Binding CopyToClipboardCommand}" Content="Copy Script" />
+                                    <Button Command="{Binding SaveToFileCommand}" Content="Save" />
+                                </StackPanel>
+
+                                <!--  Script Options and Actions  -->
+                                <StackPanel VerticalAlignment="Center" DockPanel.Dock="Right" Orientation="Horizontal">
                                     <!--  Edit Script Toggle  -->
                                     <CheckBox Margin="8,0,8,0"
                                               VerticalAlignment="Center"
@@ -163,14 +171,6 @@
                                             <TextBlock MaxWidth="300" Text="When checked, you can edit the generated script directly. When unchecked, the script is read-only and will be regenerated when options change." TextWrapping="Wrap" />
                                         </CheckBox.ToolTip>
                                     </CheckBox>
-
-                                    <!--  Script Action Buttons  -->
-                                    <Button Margin="2,0"
-                                            Command="{Binding ExecuteScriptCommand}"
-                                            Content="Execute"
-                                            IsEnabled="{Binding IsExecuting, Converter={StaticResource BooleanInverterConverter}}" />
-                                    <Button Margin="2,0" Command="{Binding CopyToClipboardCommand}" Content="Copy Script" />
-                                    <Button Margin="2,0" Command="{Binding SaveToFileCommand}" Content="Save" />
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -233,8 +233,9 @@
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="0,0,0,0">
                             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                <Button Margin="2,0" Command="{Binding CopyOutputCommand}" Content="Copy Output" />
-                                <Button Margin="2,0" Command="{Binding CancelCommand}" Content="Close" />
+                                <Button Command="{Binding CopyOutputCommand}" Content="Copy Output" />
+                                <Button Command="{Binding SaveOutputCommand}" Content="Save Output" />
+                                <Button Command="{Binding CancelCommand}" Content="Close" />
                             </StackPanel>
                         </Border>
                     </Grid>
