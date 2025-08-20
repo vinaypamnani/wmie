@@ -138,47 +138,50 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="2*" MinHeight="150" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="1*" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="1*" />
+                            <RowDefinition Height="1*" MinHeight="100" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--  Script Preview Header  -->
+                        <!--  Script Preview Header with Options  -->
                         <Border Grid.Row="0" Padding="8,4" Background="{DynamicResource SecondaryBackgroundBrush}">
-                            <TextBlock FontWeight="SemiBold" Text="Generated Script Preview" />
-                        </Border>
-
-                        <!--  Script Options and Actions  -->
-                        <Border Grid.Row="1" Padding="8,4" Background="{DynamicResource PrimaryBackgroundBrush}">
                             <DockPanel>
-                                <!--  Edit Script Toggle  -->
-                                <CheckBox VerticalAlignment="Center"
-                                          Content="Edit Script"
-                                          DockPanel.Dock="Left"
-                                          IsChecked="{Binding IsScriptEditable}">
-                                    <CheckBox.ToolTip>
-                                        <TextBlock MaxWidth="300" Text="When checked, you can edit the generated script directly. When unchecked, the script is read-only and will be regenerated when options change." TextWrapping="Wrap" />
-                                    </CheckBox.ToolTip>
-                                </CheckBox>
+                                <TextBlock VerticalAlignment="Center"
+                                           DockPanel.Dock="Left"
+                                           FontWeight="SemiBold"
+                                           Text="Generated Script Preview" />
 
-                                <!--  Script Action Buttons  -->
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Button Command="{Binding ExecuteScriptCommand}" Content="Execute" IsEnabled="{Binding IsExecuting, Converter={StaticResource BooleanInverterConverter}}" />
-                                    <Button Command="{Binding CopyToClipboardCommand}" Content="Copy Script" />
-                                    <Button Command="{Binding SaveToFileCommand}" Content="Save" />
+                                <!--  Script Options and Actions  -->
+                                <StackPanel VerticalAlignment="Center" DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <!--  Edit Script Toggle  -->
+                                    <CheckBox Margin="8,0,8,0"
+                                              VerticalAlignment="Center"
+                                              Content="Edit Script"
+                                              IsChecked="{Binding IsScriptEditable}">
+                                        <CheckBox.ToolTip>
+                                            <TextBlock MaxWidth="300" Text="When checked, you can edit the generated script directly. When unchecked, the script is read-only and will be regenerated when options change." TextWrapping="Wrap" />
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
+
+                                    <!--  Script Action Buttons  -->
+                                    <Button Margin="2,0"
+                                            Command="{Binding ExecuteScriptCommand}"
+                                            Content="Execute"
+                                            IsEnabled="{Binding IsExecuting, Converter={StaticResource BooleanInverterConverter}}" />
+                                    <Button Margin="2,0" Command="{Binding CopyToClipboardCommand}" Content="Copy Script" />
+                                    <Button Margin="2,0" Command="{Binding SaveToFileCommand}" Content="Save" />
                                 </StackPanel>
                             </DockPanel>
                         </Border>
 
                         <!--  Script Text Area  -->
-                        <TextBox Grid.Row="2"
+                        <TextBox Grid.Row="1"
                                  Padding="8"
                                  AcceptsReturn="True"
                                  AcceptsTab="True"
-                                 BorderThickness="0"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 BorderThickness="0,0,0,1"
                                  FontFamily="Consolas"
                                  FontSize="11"
                                  HorizontalScrollBarVisibility="Disabled"
@@ -188,41 +191,50 @@
                                  VerticalScrollBarVisibility="Auto" />
 
                         <!--  GridSplitter  -->
-                        <GridSplitter Grid.Row="3"
+                        <GridSplitter Grid.Row="2"
                                       Margin="4,0,4,4"
                                       ResizeDirection="Rows"
                                       Style="{StaticResource HorizontalGridSplitterStyle}" />
 
-                        <!--  Execution Output Header  -->
-                        <Border Grid.Row="4" Padding="8,4" Background="{DynamicResource SecondaryBackgroundBrush}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock FontWeight="SemiBold" Text="Execution Output" />
-                                <TextBlock Margin="0,0,0,0"
-                                           Foreground="{DynamicResource SecondaryForegroundBrush}"
-                                           Text="Executing..."
-                                           Visibility="{Binding IsExecuting, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            </StackPanel>
-                        </Border>
+                        <!--  Execution Output Section  -->
+                        <Grid Grid.Row="3">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
-                        <!--  Execution Output Text  -->
-                        <TextBox Grid.Row="5"
-                                 BorderThickness="0"
-                                 FontFamily="Consolas"
-                                 FontSize="11"
-                                 IsReadOnly="True"
-                                 Text="{Binding ExecutionOutput}"
-                                 TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto" />
+                            <!--  Execution Output Header  -->
+                            <Border Grid.Row="0" Padding="8,4" Background="{DynamicResource SecondaryBackgroundBrush}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontWeight="SemiBold" Text="Execution Output" />
+                                    <TextBlock Margin="8,0,0,0"
+                                               Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                               Text="Executing..."
+                                               Visibility="{Binding IsExecuting, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!--  Execution Output Text  -->
+                            <TextBox Grid.Row="1"
+                                     Padding="8"
+                                     BorderThickness="0"
+                                     FontFamily="Consolas"
+                                     FontSize="11"
+                                     IsReadOnly="True"
+                                     Text="{Binding ExecutionOutput}"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto" />
+                        </Grid>
 
                         <!--  Output Action Buttons  -->
-                        <Border Grid.Row="6"
-                                Padding="0,4"
+                        <Border Grid.Row="4"
+                                Padding="8,4"
                                 Background="{DynamicResource PrimaryBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="0,1,0,0">
+                                BorderThickness="0,0,0,0">
                             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                <Button Command="{Binding CopyOutputCommand}" Content="Copy Output" />
-                                <Button Command="{Binding CancelCommand}" Content="Close" />
+                                <Button Margin="2,0" Command="{Binding CopyOutputCommand}" Content="Copy Output" />
+                                <Button Margin="2,0" Command="{Binding CancelCommand}" Content="Close" />
                             </StackPanel>
                         </Border>
                     </Grid>
