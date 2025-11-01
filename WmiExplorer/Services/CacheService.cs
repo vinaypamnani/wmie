@@ -20,7 +20,7 @@ public class CacheService : ICacheService
         "WmiExplorer",
         "Cache.db");
 
-    private static readonly TimeSpan Expiration = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan Expiration = TimeSpan.FromDays(7);
     private static readonly TimeSpan PruneInterval = TimeSpan.FromDays(45);
 
     public CacheService()
@@ -431,7 +431,13 @@ public class CacheService : ICacheService
             delPropCmd.CommandText = @"
                 DELETE FROM ClassProperties
                 WHERE IsExpired = 1
-                AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)";
+                AND ClassId IN (
+                    SELECT c.ClassId
+                    FROM Classes c
+                    INNER JOIN Namespaces n ON c.NamespaceId = n.NamespaceId
+                    WHERE c.IsExpired = 1
+                    AND datetime(n.LastUpdatedUtc) < datetime('now', @pruneInterval)
+                )";
             delPropCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
             await delPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
@@ -439,7 +445,12 @@ public class CacheService : ICacheService
             delClassCmd.CommandText = @"
                 DELETE FROM Classes
                 WHERE IsExpired = 1
-                AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)";
+                AND NamespaceId IN (
+                    SELECT NamespaceId
+                    FROM Namespaces
+                    WHERE IsExpired = 1
+                    AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)
+                )";
             delClassCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
             await delClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
