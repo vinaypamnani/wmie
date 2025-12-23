@@ -545,7 +545,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         {
             var startInfo = new ProcessStartInfo
             {
-                FileName = Process.GetCurrentProcess().MainModule?.FileName ?? System.Reflection.Assembly.GetExecutingAssembly().Location,
+                FileName = Process.GetCurrentProcess().MainModule?.FileName ?? Environment.ProcessPath ?? throw new InvalidOperationException("Unable to determine executable path"),
                 UseShellExecute = true,
                 Verb = "runas"
             };
