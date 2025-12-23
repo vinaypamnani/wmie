@@ -6,17 +6,19 @@ A modern Windows desktop application for exploring and managing Windows Manageme
 
 ## Features
 
-- **Namespace Browser**: Navigate through WMI namespaces in a tree view
-- **Class Explorer**: Browse WMI classes with their properties, methods, and qualifiers
-- **Instance Viewer**: View and filter WMI instances with detailed property information
-- **Instance Editor**: Edit writable properties of WMI instances through a dedicated property editor dialog
-- **WQL Query Editor**: Execute WQL queries with syntax highlighting and result display
-- **Event Watcher**: Monitor WMI events in real-time
-- **Search**: Search for classes, properties, and methods across namespaces
-- **Property Grid**: Detailed property editor with support for WMI-specific types
-- **Theme Support**: Dark and Light themes with customizable accent colors
-- **Logging**: Built-in logging with configurable log levels
-- **Auto-updates**: Check for updates from GitHub releases
+- **Namespace Browser**: Navigate through WMI namespaces in a tree view - see [Connecting to a WMI Namespace](#connecting-to-a-wmi-namespace) and [Exploring Namespaces and Classes](#exploring-namespaces-and-classes)
+- **Class Explorer**: Browse WMI classes with their properties, methods, and qualifiers - see [Exploring Namespaces and Classes](#exploring-namespaces-and-classes)
+- **Instance Viewer**: View and filter WMI instances with detailed property information - see [Exploring Instances](#exploring-instances)
+- **Instance Management**: Create, edit, and delete WMI instances with a dedicated property editor dialog - see [Managing WMI Instances](#managing-wmi-instances)
+- **Method Execution**: Execute WMI methods (both static and instance methods) with parameter input and output display - see [Executing WMI Methods](#executing-wmi-methods)
+- **WQL Query Editor**: Execute WQL queries with syntax highlighting and result display - see [Executing WQL Queries](#executing-wql-queries)
+- **Event Watcher**: Monitor WMI events in real-time - see [Monitoring WMI Events](#monitoring-wmi-events)
+- **Search**: Search for classes, properties, and methods across namespaces - see [Searching WMI](#searching-wmi)
+- **Script Generator**: Generate PowerShell scripts for WMI operations (classes, instances, methods) - see [Generating PowerShell Scripts](#generating-powershell-scripts)
+- **Property Grid**: Detailed property editor with support for WMI-specific types - see [Property Grid](docs/PROPERTY_GRID.md)
+- **Logging**: Built-in logging with configurable log levels - see [Viewing Logs](#viewing-logs)
+- **Theme Support**: Dark and Light themes with customizable accent colors - see [Menu Options](#menu-options)
+- **Auto-updates**: Check for updates from GitHub releases - see [Menu Options](#menu-options)
 
 ## Getting Started
 
@@ -28,39 +30,43 @@ A modern Windows desktop application for exploring and managing Windows Manageme
 
 ### Running the Application
 
-1. **From Source**:
-   ```bash
-   dotnet run --project WmiExplorer
-   OR
-   dotnet run --project WmiExplorer -- -debug
-   ```
+Download the latest release from GitHub. Extract and run `WmiExplorer.exe`.
 
-2. **Published Binary**:
-   - Download the latest release from GitHub
-   - Extract and run `WmiExplorer.exe`
+> 💡 NOTE: If prompted, download and install the required .NET runtime, and then launch `WmiExplorer.exe` again.
 
-3. **Debug Mode** (with console output):
-   ```bash
-   WmiExplorer.exe -debug
-   ```
+### Command-Line Options
 
-## Usage Guide
+WMI Explorer supports command-line arguments for automation and debugging. See [Command-Line Options](docs/COMMAND_LINE.md) for complete documentation.
 
-### Connecting to a WMI Namespace
+**Quick Reference:**
+- `-debug` - Enable debug logging to console
+- `-computername <name>` - Auto-connect to specified computer
+- `-username <name>` - Specify username for auto-connection
 
-1. In the **Options** panel at the top, enter:
-   - **Computer Name**: Local computer (`.`) or remote computer name/IP
-   - **Namespace**: WMI namespace path (e.g., `root\cimv2`)
-   - **Authentication**: Choose authentication method if connecting to a remote computer
-   - **Impersonation**: Select impersonation level (default: Impersonate)
+**Example:**
+```bash
+WmiExplorer.exe -computername SERVER01 -username DOMAIN\User
+```
 
-2. Click **Connect** to establish the connection
+## Connecting to a WMI Namespace
 
-3. Once connected, the namespace tree will populate in the left panel
+1. In the **Options** panel at the top, enter in the **Computer Name** field:
+   - **Computer Name**: Local computer (`.`, `localhost`) or remote computer name/IP
+   - **Namespace Path**: You can also enter a namespace path directly:
+     - Full path: `\\computer\root\cimv2` (for remote computer)
+     - Namespace only: `root\cimv2` (assumes local computer)
+
+2. Click **Connect** to establish the connection using your current Windows credentials
+
+   - For advanced connection options (username, password, authentication, impersonation), click the dropdown arrow next to the Connect button and select **Connection Options**
+
+3. Once connected, the namespace tree will populate in the left panel. Browse the tree to select the specific namespace you want to explore (e.g., `root\cimv2`)
+
+For automatic connection via command-line, see [Command-Line Options](#command-line-options) or [detailed documentation](docs/COMMAND_LINE.md).
 
 ## Exploring WMI
 
-Understanding how to navigate and explore WMI objects is essential for efficient use:
+Understanding how to navigate and explore WMI objects is essential for efficient use.
 
 ### Navigation Basics
 
@@ -77,11 +83,13 @@ Understanding how to navigate and explore WMI objects is essential for efficient
 
 **Caching Behavior:**
 
-> 💡Use single-click to quickly navigate and view cached data. Use double-click when you need to explicitly refresh data from WMI.
+> 💡 Use single-click to quickly navigate and view cached data. Use double-click when you need to explicitly refresh data from WMI.
 
 - Once classes are loaded for a namespace, they are cached in memory. **Single-clicking** the namespace will display the cached classes (indicated by a green status indicator).
 - Once instances are loaded for a class, they are cached in memory. **Single-clicking** the class will display the cached instances (indicated by a green status indicator).
 - **Double-clicking** always reloads data from WMI, refreshing the cache with the latest information.
+
+For more information about caching, see [Settings and Caching](docs/SETTINGS.md).
 
 ### Exploring Namespaces and Classes
 
@@ -92,13 +100,66 @@ Understanding how to navigate and explore WMI objects is essential for efficient
    - **Methods**: Available methods with parameters and return types (shown in Methods sub-tab)
 4. **Load Instances**: Double click on a class to load all instances of that class
 
-### Working with Instances
+### Exploring Instances
 
 1. After double-clicking a class, navigate to the **Instances** tab (sub-tab under Classes)
 2. View all instances of the selected class
 3. Use the filter/search box to find specific instances
 4. Click on an instance to view its properties in the Property Grid (right panel)
-5. To edit instance properties: Right-click on an instance and select **Edit Properties...** (only available if the class has writable properties)
+
+For more information about the Property Grid, see [Property Grid](docs/PROPERTY_GRID.md).
+
+### Managing WMI Instances
+
+Create, edit, and delete WMI instances directly from the application:
+
+#### Editing Instances
+
+1. **Load instances** of a class (double-click the class to load instances)
+2. Navigate to the **Instances** sub-tab
+3. **Right-click** on an instance
+4. Select **Edit Properties...** from the context menu
+   - This option is only available if the class has writable properties
+   - If the class has no writable properties, the option will be disabled
+5. In the **Property Editor Dialog**:
+   - View and edit writable properties of the instance
+   - Properties are displayed with their types, descriptions, and current values
+   - Required properties are marked and must be filled in
+   - Read-only properties are displayed but cannot be modified
+6. Click **OK** to save your changes
+7. The instance will be updated in WMI and refreshed in the application
+
+#### Creating Instances
+
+1. **Load a class** (double-click a namespace to load classes)
+2. Navigate to the **Classes** tab
+3. **Right-click** on a class
+4. Select **Create instance** from the context menu
+5. In the **Property Editor Dialog**:
+   - A new template instance is created with default values
+   - Fill in the required properties (marked as required)
+   - Optionally set optional writable properties
+   - Read-only properties are displayed but cannot be modified
+6. Click **OK** to create the instance
+7. The new instance will be saved to WMI and added to the instances list
+
+> **Note**: Not all WMI classes support instance creation. Some classes are abstract or read-only, and creating instances may not be supported by the WMI provider.
+
+#### Deleting Instances
+
+1. **Load instances** of a class (double-click the class to load instances)
+2. Navigate to the **Instances** sub-tab
+3. **Right-click** on an instance
+4. Select **Delete Instance...** from the context menu
+5. Confirm the deletion in the confirmation dialog
+6. The instance will be permanently deleted from WMI and removed from the instances list
+
+> **Warning**: Deleting instances is permanent and cannot be undone. Make sure you want to delete the instance before confirming.
+
+**Availability:**
+- **Editing**: The **Edit Properties...** menu option is only enabled for classes that have writable properties
+- **Creating**: The **Create instance** option is always available in the context menu. If the class doesn't support instance creation, an error message will be displayed when attempting to create the instance
+- **Deleting**: The **Delete Instance...** option is always available. If the instance cannot be deleted (e.g., protected by the WMI provider), an error message will be displayed when attempting to delete
 
 ### Executing WQL Queries
 
@@ -111,7 +172,7 @@ Understanding how to navigate and explore WMI objects is essential for efficient
 5. Results appear in a grid below the query editor
 6. Click on a result to view details in the Property Grid
 
-**Example Queries**:
+**Example Queries:**
 ```sql
 -- Get all processes
 SELECT * FROM Win32_Process
@@ -129,12 +190,12 @@ SELECT * FROM Win32_Service
 2. Select a WMI event class (e.g., `__InstanceCreationEvent`, `__InstanceDeletionEvent`)
 3. Select a target class to monitor (e.g., `Win32_Process`)
 4. Optionally, select **Target Class Property** and specify the value to monitor for the property. For example, **Target Class Property** = `Caption`, and **Target Class Property Value** = `wbemtest.exe` will monitor for process creation events for `wbemtest.exe` only.
-4. Click **Add Watcher** to start monitoring
-5. Events will appear in real-time as they occur
-6. Use **Start/Stop** buttons to control individual watchers
-7. Click **Remove** to stop and remove a watcher
+5. Click **Add Watcher** to start monitoring
+6. Events will appear in real-time as they occur
+7. Use **Start/Stop** buttons to control individual watchers
+8. Click **Remove** to stop and remove a watcher
 
-**Common Event Queries**:
+**Common Event Queries:**
 - Monitor process creation: `__InstanceCreationEvent` with target `Win32_Process`
 - Monitor service state changes: `__InstanceModificationEvent` with target `Win32_Service`
 - Monitor file system changes: `__InstanceCreationEvent` with target `Win32_LogicalDisk`
@@ -167,48 +228,112 @@ SELECT * FROM Win32_Service
 3. Use filters to show only specific log levels
 4. Logs are also saved to a file in the application directory
 
-## Menu Options
+For more information about log files and storage, see [Settings and Caching](docs/SETTINGS.md).
 
-### File Menu
+### Menu Options
+
+**File Menu:**
 - **Run as Administrator**: Restart the application with elevated privileges
 - **Exit**: Close the application (`Ctrl+Q`)
 
-### Options Menu
+**Options Menu:**
 - **Check for Updates on Startup**: Enable/disable automatic update checks
 - **Reset Theme**: Reset theme colors to defaults (preserves accent colors)
 
-### Start Menu
+**Start Menu:**
 - **Wbemtest.exe**: Launch Windows WMI Tester
 - **WmiMgmt.msc**: Launch Windows WMI Management Console
 - **DCOMCnfg.exe**: Launch Windows Component Services
 
-### Help Menu
+**Help Menu:**
 - **About WmiExplorer**: Show application information
 - **Check for Updates**: Manually check for updates
 
-### Theme Toggle
+**Theme Toggle:**
 - Click the theme name in the menu bar to toggle between Dark and Light themes
 
-## Property Grid
+### Executing WMI Methods
 
-The Property Grid (right panel) displays detailed information about selected items. **The Property Grid is read-only** - it shows property values but does not allow direct editing.
+Execute WMI methods (both static class methods and instance methods) directly from the application:
 
-- **WMI Classes**: Shows class qualifiers, properties, and methods
-- **WMI Instances**: Shows all properties with their current values
-- **WMI Properties**: Shows property qualifiers, type, and value
-- **WMI Methods**: Shows method parameters and return types
-- **Event Watchers**: Shows watcher configuration and status
+1. **For Static Methods** (class-level methods):
+   - Navigate to the **Methods** sub-tab under the **Classes** tab
+   - **Right-click** on a static method (indicated by a "C" icon)
+   - Select **Execute Method...** from the context menu
+   - Alternatively, right-click on the class in the Classes tab and select **Execute Static Methods...**
 
-**Editing Instance Properties:**
-- To edit instance properties, right-click on an instance in the Instances tab and select **Edit Properties...**
-- This opens a separate dialog where you can modify writable properties
-- The option is only available if the class has writable properties
+2. **For Instance Methods** (instance-level methods):
+   - Load instances of a class (double-click the class)
+   - Navigate to the **Instances** sub-tab
+   - **Right-click** on an instance
+   - Select **Execute Methods...** from the context menu
+   - Choose the method you want to execute
 
-The Property Grid supports displaying:
-- Standard data types (string, int, bool, etc.)
-- Arrays and collections
-- WMI-specific types (CIM types, datetime, etc.)
-- Custom property editors for complex types
+3. **In the Method Execution Dialog**:
+   - Review the method information (name, description, class, instance if applicable)
+   - **Input Parameters**: Fill in any required or optional input parameters
+     - Parameters are displayed with their types, descriptions, and default values
+     - Select which parameters to include in the execution
+     - Enter values for each parameter based on the parameter type
+   - Click **Execute** to run the method
+   - **Output Parameters**: After execution, view the output parameters and return values in the Output tab
+   - The dialog shows execution status and any error messages
+
+   > **Tip**: You can click the **Generate Script** button to create a PowerShell script for this method. The script generator will pre-populate with the parameter values you've entered in the dialog, allowing you to test method parameters first, then generate a script with those exact values.
+
+**Method Types:**
+- **Static Methods** (Class methods): Execute on the class itself, not requiring a specific instance
+- **Instance Methods**: Execute on a specific instance of a class
+
+**Example Use Cases:**
+- Start or stop Windows services using `Win32_Service` methods
+- Create or delete WMI instances
+- Trigger scheduled tasks or operations
+- Invoke management operations on system resources
+
+### Generating PowerShell Scripts
+
+Generate PowerShell scripts for WMI operations directly from the application:
+
+1. **Access the Script Generator**:
+   - **Right-click** on any WMI item (class, instance, or method) in the application and select **Generate Script...** from the context menu
+   - **From Method Execution Dialog**: Click the **Generate Script** button in the Method Execution Dialog
+     - When launched from the Method Execution Dialog, the script generator will pre-populate with the parameter values you've already entered
+     - Only parameters that you've selected and filled in the dialog will be included in the generated script
+     - This allows you to test method parameters first, then generate a script with those exact values
+
+2. **Configure script options**:
+   - **PowerShell Module**: Choose between Legacy WMI module or CimCmdlets
+   - **PowerShell Version**: Select PowerShell 5.1 or PowerShell 7+ syntax
+   - **Connection Options**: Include computer name and credentials in the script
+   - **Script Options**: Include comments, error handling, and full namespace paths
+4. The generated script will appear in the dialog
+5. You can:
+   - **Edit** the script (if enabled)
+   - **Copy** the script to clipboard
+   - **Save** the script to a file
+   - **Execute** the script directly and view output
+
+**What Gets Generated:**
+- **For Classes**: PowerShell script to query all instances of the class
+- **For Instances**: PowerShell script to retrieve the specific instance
+- **For Methods**: PowerShell script to execute the method with parameters
+
+**Example Use Cases:**
+- Generate scripts for automation and deployment
+- Create reusable PowerShell scripts for common WMI operations
+- Test WMI operations before implementing in larger scripts
+- Document WMI operations for team members
+
+## Additional Documentation
+
+Additional documentation is available in the [`docs/`](docs/) folder:
+
+- **[Command-Line Options](docs/COMMAND_LINE.md)** - Detailed command-line argument reference
+- **[Property Grid](docs/PROPERTY_GRID.md)** - Property Grid features and capabilities
+- **[Settings and Caching](docs/SETTINGS.md)** - Application settings, data storage, and caching strategy
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Building from Source](docs/BUILDING.md)** - Instructions for building the application from source
 
 ## Application Layout
 
@@ -224,113 +349,6 @@ The application is divided into several panels:
 3. **Right Panel**: Property Grid for detailed item information
 
 All panels can be resized using the splitters between them. The layout is saved and restored on application restart.
-
-## Settings
-
-Application data is stored in the following directory: `%APPDATA%\WmiExplorer` (typically `C:\Users\<username>\AppData\Roaming\WmiExplorer`)
-
-The following files are stored in this directory:
-
-- **`settings.json`**: General application settings (connection preferences, window position, etc.)
-- **`themes.json`**: Theme configuration and accent colors
-- **`Cache.db`**: SQLite database containing cached WMI class metadata (expires after 7 days). The cached data is used for auto-completion in **Query** and **Watcher** tabs.
-- **`WmiExplorer.log`**: Application log file (daily rolling, kept for 7 days)
-
-### Caching
-
-The application uses a multi-tier caching strategy to improve performance.
-
-> **NOTE: Only metadata is cached, not actual instance data or property values.**
-
-**Persistent Cache (Disk)**:
-
-- **`Cache.db`**: SQLite database storing WMI class metadata (namespaces, classes, property names and types)
-- Cache entries expire after 7 days and are automatically pruned after 45 days
-- Used for auto-completion in Query and Watcher tabs
-
-**In-Memory Caches**:
-- **WMI Metadata Cache**: Loaded from `Cache.db` into memory on first access, providing fast lookups for namespace and class metadata (structure only, not values)
-- **Provider Cache**: Caches WMI provider instances per namespace to avoid repeated queries
-- **Query Context Cache**: LRU cache (max 100 entries) for WQL query parsing and completion contexts
-- **Log Cache**: In-memory buffer storing up to 1,000 log entries for display in the Log tab
-
-### Status Indicator Colors
-
-The circular status indicator in the status bar uses the following colors to represent application state:
-
-- **Green**: Ready or Success state
-- **Blue**: Busy state (operation in progress, with pulsing animation)
-- **Orange**: Warning state
-- **Tan/Beige**: Partial Success state.
-    - For Namespaces, indicates that Namespace metadata is loaded, but Classes are not.
-    - For Classes, indicates that Class metadata is loaded, but Instances are not.
-- **Red**: Error state
-- **Gray**: Unknown state
-
-## Troubleshooting
-
-### Connection Issues
-
-- **"Access Denied"**: Run the application as Administrator
-- **"Invalid Namespace"**: Verify the namespace path is correct (e.g., `root\cimv2`)
-- **Remote Connection Fails**:
-  - Ensure Windows Firewall allows WMI traffic (port 135 and dynamic ports)
-  - Verify credentials have WMI access on the remote computer
-  - Check DCOM configuration for remote access
-
-### Query Issues
-
-- **"Invalid Query"**: Verify WQL syntax is correct
-- **"No Results"**: The query may be valid but return no matching instances
-- **Slow Queries**: Some queries can take time on large namespaces; use filters to narrow results
-
-### Event Watcher Issues
-
-- **No Events Received**:
-  - Verify the event class exists in the namespace
-  - Check that events are actually occurring
-  - Some events require administrator privileges
-
-## Building from Source
-
-### Requirements
-
-- .NET 8.0 SDK
-- Visual Studio 2022 or VS Code with C# extension
-
-### Build Steps
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/vinaypamnani/wmie.git
-   cd wmie
-   ```
-
-2. Restore dependencies:
-   ```bash
-   dotnet restore
-   ```
-
-3. Build the solution:
-   ```bash
-   dotnet build
-   ```
-
-4. Run the application:
-   ```bash
-   dotnet run --project WmiExplorer/WmiExplorer.csproj
-   ```
-
-## Project Structure
-
-- `WmiExplorer/`: Main application project
-  - `Models/`: WMI data models (classes, instances, properties, methods)
-  - `Services/`: Core services (WMI, caching, settings, messaging)
-  - `Presentation/`: UI components (ViewModels, Views, Controls)
-  - `Common/`: Shared utilities and base classes
-  - `Integration/`: Third-party integrations (AvalonEdit, PropertyGrid, Serilog)
-- `WmiExplorer.PropertyGrid/`: Custom property grid component
-- `WmiExplorer.Tests/`: Unit tests
 
 ## License
 
