@@ -11,7 +11,7 @@ A modern Windows desktop application for exploring and managing Windows Manageme
 - **Instance Viewer**: View and filter WMI instances with detailed property information - see [Exploring Instances](#exploring-instances)
 - **Instance Management**: Create, edit, and delete WMI instances with a dedicated property editor dialog - see [Managing WMI Instances](#managing-wmi-instances)
 - **Method Execution**: Execute WMI methods (both static and instance methods) with parameter input and output display - see [Executing WMI Methods](#executing-wmi-methods)
-- **WQL Query Editor**: Execute WQL queries with syntax highlighting and result display - see [Executing WQL Queries](#executing-wql-queries)
+- **WQL Query Editor**: Execute WQL queries (SELECT, ASSOCIATORS OF, REFERENCES OF) with syntax highlighting and result display - see [Executing WQL Queries](#executing-wql-queries)
 - **Event Watcher**: Monitor WMI events in real-time - see [Monitoring WMI Events](#monitoring-wmi-events)
 - **Search**: Search for classes, properties, and methods across namespaces - see [Searching WMI](#searching-wmi)
 - **Script Generator**: Generate PowerShell scripts for WMI operations (classes, instances, methods) - see [Generating PowerShell Scripts](#generating-powershell-scripts)
@@ -173,6 +173,11 @@ Create, edit, and delete WMI instances directly from the application:
 6. Click on a result to view details in the Property Grid
 
 **Example Queries:**
+
+**SELECT Queries:**
+
+More info: [WQL (SQL for WMI)](https://learn.microsoft.com/en-us/windows/win32/wmisdk/wql-sql-for-wmi)
+
 ```sql
 -- Get all processes
 SELECT * FROM Win32_Process
@@ -182,6 +187,31 @@ SELECT Name, ProcessId, WorkingSetSize FROM Win32_Process WHERE WorkingSetSize >
 
 -- Get all services
 SELECT * FROM Win32_Service
+```
+
+**Association Queries (ASSOCIATORS OF):**
+
+More info: [ASSOCIATORS OF Statement](https://learn.microsoft.com/en-us/windows/win32/wmisdk/associators-of-statement)
+
+```sql
+-- Find all logical disks associated with the computer system
+-- Note: Replace "COMPUTERNAME" with your actual computer name
+ASSOCIATORS OF {Win32_ComputerSystem.Name="COMPUTERNAME"} WHERE ResultClass=Win32_LogicalDisk
+
+-- Find all network adapters associated with the computer system
+ASSOCIATORS OF {Win32_ComputerSystem.Name="COMPUTERNAME"} WHERE ResultClass=Win32_NetworkAdapter
+
+-- Find all services associated with a specific process
+ASSOCIATORS OF {Win32_Process.ProcessId=1234} WHERE ResultClass=Win32_Service
+```
+
+**Reference Queries (REFERENCES OF):**
+
+More info: [REFERENCES OF Statement](https://learn.microsoft.com/en-us/windows/win32/wmisdk/references-of-statement)
+
+```sql
+-- Find what references a specific service (e.g., association classes)
+REFERENCES OF {Win32_Service.Name="WinRM"} WHERE ResultClass=Win32_SystemServices
 ```
 
 ### Monitoring WMI Events

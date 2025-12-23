@@ -19,6 +19,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     private readonly IPropertyGridContext? _propertyGridContext;
     private readonly ManagementBaseObject _source;
     private readonly WmiProperty _wmiProperty;
+    private ManagementObject? _cachedReferenceObject;
 
     public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
     {
@@ -64,7 +65,20 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public bool IsReference => _propertyData.Type == CimType.Reference;
     public string Name => _wmiProperty.Name;
     public PropertyData PropertyData => _propertyData;
-    public Type? PropertyType => _allowExpansion ? typeof(PropertyData) : GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
+    public Type? PropertyType
+    {
+        get
+        {
+            if (_allowExpansion)
+                return typeof(PropertyData);
+
+            // If this is a Reference type and we've successfully converted it to a ManagementObject, return ManagementObject type
+            if (_propertyData.Type == CimType.Reference && _cachedReferenceObject != null)
+                return typeof(ManagementObject);
+
+            return GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
+        }
+    }
     public object Source => _source;
     public object? Value => GetValue();
     public WmiProperty WmiProperty => _wmiProperty;
@@ -338,7 +352,42 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     {
         if (_allowExpansion)
             return _propertyData;
+
         var rawValue = _wmiProperty.Value;
+
+        // Handle Reference type properties with string values - convert to ManagementObject
+        if (IsReference && _propertyGridContext?.IsReadOnly == true && rawValue is string pathString && !string.IsNullOrEmpty(pathString))
+        {
+            // Return cached object if available
+            if (_cachedReferenceObject != null)
+                return _cachedReferenceObject;
+
+            // Try to convert string path to ManagementObject
+            try
+            {
+                var path = new ManagementPath(pathString);
+
+                // Validate that the path represents an object path (not a class or namespace path)
+                if (path.IsInstance && !string.IsNullOrEmpty(path.ClassName))
+                {
+                    // Get the scope from source
+                    ManagementScope? scope = GetManagementScope();
+                    if (scope != null)
+                    {
+                        var mObject = new ManagementObject(scope, path, new ObjectGetOptions());
+                        mObject.Get(); // Load properties
+                        _cachedReferenceObject = mObject;
+                        return mObject;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error but fall through to return the original string value
+                Log.Warning(ex, "Failed to convert Reference path string to ManagementObject for property '{PropertyName}': {PathString}", _propertyData.Name, pathString);
+            }
+        }
+
         if (_propertyGridContext?.IsReadOnly == true && _propertyData.Type == CimType.DateTime && rawValue is string s && !string.IsNullOrEmpty(s))
         {
             var dt = ManagementDateTimeConverter.ToDateTime(s);
