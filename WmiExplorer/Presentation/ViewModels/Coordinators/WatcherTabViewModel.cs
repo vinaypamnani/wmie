@@ -598,4 +598,24 @@ public partial class WatcherTabViewModel : SelectionAwareViewModelBase
                 EventQueryBuilder.EventTargetClass ?? "Unknown");
         }
     }
+
+    /// <summary>
+    /// Cleanup resources on disposal
+    /// </summary>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // Unsubscribe from property changes
+            if (_eventQueryBuilder != null)
+            {
+                _eventQueryBuilder.PropertyChanged -= EventQueryBuilder_PropertyChanged;
+            }
+            if (_eventManager != null)
+            {
+                _eventManager.PropertyChanged -= EventManager_PropertyChanged;
+            }
+        }
+        base.Dispose(disposing);
+    }
 }

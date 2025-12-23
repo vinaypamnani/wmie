@@ -232,10 +232,6 @@ public partial class MethodExecutionDialogViewModel : MessagingViewModelBase
             HasOutputParameters = false;
             OutputParameters = null;
 
-            // Reset output parameters
-            HasOutputParameters = false;
-            OutputParameters = null;
-
             // Create parameters for the method invocation
             ManagementBaseObject? inParams = null;
 

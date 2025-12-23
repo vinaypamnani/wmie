@@ -553,7 +553,8 @@ public partial class WmiInstanceViewModel : MessagingViewModelBase, IDisposable
                 {
                     if (method is IDisposable disposable)
                     {
-                        try { disposable.Dispose(); } catch { }
+                        try { disposable.Dispose(); }
+                        catch (Exception ex) { Log.Warning(ex, "Error disposing method in InstanceMethods collection"); }
                     }
                 }
                 InstanceMethods.Clear();

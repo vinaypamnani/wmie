@@ -19,9 +19,12 @@ public static class WmiServiceHelpers
             string? messageId = null;
             string? message = null;
             string? windowsErrorMessage = null;
-            try { messageId = statusObject.Properties["MessageID"]?.Value?.ToString(); } catch { }
-            try { message = statusObject.Properties["Message"]?.Value?.ToString(); } catch { }
-            try { windowsErrorMessage = statusObject.Properties["error_WindowsErrorMessage"]?.Value?.ToString(); } catch { }
+            try { messageId = statusObject.Properties["MessageID"]?.Value?.ToString(); }
+            catch (Exception) { /* Property access failed, continue without messageId */ }
+            try { message = statusObject.Properties["Message"]?.Value?.ToString(); }
+            catch (Exception) { /* Property access failed, continue without message */ }
+            try { windowsErrorMessage = statusObject.Properties["error_WindowsErrorMessage"]?.Value?.ToString(); }
+            catch (Exception) { /* Property access failed, continue without windowsErrorMessage */ }
 
             var errorDetails = new List<string>();
 

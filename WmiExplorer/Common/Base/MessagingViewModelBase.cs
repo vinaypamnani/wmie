@@ -104,13 +104,18 @@ public abstract partial class MessagingViewModelBase : DisposableObservableObjec
     /// <param name="action">The action to execute</param>
     protected void RunOnUIThread(Action action)
     {
-        if (Application.Current.Dispatcher.CheckAccess())
+        if (Application.Current?.Dispatcher?.CheckAccess() == true)
         {
             action();
         }
-        else
+        else if (Application.Current?.Dispatcher != null)
         {
             Application.Current.Dispatcher.InvokeAsync(action);
+        }
+        else
+        {
+            // Application.Current is null (e.g., during shutdown or unit tests), execute directly
+            action();
         }
     }
 
@@ -121,13 +126,18 @@ public abstract partial class MessagingViewModelBase : DisposableObservableObjec
     /// <returns>A task representing the async operation</returns>
     protected Task RunOnUIThreadAsync(Func<Task> asyncAction)
     {
-        if (Application.Current.Dispatcher.CheckAccess())
+        if (Application.Current?.Dispatcher?.CheckAccess() == true)
         {
             return asyncAction();
         }
-        else
+        else if (Application.Current?.Dispatcher != null)
         {
             return Application.Current.Dispatcher.InvokeAsync(asyncAction).Task;
+        }
+        else
+        {
+            // Application.Current is null (e.g., during shutdown or unit tests), execute directly
+            return asyncAction();
         }
     }
 

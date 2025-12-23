@@ -411,11 +411,12 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 return;
             }
 
-            var classModels = wmiClasses.Select(mo => new WmiClass(mo, _wmiService));
+            // Materialize to list to avoid multiple enumerations
+            var classModels = wmiClasses.Select(mo => new WmiClass(mo, _wmiService)).ToList();
 
             // Count classes with providers for logging
             var classesWithProviders = classModels.Count(c => c.Provider != null);
-            Log.Debug("Loaded {ClassCount} classes with {ProviderCount} providers for {NamespacePath}", classModels.Count(), classesWithProviders, NamespacePath);
+            Log.Debug("Loaded {ClassCount} classes with {ProviderCount} providers for {NamespacePath}", classModels.Count, classesWithProviders, NamespacePath);
 
             var classViewModels = WmiClassViewModel.CreateFromCollection(
                 classModels,

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Management;
 using System.Windows;
 using System.Windows.Threading;
@@ -13,10 +14,9 @@ public class WmiService : IWmiService, IDisposable
     private readonly ICacheService _cacheService;
     private readonly List<IDisposable> _disposables = new();
 
-    // Cache for provider instances per namespace
-    private readonly Dictionary<string, Dictionary<string, ManagementObject>> _providerCache = new(StringComparer.OrdinalIgnoreCase);
+    // Cache for provider instances per namespace - using ConcurrentDictionary to avoid lock contention
+    private readonly ConcurrentDictionary<string, Dictionary<string, ManagementObject>> _providerCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly object _providerCacheLock = new();
     private readonly ISettingsService _settingsService;
 
     public WmiService(ICacheService cacheService, ISettingsService settingsService)
@@ -41,14 +41,11 @@ public class WmiService : IWmiService, IDisposable
         if (string.IsNullOrEmpty(namespacePath))
             throw new ArgumentException("Scope must have a valid namespace path", nameof(scope));
 
-        // Check cache first
-        lock (_providerCacheLock)
+        // Check cache first - no lock needed with ConcurrentDictionary
+        if (_providerCache.TryGetValue(namespacePath, out var cachedProviders))
         {
-            if (_providerCache.TryGetValue(namespacePath, out var cachedProviders))
-            {
-                Log.Debug("Returning {ProviderCount} cached providers for namespace: {NamespacePath}", cachedProviders.Count, namespacePath);
-                return cachedProviders.Values.ToList();
-            }
+            Log.Debug("Returning {ProviderCount} cached providers for namespace: {NamespacePath}", cachedProviders.Count, namespacePath);
+            return cachedProviders.Values.ToList();
         }
 
         try
@@ -72,10 +69,8 @@ public class WmiService : IWmiService, IDisposable
                 }
             }
 
-            lock (_providerCacheLock)
-            {
-                _providerCache[namespacePath] = providerDict;
-            }
+            // No lock needed with ConcurrentDictionary
+            _providerCache[namespacePath] = providerDict;
 
             Log.Debug("Cached {ProviderCount} providers for namespace: {NamespacePath}", providerDict.Count, namespacePath);
             return providerInstances;
@@ -92,18 +87,16 @@ public class WmiService : IWmiService, IDisposable
     /// </summary>
     public void ClearAllProviderCaches()
     {
-        lock (_providerCacheLock)
+        // No lock needed with ConcurrentDictionary, but we need to iterate safely
+        foreach (var providers in _providerCache.Values)
         {
-            foreach (var providers in _providerCache.Values)
+            foreach (var provider in providers.Values)
             {
-                foreach (var provider in providers.Values)
-                {
-                    provider?.Dispose();
-                }
+                provider?.Dispose();
             }
-            _providerCache.Clear();
-            Log.Debug("Cleared all provider caches");
         }
+        _providerCache.Clear();
+        Log.Debug("Cleared all provider caches");
     }
 
     /// <summary>
@@ -115,17 +108,14 @@ public class WmiService : IWmiService, IDisposable
         if (string.IsNullOrEmpty(namespacePath))
             return;
 
-        lock (_providerCacheLock)
+        // No lock needed with ConcurrentDictionary
+        if (_providerCache.TryRemove(namespacePath, out var providers))
         {
-            if (_providerCache.TryGetValue(namespacePath, out var providers))
+            foreach (var provider in providers.Values)
             {
-                foreach (var provider in providers.Values)
-                {
-                    provider?.Dispose();
-                }
-                _providerCache.Remove(namespacePath);
-                Log.Debug("Cleared provider cache for namespace: {NamespacePath}", namespacePath);
+                provider?.Dispose();
             }
+            Log.Debug("Cleared provider cache for namespace: {NamespacePath}", namespacePath);
         }
     }
 
@@ -258,12 +248,14 @@ public class WmiService : IWmiService, IDisposable
                 results = await ExecuteWmiQueryInternal(scope, queryString, userProvidedEnumOptions, cancellationToken);
             }
 
-            var resultCount = results.Count();
+            // Materialize results to a list to avoid multiple enumerations
+            // This is safe because ExecuteWmiQuerySync and ExecuteWmiQueryInternal already return materialized collections
+            var resultsList = results.ToList();
             if (enableLogging)
             {
-                Log.Debug("[{OperationMode}] WMI query '{Query}' completed successfully. Returned {ResultCount} objects", OperationMode, queryString, resultCount);
+                Log.Debug("[{OperationMode}] WMI query '{Query}' completed successfully. Returned {ResultCount} objects", OperationMode, queryString, resultsList.Count);
             }
-            return results;
+            return resultsList;
         }
         catch (ManagementException mex)
         {
@@ -323,13 +315,11 @@ public class WmiService : IWmiService, IDisposable
 
             if (providerQualifier?.Value is string providerName && !string.IsNullOrEmpty(providerName))
             {
-                lock (_providerCacheLock)
+                // No lock needed with ConcurrentDictionary
+                if (_providerCache.TryGetValue(namespacePath, out var providers) &&
+                    providers.TryGetValue(providerName, out var providerInstance))
                 {
-                    if (_providerCache.TryGetValue(namespacePath, out var providers) &&
-                        providers.TryGetValue(providerName, out var providerInstance))
-                    {
-                        return providerInstance;
-                    }
+                    return providerInstance;
                 }
             }
         }
@@ -354,16 +344,14 @@ public class WmiService : IWmiService, IDisposable
             enableLogging: false,
             cancellationToken);
 
-        // Preload providers for the current namespace to improve performance (after core functionality)
-        // Only call if not already cached to avoid duplicate logging
-        var namespacePath = scope.Path?.Path ?? string.Empty;
-        lock (_providerCacheLock)
-        {
+            // Preload providers for the current namespace to improve performance (after core functionality)
+            // Only call if not already cached to avoid duplicate logging
+            var namespacePath = scope.Path?.Path ?? string.Empty;
+            // No lock needed with ConcurrentDictionary
             if (!_providerCache.ContainsKey(namespacePath))
             {
                 _ = CacheProviderInstancesAsync(scope, cancellationToken);
             }
-        }
 
         return result;
     }
@@ -610,9 +598,17 @@ public class WmiService : IWmiService, IDisposable
                         // Only if dispatcher processing is not suspended
                         Dispatcher.PushFrame(frame);
 
-                        // Now get the result (should be immediate as task is complete)
-                        // Will propagate exceptions if they occurred
-                        connectTask.GetAwaiter().GetResult();
+                        // Task should be complete after frame stops, check for exceptions
+                        // Use await pattern to avoid blocking - task is already complete
+                        if (connectTask.IsFaulted)
+                        {
+                            connectTask.GetAwaiter().GetResult(); // Re-throw exception
+                        }
+                        else if (connectTask.IsCanceled)
+                        {
+                            throw new OperationCanceledException("Connection was cancelled");
+                        }
+                        // If completed successfully, nothing to do
                     }
                     catch (InvalidOperationException)
                     {
@@ -696,42 +692,41 @@ public class WmiService : IWmiService, IDisposable
     /// </summary>
     private async Task<T> ExecuteSyncWithTimeout<T>(Func<T> operation, CancellationToken cancellationToken, int timeoutMs = 30000)
     {
-        return await Task.Run(() =>
+        // Check cancellation before starting
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Create a task to run the blocking operation
+        var operationTask = Task.Run(operation, cancellationToken);
+
+        try
         {
-            // Check cancellation before starting
-            cancellationToken.ThrowIfCancellationRequested();
+            // Use Task.WhenAny with timeout to avoid blocking
+            var timeoutTask = Task.Delay(timeoutMs, cancellationToken);
+            var completedTask = await Task.WhenAny(operationTask, timeoutTask).ConfigureAwait(false);
 
-            // Create a task to run the blocking operation
-            var operationTask = Task.Run(operation, cancellationToken);
+            if (completedTask == timeoutTask)
+            {
+                // Operation timed out
+                throw new OperationCanceledException($"WMI synchronous operation timed out after {timeoutMs}ms - this may indicate a very large result set or unresponsive WMI provider");
+            }
 
-            // Wait for either completion or cancellation
-            try
-            {
-                if (operationTask.Wait(timeoutMs, cancellationToken))
-                {
-                    return operationTask.Result;
-                }
-                else
-                {
-                    // Operation timed out - this gives us a way to break out of long-running synchronous WMI calls
-                    throw new OperationCanceledException($"WMI synchronous operation timed out after {timeoutMs}ms - this may indicate a very large result set or unresponsive WMI provider");
-                }
-            }
-            catch (AggregateException ex) when (ex.InnerException is OperationCanceledException)
-            {
-                throw ex.InnerException;
-            }
-            catch (AggregateException ex) when (ex.InnerException is ManagementException mex)
-            {
-                var wmiException = new WmiException(mex);
-                throw wmiException;
-            }
-            catch (AggregateException ex)
-            {
-                // Unwrap other exceptions
-                throw ex.InnerException ?? ex;
-            }
-        }, cancellationToken);
+            // Operation completed, get result (will unwrap AggregateException automatically)
+            return await operationTask.ConfigureAwait(false);
+        }
+        catch (AggregateException ex) when (ex.InnerException is OperationCanceledException)
+        {
+            throw ex.InnerException;
+        }
+        catch (AggregateException ex) when (ex.InnerException is ManagementException mex)
+        {
+            var wmiException = new WmiException(mex);
+            throw wmiException;
+        }
+        catch (AggregateException ex)
+        {
+            // Unwrap other exceptions
+            throw ex.InnerException ?? ex;
+        }
     }
 
     /// <summary>

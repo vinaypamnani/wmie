@@ -827,4 +827,20 @@ Built with .NET 8 and WPF
         CurrentThemeName = _themeManager.CurrentThemeName == "Dark" ? "Dark" : "Light";
         // CurrentThemeName = _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
     }
+
+    /// <summary>
+    /// Cleanup resources on disposal
+    /// </summary>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // Unsubscribe from ClassesTabViewModel property changes
+            if (ClassesTabViewModel != null)
+            {
+                ClassesTabViewModel.PropertyChanged -= HandleClassesTabViewModelPropertyChanged;
+            }
+        }
+        base.Dispose(disposing);
+    }
 }

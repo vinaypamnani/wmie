@@ -339,10 +339,8 @@ public class CacheService : ICacheService
         {
             if (File.Exists(CacheFilePath))
             {
-                // Force garbage collection to clean up any unmanaged connections
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
+                // Proper disposal should have closed all connections, but file may still be locked
+                // by another process or pending finalizers. Retry with delays.
                 bool deleted = false;
                 // Wait for a short time in case another process is using the file
                 for (int i = 0; i < 5; i++)
@@ -357,12 +355,22 @@ public class CacheService : ICacheService
                     catch (IOException ex)
                     {
                         Log.Warning(ex, "Cache.db could not be deleted, retry attempt [{Attempt}/5]...", i + 1);
-                        System.Threading.Thread.Sleep(500); // Increased wait time
+                        if (i < 4) // Don't sleep on last attempt
+                        {
+                            // Use synchronous delay since this method is not async
+                            // TODO: Consider making EnsureDatabase async to use Task.Delay
+                            System.Threading.Thread.Sleep(500);
+                        }
                     }
                     catch (Exception ex)
                     {
                         Log.Warning(ex, "Cache.db could not be deleted, retry attempt [{Attempt}/5]...", i + 1);
-                        System.Threading.Thread.Sleep(300); // Increased wait time
+                        if (i < 4) // Don't sleep on last attempt
+                        {
+                            // Use synchronous delay since this method is not async
+                            // TODO: Consider making EnsureDatabase async to use Task.Delay
+                            System.Threading.Thread.Sleep(300);
+                        }
                     }
                 }
 

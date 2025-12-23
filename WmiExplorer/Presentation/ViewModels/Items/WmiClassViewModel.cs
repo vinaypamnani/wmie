@@ -262,8 +262,28 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 try { disposable.Dispose(); }
                 catch (Exception ex) { Log.Warning(ex, "Error disposing item in collection"); }
             }
-            var clearMethod = col.GetType().GetMethod("Clear");
-            clearMethod?.Invoke(col, null);
+            // Use proper type checking instead of reflection
+            if (col is System.Collections.IList innerList)
+            {
+                innerList.Clear();
+            }
+            else if (col is System.Collections.Generic.ICollection<object> genericCol)
+            {
+                genericCol.Clear();
+            }
+            else
+            {
+                // Fallback: try to find and call Clear method only if other approaches fail
+                var clearMethod = col.GetType().GetMethod("Clear", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (clearMethod != null && clearMethod.GetParameters().Length == 0)
+                {
+                    clearMethod.Invoke(col, null);
+                }
+                else
+                {
+                    Log.Warning("Cannot clear collection of type {CollectionType} - no suitable Clear method found", col.GetType().Name);
+                }
+            }
         }
     }
 
@@ -495,13 +515,16 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 _selectionManager,
                 this);
 
+            // Materialize and sort before UI thread update to avoid multiple enumerations
+            var sortedViewModels = instanceViewModels.OrderBy(vm => vm.InstanceName).ToList();
+
             // Use RunOnUIThreadAsync for asynchronous UI updates to avoid hanging
             await RunOnUIThreadAsync(() =>
             {
                 ClearAndDisposeInstances();
                 lock (_collectionLock)
                 {
-                    foreach (var vm in instanceViewModels.OrderBy(vm => vm.InstanceName))
+                    foreach (var vm in sortedViewModels)
                     {
                         _instances.Add(vm);
                     }

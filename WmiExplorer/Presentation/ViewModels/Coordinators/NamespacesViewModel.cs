@@ -165,6 +165,11 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     {
         if (disposing)
         {
+            // Unsubscribe from settings manager property changes
+            if (_settingsManager is System.ComponentModel.INotifyPropertyChanged npc)
+            {
+                npc.PropertyChanged -= SettingsManager_PropertyChanged;
+            }
             _cts.Cancel();
             _cts.Dispose();
         }
