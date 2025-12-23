@@ -141,7 +141,8 @@ SELECT * FROM Win32_Service
 
 ### Searching WMI
 
-1. Navigate to the **Search** tab
+1. Navigate to the **Search** tab.
+   > **Note** that the search scope is limited to the selected namespace. To search entire WMI, select the root namespace, but note that searching root namespace recursively would take a long time.
 2. Select what to search for using the radio buttons:
    - **Classes**: Search for WMI class names
    - **Methods**: Search for method names
