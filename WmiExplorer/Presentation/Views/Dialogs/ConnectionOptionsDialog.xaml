@@ -98,11 +98,11 @@
 
                             <TextBlock Grid.Row="0"
                                        Grid.ColumnSpan="3"
-                                       Margin="0,0,0,4"
+                                       Margin="4,0,4,4"
                                        FontSize="12"
                                        FontStyle="Italic"
-                                       Foreground="{DynamicResource SecondaryForegroundBrush}"
-                                       Text="Leave username/password empty to use current Windows credentials" />
+                                       Foreground="{DynamicResource BaseOrangeBrush}"
+                                       Text="NOTE: WMI does not allow using user credentials for local connections." />
 
                             <!--  Computer Name (or path)  -->
                             <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical">
@@ -134,15 +134,29 @@
                                              ToolTip="{StaticResource Tooltip.ConnectionOptions.Password}" />
                             </StackPanel>
 
-                            <!--  Enable Privileges  -->
-                            <CheckBox Grid.Row="2"
-                                      Grid.ColumnSpan="3"
-                                      Margin="4"
-                                      HorizontalAlignment="Right"
-                                      VerticalAlignment="Center"
-                                      Content="Enable user privileges"
-                                      IsChecked="{Binding EnablePrivileges}"
-                                      ToolTip="{StaticResource Tooltip.ConnectionOptions.EnablePrivileges}" />
+                            <!--  Enable Privileges with helper text  -->
+                            <Grid Grid.Row="2"
+                                  Grid.ColumnSpan="3"
+                                  Margin="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0"
+                                           FontSize="12"
+                                           FontStyle="Italic"
+                                           Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                           Text="Leave username/password empty to use current Windows credentials"
+                                           VerticalAlignment="Center" />
+
+                                <CheckBox Grid.Column="1"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          Content="Enable user privileges"
+                                          IsChecked="{Binding EnablePrivileges}"
+                                          ToolTip="{StaticResource Tooltip.ConnectionOptions.EnablePrivileges}" />
+                            </Grid>
 
                         </Grid>
                     </GroupBox>

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
+using WmiExplorer.Common.Helpers;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Integration.AvalonEdit.Behaviors;
 using WmiExplorer.Integration.PropertyGrid;
@@ -52,8 +53,8 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // Enable debug logging to console if -v is present
-        if (e.Args.Contains("-debug"))
+        // Enable debug logging to console if -debug is present
+        if (CommandLineArgumentsParser.HasFlag(e.Args, "debug"))
         {
             AttachConsole(ATTACH_PARENT_PROCESS);
             Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
@@ -104,6 +105,10 @@ public partial class App : Application
         // Create and show MainWindow using DI
         var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
         mainWindow.Show();
+
+        // Handle command-line arguments for automatic connection
+        var startupConnectionService = ServiceProvider.GetRequiredService<IStartupConnectionService>();
+        startupConnectionService.HandleCommandLineConnection(e.Args, mainWindow);
     }
 
     [DllImport("kernel32.dll")]
@@ -161,6 +166,7 @@ public partial class App : Application
         services.AddSingleton<ICacheService, CacheService>();
         services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>(), provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
+        services.AddSingleton<IStartupConnectionService, StartupConnectionService>(provider => new StartupConnectionService(provider));
 
         // Register UpdateService for GitHub update checks
         // TODO: Change repo name when ready for public release
