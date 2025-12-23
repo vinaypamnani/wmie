@@ -104,7 +104,7 @@
                             Width="80"
                             Command="{Binding SaveResultsCommand}"
                             Content="Save Results"
-                            ToolTip="Save query results to a file" />
+                            ToolTip="{StaticResource Tooltip.Query.SaveResults}" />
                     <Button Grid.Column="2"
                             Width="80"
                             Command="{Binding ClearResultsCommand}"

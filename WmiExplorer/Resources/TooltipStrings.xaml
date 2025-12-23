@@ -55,6 +55,7 @@
     <sys:String x:Key="Tooltip.Query.Execute">Execute the WQL query against the selected WMI namespace. Results will be displayed in the grid below.</sys:String>
     <sys:String x:Key="Tooltip.Query.Cancel">Cancel the currently running query operation.</sys:String>
     <sys:String x:Key="Tooltip.Query.FilterResults">Filter the query results by typing text to search for in any column. The filter is applied in real-time.</sys:String>
+    <sys:String x:Key="Tooltip.Query.SaveResults">Save query results to a file</sys:String>
     <sys:String x:Key="Tooltip.Query.ClearResults">Clear all query results from the grid and reset the view.</sys:String>
 
     <!--  Common UI Tooltips  -->
