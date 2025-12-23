@@ -1,0 +1,234 @@
+<UserControl x:Class="WmiExplorer.Presentation.Views.Tabs.LogTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:WmiExplorer.Common.Models"
+             d:DesignHeight="600"
+             d:DesignWidth="600"
+             Background="{DynamicResource PrimaryBackgroundBrush}"
+             mc:Ignorable="d">
+
+    <Grid x:Name="LogGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  Log Controls GroupBox  -->
+        <GroupBox Grid.Row="0"
+                  Margin="{DynamicResource MarginBottomSmall}"
+                  HorizontalContentAlignment="Stretch"
+                  Header="Log Controls">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!--  Log Options  -->
+                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock VerticalAlignment="Center" Text="Application Log Level:" />
+                    <ComboBox Width="120"
+                              ItemsSource="{Binding AvailableLogLevels}"
+                              SelectedItem="{Binding SettingsManager.LogLevel, Mode=TwoWay}"
+                              ToolTip="Sets the minimum log level that will be captured by the application" />
+
+                    <CheckBox VerticalAlignment="Center" Content="Auto-scroll" IsChecked="{Binding AutoScroll}" />
+
+                    <TextBlock VerticalAlignment="Center">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="Entries: {0}">
+                                <Binding Path="LogEntries.Count" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </WrapPanel>
+                <!--  Action Buttons  -->
+                <Button Grid.Column="1"
+                        Width="120"
+                        Command="{Binding OpenLogFileLocationCommand}"
+                        Content="Open Log Location" />
+                <Button Grid.Column="2"
+                        Width="60"
+                        Command="{Binding ClearLogsCommand}"
+                        Content="Clear" />
+            </Grid>
+
+        </GroupBox>
+
+        <!--  Log Entries GroupBox  -->
+        <GroupBox Grid.Row="1"
+                  Margin="{DynamicResource MarginBottomSmall}"
+                  HorizontalContentAlignment="Stretch"
+                  VerticalContentAlignment="Stretch"
+                  Header="Log Entries">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <!--  Filter Controls  -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             Height="26"
+                             Style="{StaticResource TextBoxWithClearButton}"
+                             Tag="Search logs..."
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Grid.Column="1"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"
+                               Text="Filter:" />
+
+                    <ComboBox Grid.Column="2"
+                              Width="120"
+                              ItemsSource="{Binding AvailableLogLevels}"
+                              SelectedItem="{Binding FilterLogLevel}"
+                              ToolTip="Filters the displayed log entries by minimum level" />
+                </Grid>
+                <!--  Log Entries DataGrid  -->
+                <DataGrid x:Name="LogEntriesDataGrid"
+                          Grid.Row="1"
+                          ItemsSource="{Binding FilteredLogsView}"
+                          SelectedItem="{Binding SelectedLogEntry, Mode=TwoWay}"
+                          Style="{StaticResource ModernDataGridStyle}">
+                    <DataGrid.RowStyle>
+                        <Style BasedOn="{StaticResource ModernDataGridRowStyle}" TargetType="DataGridRow">
+                            <Setter Property="behaviors:ItemSelectionBehavior.EnableForceSelection" Value="True" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <!--  Exception indicator  -->
+                        <DataGridTextColumn Width="Auto"
+                                            MinWidth="30"
+                                            CanUserResize="False"
+                                            Header="">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="{Binding HasException, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <Setter Property="Text" Value="⚠" />
+                                    <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="ToolTip" Value="Has Exception Details" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <!--  Log Level  -->
+                        <DataGridTextColumn Width="Auto"
+                                            MinWidth="60"
+                                            Binding="{Binding LevelText}"
+                                            CanUserResize="True"
+                                            Header="Level">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Level}" Value="Debug">
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseGrayBrush}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Level}" Value="Information">
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseGreenBrush}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Level}" Value="Warning">
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Level}" Value="Error">
+                                            <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <!--  Timestamp  -->
+                        <DataGridTextColumn Width="Auto"
+                                            MinWidth="100"
+                                            Binding="{Binding FormattedTimestamp}"
+                                            CanUserResize="True"
+                                            Header="Time" />
+                        <!--  Source  -->
+                        <DataGridTextColumn Width="Auto"
+                                            MinWidth="80"
+                                            Binding="{Binding Source}"
+                                            CanUserResize="True"
+                                            Header="Source" />
+                        <!--  Message  -->
+                        <DataGridTextColumn Width="Auto"
+                                            MinWidth="200"
+                                            Binding="{Binding Message}"
+                                            CanUserResize="True"
+                                            Header="Message">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="NoWrap" />
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!--  Exception Details Panel  -->
+                <Expander Grid.Row="2"
+                          Margin="0,4,0,0"
+                          Padding="{DynamicResource PaddingSmall}"
+                          Background="{DynamicResource PrimaryBackgroundBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          BorderThickness="0"
+                          Header="Exception Details"
+                          IsExpanded="True">
+
+                    <Expander.Style>
+                        <Style TargetType="Expander">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedLogEntry.HasException}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Expander.Style>
+
+                    <ScrollViewer MaxHeight="200" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <TextBox Background="Transparent"
+                                 FontFamily="Consolas, Courier New, Monospace"
+                                 FontSize="11"
+                                 IsReadOnly="True"
+                                 Text="{Binding SelectedLogEntry.ExceptionText, Mode=OneWay}"
+                                 TextWrapping="Wrap" />
+                    </ScrollViewer>
+                </Expander>
+
+                <!--  Empty state message  -->
+                <TextBlock Grid.Row="1"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="16"
+                           Opacity="0.6"
+                           Text="No log entries to display">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasLogEntries}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>

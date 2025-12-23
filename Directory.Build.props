@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Get current year, month, day, and hour for versioning -->
+    <Year>$([System.DateTime]::Now.Year)</Year>
+    <Month>$([System.DateTime]::Now.Month.ToString("D2"))</Month>
+    <Day>$([System.DateTime]::Now.Day.ToString("D2"))</Day>
+    <Hour>$([System.DateTime]::Now.Hour.ToString("D2"))</Hour>
+    <!-- Set the version: Year.Month.Day.Hour -->
+    <Version>$(Year).$(Month).$(Day).$(Hour)</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+  </PropertyGroup>
+</Project>

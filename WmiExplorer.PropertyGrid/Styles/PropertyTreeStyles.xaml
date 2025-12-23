@@ -1,0 +1,332 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="clr-namespace:WmiExplorer.PropertyGrid.Converters"
+                    xmlns:core="clr-namespace:WmiExplorer.PropertyGrid.Editors.Core"
+                    xmlns:local="clr-namespace:WmiExplorer.PropertyGrid"
+                    xmlns:specialized="clr-namespace:WmiExplorer.PropertyGrid.Editors.Specialized">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="PropertyGridStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!--  Converters  -->
+    <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    <conv:StringNotEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter" Invert="True" />
+    <conv:NewlineToSpaceSingleConverter x:Key="NewlineToSpaceSingleConverter" />
+    <conv:NameValueToStringConverter x:Key="NameValueToStringConverter" />
+    <conv:TextHighlightConverter x:Key="TextHighlightConverter" />
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <conv:BoolToVisibilityConverter x:Key="BooleanNotToVisibilityConverter" Invert="True" />
+
+    <!--  Common template for property description tooltips  -->
+    <DataTemplate x:Key="PropertyDescriptionTooltip">
+        <TextBlock MaxWidth="300" Text="{Binding Description}" TextWrapping="Wrap" />
+    </DataTemplate>
+
+    <!--  Style for TreeViewItem in PropertyGrid  -->
+    <Style x:Key="PropertyTreeViewItemStyle" TargetType="TreeViewItem">
+        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="{DynamicResource PropertyGridForegroundBrush}" />
+        <Setter Property="Margin" Value="0,1,0,1" />
+        <!--  Override the HasItems property to ensure expanders are always shown for collections  -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <!--  Expander Button - 16x16 with minimal spacing  -->
+                        <ToggleButton x:Name="Expander"
+                                      Grid.Row="0"
+                                      Grid.Column="0"
+                                      Width="16"
+                                      Height="16"
+                                      Margin="0,0,0,0"
+                                      ClickMode="Press"
+                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ToggleButton.Style>
+                                <Style TargetType="{x:Type ToggleButton}">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                <Border Background="Transparent">
+                                                    <Path x:Name="ExpandPath"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Data="M 0 2 L 4 6 L 0 10 Z"
+                                                          Fill="Transparent"
+                                                          Stroke="{DynamicResource PrimaryForegroundBrush}" />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="ExpandPath" Property="Data" Value="M 0 2 L 4 6 L 8 2 Z" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+                        <!--  Content - No gap after expander  -->
+                        <Border x:Name="OuterBd"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="0,0,0,0"
+                                Padding="{TemplateBinding Padding}"
+                                Background="Transparent"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <Border x:Name="Bd"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="0">
+                                <ContentPresenter x:Name="PART_Header" ContentSource="Header" />
+                            </Border>
+                        </Border>
+                        <!--  ItemsPresenter (Children) - Minimal 5px indentation  -->
+                        <ItemsPresenter x:Name="ItemsHost"
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Margin="0,0,0,0" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="false">
+                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <!--  Use custom check for collection items  -->
+                        <DataTrigger Binding="{Binding IsExpandable}" Value="False">
+                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+                        </DataTrigger>
+                        <!--  Highlight selected item on the OUTER border for full width  -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True" />
+                                <Condition Property="IsSelectionActive" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedBackgroundBrush}" />
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True" />
+                                <Condition Property="IsSelectionActive" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="OuterBd" Property="Background" Value="{DynamicResource PropertyGridSelectedBackgroundBrush}" />
+                        </MultiTrigger>
+                        <!--  Disable selection highlighting for card view items  -->
+                        <DataTrigger Binding="{Binding UseCardStyleEditor, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" Value="True">
+                            <Setter TargetName="OuterBd" Property="Background" Value="Transparent" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!--  Category Text Style  -->
+    <Style x:Key="CategoryTextStyle" TargetType="TextBlock">
+        <Setter Property="Margin" Value="5,3,5,3" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="Foreground" Value="{DynamicResource PropertyGridCategoryHeaderForegroundBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <!--  Property Item Template (Traditional Column Layout)  -->
+    <HierarchicalDataTemplate x:Key="PropertyItemTemplate" ItemsSource="{Binding Children}">
+        <Grid>
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" Header="Copy Name &amp; Value">
+                        <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource NameValueToStringConverter}">
+                                <Binding Path="Name" />
+                                <Binding Path="FormattedValue" />
+                            </MultiBinding>
+                        </MenuItem.CommandParameter>
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE90C;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" Header="Copy Name">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8F3;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" Header="Copy Value">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8C8;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" Header="Copy Description">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8A4;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Grid.ContextMenu>
+            <Grid.ColumnDefinitions>
+                <!--  Name column  -->
+                <ColumnDefinition Width="{Binding NameColumnWidth, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}}" />
+                <!--  Key icon column - fixed 20px (12+8) width  -->
+                <ColumnDefinition Width="20" />
+                <!--  Value column  -->
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--  Property Name - directly in column 0  -->
+            <Border Grid.Column="0"
+                    Background="Transparent"
+                    BorderBrush="{DynamicResource PropertyGridBorderBrush}"
+                    BorderThickness="0,0,0,0">
+                <ContentPresenter Margin="0,0,0,0" VerticalAlignment="Center">
+                    <ContentPresenter.Content>
+                        <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
+                            <Binding Path="DisplayName" />
+                            <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
+                        </MultiBinding>
+                    </ContentPresenter.Content>
+                    <ContentPresenter.ToolTip>
+                        <ToolTip Content="{Binding}" ContentTemplate="{StaticResource PropertyDescriptionTooltip}" Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
+                    </ContentPresenter.ToolTip>
+                </ContentPresenter>
+            </Border>
+
+            <!--  Key icon - directly in column 1  -->
+            <TextBlock Grid.Column="1"
+                       Margin="0,0,8,0"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                       FontSize="12"
+                       Foreground="{DynamicResource PropertyGridKeyHighlightBrush}"
+                       Text="&#xE8D7;"
+                       ToolTip="Key Property"
+                       Visibility="{Binding IsKey, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+            <!--  Property Value - directly in column 2  -->
+            <Border Grid.Column="2"
+                    Background="Transparent"
+                    BorderBrush="{DynamicResource PropertyGridBorderBrush}"
+                    BorderThickness="1,0,0,0">
+                <Grid>
+                    <!--  Always show read-only ContentPresenter when PropertyGrid is readonly  -->
+                    <ContentPresenter Margin="5,0,0,0" Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ContentPresenter.Content>
+                            <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
+                                <Binding Converter="{StaticResource NewlineToSpaceSingleConverter}" Path="FormattedValue" />
+                                <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
+                            </MultiBinding>
+                        </ContentPresenter.Content>
+                    </ContentPresenter>
+
+                    <!--  When PropertyGrid is NOT readonly, show either PropertyEditor or read-only ContentPresenter based on property  -->
+                    <Grid Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource AncestorType={x:Type local:PropertyGrid}}, Converter={StaticResource BooleanNotToVisibilityConverter}}">
+                        <!--  Editable PropertyEditor (visible when property is writable)  -->
+                        <core:PropertyEditor Margin="5,0,0,0" PropertyItem="{Binding}" Visibility="{Binding IsReadOnly, Converter={StaticResource BooleanNotToVisibilityConverter}}" />
+
+                        <!--  Read-only ContentPresenter (visible when property is readonly)  -->
+                        <ContentPresenter Margin="5,0,0,0" Visibility="{Binding IsReadOnly, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ContentPresenter.Content>
+                                <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="PropertyTextBlockStyle">
+                                    <Binding Converter="{StaticResource NewlineToSpaceSingleConverter}" Path="FormattedValue" />
+                                    <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
+                                </MultiBinding>
+                            </ContentPresenter.Content>
+                        </ContentPresenter>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </HierarchicalDataTemplate>
+
+    <!--  Property Item Card Template (Full-Width Card Layout)  -->
+    <HierarchicalDataTemplate x:Key="PropertyEditorCardTemplate" ItemsSource="{Binding Children}">
+        <Grid Margin="0,1,0,1" HorizontalAlignment="Stretch">
+            <Grid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" Header="Copy Name &amp; Value">
+                        <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource NameValueToStringConverter}">
+                                <Binding Path="Name" />
+                                <Binding Path="FormattedValue" />
+                            </MultiBinding>
+                        </MenuItem.CommandParameter>
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE90C;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Name}" Header="Copy Name">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8F3;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding FormattedValue}" Header="Copy Value">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8C8;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Command="{x:Static local:PropertyGrid.CopyToClipboardCommand}" CommandParameter="{Binding Description}" Header="Copy Description">
+                        <MenuItem.Icon>
+                            <TextBlock Style="{StaticResource PropertyGridIconStyle}" Text="&#xE8A4;" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Grid.ContextMenu>
+
+            <!--  Full-width card layout  -->
+            <specialized:CardPropertyEditor PropertyItem="{Binding}" />
+        </Grid>
+    </HierarchicalDataTemplate>
+
+    <!--  Category Item Template  -->
+    <HierarchicalDataTemplate x:Key="CategoryItemTemplate" ItemsSource="{Binding Children}">
+        <!--  Use DockPanel to ensure full width spanning  -->
+        <DockPanel Margin="0,5,0,5" HorizontalAlignment="Stretch" LastChildFill="True">
+            <!--  Background that will span the full width because it's in a DockPanel  -->
+            <Border HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="{DynamicResource PropertyGridCategoryBackgroundBrush}"
+                    DockPanel.Dock="Top">
+                <!--  Content grid  -->
+                <Grid Cursor="Hand">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <!--  Left accent border  -->
+                    <Rectangle Grid.Column="0" Width="4" Fill="{DynamicResource PropertyGridAccentBrush}" />
+
+                    <!--  Category header text - moved to column 1  -->
+                    <ContentPresenter Grid.Column="1" VerticalAlignment="Center">
+                        <ContentPresenter.Content>
+                            <MultiBinding Converter="{StaticResource TextHighlightConverter}" ConverterParameter="CategoryTextStyle">
+                                <Binding Path="DisplayName" />
+                                <Binding Path="SearchText" RelativeSource="{RelativeSource AncestorType={x:Type local:PropertyGrid}}" />
+                            </MultiBinding>
+                        </ContentPresenter.Content>
+                    </ContentPresenter>
+                </Grid>
+            </Border>
+        </DockPanel>
+    </HierarchicalDataTemplate>
+
+    <!--  Property Item Template Selector  -->
+    <local:PropertyItemTemplateSelector x:Key="PropertyItemTemplateSelector"
+                                        CategoryItemTemplate="{StaticResource CategoryItemTemplate}"
+                                        PropertyEditorCardTemplate="{StaticResource PropertyEditorCardTemplate}"
+                                        PropertyItemTemplate="{StaticResource PropertyItemTemplate}" />
+</ResourceDictionary>

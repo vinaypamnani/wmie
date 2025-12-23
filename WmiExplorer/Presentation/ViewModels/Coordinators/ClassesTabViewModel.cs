@@ -1,0 +1,220 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
+using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Messages;
+using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
+using WmiExplorer.Services;
+
+namespace WmiExplorer.Presentation.ViewModels.Coordinators;
+
+/// <summary>
+/// Coordinator ViewModel for the WMI Classes tab. Manages the collection of classes
+/// and related UI operations for the classes list view.
+/// </summary>
+public partial class ClassesTabViewModel : SelectionAwareViewModelBase
+{
+    [ObservableProperty]
+    private string _autoQueryText = string.Empty;
+
+    private readonly InstancesTabViewModel _instancesTabViewModel;
+    private readonly MethodsTabViewModel _methodsTabViewModel;
+    private readonly PropertiesTabViewModel _propertiesTabViewModel;
+
+    [ObservableProperty]
+    private int _selectedTabIndex;
+
+    private readonly SettingsManager _settingsManager;
+
+    public ClassesTabViewModel(
+                 IMessengerService messengerService,
+                 SelectionManager selectionManager,
+                 SettingsManager settingsManager,
+                 InstancesTabViewModel instancesTabViewModel,
+                 MethodsTabViewModel methodsTabViewModel,
+                 PropertiesTabViewModel propertiesTabViewModel) : base(messengerService, selectionManager)
+    {
+        _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+        _instancesTabViewModel = instancesTabViewModel ?? throw new ArgumentNullException(nameof(instancesTabViewModel));
+        _methodsTabViewModel = methodsTabViewModel ?? throw new ArgumentNullException(nameof(methodsTabViewModel));
+        _propertiesTabViewModel = propertiesTabViewModel ?? throw new ArgumentNullException(nameof(propertiesTabViewModel));
+
+        StrongSubscribe<ClassesLoadedMessage>(_ => OnPropertyChanged(nameof(TabHeader)));
+    }
+
+    /// <summary>
+    /// Gets the InstancesTabViewModel
+    /// </summary>
+    public InstancesTabViewModel InstancesTabViewModel => _instancesTabViewModel;
+
+    /// <summary>
+    /// Gets the MethodsTabViewModel
+    /// </summary>
+    public MethodsTabViewModel MethodsTabViewModel => _methodsTabViewModel;
+
+    /// <summary>
+    /// Gets the PropertiesTabViewModel
+    /// </summary>
+    public PropertiesTabViewModel PropertiesTabViewModel => _propertiesTabViewModel;
+
+    public SettingsManager SettingsManager => _settingsManager;
+
+    /// <summary>
+    /// Gets the header text for the Classes tab with count
+    /// </summary>
+    public string TabHeader
+    {
+        get
+        {
+            var count = SelectionManager.SelectedNamespace?.Classes?.Count ?? 0;
+            if (count > 0)
+            {
+                return $"Classes [{count}]";
+            }
+            return "Classes";
+        }
+    }
+
+    /// <summary>
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedClassChanged(WmiClassViewModel? selectedClass)
+    {
+        UpdateAutoQueryText(selectedClass!);
+    }
+
+    /// <summary>
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedInstanceChanged(WmiInstanceViewModel? selectedInstance)
+    {
+        UpdateAutoQueryText(selectedInstance!);
+    }
+
+    /// <summary>
+    /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
+    /// </summary>
+    protected override void OnSelectedNamespaceChanged(WmiNamespaceViewModel? selectedNamespace)
+    {
+        // No longer need to update tab headers - each child ViewModel handles its own
+        OnPropertyChanged(nameof(TabHeader));
+    }
+
+    /// <summary>
+    /// Executes the auto-generated query by requesting a tab switch, setting the query, and executing it.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(ExecuteAutoQueryCanExecute))]
+    private async Task ExecuteAutoQuery()
+    {
+        if (string.IsNullOrWhiteSpace(AutoQueryText))
+            return;
+
+        try
+        {
+            // Define the index for the Query tab (update if needed)
+            const int QueryTabIndex = 2;
+
+            // Request MainViewModel to switch to the Query tab via message
+            _messengerService.Send(new SwitchMainTabMessage(QueryTabIndex));
+
+            // Get the QueryTabViewModel from MainViewModel
+            var mainViewModel = App.ServiceProvider?.GetRequiredService<MainViewModel>();
+            if (mainViewModel?.QueryTabViewModel == null)
+            {
+                PublishErrorState("Query tab is not available.");
+                return;
+            }
+
+            var queryTabViewModel = mainViewModel.QueryTabViewModel;
+
+            // Set the query text
+            queryTabViewModel.QueryText = AutoQueryText;
+
+            // Execute the query if possible
+            if (queryTabViewModel.ExecuteQueryCommand.CanExecute(null))
+            {
+                // Await the async command execution if possible
+                var executionTask = queryTabViewModel.ExecuteQueryCommand.ExecuteAsync(null);
+                if (executionTask != null)
+                {
+                    await executionTask;
+                }
+            }
+            else
+            {
+                PublishWarningState("Query cannot be executed at this time. ExecuteQueryCommand.CanExecute() returned false.");
+            }
+        }
+        catch (Exception ex)
+        {
+            PublishErrorState("Failed to execute auto-query.", ex);
+        }
+    }
+
+    /// <summary>
+    /// Determines if the auto query command can execute
+    /// </summary>
+    private bool ExecuteAutoQueryCanExecute() => !string.IsNullOrWhiteSpace(AutoQueryText);
+
+    partial void OnAutoQueryTextChanged(string value)
+    {
+        // Notify that the CanExecute state of ExecuteAutoQueryCommand may have changed
+        ExecuteAutoQueryCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Command to reload the classes of the selected namespace
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(ReloadClassesCanExecute))]
+    private void ReloadClasses()
+    {
+        SelectionManager.SelectedNamespace?.LoadClassesCommand.Execute(null);
+    }
+
+    /// <summary>
+    /// Determines if the reload classes command can execute
+    /// </summary>
+    private bool ReloadClassesCanExecute() => SelectionManager.SelectedNamespace != null && SelectionManager.SelectedNamespace.LoadClassesCommand.CanExecute(null);
+
+    /// <summary>
+    /// Updates the auto-generated WQL query text based on the selected class or instance
+    /// </summary>
+    private void UpdateAutoQueryText(object selectedObject)
+    {
+        var selectedClassName = SelectionManager.GetSelectedClass()?.ClassName ?? string.Empty;
+
+        if (selectedObject is WmiInstanceViewModel selectedInstance)
+        {
+            // Create query based on the instance
+            string className = selectedInstance.WmiInstance.ClassPath.ClassName
+                               ?? selectedClassName
+                               ?? string.Empty;
+            string relativePath = selectedInstance.InstanceName.Replace($"{className}.", string.Empty);
+            relativePath = relativePath.Replace(",", " AND ");
+            if (!string.IsNullOrEmpty(relativePath))
+            {
+                // For instances, use a direct reference query
+                AutoQueryText = $"SELECT * FROM {selectedClassName} WHERE {relativePath}";
+            }
+            else if (selectedClassName != null)
+            {
+                // Fallback to a class query
+                AutoQueryText = $"SELECT * FROM {selectedClassName}";
+            }
+            else
+            {
+                AutoQueryText = string.Empty;
+            }
+        }
+        else if (selectedObject is WmiClassViewModel)
+        {
+            // Create query based on just the class
+            AutoQueryText = $"SELECT * FROM {selectedClassName}";
+        }
+        else
+        {
+            AutoQueryText = string.Empty;
+        }
+    }
+}

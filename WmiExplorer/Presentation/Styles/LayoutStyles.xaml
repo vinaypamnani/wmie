@@ -1,0 +1,186 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  GroupBox  -->
+    <Style TargetType="GroupBox">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Margin" Value="{DynamicResource MarginSmall}" />
+        <Setter Property="Padding" Value="{DynamicResource PaddingSmall}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0"
+                                Grid.RowSpan="2"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="0" />
+                        <ContentPresenter Grid.Row="0"
+                                          Margin="4,4,4,4"
+                                          ContentSource="Header"
+                                          RecognizesAccessKey="True"
+                                          TextElement.FontWeight="DemiBold"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                        <ContentPresenter Grid.Row="1"
+                                          Margin="4,0,4,4"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  GroupBox  -->
+    <Style x:Key="CompactGroupBoxStyle" TargetType="GroupBox">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Margin" Value="{DynamicResource MarginHorizontalSmall}" />
+        <Setter Property="Padding" Value="{DynamicResource PaddingSmall}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0"
+                                Grid.RowSpan="2"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="0" />
+                        <ContentPresenter Grid.Row="0"
+                                          Margin="{TemplateBinding Margin}"
+                                          ContentSource="Header"
+                                          RecognizesAccessKey="True"
+                                          TextElement.FontWeight="DemiBold"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                        <ContentPresenter Grid.Row="1"
+                                          Margin="{TemplateBinding Margin}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  StatusBar  -->
+    <Style TargetType="StatusBar">
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+    </Style>
+
+    <!--  GridSplitter - Vertical (Default)  -->
+    <Style TargetType="GridSplitter">
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+        <Setter Property="Width" Value="{DynamicResource SpacingMedium}" />
+        <Setter Property="Height" Value="Auto" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <!--<Setter Property="Margin" Value="{DynamicResource MarginHorizontalSmall}" />-->
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="ShowsPreview" Value="True" />
+        <Setter Property="PreviewStyle">
+            <Setter.Value>
+                <Style TargetType="{x:Type Control}">
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle Fill="{DynamicResource PrimaryAccentBrush}" />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GridSplitter">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="0" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard Name="HoverDelayStoryboard" Storyboard="{StaticResource HoverDelayStoryboard}" />
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <StopStoryboard BeginStoryboardName="HoverDelayStoryboard" />
+                    <BeginStoryboard Storyboard="{StaticResource HoverResetStoryboard}" />
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="HoverDelayed">
+                <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+            </DataTrigger>
+            <Trigger Property="IsDragging" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--  GridSplitter - Horizontal (Named)  -->
+    <Style x:Key="HorizontalGridSplitterStyle" TargetType="GridSplitter">
+        <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+        <Setter Property="Height" Value="{StaticResource SpacingMedium}" />
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <!--<Setter Property="Margin" Value="{StaticResource MarginHorizontalSmall}" />-->
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="ShowsPreview" Value="True" />
+        <Setter Property="PreviewStyle">
+            <Setter.Value>
+                <Style TargetType="{x:Type Control}">
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle Fill="{DynamicResource PrimaryAccentBrush}" />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GridSplitter">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="0" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard Name="HoverDelayStoryboard" Storyboard="{StaticResource HoverDelayStoryboard}" />
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <StopStoryboard BeginStoryboardName="HoverDelayStoryboard" />
+                    <BeginStoryboard Storyboard="{StaticResource HoverResetStoryboard}" />
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="HoverDelayed">
+                <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+            </DataTrigger>
+            <Trigger Property="IsDragging" Value="True">
+                <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

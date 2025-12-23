@@ -1,0 +1,44 @@
+using WmiExplorer.Presentation.ViewModels.Items;
+
+namespace WmiExplorer.Common.Messages;
+
+/// <summary>
+/// Message sent when classes are loaded in a namespace
+/// </summary>
+public class ClassesLoadedMessage : MessageBase
+{
+    public ClassesLoadedMessage(WmiNamespaceViewModel namespaceViewModel)
+    {
+        NamespaceViewModel = namespaceViewModel;
+    }
+
+    public WmiNamespaceViewModel NamespaceViewModel { get; }
+}
+
+/// <summary>
+/// Message sent when classes are loaded in a namespace
+/// </summary>
+public class InstancesLoadedMessage : MessageBase
+{
+    public InstancesLoadedMessage(WmiClassViewModel classViewModel)
+    {
+        ClassViewModel = classViewModel;
+    }
+
+    public WmiClassViewModel ClassViewModel { get; }
+}
+
+/// <summary>
+/// Message sent to request navigation to a class in a namespace (from search results)
+/// </summary>
+public class JumpToClassMessage : MessageBase
+{
+    public JumpToClassMessage(string namespacePath, string className)
+    {
+        NamespacePath = namespacePath;
+        ClassName = className;
+    }
+
+    public string ClassName { get; }
+    public string NamespacePath { get; }
+}

@@ -1,0 +1,389 @@
+<Window x:Class="WmiExplorer.Presentation.Views.Dialogs.MethodExecutionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:WmiExplorer.Presentation.Views.Dialogs"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
+        xmlns:uc="clr-namespace:WmiExplorer.Presentation.Controls.UserControls"
+        Width="600"
+        Height="600"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        mc:Ignorable="d">
+    <Border Background="{DynamicResource PrimaryBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="3">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!--  Header Area - Draggable  -->
+            <Border Grid.Row="0"
+                    Padding="8"
+                    behaviors:HyperlinkNavigationBehavior.IsEnabled="True"
+                    behaviors:WindowDragBehavior.IsDragEnabled="True"
+                    Background="{DynamicResource SecondaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}">
+                <!--  Header content with subtle accent strip  -->
+                <StackPanel Orientation="Vertical">
+
+                    <!--  Method Name with accent underline  -->
+                    <StackPanel Orientation="Horizontal">
+                        <!-- <ContentControl Margin="0,0,8,0" ContentTemplate="{StaticResource ExecMethodIconTemplate}" /> -->
+                        <ContentControl Margin="0,0,8,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Template="{StaticResource LetterIconTemplate}">
+                            <ContentControl.Style>
+                                <Style TargetType="ContentControl">
+                                    <Setter Property="Foreground" Value="White" />
+                                    <Setter Property="Background" Value="{DynamicResource BaseGreenBrush}" />
+                                    <Setter Property="Content" Value="I" />
+                                    <Setter Property="ToolTip" Value="Non-Static (Instance) Method" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsStaticMethod}" Value="True">
+                                            <Setter Property="Content" Value="C" />
+                                            <Setter Property="Background" Value="{DynamicResource BaseBlueBrush}" />
+                                            <Setter Property="ToolTip" Value="Static (Class) Method" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ContentControl.Style>
+                        </ContentControl>
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding MethodName}" />
+                    </StackPanel>
+
+                    <!--  Class and Instance Info  -->
+                    <Grid Margin="0,0,0,2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Class Info  -->
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                   Text="Class: " />
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="1"
+                                   FontSize="13"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding ClassName}" />
+
+                        <!--  Instance Info  -->
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                   Text="Instance: "
+                                   Visibility="{Binding InstanceName, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="1"
+                                   FontSize="13"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding InstanceName}"
+                                   Visibility="{Binding InstanceName, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
+                    </Grid>
+                    <!--  Learn More Hyperlink  -->
+                    <TextBlock Margin="0,4,0,0">
+                        <Hyperlink NavigateUri="{Binding LearnMoreUrl, Mode=OneWay}">
+                            <Run Text="{Binding LearnMoreText, Mode=OneWay}" />
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <!--  Accent underline  -->
+                    <Rectangle Height="2"
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource PrimaryAccentBrush}" />
+                </StackPanel>
+            </Border>
+            <!--  Method Description Area  -->
+            <Border Grid.Row="1"
+                    Padding="16,0,16,0"
+                    BorderThickness="0,0,0,0"
+                    Visibility="{Binding MethodDescription, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+                <uc:CollapsibleTextBlock Text="{Binding MethodDescription}" TextForeground="{DynamicResource PrimaryForegroundBrush}" />
+            </Border>
+            <!--  Main Content  -->
+            <TabControl Grid.Row="2"
+                        Margin="16,8,16,0"
+                        Padding="8,0,8,0"
+                        BorderThickness="0"
+                        SelectedIndex="{Binding SelectedTabIndex}">
+                <!--  Input Parameters Tab  -->
+                <TabItem Header="Input">
+                    <ScrollViewer Margin="0,4,0,0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Parameters}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="8,4"
+                                            Padding="8"
+                                            Background="{DynamicResource SecondaryBackgroundBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+
+                                            <!--  Top Row with Checkbox and ID  -->
+                                            <DockPanel Grid.Row="0">
+                                                <CheckBox Margin="0,4,4,0"
+                                                          VerticalAlignment="Top"
+                                                          DockPanel.Dock="Left"
+                                                          IsChecked="{Binding IsSelected}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                        <TextBlock Foreground="{DynamicResource SecondaryForegroundBrush}" Text=" [" />
+                                                        <TextBlock FontStyle="Italic" Foreground="{DynamicResource SecondaryForegroundBrush}" Text="{Binding CimType}" />
+                                                        <TextBlock Foreground="{DynamicResource SecondaryForegroundBrush}" Text="]" />
+                                                    </StackPanel>
+                                                </CheckBox>
+                                                <TextBlock HorizontalAlignment="Right"
+                                                           DockPanel.Dock="Right"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource SecondaryForegroundBrush}"
+                                                           Text="{Binding Id, StringFormat=ID: {0}}" />
+                                            </DockPanel>
+
+                                            <!--  Parameter Content Below Checkbox  -->
+                                            <StackPanel Grid.Row="1" Margin="8,4,0,0">
+                                                <!--  Parameter Description  -->
+                                                <uc:CollapsibleTextBlock Text="{Binding Description}" TextForeground="{DynamicResource SecondaryForegroundBrush}" Visibility="{Binding Description, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
+
+                                                <!--  Value Input Template Selection  -->
+                                                <ContentControl>
+                                                    <ContentControl.Style>
+                                                        <Style TargetType="ContentControl">
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value>
+                                                                    <DataTemplate>
+                                                                        <!--  Default: TextBox for non-complex types  -->
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="Auto" />
+                                                                            </Grid.ColumnDefinitions>
+
+                                                                            <!--  Value Input  -->
+                                                                            <TextBox Grid.Column="0" HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}">
+                                                                                <TextBox.Style>
+                                                                                    <Style BasedOn="{StaticResource TextBoxWithClearButton}" TargetType="{x:Type TextBox}">
+                                                                                        <Setter Property="Tag" Value="Enter value..." />
+                                                                                        <Setter Property="Text" Value="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                                                                                        <Style.Triggers>
+                                                                                            <!--  Use DisplayValue for integer types  -->
+                                                                                            <DataTrigger Binding="{Binding DataContext.IsInteger, RelativeSource={RelativeSource AncestorType=ContentControl}}" Value="True">
+                                                                                                <Setter Property="Text" Value="{Binding DataContext.DisplayValue, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBox.Style>
+                                                                            </TextBox>
+
+                                                                            <!--  Hex Checkbox for Integer Types  -->
+                                                                            <CheckBox Grid.Column="1"
+                                                                                      Margin="8,0,0,0"
+                                                                                      Content="Hex"
+                                                                                      IsChecked="{Binding DataContext.IsHexadecimal, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                      IsEnabled="{Binding IsEnabled}"
+                                                                                      Visibility="{Binding DataContext.IsInteger, RelativeSource={RelativeSource AncestorType=ContentControl}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                                        </Grid>
+                                                                    </DataTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <!--  Content Control Triggers  -->
+                                                            <Style.Triggers>
+                                                                <!--  Disable content when parameter is not selected  -->
+                                                                <DataTrigger Binding="{Binding IsSelected}" Value="False">
+                                                                    <Setter Property="IsEnabled" Value="False" />
+                                                                </DataTrigger>
+                                                                <!--  Reference: ComboBox + Load Button  -->
+                                                                <DataTrigger Binding="{Binding IsReference}" Value="True">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*" />
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <ComboBox Grid.Column="0"
+                                                                                              IsEditable="True"
+                                                                                              IsEnabled="{Binding IsEnabled}"
+                                                                                              ItemsSource="{Binding DataContext.ReferenceValues, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                              SelectedItem="{Binding DataContext.Value, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                                    <Button Grid.Column="1"
+                                                                                            Width="60"
+                                                                                            Margin="8,0,0,0"
+                                                                                            Command="{Binding DataContext.LoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                            Content="Load" />
+                                                                                    <Button Grid.Column="2"
+                                                                                            Width="60"
+                                                                                            Margin="8,0,0,0"
+                                                                                            Command="{Binding DataContext.CancelLoadReferenceValuesCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                            Content="Cancel" />
+                                                                                </Grid>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                                <!--  Object: Read-only TextBox with Edit Button  -->
+                                                                <DataTrigger Binding="{Binding IsObject}" Value="True">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*" />
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                    </Grid.ColumnDefinitions>
+
+                                                                                    <!--  Read-only TextBox showing object info  -->
+                                                                                    <TextBox Grid.Column="0"
+                                                                                             HorizontalAlignment="Stretch"
+                                                                                             IsReadOnly="True"
+                                                                                             TextWrapping="Wrap">
+                                                                                        <TextBox.Style>
+                                                                                            <Style BasedOn="{StaticResource TextBoxWithPlaceholder}" TargetType="{x:Type TextBox}">
+                                                                                                <Setter Property="Text" Value="{Binding DataContext.ObjectDisplayText, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=OneWay}" />
+                                                                                            </Style>
+                                                                                        </TextBox.Style>
+                                                                                    </TextBox>
+
+                                                                                    <!--  Edit Button  -->
+                                                                                    <Button Grid.Column="1"
+                                                                                            Width="60"
+                                                                                            Margin="8,0,0,0"
+                                                                                            Command="{Binding DataContext.EditObjectCommand, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                                                                            Content="Edit..." />
+                                                                                </Grid>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <!--  No Parameters Message  -->
+                            <ItemsControl.Style>
+                                <Style TargetType="ItemsControl">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Parameters.Count}" Value="0">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate>
+                                                        <TextBlock HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="Gray"
+                                                                   Text="This method has no input parameters" />
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Style>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!--  Output Parameters Tab  -->
+                <TabItem Header="Output">
+                    <Grid>
+                        <pg:PropertyGrid x:Name="OutputPropertyGrid"
+                                         Margin="0"
+                                         BorderThickness="0"
+                                         EnableVirtualization="True"
+                                         IsPropertyGridReadOnly="True"
+                                         NameColumnWidth="150"
+                                         SelectedObject="{Binding OutputParameters}"
+                                         ShowHelpPane="False"
+                                         ShowOptions="False"
+                                         ShowSearchBox="False" />
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource DisabledForegroundBrush}"
+                                   Text="Output parameters will appear here after execution"
+                                   Visibility="{Binding HasOutputParameters, Converter={StaticResource InverseBooleanVisibilityConverter}}" />
+                    </Grid>
+                </TabItem>
+            </TabControl>
+            <!--  Button Panel and Status Bar  -->
+            <DockPanel Grid.Row="3">
+                <!--  Status Bar  -->
+                <StatusBar Background="{DynamicResource SecondaryBackgroundBrush}" DockPanel.Dock="Bottom" Foreground="{DynamicResource PrimaryForegroundBrush}">
+                    <StatusBarItem>
+                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                            <uc:IconIndicator AppState="{Binding AppState}" />
+                            <uc:ProgressBarIndicator AppState="{Binding AppState}" />
+                            <TextBlock Margin="4,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding StatusMessage}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </StatusBarItem>
+                </StatusBar>
+
+                <!--  Button Panel  -->
+                <Border Margin="12,4"
+                        Padding="0,8,0,0"
+                        VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Left side - Generate Script button  -->
+                        <Button Grid.Column="0"
+                                Width="120"
+                                Command="{Binding GenerateScriptCommand}"
+                                Content="Generate Script" />
+
+                        <!--  Right side - Action buttons  -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Button Width="80" Command="{Binding ExecuteMethodCommand}" Content="Execute" />
+                            <Button Width="80" Command="{Binding CancelCommand}" Content="Cancel" />
+                            <Button Width="80" Command="{Binding CloseDialogCommand}" Content="Close" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </DockPanel>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  Icons from SegoeFluentIcons  -->
+    <!--  Reference: https://learn.microsoft.com/en-us/windows/apps/design/style/segoe-fluent-icons-font  -->
+
+    <Style x:Key="IconTextBlockStyle" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
+    <!--  Style for icons with LoadState-based coloring  -->
+    <Style x:Key="LoadStateIconTextBlockStyle" BasedOn="{StaticResource IconTextBlockStyle}" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TertiaryForegroundBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Loading">
+                <Setter Property="Foreground" Value="{DynamicResource BaseBlueBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Expanding">
+                <Setter Property="Foreground" Value="{DynamicResource BaseBlueBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Success">
+                <Setter Property="Foreground" Value="{DynamicResource BaseGreenBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="PartialSuccess">
+                <Setter Property="Foreground" Value="{DynamicResource BaseTanBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Warning">
+                <Setter Property="Foreground" Value="{DynamicResource BaseOrangeBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ItemStatus.LoadState}" Value="Error">
+                <Setter Property="Foreground" Value="{DynamicResource BaseRedBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!--  Letter Icon Template for reusable icon indicators  -->
+    <ControlTemplate x:Key="LetterIconTemplate" TargetType="ContentControl">
+        <Border Width="16"
+                Height="16"
+                Background="{TemplateBinding Background}"
+                CornerRadius="2">
+            <!--  Uses PrimaryBackgroundBrush for Foreground intentionally to inverse for better contrast  -->
+            <TextBlock HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontFamily="Segoe UI"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource PrimaryBackgroundBrush}"
+                       Text="{TemplateBinding Content}" />
+        </Border>
+    </ControlTemplate>
+
+    <!--  Menu Bar Icons  -->
+
+    <DataTemplate x:Key="ExitIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE711;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ShieldIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE7EF;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="WbemtestIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE756;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="WmiMgmtIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE756;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="DcomCnfgIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE756;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="InfoIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE946;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="BrightnessIconTemplate">
+        <TextBlock Foreground="{DynamicResource BaseGreenBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE706;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="QuietHoursIconTemplate">
+        <TextBlock Foreground="{DynamicResource BaseBlueBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE708;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="ColorOffIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xF570;" />
+    </DataTemplate>
+
+    <!--  Namespace Icons with LoadState-based coloring  -->
+
+    <!--  ConfigMgr Provider icon with LoadState-based coloring  -->
+    <DataTemplate x:Key="ConfigMgrProviderIconWithStateTemplate">
+        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE82D;" />
+    </DataTemplate>
+
+    <!--  ConfigMgr Client icon with LoadState-based coloring  -->
+    <DataTemplate x:Key="ConfigMgrClientIconWithStateTemplate">
+        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xE70C;" />
+    </DataTemplate>
+
+    <!--  Regular namespace circle icon with LoadState-based coloring  -->
+    <DataTemplate x:Key="CircleIconWithStateTemplate">
+        <TextBlock Style="{StaticResource LoadStateIconTextBlockStyle}" Text="&#xEDB0;" />
+    </DataTemplate>
+
+    <!--  Root namespace icon with LoadState-based coloring  -->
+    <DataTemplate x:Key="RootNamespaceIconWithStateTemplate">
+        <TextBlock Foreground="{DynamicResource BaseGreenBrush}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE977;" />
+    </DataTemplate>
+
+    <!--  ConfigMgr icons  -->
+
+    <DataTemplate x:Key="ConfigMgrClientIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE70C;" />
+    </DataTemplate>
+
+    <!--  Update related icons  -->
+
+    <DataTemplate x:Key="CheckUpdateStartupIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA6A;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CheckUpdateIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
+    </DataTemplate>
+
+    <!--  Connection icons  -->
+
+    <DataTemplate x:Key="ConnectionOptionsIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE703;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="DisconnectIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xEA14;" />
+    </DataTemplate>
+
+    <!--  Special icons  -->
+
+    <DataTemplate x:Key="KeyIconTemplate">
+        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE8D7;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="WarningIconTemplate">
+        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE7BA;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="DeleteIconTemplate">
+        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE74D;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="AddIconTemplate">
+        <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" Style="{StaticResource IconTextBlockStyle}" Text="&#xE710;" />
+    </DataTemplate>
+
+    <!--  Class/Instance Icons  -->
+
+    <DataTemplate x:Key="ExecMethodIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE90F;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="OpenInNewwindowIconTemplate" x:Shared="False">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A7;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="LoadIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71D;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="RefreshIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE72C;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="JumpToIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE73F;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="StopIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE71A;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="EditIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE70F;" />
+    </DataTemplate>
+
+    <!--  Mof Icons  -->
+
+    <DataTemplate x:Key="ShowResultsIconTemplate" x:Shared="False">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8BC;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CopyMofIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A1;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CopyMofSimpleIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8A5;" />
+    </DataTemplate>
+
+    <!--  Text action icons  -->
+
+    <DataTemplate x:Key="CopyIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8C8;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="CutIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8C6;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="PasteIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE77F;" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="SelectAllIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8B3;" />
+    </DataTemplate>
+
+    <!--  MessageBox Icons (Fluent, placeholder Unicode)  -->
+    <DataTemplate x:Key="MessageBoxInfoIconTemplate">
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseGreenBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xE946;" />
+    </DataTemplate>
+    <DataTemplate x:Key="MessageBoxWarningIconTemplate">
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseOrangeBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xE7BA;" />
+    </DataTemplate>
+    <DataTemplate x:Key="MessageBoxErrorIconTemplate">
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseRedBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xEA39;" />
+    </DataTemplate>
+    <DataTemplate x:Key="MessageBoxQuestionIconTemplate">
+        <TextBlock FontSize="36"
+                   Foreground="{DynamicResource BaseBlueBrush}"
+                   Style="{StaticResource IconTextBlockStyle}"
+                   Text="&#xE9CE;" />
+    </DataTemplate>
+
+    <!--  Script Generation Icons  -->
+
+    <DataTemplate x:Key="ScriptIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE9D9;" />
+    </DataTemplate>
+
+</ResourceDictionary>

@@ -1,0 +1,71 @@
+<UserControl x:Class="WmiExplorer.Presentation.Views.Main.PropertyGridView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:WmiExplorer.Presentation.Converters"
+             xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
+             Background="{DynamicResource PrimaryBackgroundBrush}">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <Grid>
+        <!--  Property Grid with Expander  -->
+        <Expander Name="ExpanderPropertyGrid"
+                  BorderThickness="0"
+                  ExpandDirection="Left"
+                  Header="Properties"
+                  IsExpanded="{Binding SettingsManager.MainWindowPosition.IsPropertyGridExpanded, Mode=TwoWay}"
+                  Style="{StaticResource VerticalHeaderExpanderStyle}">
+            <Expander.Content>
+                <!--  Border around both header and property grid  -->
+                <Border Margin="4,4,4,4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Visibility="{Binding IsDebugMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0"
+                                      Margin="0,0,4,4"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Top"
+                                      ItemsSource="{Binding DebugObjects}"
+                                      SelectedItem="{Binding SelectedDebugObject, Mode=TwoWay}" />
+                            <Button Grid.Column="1"
+                                    Margin="0,0,0,4"
+                                    Command="{Binding RefreshDebugObjectCommand}"
+                                    Content="Refresh" />
+                        </Grid>
+                        <!--  Header for selected object  -->
+                        <Border Grid.Row="1"
+                                Padding="{StaticResource PaddingSmall}"
+                                Background="{DynamicResource PrimaryAccentBrush}"
+                                BorderThickness="0">
+                            <TextBlock Background="{DynamicResource PrimaryAccentBrush}"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                       Text="{Binding SelectionManager.PropertyGrid.SelectedObjectDisplayName}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </Border>
+                        <pg:PropertyGrid x:Name="PropertyGrid"
+                                         Grid.Row="2"
+                                         Background="{DynamicResource PrimaryBackgroundBrush}"
+                                         BorderThickness="0"
+                                         EnableVirtualization="True"
+                                         IsPropertyGridReadOnly="True"
+                                         NameColumnWidth="150"
+                                         SelectedObject="{Binding SelectionManager.PropertyGrid.SelectedObjectForPropertyGrid, Mode=OneWay}"
+                                         ShowSearchBox="True" />
+                    </Grid>
+                </Border>
+            </Expander.Content>
+        </Expander>
+    </Grid>
+
+</UserControl>

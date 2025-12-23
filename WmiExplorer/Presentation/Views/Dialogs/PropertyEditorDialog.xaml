@@ -1,0 +1,114 @@
+<Window x:Class="WmiExplorer.Presentation.Views.Dialogs.PropertyEditorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:WmiExplorer.Presentation.Behaviors"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGrid"
+        xmlns:uc="clr-namespace:WmiExplorer.Presentation.Controls.UserControls"
+        Width="800"
+        Height="800"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        mc:Ignorable="d">
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding SaveCommand}" />
+    </Window.InputBindings>
+    <Border Background="{DynamicResource PrimaryBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="3">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  Header Area  -->
+            <Border Grid.Row="0"
+                    Padding="8"
+                    behaviors:WindowDragBehavior.IsDragEnabled="True"
+                    Background="{DynamicResource SecondaryBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}">
+                <StackPanel Orientation="Vertical">
+
+                    <StackPanel Orientation="Horizontal">
+                        <ContentControl Margin="0,0,8,0" ContentTemplate="{StaticResource EditIconTemplate}" />
+                        <TextBlock FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   Text="{Binding Title}" />
+                    </StackPanel>
+
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="13"
+                               Foreground="{DynamicResource SecondaryForegroundBrush}"
+                               Text="{Binding ObjectTypeName, StringFormat=Type: {0}}"
+                               Visibility="{Binding ObjectTypeName, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
+
+                    <!--  Accent underline  -->
+                    <Rectangle Height="2"
+                               Margin="0,8,0,0"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource PrimaryAccentBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!--  Property Grid Content  -->
+            <Border Grid.Row="1"
+                    Margin="16"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="3">
+                <pg:PropertyGrid x:Name="PropertyGridControl"
+                                 IsPropertyGridReadOnly="False"
+                                 NameColumnWidth="150"
+                                 SelectedObject="{Binding EditableObject}"
+                                 ShowHelpPane="True"
+                                 ShowOptions="True"
+                                 ShowSearchBox="True"
+                                 ShowWmiOptions="False"
+                                 UseCardStyleEditor="True">
+                    <pg:PropertyGrid.FilterOptions>
+                        <pg:PropertyFilterOptions IncludeNullValues="True" IncludeReadOnlyProperties="False" IncludeSystemProperties="True" />
+                    </pg:PropertyGrid.FilterOptions>
+                </pg:PropertyGrid>
+            </Border>
+
+            <!--  Button Area  -->
+            <Border Grid.Row="2"
+                    Padding="16"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,1,0,0">
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <Button Margin="0,0,8,0" Command="{Binding CancelCommand}" Content="Cancel" />
+                    <Button Command="{Binding SaveCommand}" Content="Save" IsDefault="True" />
+                </StackPanel>
+            </Border>
+
+            <!--  Status Bar  -->
+            <StatusBar Grid.Row="3"
+                       Background="{DynamicResource SecondaryBackgroundBrush}"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+                <StatusBarItem>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <uc:IconIndicator AppState="{Binding AppState}" />
+                        <uc:ProgressBarIndicator AppState="{Binding AppState}" />
+                        <TextBlock Margin="4,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding StatusMessage}"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+    </Border>
+</Window>

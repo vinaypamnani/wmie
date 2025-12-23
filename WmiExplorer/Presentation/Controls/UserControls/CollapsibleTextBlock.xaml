@@ -1,0 +1,92 @@
+<UserControl x:Class="WmiExplorer.Presentation.Controls.UserControls.CollapsibleTextBlock"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <!--  Simple Context Menu for TextBox  -->
+        <ContextMenu x:Key="SimpleTextBoxContextMenu">
+            <MenuItem Command="ApplicationCommands.Cut" Header="Cut">
+                <MenuItem.Icon>
+                    <ContentControl ContentTemplate="{StaticResource CutIconTemplate}" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Command="ApplicationCommands.Copy" Header="Copy">
+                <MenuItem.Icon>
+                    <ContentControl ContentTemplate="{StaticResource CopyIconTemplate}" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Command="ApplicationCommands.Paste" Header="Paste">
+                <MenuItem.Icon>
+                    <ContentControl ContentTemplate="{StaticResource PasteIconTemplate}" />
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Command="ApplicationCommands.SelectAll" Header="Select All">
+                <MenuItem.Icon>
+                    <ContentControl ContentTemplate="{StaticResource SelectAllIconTemplate}" />
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  Toggle Button  -->
+        <TextBlock Name="ToggleButton"
+                   Grid.Column="0"
+                   Margin="0,0,8,0"
+                   VerticalAlignment="Top"
+                   Cursor="Hand"
+                   FontSize="12"
+                   Foreground="{DynamicResource SecondaryAccentBrush}"
+                   MouseLeftButtonDown="ToggleButton_MouseLeftButtonDown">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Text" Value="More" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                            <Setter Property="Text" Value="Less" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!--  Content TextBox (replaces TextBlock for copy support)  -->
+        <TextBox Name="ContentTextBox"
+                 Grid.Column="1"
+                 Padding="0"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 ContextMenu="{StaticResource SimpleTextBoxContextMenu}"
+                 FontSize="12"
+                 FontWeight="Normal"
+                 Foreground="{Binding TextForeground, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 HorizontalScrollBarVisibility="Disabled"
+                 IsReadOnly="True"
+                 Text="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 VerticalScrollBarVisibility="Disabled">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="TextWrapping" Value="Wrap" />
+                    <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                            <Setter Property="MaxHeight" Value="19" />
+                            <Setter Property="TextWrapping" Value="NoWrap" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                            <Setter Property="ToolTip" Value="{x:Null}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+    </Grid>
+</UserControl>

@@ -1,0 +1,61 @@
+# Settings and Caching
+
+Information about application settings, data storage, and caching strategies.
+
+## Table of Contents
+
+- [Application Data Storage](#application-data-storage)
+- [Caching Strategy](#caching-strategy)
+- [Status Indicator Colors](#status-indicator-colors)
+
+## Application Data Storage
+
+Application data is stored in the following directory: `%APPDATA%\WmiExplorer` (typically `C:\Users\<username>\AppData\Roaming\WmiExplorer`)
+
+The following files are stored in this directory:
+
+- **`settings.json`**: General application settings (connection preferences, window position, etc.)
+- **`themes.json`**: Theme configuration and accent colors
+- **`Cache.db`**: SQLite database containing cached WMI class metadata (expires after 7 days). The cached data is used for auto-completion in **Query** and **Watcher** tabs.
+- **`WmiExplorer.log`**: Application log file (daily rolling, kept for 7 days)
+
+## Caching Strategy
+
+The application uses a multi-tier caching strategy to improve performance.
+
+> **NOTE: Only metadata is cached, not actual instance data or property values.**
+
+### Persistent Cache (Disk)
+
+- **`Cache.db`**: SQLite database storing WMI class metadata (namespaces, classes, property names and types)
+- Cache entries expire after 7 days and are automatically pruned after 45 days
+- Used for auto-completion in Query and Watcher tabs
+
+### In-Memory Caches
+
+- **WMI Metadata Cache**: Loaded from `Cache.db` into memory on first access, providing fast lookups for namespace and class metadata (structure only, not values)
+- **Provider Cache**: Caches WMI provider instances per namespace to avoid repeated queries
+- **Query Context Cache**: LRU cache (max 100 entries) for WQL query parsing and completion contexts
+- **Log Cache**: In-memory buffer storing up to 1,000 log entries for display in the Log tab
+
+### Caching Behavior in the UI
+
+- Once classes are loaded for a namespace, they are cached in memory. **Single-clicking** the namespace will display the cached classes (indicated by a green status indicator).
+- Once instances are loaded for a class, they are cached in memory. **Single-clicking** the class will display the cached instances (indicated by a green status indicator).
+- **Double-clicking** always reloads data from WMI, refreshing the cache with the latest information.
+
+For more information about navigation and caching behavior, see [Usage Guide](USAGE.md).
+
+## Status Indicator Colors
+
+The circular status indicator in the status bar uses the following colors to represent application state:
+
+- **Green**: Ready or Success state
+- **Blue**: Busy state (operation in progress, with pulsing animation)
+- **Orange**: Warning state
+- **Tan/Beige**: Partial Success state.
+  - For Namespaces, indicates that Namespace metadata is loaded, but Classes are not.
+  - For Classes, indicates that Class metadata is loaded, but Instances are not.
+- **Red**: Error state
+- **Gray**: Unknown state
+

@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  Delay hover effect on IsMouseOver  -->
+    <Storyboard x:Key="HoverDelayStoryboard">
+        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Tag">
+            <DiscreteObjectKeyFrame KeyTime="0:0:0.5" Value="HoverDelayed" />
+        </ObjectAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <Storyboard x:Key="HoverResetStoryboard">
+        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Tag">
+            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="" />
+        </ObjectAnimationUsingKeyFrames>
+    </Storyboard>
+
+</ResourceDictionary>

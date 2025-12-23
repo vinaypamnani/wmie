@@ -1,0 +1,109 @@
+using WmiExplorer.Common.Models;
+using WmiExplorer.Presentation.ViewModels.Items;
+using WmiExplorer.Presentation.ViewModels.Shared;
+
+namespace WmiExplorer.Common.Messages;
+
+#region classes
+
+/// <summary>
+/// Message sent when application state changes
+/// </summary>
+public class ApplicationStateMessage : MessageBase
+{
+    public ApplicationStateMessage(ApplicationState state)
+    {
+        State = state;
+    }
+
+    public ApplicationState State { get; }
+}
+
+/// <summary>
+/// Message sent when a root namespace should be disconnected (removed from the tree)
+/// </summary>
+public class DisconnectNamespaceMessage : MessageBase
+{
+    public DisconnectNamespaceMessage(WmiNamespaceViewModel namespaceViewModel)
+    {
+        NamespaceViewModel = namespaceViewModel ?? throw new ArgumentNullException(nameof(namespaceViewModel));
+    }
+
+    public WmiNamespaceViewModel NamespaceViewModel { get; }
+}
+
+/// <summary>
+/// Unified message sent when any selection changes in the application
+/// </summary>
+public class SelectionChangedMessage : MessageBase
+{
+    public SelectionChangedMessage(SelectionManager selectionManager)
+    {
+        SelectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+    }
+
+    public SelectionManager SelectionManager { get; }
+}
+
+/// <summary>
+/// Non-generic version for cases where type isn't known at compile time
+/// </summary>
+public class SettingChangedMessage : MessageBase
+{
+    public SettingChangedMessage(string settingName, object? oldValue, object? newValue)
+    {
+        SettingName = settingName;
+        OldValue = oldValue;
+        NewValue = newValue;
+    }
+
+    public object? NewValue { get; }
+    public object? OldValue { get; }
+    public string SettingName { get; }
+}
+
+/// <summary>
+/// Generic message sent when any setting changes
+/// </summary>
+/// <typeparam name="T">The type of the setting value</typeparam>
+public class SettingChangedMessage<T> : MessageBase
+{
+    public T NewValue { get; }
+    public T OldValue { get; }
+    public string SettingName { get; }
+
+    public SettingChangedMessage(string settingName, T oldValue, T newValue)
+    {
+        SettingName = settingName;
+        OldValue = oldValue;
+        NewValue = newValue;
+    }
+}
+
+/// <summary>
+/// Message to request switching to a specific main tab (by index)
+/// </summary>
+public class SwitchMainTabMessage : MessageBase
+{
+    public SwitchMainTabMessage(int tabIndex)
+    {
+        TabIndex = tabIndex;
+    }
+
+    public int TabIndex { get; }
+}
+
+/// <summary>
+/// Message sent when theme changes
+/// </summary>
+public class ThemeChangedMessage : MessageBase
+{
+    public ThemeChangedMessage(string theme)
+    {
+        Theme = theme;
+    }
+
+    public string Theme { get; }
+}
+
+#endregion

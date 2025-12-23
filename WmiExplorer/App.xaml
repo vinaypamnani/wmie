@@ -1,0 +1,48 @@
+<Application x:Class="WmiExplorer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:WmiExplorer">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--  Load generic theme - Main Theme will be loaded dynamically by ThemeService from the Themes folder  -->
+                <ResourceDictionary Source="Presentation/Themes/Generic.xaml" />
+
+                <!--  Converters  -->
+                <ResourceDictionary Source="Presentation/Converters/Converters.xaml" />
+
+                <!--  String resources  -->
+                <ResourceDictionary Source="Resources/TooltipStrings.xaml" />
+
+                <!--  Load base styles  -->
+                <ResourceDictionary Source="Presentation/Styles/StoryboardStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/FocusVisualStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/SpacingStyles.xaml" />
+
+                <!--  Load icons styles  -->
+                <ResourceDictionary Source="Presentation/Styles/Icons.xaml" />
+
+                <!--  Load control styles  -->
+                <ResourceDictionary Source="Presentation/Styles/TextControlStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ComboBoxStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/TreeStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/MenuStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/NavigationStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/LayoutStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/TooltipStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ScrollBarStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ModernListViewStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/ModernGridListViewStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/DataGridStyle.xaml" />
+                <ResourceDictionary Source="Presentation/Styles/SeparatorStyles.xaml" />
+
+                <!--  Load additional control specific styles  -->
+                <ResourceDictionary Source="Presentation/Styles/AvalonEditCompletionStyles.xaml" />
+                <ResourceDictionary Source="Presentation/Controls/ColorPicker/ColorPicker.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/WmiExplorer.PropertyGrid;component/Styles/PropertyGrid.xaml" />
+
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
