@@ -183,7 +183,7 @@
                         Visibility="{Binding UpdateManager.ShowRelaunchButton, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE8AB;" />
-                        <TextBlock Margin="4,0,0,0" Text="Relaunch" />
+                        <TextBlock Margin="4,0,0,0" Text="Install and Relaunch" />
                     </StackPanel>
                 </Button>
                 <Button Margin="16,0,0,0" Command="{Binding UpdateManager.DismissUpdateNotificationCommand}" Style="{StaticResource FlatNotificationButton}">

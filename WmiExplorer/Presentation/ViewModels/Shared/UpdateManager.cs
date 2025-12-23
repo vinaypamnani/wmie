@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.IO;
 using System.Windows.Threading;
+using WmiExplorer.Common.Enums;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Services;
 
@@ -49,7 +50,7 @@ public partial class UpdateManager : ObservableObject
         _updateService = updateService;
     }
 
-    public bool IsPortable => _updateService.IsPortable;
+    public DeploymentType DeploymentType => _updateService.DeploymentType;
 
     [RelayCommand]
     public async Task CheckForUpdatesAsync()
@@ -170,13 +171,16 @@ public partial class UpdateManager : ObservableObject
             if (!installed)
             {
                 UpdateNotificationMessage = "Failed to install update. Review Logs.";
+                ShowRelaunchButton = true; // Re-enable so user can retry
                 return;
             }
+            // If installation succeeds, the app will close, so we don't need to update UI
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to install update");
             UpdateNotificationMessage = "Failed to install update. See Log for details.";
+            ShowRelaunchButton = true; // Re-enable so user can retry
         }
     }
 
@@ -219,8 +223,14 @@ public partial class UpdateManager : ObservableObject
     // Returns the correct asset name and temp path for both download and install
     private (string assetName, string tempPath) GetUpdateAssetInfo()
     {
-        string assetName = IsPortable ? "WmiExplorer.Portable.exe" : "WmiExplorer.exe";
-        string tempPath = Path.Combine(Path.GetTempPath(), assetName);
+        string assetName = DeploymentType switch
+        {
+            DeploymentType.Standalone => "WmiExplorer.Standalone.zip",
+            DeploymentType.MultiFile => "WmiExplorer.MultiFile.zip",
+            DeploymentType.SingleFile => "WmiExplorer.zip",
+            _ => "WmiExplorer.zip"  // Default fallback
+        };
+        string tempPath = Path.Combine(_updateService.WmiExplorerTempDirectory, assetName);
         return (assetName, tempPath);
     }
 

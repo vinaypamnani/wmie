@@ -119,7 +119,7 @@ public partial class MainViewModel : SelectionAwareViewModelBase
         ClassesTabViewModel.PropertyChanged += HandleClassesTabViewModelPropertyChanged;
 
         // Test logging
-        Log.Information("Application started successfully. IsPortable: {IsPortable}", UpdateManager.IsPortable);
+        Log.Information("Application started successfully. DeploymentType: {DeploymentType}", UpdateManager.DeploymentType);
 
         // Check for updates on startup if enabled and interval has elapsed
         PerformAutoUpdateCheckOnStartup();
@@ -149,6 +149,22 @@ public partial class MainViewModel : SelectionAwareViewModelBase
     public bool IsRunningAsAdministrator => IsElevated();
 
     public SettingsManager SettingsManager => _settingsManager;
+
+    /// <summary>
+    /// Cleanup resources on disposal
+    /// </summary>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // Unsubscribe from ClassesTabViewModel property changes
+            if (ClassesTabViewModel != null)
+            {
+                ClassesTabViewModel.PropertyChanged -= HandleClassesTabViewModelPropertyChanged;
+            }
+        }
+        base.Dispose(disposing);
+    }
 
     /// <summary>
     /// Called when the selected class changes. Override from SelectionAwareViewModelBase.
@@ -826,21 +842,5 @@ Built with .NET 8 and WPF
         CurrentTheme = _themeManager.CurrentTheme!;
         CurrentThemeName = _themeManager.CurrentThemeName == "Dark" ? "Dark" : "Light";
         // CurrentThemeName = _themeManager.CurrentThemeName == "Dark" ? "🌙 Dark" : "🌞 Light";
-    }
-
-    /// <summary>
-    /// Cleanup resources on disposal
-    /// </summary>
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            // Unsubscribe from ClassesTabViewModel property changes
-            if (ClassesTabViewModel != null)
-            {
-                ClassesTabViewModel.PropertyChanged -= HandleClassesTabViewModelPropertyChanged;
-            }
-        }
-        base.Dispose(disposing);
     }
 }
