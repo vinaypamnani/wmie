@@ -91,6 +91,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0"
                              Height="26"
@@ -100,6 +101,11 @@
                              ToolTip="{StaticResource Tooltip.Query.FilterResults}" />
 
                     <Button Grid.Column="1"
+                            Width="80"
+                            Command="{Binding SaveResultsCommand}"
+                            Content="Save Results"
+                            ToolTip="Save query results to a file" />
+                    <Button Grid.Column="2"
                             Width="80"
                             Command="{Binding ClearResultsCommand}"
                             Content="Clear Results"

@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Management;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -12,6 +15,7 @@ using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
 using WmiExplorer.Presentation.ViewModels.Shared;
+using WmiExplorer.Presentation.Views.Dialogs;
 using WmiExplorer.Services;
 
 namespace WmiExplorer.Presentation.ViewModels.Coordinators;
@@ -154,6 +158,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
     {
         // Immediately update tab header since results just changed
         OnPropertyChanged(nameof(TabHeader));
+        NotifyResultsCommandsCanExecuteChanged();
     }
 
     /// <summary>
@@ -235,12 +240,13 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         UseAmendedQualifiers = true;
         _results.Clear();
         UpdateResultColumns();
+        NotifyResultsCommandsCanExecuteChanged();
     }
 
     /// <summary>
     /// Command to clear query results
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HasResults))]
     private void ClearResults()
     {
         _results.Clear();
@@ -248,6 +254,53 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         RefreshResultsView();
         UpdateResultColumns();
         SelectionManager.PropertyGrid.ClearPropertyGrid();
+        NotifyResultsCommandsCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Converts query results to CSV format
+    /// </summary>
+    private string ConvertResultsToCsv()
+    {
+        if (_results.Count == 0)
+            return string.Empty;
+
+        var csv = new StringBuilder();
+
+        // Collect all unique property names from all results
+        var allPropertyNames = new HashSet<string>();
+        foreach (var instance in _results)
+        {
+            var propertyDataCollection = instance.Properties as PropertyDataCollection;
+            if (propertyDataCollection != null)
+            {
+                foreach (PropertyData property in propertyDataCollection)
+                {
+                    allPropertyNames.Add(property.Name);
+                }
+            }
+        }
+
+        // Sort property names for consistent output
+        var sortedPropertyNames = allPropertyNames.OrderBy(p => p).ToList();
+
+        // Write header row
+        csv.AppendLine(string.Join(",", sortedPropertyNames.Select(EscapeCsvValue)));
+
+        // Write data rows
+        foreach (var instance in _results)
+        {
+            var rowValues = new List<string>();
+            foreach (var propertyName in sortedPropertyNames)
+            {
+                var value = instance.GetPropertyValue(propertyName);
+                var stringValue = value?.ToString() ?? string.Empty;
+                rowValues.Add(EscapeCsvValue(stringValue));
+            }
+            csv.AppendLine(string.Join(",", rowValues));
+        }
+
+        return csv.ToString();
     }
 
     private void DisposeResults(IEnumerable<WmiInstance> results)
@@ -256,6 +309,23 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         {
             instance.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Escapes a value for CSV format
+    /// </summary>
+    private static string EscapeCsvValue(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
+
+        // If value contains comma, quote, or newline, wrap in quotes and escape internal quotes
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+        {
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+
+        return value;
     }
 
     /// <summary>
@@ -355,6 +425,23 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         return !string.IsNullOrWhiteSpace(QueryText) && !IsQuerying;
     }
 
+    /// <summary>
+    /// Determines if results-related commands can be executed (both Save and Clear require results)
+    /// </summary>
+    private bool HasResults()
+    {
+        return Results.Count > 0;
+    }
+
+    /// <summary>
+    /// Notifies both SaveResultsCommand and ClearResultsCommand that their CanExecute state may have changed
+    /// </summary>
+    private void NotifyResultsCommandsCanExecuteChanged()
+    {
+        SaveResultsCommand.NotifyCanExecuteChanged();
+        ClearResultsCommand.NotifyCanExecuteChanged();
+    }
+
     private void RefreshResultsView()
     {
         _resultsView?.Refresh();
@@ -383,6 +470,7 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
                 _results.Add(result);
             }
             UpdateResultColumns();
+            NotifyResultsCommandsCanExecuteChanged();
         }
         else
         {
@@ -406,6 +494,36 @@ public partial class QueryTabViewModel : ResultsViewModelBase<WmiInstance>
         };
 
         _namespaceStates[namespaceToSave.NamespacePath] = state;
+    }
+
+    /// <summary>
+    /// Command to save query results to a file
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HasResults))]
+    private void SaveResults()
+    {
+        try
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "CSV Files (*.csv)|*.csv|Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                DefaultExt = "csv",
+                FileName = $"WMI_QueryResults_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                var csvContent = ConvertResultsToCsv();
+                File.WriteAllText(saveFileDialog.FileName, csvContent, Encoding.UTF8);
+                Log.Information("Query results saved to file: {FileName}", saveFileDialog.FileName);
+                MessageBoxDialog.Show($"Query results saved successfully to:\n{saveFileDialog.FileName}", "Save Successful", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Information, Application.Current.MainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to save query results to file");
+            MessageBoxDialog.Show($"Failed to save query results to file: {ex.Message}", "Save Error", MessageBoxDialogButton.OK, MessageBoxDialogIcon.Error, Application.Current.MainWindow);
+        }
     }
 
     private void UpdateResultColumns()
