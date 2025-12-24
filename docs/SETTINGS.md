@@ -6,7 +6,6 @@ Information about application settings, data storage, and caching strategies.
 
 - [Application Data Storage](#application-data-storage)
 - [Caching Strategy](#caching-strategy)
-- [Status Indicator Colors](#status-indicator-colors)
 
 ## Application Data Storage
 
@@ -46,16 +45,7 @@ The application uses a multi-tier caching strategy to improve performance.
 
 For more information about navigation and caching behavior, see [Usage Guide](USAGE.md).
 
-## Status Indicator Colors
+## Configuration Manager Settings
 
-The circular status indicator in the status bar uses the following colors to represent application state:
-
-- **Green**: Ready or Success state
-- **Blue**: Busy state (operation in progress, with pulsing animation)
-- **Orange**: Warning state
-- **Tan/Beige**: Partial Success state.
-  - For Namespaces, indicates that Namespace metadata is loaded, but Classes are not.
-  - For Classes, indicates that Class metadata is loaded, but Instances are not.
-- **Red**: Error state
-- **Gray**: Unknown state
+Configuration Manager (ConfigMgr) settings have been moved to the [Configuration Manager Support](CONFIGMGR.md#configuration-manager-settings) documentation page for better organization. All ConfigMgr-related documentation, including settings, is now consolidated in one place.
 

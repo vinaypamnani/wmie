@@ -19,6 +19,7 @@ A modern Windows desktop application for exploring and managing Windows Manageme
 - **Logging**: Built-in logging with configurable log levels - see [Viewing Logs](#viewing-logs)
 - **Theme Support**: Dark and Light themes with customizable accent colors - see [Menu Options](#menu-options)
 - **Auto-updates**: Check for updates from GitHub releases - see [Menu Options](#menu-options)
+- **Configuration Manager (ConfigMgr) Support**: Specialized support for Microsoft Configuration Manager namespaces and client actions - see [Configuration Manager Support](docs/CONFIGMGR.md)
 
 ## Getting Started
 
@@ -90,6 +91,19 @@ Understanding how to navigate and explore WMI objects is essential for efficient
 - **Double-clicking** always reloads data from WMI, refreshing the cache with the latest information.
 
 For more information about caching, see [Settings and Caching](docs/SETTINGS.md).
+
+### Status Indicator Colors
+
+The circular status indicator in the status bar uses the following colors to represent application state:
+
+- **Green**: Ready or Success state
+- **Blue**: Busy state (operation in progress, with pulsing animation)
+- **Orange**: Warning state
+- **Tan/Beige**: Partial Success state.
+  - For Namespaces, indicates that Namespace metadata is loaded, but Classes are not.
+  - For Classes, indicates that Class metadata is loaded, but Instances are not.
+- **Red**: Error state
+- **Gray**: Unknown state
 
 ### Exploring Namespaces and Classes
 
@@ -362,6 +376,7 @@ Additional documentation is available in the [`docs/`](docs/) folder:
 - **[Command-Line Options](docs/COMMAND_LINE.md)** - Detailed command-line argument reference
 - **[Property Grid](docs/PROPERTY_GRID.md)** - Property Grid features and capabilities
 - **[Settings and Caching](docs/SETTINGS.md)** - Application settings, data storage, and caching strategy
+- **[Configuration Manager Support](docs/CONFIGMGR.md)** - ConfigMgr/SCCM namespace support and client actions
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Building from Source](docs/BUILDING.md)** - Instructions for building the application from source
 
