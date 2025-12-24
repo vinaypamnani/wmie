@@ -39,7 +39,7 @@ WMI Explorer automatically detects Configuration Manager provider namespaces (pa
 ### Usage
 
 1. Connect to a Configuration Manager site server
-2. Navigate to a provider namespace (e.g., `root\SMS\SITE_ABC123`)
+2. Navigate to a provider namespace (e.g., `root\SMS\SITE_ABC`)
 3. The namespace will be automatically detected and show a special icon
 4. Navigate to the **Classes** tab
 5. Use the checkboxes to include/exclude Collection and Inventory classes as needed
@@ -105,7 +105,7 @@ The filtering is implemented by appending WQL `AND NOT __Class LIKE` clauses to 
 
 ### Changing Settings
 
-1. Connect to a ConfigMgr provider namespace (e.g., `root\SMS\SITE_ABC123`)
+1. Connect to a ConfigMgr provider namespace (e.g., `root\SMS\SITE_ABC`)
 2. Navigate to the **Classes** tab
 3. Use the checkboxes to enable/disable **Include Collection Classes** and **Include Inventory Classes**
 4. Click **Reload** to refresh the class list with the new filter settings
