@@ -114,6 +114,16 @@ The circular status indicator in the status bar uses the following colors to rep
    - **Methods**: Available methods with parameters and return types (shown in Methods sub-tab)
 4. **Load Instances**: Double click on a class to load all instances of that class
 
+### Cancelling Operations
+
+Long-running operations can be cancelled to stop enumeration and view partial results:
+
+- **Cancelling Instance Loading**: While instances are loading for a class, right-click on the class in the Classes tab and select **Cancel loading** from the context menu. Partial results (instances loaded so far) will be displayed.
+- **Cancelling Query Execution**: While a query is executing in the Query tab, click the **Cancel** button to stop the query. Partial results will be shown.
+- **Cancelling Search**: While a search is running in the Search tab, click the **Cancel** button to stop the search. Partial results will be displayed.
+
+> **Note**: When an operation is cancelled, any data that was successfully loaded before cancellation will be displayed. This allows you to view partial results even if the full operation was interrupted.
+
 ### Exploring Instances
 
 1. After double-clicking a class, navigate to the **Instances** tab (sub-tab under Classes)
@@ -183,8 +193,9 @@ Create, edit, and delete WMI instances directly from the application:
    - **Direct Read**: Bypass class provider
    - **Use Amended Qualifiers**: Include amended qualifiers in results
 4. Click **Execute** or press `F5` to run the query
-5. Results appear in a grid below the query editor
-6. Click on a result to view details in the Property Grid
+5. While the query is executing, you can click **Cancel** to stop the query and view partial results
+6. Results appear in a grid below the query editor
+7. Click on a result to view details in the Property Grid
 
 **Example Queries:**
 
@@ -257,9 +268,10 @@ REFERENCES OF {Win32_Service.Name="WinRM"} WHERE ResultClass=Win32_SystemService
    - **Recursive**: Search all child namespaces recursively (can take a long time)
    - **Exclude LDAP**: Exclude the `root\directory\LDAP` namespace from recursive searches (only shown when applicable)
 5. Click **Search** or press `Enter` to find matching items
-6. Results show the namespace, class, and matching item with descriptions
-7. Click on a result to view details in the Property Grid
-8. Right-click a result and select **Go to Class** to navigate to that class.
+6. While the search is running, you can click **Cancel** to stop the search and view partial results
+7. Results show the namespace, class, and matching item with descriptions
+8. Click on a result to view details in the Property Grid
+9. Right-click a result and select **Go to Class** to navigate to that class.
 
 ### Viewing Logs
 
@@ -314,16 +326,28 @@ Execute WMI methods (both static class methods and instance methods) directly fr
    - Choose the method you want to execute
 
 3. **In the Method Execution Dialog**:
-   - Review the method information (name, description, class, instance if applicable)
-   - **Input Parameters**: Fill in any required or optional input parameters
-     - Parameters are displayed with their types, descriptions, and default values
-     - Select which parameters to include in the execution
-     - Enter values for each parameter based on the parameter type
+   - Review the method information displayed in the header (method name, class name, instance name if applicable)
+   - Review the method description if available
+   - **Input Parameters Tab**:
+     - Each parameter is displayed with a checkbox to include or exclude it from the execution
+     - Parameters show their type, description, and default values
+     - Check the box next to parameters you want to include in the method call
+     - Enter values for each selected parameter based on the parameter type:
+       - Simple types (string, int, bool, etc.): Enter values directly in the text box
+       - Complex types (objects, arrays): Use the specialized editors provided
+       - Reference types: Use the reference value editor to select or create referenced objects
+     - Unchecked parameters will not be included in the method call (will use default/null values)
    - Click **Execute** to run the method
-   - **Output Parameters**: After execution, view the output parameters and return values in the Output tab
-   - The dialog shows execution status and any error messages
+   - **During Execution**:
+     - The **Cancel** button becomes available to stop the execution if needed
+     - Status messages show the execution progress
+   - **Output Parameters Tab**: After execution completes, switch to the Output tab to view:
+     - Return value (if the method returns a value)
+     - Output parameters and their values
+     - Execution status and any error messages
+   - **Generate Script**: Click the **Generate Script** button to create a PowerShell script for this method. The script generator will pre-populate with the parameter values you've entered in the dialog, allowing you to test method parameters first, then generate a script with those exact values.
 
-   > **Tip**: You can click the **Generate Script** button to create a PowerShell script for this method. The script generator will pre-populate with the parameter values you've entered in the dialog, allowing you to test method parameters first, then generate a script with those exact values.
+   > **Tip**: You can test different parameter combinations by unchecking parameters you don't need and adjusting values. Only checked parameters with values will be included in the method execution.
 
 **Method Types:**
 - **Static Methods** (Class methods): Execute on the class itself, not requiring a specific instance
