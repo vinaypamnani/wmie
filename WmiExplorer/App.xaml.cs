@@ -163,7 +163,7 @@ public partial class App : Application
         // Register core services first
         services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<ISettingsService, SettingsService>(provider => new SettingsService(provider.GetRequiredService<IMessengerService>()));
-        services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<ICacheService, CacheService>(provider => new CacheService(provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>(), provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
         services.AddSingleton<IStartupConnectionService, StartupConnectionService>(provider => new StartupConnectionService(provider));

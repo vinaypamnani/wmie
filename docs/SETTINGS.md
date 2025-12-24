@@ -27,7 +27,8 @@ The application uses a multi-tier caching strategy to improve performance.
 ### Persistent Cache (Disk)
 
 - **`Cache.db`**: SQLite database storing WMI class metadata (namespaces, classes, property names and types)
-- Cache entries expire after 7 days and are automatically pruned after 45 days
+- Cache entries expire after a configurable duration (default: 7 days) and are automatically pruned after a configurable interval (default: 45 days)
+- Expiration and prune intervals can be configured via `CacheExpirationDays` and `CachePruneIntervalDays` settings in `settings.json`
 - Used for auto-completion in Query and Watcher tabs
 
 ### In-Memory Caches

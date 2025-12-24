@@ -14,17 +14,16 @@ public class CacheService : ICacheService
 
     private readonly object _lock = new();
     private Dictionary<string, WmiNamespaceCache>? _memoryCache;
+    private readonly ISettingsService _settingsService;
 
     private static readonly string CacheFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "WmiExplorer",
         "Cache.db");
 
-    private static readonly TimeSpan Expiration = TimeSpan.FromDays(7);
-    private static readonly TimeSpan PruneInterval = TimeSpan.FromDays(45);
-
-    public CacheService()
+    public CacheService(ISettingsService settingsService)
     {
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         EnsureDatabase();
     }
 
@@ -54,7 +53,7 @@ public class CacheService : ICacheService
 
                 if (_memoryCache.TryGetValue(namespacePath, out var entry))
                 {
-                    if (entry.LastUpdatedUtc.Add(Expiration) < DateTime.UtcNow)
+                    if (entry.LastUpdatedUtc.Add(_settingsService.CacheExpiration) < DateTime.UtcNow)
                         return null;
 
                     return entry;
@@ -411,7 +410,7 @@ public class CacheService : ICacheService
                 UPDATE Namespaces
                 SET IsExpired = 1
                 WHERE datetime(LastUpdatedUtc) < datetime('now', @expiration)";
-            markNsCmd.Parameters.AddWithValue("@expiration", $"-{Expiration.TotalDays} days");
+            markNsCmd.Parameters.AddWithValue("@expiration", $"-{_settingsService.CacheExpiration.TotalDays} days");
             await markNsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
             // Mark expired classes (soft delete)
@@ -446,7 +445,7 @@ public class CacheService : ICacheService
                     WHERE c.IsExpired = 1
                     AND datetime(n.LastUpdatedUtc) < datetime('now', @pruneInterval)
                 )";
-            delPropCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
+            delPropCmd.Parameters.AddWithValue("@pruneInterval", $"-{_settingsService.CachePruneInterval.TotalDays} days");
             await delPropCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
             await using var delClassCmd = conn.CreateCommand();
@@ -459,7 +458,7 @@ public class CacheService : ICacheService
                     WHERE IsExpired = 1
                     AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)
                 )";
-            delClassCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
+            delClassCmd.Parameters.AddWithValue("@pruneInterval", $"-{_settingsService.CachePruneInterval.TotalDays} days");
             await delClassCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
             await using var delNsCmd = conn.CreateCommand();
@@ -467,7 +466,7 @@ public class CacheService : ICacheService
                 DELETE FROM Namespaces
                 WHERE IsExpired = 1
                 AND datetime(LastUpdatedUtc) < datetime('now', @pruneInterval)";
-            delNsCmd.Parameters.AddWithValue("@pruneInterval", $"-{PruneInterval.TotalDays} days");
+            delNsCmd.Parameters.AddWithValue("@pruneInterval", $"-{_settingsService.CachePruneInterval.TotalDays} days");
             await delNsCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
             await tx.CommitAsync().ConfigureAwait(false);
@@ -478,7 +477,7 @@ public class CacheService : ICacheService
                 if (_memoryCache != null)
                 {
                     var expiredPaths = _memoryCache
-                        .Where(kvp => kvp.Value.LastUpdatedUtc.Add(Expiration) < DateTime.UtcNow)
+                        .Where(kvp => kvp.Value.LastUpdatedUtc.Add(_settingsService.CacheExpiration) < DateTime.UtcNow)
                         .Select(kvp => kvp.Key)
                         .ToList();
 
