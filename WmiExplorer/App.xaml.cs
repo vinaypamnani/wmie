@@ -67,6 +67,9 @@ public partial class App : Application
         // Initialize logging first
         Log.ConfigureLogging();
 
+        // Clean up any orphaned update files from previous update operations
+        UpdateService.CleanupOrphanedUpdateFiles();
+
         // Then configure services
         ConfigureServices();
         if (ServiceProvider == null)

@@ -1,6 +1,5 @@
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -109,6 +108,100 @@ public class UpdateService
             }
         }
         return (isUpdateAvailable, latestVersion ?? string.Empty, changelog ?? string.Empty);
+    }
+
+    /// <summary>
+    /// Cleans up orphaned .delete and .stage files from previous update operations.
+    /// This should be called on application startup to remove any leftover files.
+    /// </summary>
+    public static void CleanupOrphanedUpdateFiles()
+    {
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+            {
+                Log.Debug("Could not determine exe path for orphaned file cleanup.");
+                return;
+            }
+
+            // Look for .delete and .stage files matching the current executable name
+            var deleteFile = exePath + ".delete";
+            var stageFile = exePath + ".stage";
+
+            // Clean up .delete file with retry logic
+            if (File.Exists(deleteFile))
+            {
+                bool deleted = false;
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        File.Delete(deleteFile);
+                        Log.Information($"Cleaned up orphaned .delete file: '{deleteFile}'");
+                        deleted = true;
+                        break;
+                    }
+                    catch (IOException ex)
+                    {
+                        Log.Debug($"Could not delete orphaned .delete file, retry attempt [{i + 1}/5]... Error: {ex.Message}");
+                        if (i < 4)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to delete orphaned .delete file: '{deleteFile}'");
+                        break;
+                    }
+                }
+
+                if (!deleted)
+                {
+                    Log.Warning($"Could not delete orphaned .delete file after 5 attempts: '{deleteFile}'");
+                }
+            }
+
+            // Clean up .stage file with retry logic
+            if (File.Exists(stageFile))
+            {
+                bool deleted = false;
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        File.Delete(stageFile);
+                        Log.Information($"Cleaned up orphaned .stage file: '{stageFile}'");
+                        deleted = true;
+                        break;
+                    }
+                    catch (IOException ex)
+                    {
+                        Log.Debug($"Could not delete orphaned .stage file, retry attempt [{i + 1}/5]... Error: {ex.Message}");
+                        if (i < 4)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to delete orphaned .stage file: '{stageFile}'");
+                        break;
+                    }
+                }
+
+                if (!deleted)
+                {
+                    Log.Warning($"Could not delete orphaned .stage file after 5 attempts: '{stageFile}'");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Don't throw exceptions - this is cleanup code that shouldn't break startup
+            Log.Warning(ex, "Error during orphaned update file cleanup. Continuing startup.");
+        }
     }
 
     /// <summary>
@@ -496,51 +589,88 @@ public class UpdateService
         string localStageFile = localCurrentFile + ".stage";
         string localDeleteFile = localCurrentFile + ".delete";
 
-        // Clean up any leftover delete file
-        if (File.Exists(localDeleteFile))
-            File.Delete(localDeleteFile);
-
-        // Clean up any leftover stage file
-        if (File.Exists(localStageFile))
-            File.Delete(localStageFile);
-
-        // Move the new exe to stage file
-        File.Move(newExePath, localStageFile, overwrite: true);
-
-        // Rename running .exe to .exe.delete
-        File.Move(localCurrentFile, localDeleteFile, overwrite: true);
-        System.Threading.Thread.Sleep(200);
-
-        // If for some reason the current exe still exists, try again
-        if (File.Exists(localCurrentFile))
+        try
         {
+            // Clean up any leftover delete file
+            if (File.Exists(localDeleteFile))
+                File.Delete(localDeleteFile);
+
+            // Clean up any leftover stage file
+            if (File.Exists(localStageFile))
+                File.Delete(localStageFile);
+
+            // Move the new exe to stage file
+            File.Move(newExePath, localStageFile, overwrite: true);
+
+            // Rename running .exe to .exe.delete
             File.Move(localCurrentFile, localDeleteFile, overwrite: true);
             System.Threading.Thread.Sleep(200);
-        }
 
-        // Rename .exe.stage to .exe
-        File.Move(localStageFile, localCurrentFile, overwrite: true);
+            // If for some reason the current exe still exists, try again
+            if (File.Exists(localCurrentFile))
+            {
+                File.Move(localCurrentFile, localDeleteFile, overwrite: true);
+                System.Threading.Thread.Sleep(200);
+            }
 
-        // If for some reason the stage file still exists, try again after a short wait
-        if (File.Exists(localStageFile))
-        {
-            System.Threading.Thread.Sleep(1000);
+            // Rename .exe.stage to .exe
             File.Move(localStageFile, localCurrentFile, overwrite: true);
+
+            // If for some reason the stage file still exists, try again after a short wait
+            if (File.Exists(localStageFile))
+            {
+                System.Threading.Thread.Sleep(1000);
+                File.Move(localStageFile, localCurrentFile, overwrite: true);
+            }
+
+            // Start the new process before closing to ensure it launches
+            // The new process will use the updated exe file
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = localCurrentFile,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            Log.Information($"Update installed using direct file move. Relaunching application.");
+            // Close the current application - the new instance has already started
+            // The .delete file will be cleaned up on next startup
+            Application.Current.MainWindow?.Close();
+            return Task.FromResult(true);
         }
-
-        // Start the new process before closing to ensure it launches
-        // The new process will use the updated exe file
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        catch (Exception ex)
         {
-            FileName = localCurrentFile,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        });
+            Log.Error(ex, "Failed to install update using direct file move.");
 
-        Log.Information($"Update installed using direct file move. Relaunching application.");
-        // Close the current application - the new instance has already started
-        Application.Current.MainWindow?.Close();
-        return Task.FromResult(true);
+            // Try to restore the original exe if it's missing (critical for recovery)
+            try
+            {
+                if (!File.Exists(localCurrentFile) && File.Exists(localDeleteFile))
+                {
+                    File.Move(localDeleteFile, localCurrentFile, overwrite: true);
+                    Log.Information($"Restored original executable from .delete file after update failure.");
+                }
+            }
+            catch (Exception restoreEx)
+            {
+                Log.Warning(restoreEx, $"Failed to restore original executable from .delete file: '{localDeleteFile}'");
+            }
+
+            // Clean up .stage file on error (non-critical, will be cleaned up on startup if this fails)
+            try
+            {
+                if (File.Exists(localStageFile))
+                {
+                    File.Delete(localStageFile);
+                }
+            }
+            catch
+            {
+                // Ignore - will be cleaned up on startup
+            }
+
+            throw;
+        }
     }
 
     /// <summary>
