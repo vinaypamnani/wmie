@@ -55,18 +55,30 @@ jobs:
         run: |
           dotnet publish WmiExplorer/WmiExplorer.csproj `
             -p:PublishProfile=SingleFile `
+            -p:Version=${{ steps.version.outputs.version }} `
+            -p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            -p:FileVersion=${{ steps.version.outputs.version }} `
+            -p:InformationalVersion=${{ steps.version.outputs.version }} `
             --configuration Release
 
       - name: Publish MultiFile profile
         run: |
           dotnet publish WmiExplorer/WmiExplorer.csproj `
             -p:PublishProfile=MultiFile `
+            -p:Version=${{ steps.version.outputs.version }} `
+            -p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            -p:FileVersion=${{ steps.version.outputs.version }} `
+            -p:InformationalVersion=${{ steps.version.outputs.version }} `
             --configuration Release
 
       - name: Publish Standalone profile
         run: |
           dotnet publish WmiExplorer/WmiExplorer.csproj `
             -p:PublishProfile=Standalone `
+            -p:Version=${{ steps.version.outputs.version }} `
+            -p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            -p:FileVersion=${{ steps.version.outputs.version }} `
+            -p:InformationalVersion=${{ steps.version.outputs.version }} `
             --configuration Release
 
       - name: Create SingleFile zip
