@@ -1,7 +1,6 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Windows;
 using WmiExplorer.Common.Enums;
@@ -228,6 +227,20 @@ public class UpdateService
                     var downloadUrl = asset.GetProperty("browser_download_url").GetString();
                     if (!string.IsNullOrEmpty(downloadUrl))
                     {
+                        // Delete existing file if it exists (e.g., from a previous interrupted download)
+                        if (File.Exists(destinationPath))
+                        {
+                            try
+                            {
+                                File.Delete(destinationPath);
+                                Log.Information($"Deleted existing file at '{destinationPath}' before downloading new version.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, $"Failed to delete existing file at '{destinationPath}'. Attempting to overwrite.");
+                            }
+                        }
+
                         // Download the asset
                         using var assetResponse = await _httpClient.GetAsync(downloadUrl);
                         assetResponse.EnsureSuccessStatusCode();
@@ -264,7 +277,6 @@ public class UpdateService
 
         // Extract ZIP to temporary directory
         string extractPath = Path.Combine(WmiExplorerTempDirectory, $"WmiExplorerUpdate_{Guid.NewGuid()}");
-        bool isMultiFile = DeploymentType == DeploymentType.MultiFile;
 
         try
         {
@@ -277,38 +289,14 @@ public class UpdateService
             // Route to appropriate installation method based on deployment type
             bool result = DeploymentType switch
             {
-                DeploymentType.MultiFile => await InstallMultiFileAsync(extractPath, localCurrentFile),
                 DeploymentType.SingleFile or DeploymentType.Standalone => await InstallSingleFileAsync(extractPath, localCurrentFile),
                 _ => false
             };
 
-            // For MultiFile, don't clean up immediately - batch script needs the files
-            // The batch script will clean up after it's done, or we'll clean up on next startup
-            if (!isMultiFile)
+            // Clean up extracted files after a delay (allow installation to complete)
+            _ = Task.Run(async () =>
             {
-                // Clean up extracted files after a delay (allow installation to complete)
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(5000); // Wait 5 seconds
-                    try
-                    {
-                        if (Directory.Exists(extractPath))
-                            Directory.Delete(extractPath, recursive: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, $"Failed to clean up extracted files at '{extractPath}'");
-                    }
-                });
-            }
-
-            return result;
-        }
-        catch
-        {
-            // Only clean up on error - if successful, cleanup is handled above
-            if (!isMultiFile)
-            {
+                await Task.Delay(5000); // Wait 5 seconds
                 try
                 {
                     if (Directory.Exists(extractPath))
@@ -316,8 +304,23 @@ public class UpdateService
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex, $"Failed to clean up extracted files after error at '{extractPath}'");
+                    Log.Warning(ex, $"Failed to clean up extracted files at '{extractPath}'");
                 }
+            });
+
+            return result;
+        }
+        catch
+        {
+            // Clean up on error
+            try
+            {
+                if (Directory.Exists(extractPath))
+                    Directory.Delete(extractPath, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to clean up extracted files after error at '{extractPath}'");
             }
             throw;
         }
@@ -349,8 +352,9 @@ public class UpdateService
 
         if (hasDlls)
         {
-            Log.Information("Detected MultiFile deployment type (DLLs found in directory).");
-            return DeploymentType.MultiFile;
+            // DLLs found but MultiFile is no longer supported - default to SingleFile
+            Log.Information("DLLs found in directory, but MultiFile deployment is no longer supported. Defaulting to SingleFile.");
+            return DeploymentType.SingleFile;
         }
         else if (exeSize > 50 * 1024 * 1024) // 50MB
         {
@@ -420,88 +424,6 @@ public class UpdateService
         {
             Log.Error(ex, "Failed to fetch latest release JSON.");
             return null;
-        }
-    }
-
-    /// <summary>
-    /// Installs update for MultiFile deployment by replacing all binary files.
-    /// </summary>
-    private async Task<bool> InstallMultiFileAsync(string extractPath, string currentExePath)
-    {
-        try
-        {
-            var currentExeDir = Path.GetDirectoryName(currentExePath);
-            if (string.IsNullOrEmpty(currentExeDir))
-            {
-                Log.Error("Could not determine current exe directory for MultiFile update.");
-                return false;
-            }
-
-            // Get all files from extracted ZIP
-            var extractedFiles = Directory.GetFiles(extractPath, "*", SearchOption.TopDirectoryOnly).ToList();
-            if (!extractedFiles.Any())
-            {
-                Log.Error($"No files found in extracted ZIP at '{extractPath}'");
-                return false;
-            }
-
-            // Use batch file approach for MultiFile since we need to replace multiple files
-            var batchPath = Path.Combine(WmiExplorerTempDirectory, $"WmiExplorerUpdater_{Guid.NewGuid()}.bat");
-            var currentExeName = Path.GetFileName(currentExePath);
-
-            // Build batch script to replace all files
-            var batchContent = new StringBuilder();
-            batchContent.AppendLine("@echo off");
-            batchContent.AppendLine(":loop");
-            batchContent.AppendLine($"tasklist | find /i \"{currentExeName}\" >nul 2>&1");
-            batchContent.AppendLine("if not errorlevel 1 (");
-            batchContent.AppendLine("    timeout /t 1 >nul");
-            batchContent.AppendLine("    goto loop");
-            batchContent.AppendLine(")");
-
-            // Replace each file from the ZIP
-            foreach (var extractedFile in extractedFiles)
-            {
-                var fileName = Path.GetFileName(extractedFile);
-                var targetPath = Path.Combine(currentExeDir, fileName);
-
-                // Only replace binary files (exe, dll, etc.) - preserve config files
-                if (fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
-                {
-                    batchContent.AppendLine($"if exist \"{targetPath}\" del /f /q \"{targetPath}\"");
-                    batchContent.AppendLine($"move /y \"{extractedFile}\" \"{targetPath}\"");
-                }
-            }
-
-            // Restart application
-            batchContent.AppendLine($"start \"\" \"{currentExePath}\"");
-
-            // Clean up extracted files directory and batch file itself
-            batchContent.AppendLine($"if exist \"{extractPath}\" rd /s /q \"{extractPath}\"");
-            batchContent.AppendLine("del \"%~f0\"");
-
-            await File.WriteAllTextAsync(batchPath, batchContent.ToString());
-
-            // Launch the batch file (it will wait for this process to exit)
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = batchPath,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            });
-
-            Log.Information($"MultiFile update: Batch script launched. Closing application to allow file replacement and restart.");
-            // Close the application so the batch script can proceed with file replacement
-            // The batch script will restart the application after replacing files
-            Application.Current.MainWindow?.Close();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to install MultiFile update.");
-            return false;
         }
     }
 

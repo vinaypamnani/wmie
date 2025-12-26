@@ -11,11 +11,6 @@ public enum DeploymentType
     SingleFile,
 
     /// <summary>
-    /// Multi-file deployment with separate DLLs (requires .NET runtime installed).
-    /// </summary>
-    MultiFile,
-
-    /// <summary>
     /// Standalone single-file deployment with embedded .NET runtime.
     /// </summary>
     Standalone

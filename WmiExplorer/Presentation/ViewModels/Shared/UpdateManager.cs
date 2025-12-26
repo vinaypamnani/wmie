@@ -221,19 +221,17 @@ public partial class UpdateManager : ObservableObject
     }
 
     // Returns the correct asset name and temp path for both download and install
-    // Asset names in releases include version: WmiExplorer-{DeploymentType}-{version}.zip
+    // Asset names in releases: WmiExplorer-{version}.zip (SingleFile) or WmiExplorer-Standalone-{version}.zip
     private (string assetName, string tempPath) GetUpdateAssetInfo(string version)
     {
-        string deploymentTypeName = DeploymentType switch
-        {
-            DeploymentType.Standalone => "Standalone",
-            DeploymentType.MultiFile => "MultiFile",
-            DeploymentType.SingleFile => "SingleFile",
-            _ => "SingleFile"  // Default fallback
-        };
-
         // Construct exact asset name with version
-        string assetName = $"WmiExplorer-{deploymentTypeName}-{version}.zip";
+        // SingleFile uses simple name without suffix, Standalone includes suffix
+        string assetName = DeploymentType switch
+        {
+            DeploymentType.Standalone => $"WmiExplorer-Standalone-{version}.zip",
+            DeploymentType.SingleFile => $"WmiExplorer-{version}.zip",
+            _ => $"WmiExplorer-{version}.zip"  // Default fallback
+        };
 
         // Use a fixed filename for the temp path
         string tempFileName = $"WmiExplorer-{DeploymentType}-update.zip";
