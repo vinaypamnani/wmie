@@ -92,18 +92,16 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          name: Release ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
           generate_release_notes: false
           make_latest: true
           body: |
-            ${{ steps.version.outputs.version }}
-
+          
             ## Downloads
 
             - **WmiExplorer**: Framework-dependent single file deployment (Requires .NET runtime installed)
             - **Standalone**: Self-contained single file deployment (Does not require .NET runtime installed)
-
-            Choose the deployment type that best fits your needs.
+            
           files: |
             WmiExplorer-${{ steps.version.outputs.version }}.zip
             WmiExplorer-Standalone-${{ steps.version.outputs.version }}.zip
