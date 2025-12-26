@@ -95,7 +95,7 @@ public partial class UpdateManager : ObservableObject
         StopDismissTimer();
         if (_updateDownloaded)
         {
-            var (_, tempPath) = GetUpdateAssetInfo();
+            var (_, tempPath) = GetUpdateAssetInfo(LatestVersion);
             Log.Information($"Update was downloaded to '{tempPath}' but notification was dismissed. Please replace the downloaded file manually if you wish to update.");
             _updateDownloaded = false;
         }
@@ -108,7 +108,7 @@ public partial class UpdateManager : ObservableObject
         UpdateNotificationMessage = "Downloading update...";
         try
         {
-            var (assetName, tempPath) = GetUpdateAssetInfo();
+            var (assetName, tempPath) = GetUpdateAssetInfo(LatestVersion);
 
             // Download the update asset
             bool downloadSuccess = await _updateService.DownloadAsync(assetName, tempPath);
@@ -166,7 +166,7 @@ public partial class UpdateManager : ObservableObject
         UpdateNotificationMessage = "Installing update...";
         try
         {
-            var (_, tempPath) = GetUpdateAssetInfo();
+            var (_, tempPath) = GetUpdateAssetInfo(LatestVersion);
             bool installed = await _updateService.InstallAsync(tempPath);
             if (!installed)
             {
@@ -221,16 +221,21 @@ public partial class UpdateManager : ObservableObject
     }
 
     // Returns the correct asset name and temp path for both download and install
-    private (string assetName, string tempPath) GetUpdateAssetInfo()
+    // Asset names in releases: WmiExplorer-{version}.zip (SingleFile) or WmiExplorer-Standalone-{version}.zip
+    private (string assetName, string tempPath) GetUpdateAssetInfo(string version)
     {
+        // Construct exact asset name with version
+        // SingleFile uses simple name without suffix, Standalone includes suffix
         string assetName = DeploymentType switch
         {
-            DeploymentType.Standalone => "WmiExplorer.Standalone.zip",
-            DeploymentType.MultiFile => "WmiExplorer.MultiFile.zip",
-            DeploymentType.SingleFile => "WmiExplorer.zip",
-            _ => "WmiExplorer.zip"  // Default fallback
+            DeploymentType.Standalone => $"WmiExplorer-Standalone-{version}.zip",
+            DeploymentType.SingleFile => $"WmiExplorer-{version}.zip",
+            _ => $"WmiExplorer-{version}.zip"  // Default fallback
         };
-        string tempPath = Path.Combine(_updateService.WmiExplorerTempDirectory, assetName);
+
+        // Use a fixed filename for the temp path
+        string tempFileName = $"WmiExplorer-{DeploymentType}-update.zip";
+        string tempPath = Path.Combine(_updateService.WmiExplorerTempDirectory, tempFileName);
         return (assetName, tempPath);
     }
 

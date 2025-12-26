@@ -55,34 +55,28 @@ jobs:
         run: |
           dotnet publish WmiExplorer/WmiExplorer.csproj `
             -p:PublishProfile=SingleFile `
-            --configuration Release
-
-      - name: Publish MultiFile profile
-        run: |
-          dotnet publish WmiExplorer/WmiExplorer.csproj `
-            -p:PublishProfile=MultiFile `
+            -p:Version=${{ steps.version.outputs.version }} `
+            -p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            -p:FileVersion=${{ steps.version.outputs.version }} `
+            -p:InformationalVersion=${{ steps.version.outputs.version }} `
             --configuration Release
 
       - name: Publish Standalone profile
         run: |
           dotnet publish WmiExplorer/WmiExplorer.csproj `
             -p:PublishProfile=Standalone `
+            -p:Version=${{ steps.version.outputs.version }} `
+            -p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            -p:FileVersion=${{ steps.version.outputs.version }} `
+            -p:InformationalVersion=${{ steps.version.outputs.version }} `
             --configuration Release
 
       - name: Create SingleFile zip
         run: |
-          $zipName = "WmiExplorer-SingleFile-${{ steps.version.outputs.version }}.zip"
+          $zipName = "WmiExplorer-${{ steps.version.outputs.version }}.zip"
           Compress-Archive -Path "WmiExplorer\bin\Publish\SingleFile\*" -DestinationPath $zipName -Force
           echo "zipName=$zipName" >> $env:GITHUB_OUTPUT
         id: zip-singlefile
-        shell: pwsh
-
-      - name: Create MultiFile zip
-        run: |
-          $zipName = "WmiExplorer-MultiFile-${{ steps.version.outputs.version }}.zip"
-          Compress-Archive -Path "WmiExplorer\bin\Publish\MultiFile\*" -DestinationPath $zipName -Force
-          echo "zipName=$zipName" >> $env:GITHUB_OUTPUT
-        id: zip-multifile
         shell: pwsh
 
       - name: Create Standalone zip
@@ -102,18 +96,16 @@ jobs:
           generate_release_notes: false
           make_latest: true
           body: |
-            Release ${{ steps.version.outputs.version }}
+            ${{ steps.version.outputs.version }}
 
             ## Downloads
 
-            - **SingleFile**: Framework-dependent single file deployment (Requires .NET runtime installed)
-            - **MultiFile**: Framework-dependent multi-file deployment (Requires .NET runtime installed)
+            - **WmiExplorer**: Framework-dependent single file deployment (Requires .NET runtime installed)
             - **Standalone**: Self-contained single file deployment (Does not require .NET runtime installed)
 
             Choose the deployment type that best fits your needs.
           files: |
-            WmiExplorer-SingleFile-${{ steps.version.outputs.version }}.zip
-            WmiExplorer-MultiFile-${{ steps.version.outputs.version }}.zip
+            WmiExplorer-${{ steps.version.outputs.version }}.zip
             WmiExplorer-Standalone-${{ steps.version.outputs.version }}.zip
           draft: false
           prerelease: false

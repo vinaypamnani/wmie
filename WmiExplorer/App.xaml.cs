@@ -67,6 +67,9 @@ public partial class App : Application
         // Initialize logging first
         Log.ConfigureLogging();
 
+        // Clean up any orphaned update files from previous update operations
+        UpdateService.CleanupOrphanedUpdateFiles();
+
         // Then configure services
         ConfigureServices();
         if (ServiceProvider == null)
@@ -163,14 +166,14 @@ public partial class App : Application
         // Register core services first
         services.AddSingleton<IMessengerService, MessengerService>();
         services.AddSingleton<ISettingsService, SettingsService>(provider => new SettingsService(provider.GetRequiredService<IMessengerService>()));
-        services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<ICacheService, CacheService>(provider => new CacheService(provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<IWmiService, WmiService>(provider => new WmiService(provider.GetRequiredService<ICacheService>(), provider.GetRequiredService<ISettingsService>()));
         services.AddSingleton<IApplicationService, ApplicationService>();
         services.AddSingleton<IStartupConnectionService, StartupConnectionService>(provider => new StartupConnectionService(provider));
 
         // Register UpdateService for GitHub update checks
         // TODO: Change repo name when ready for public release
-        services.AddSingleton(provider => new UpdateService("vinaypamnani", "wmie2"));
+        services.AddSingleton(provider => new UpdateService("vinaypamnani", "wmie"));
 
         // Register managers - order matters for dependencies
         services.AddSingleton<ThemeManager>();

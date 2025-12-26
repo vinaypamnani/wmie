@@ -1,8 +1,6 @@
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Windows;
 using WmiExplorer.Common.Enums;
@@ -112,6 +110,100 @@ public class UpdateService
     }
 
     /// <summary>
+    /// Cleans up orphaned .delete and .stage files from previous update operations.
+    /// This should be called on application startup to remove any leftover files.
+    /// </summary>
+    public static void CleanupOrphanedUpdateFiles()
+    {
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+            {
+                Log.Debug("Could not determine exe path for orphaned file cleanup.");
+                return;
+            }
+
+            // Look for .delete and .stage files matching the current executable name
+            var deleteFile = exePath + ".delete";
+            var stageFile = exePath + ".stage";
+
+            // Clean up .delete file with retry logic
+            if (File.Exists(deleteFile))
+            {
+                bool deleted = false;
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        File.Delete(deleteFile);
+                        Log.Information($"Cleaned up orphaned .delete file: '{deleteFile}'");
+                        deleted = true;
+                        break;
+                    }
+                    catch (IOException ex)
+                    {
+                        Log.Debug($"Could not delete orphaned .delete file, retry attempt [{i + 1}/5]... Error: {ex.Message}");
+                        if (i < 4)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to delete orphaned .delete file: '{deleteFile}'");
+                        break;
+                    }
+                }
+
+                if (!deleted)
+                {
+                    Log.Warning($"Could not delete orphaned .delete file after 5 attempts: '{deleteFile}'");
+                }
+            }
+
+            // Clean up .stage file with retry logic
+            if (File.Exists(stageFile))
+            {
+                bool deleted = false;
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        File.Delete(stageFile);
+                        Log.Information($"Cleaned up orphaned .stage file: '{stageFile}'");
+                        deleted = true;
+                        break;
+                    }
+                    catch (IOException ex)
+                    {
+                        Log.Debug($"Could not delete orphaned .stage file, retry attempt [{i + 1}/5]... Error: {ex.Message}");
+                        if (i < 4)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to delete orphaned .stage file: '{stageFile}'");
+                        break;
+                    }
+                }
+
+                if (!deleted)
+                {
+                    Log.Warning($"Could not delete orphaned .stage file after 5 attempts: '{stageFile}'");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Don't throw exceptions - this is cleanup code that shouldn't break startup
+            Log.Warning(ex, "Error during orphaned update file cleanup. Continuing startup.");
+        }
+    }
+
+    /// <summary>
     /// Downloads the specified asset from the latest GitHub release to the given destination path.
     /// </summary>
     public async Task<bool> DownloadAsync(string assetName, string destinationPath)
@@ -135,6 +227,20 @@ public class UpdateService
                     var downloadUrl = asset.GetProperty("browser_download_url").GetString();
                     if (!string.IsNullOrEmpty(downloadUrl))
                     {
+                        // Delete existing file if it exists (e.g., from a previous interrupted download)
+                        if (File.Exists(destinationPath))
+                        {
+                            try
+                            {
+                                File.Delete(destinationPath);
+                                Log.Information($"Deleted existing file at '{destinationPath}' before downloading new version.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Warning(ex, $"Failed to delete existing file at '{destinationPath}'. Attempting to overwrite.");
+                            }
+                        }
+
                         // Download the asset
                         using var assetResponse = await _httpClient.GetAsync(downloadUrl);
                         assetResponse.EnsureSuccessStatusCode();
@@ -171,7 +277,6 @@ public class UpdateService
 
         // Extract ZIP to temporary directory
         string extractPath = Path.Combine(WmiExplorerTempDirectory, $"WmiExplorerUpdate_{Guid.NewGuid()}");
-        bool isMultiFile = DeploymentType == DeploymentType.MultiFile;
 
         try
         {
@@ -184,38 +289,14 @@ public class UpdateService
             // Route to appropriate installation method based on deployment type
             bool result = DeploymentType switch
             {
-                DeploymentType.MultiFile => await InstallMultiFileAsync(extractPath, localCurrentFile),
                 DeploymentType.SingleFile or DeploymentType.Standalone => await InstallSingleFileAsync(extractPath, localCurrentFile),
                 _ => false
             };
 
-            // For MultiFile, don't clean up immediately - batch script needs the files
-            // The batch script will clean up after it's done, or we'll clean up on next startup
-            if (!isMultiFile)
+            // Clean up extracted files after a delay (allow installation to complete)
+            _ = Task.Run(async () =>
             {
-                // Clean up extracted files after a delay (allow installation to complete)
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(5000); // Wait 5 seconds
-                    try
-                    {
-                        if (Directory.Exists(extractPath))
-                            Directory.Delete(extractPath, recursive: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, $"Failed to clean up extracted files at '{extractPath}'");
-                    }
-                });
-            }
-
-            return result;
-        }
-        catch
-        {
-            // Only clean up on error - if successful, cleanup is handled above
-            if (!isMultiFile)
-            {
+                await Task.Delay(5000); // Wait 5 seconds
                 try
                 {
                     if (Directory.Exists(extractPath))
@@ -223,8 +304,23 @@ public class UpdateService
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex, $"Failed to clean up extracted files after error at '{extractPath}'");
+                    Log.Warning(ex, $"Failed to clean up extracted files at '{extractPath}'");
                 }
+            });
+
+            return result;
+        }
+        catch
+        {
+            // Clean up on error
+            try
+            {
+                if (Directory.Exists(extractPath))
+                    Directory.Delete(extractPath, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to clean up extracted files after error at '{extractPath}'");
             }
             throw;
         }
@@ -256,8 +352,9 @@ public class UpdateService
 
         if (hasDlls)
         {
-            Log.Information("Detected MultiFile deployment type (DLLs found in directory).");
-            return DeploymentType.MultiFile;
+            // DLLs found but MultiFile is no longer supported - default to SingleFile
+            Log.Information("DLLs found in directory, but MultiFile deployment is no longer supported. Defaulting to SingleFile.");
+            return DeploymentType.SingleFile;
         }
         else if (exeSize > 50 * 1024 * 1024) // 50MB
         {
@@ -327,88 +424,6 @@ public class UpdateService
         {
             Log.Error(ex, "Failed to fetch latest release JSON.");
             return null;
-        }
-    }
-
-    /// <summary>
-    /// Installs update for MultiFile deployment by replacing all binary files.
-    /// </summary>
-    private async Task<bool> InstallMultiFileAsync(string extractPath, string currentExePath)
-    {
-        try
-        {
-            var currentExeDir = Path.GetDirectoryName(currentExePath);
-            if (string.IsNullOrEmpty(currentExeDir))
-            {
-                Log.Error("Could not determine current exe directory for MultiFile update.");
-                return false;
-            }
-
-            // Get all files from extracted ZIP
-            var extractedFiles = Directory.GetFiles(extractPath, "*", SearchOption.TopDirectoryOnly).ToList();
-            if (!extractedFiles.Any())
-            {
-                Log.Error($"No files found in extracted ZIP at '{extractPath}'");
-                return false;
-            }
-
-            // Use batch file approach for MultiFile since we need to replace multiple files
-            var batchPath = Path.Combine(WmiExplorerTempDirectory, $"WmiExplorerUpdater_{Guid.NewGuid()}.bat");
-            var currentExeName = Path.GetFileName(currentExePath);
-
-            // Build batch script to replace all files
-            var batchContent = new StringBuilder();
-            batchContent.AppendLine("@echo off");
-            batchContent.AppendLine(":loop");
-            batchContent.AppendLine($"tasklist | find /i \"{currentExeName}\" >nul 2>&1");
-            batchContent.AppendLine("if not errorlevel 1 (");
-            batchContent.AppendLine("    timeout /t 1 >nul");
-            batchContent.AppendLine("    goto loop");
-            batchContent.AppendLine(")");
-
-            // Replace each file from the ZIP
-            foreach (var extractedFile in extractedFiles)
-            {
-                var fileName = Path.GetFileName(extractedFile);
-                var targetPath = Path.Combine(currentExeDir, fileName);
-
-                // Only replace binary files (exe, dll, etc.) - preserve config files
-                if (fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
-                    fileName.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
-                {
-                    batchContent.AppendLine($"if exist \"{targetPath}\" del /f /q \"{targetPath}\"");
-                    batchContent.AppendLine($"move /y \"{extractedFile}\" \"{targetPath}\"");
-                }
-            }
-
-            // Restart application
-            batchContent.AppendLine($"start \"\" \"{currentExePath}\"");
-
-            // Clean up extracted files directory and batch file itself
-            batchContent.AppendLine($"if exist \"{extractPath}\" rd /s /q \"{extractPath}\"");
-            batchContent.AppendLine("del \"%~f0\"");
-
-            await File.WriteAllTextAsync(batchPath, batchContent.ToString());
-
-            // Launch the batch file (it will wait for this process to exit)
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = batchPath,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            });
-
-            Log.Information($"MultiFile update: Batch script launched. Closing application to allow file replacement and restart.");
-            // Close the application so the batch script can proceed with file replacement
-            // The batch script will restart the application after replacing files
-            Application.Current.MainWindow?.Close();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to install MultiFile update.");
-            return false;
         }
     }
 
@@ -496,51 +511,88 @@ public class UpdateService
         string localStageFile = localCurrentFile + ".stage";
         string localDeleteFile = localCurrentFile + ".delete";
 
-        // Clean up any leftover delete file
-        if (File.Exists(localDeleteFile))
-            File.Delete(localDeleteFile);
-
-        // Clean up any leftover stage file
-        if (File.Exists(localStageFile))
-            File.Delete(localStageFile);
-
-        // Move the new exe to stage file
-        File.Move(newExePath, localStageFile, overwrite: true);
-
-        // Rename running .exe to .exe.delete
-        File.Move(localCurrentFile, localDeleteFile, overwrite: true);
-        System.Threading.Thread.Sleep(200);
-
-        // If for some reason the current exe still exists, try again
-        if (File.Exists(localCurrentFile))
+        try
         {
+            // Clean up any leftover delete file
+            if (File.Exists(localDeleteFile))
+                File.Delete(localDeleteFile);
+
+            // Clean up any leftover stage file
+            if (File.Exists(localStageFile))
+                File.Delete(localStageFile);
+
+            // Move the new exe to stage file
+            File.Move(newExePath, localStageFile, overwrite: true);
+
+            // Rename running .exe to .exe.delete
             File.Move(localCurrentFile, localDeleteFile, overwrite: true);
             System.Threading.Thread.Sleep(200);
-        }
 
-        // Rename .exe.stage to .exe
-        File.Move(localStageFile, localCurrentFile, overwrite: true);
+            // If for some reason the current exe still exists, try again
+            if (File.Exists(localCurrentFile))
+            {
+                File.Move(localCurrentFile, localDeleteFile, overwrite: true);
+                System.Threading.Thread.Sleep(200);
+            }
 
-        // If for some reason the stage file still exists, try again after a short wait
-        if (File.Exists(localStageFile))
-        {
-            System.Threading.Thread.Sleep(1000);
+            // Rename .exe.stage to .exe
             File.Move(localStageFile, localCurrentFile, overwrite: true);
+
+            // If for some reason the stage file still exists, try again after a short wait
+            if (File.Exists(localStageFile))
+            {
+                System.Threading.Thread.Sleep(1000);
+                File.Move(localStageFile, localCurrentFile, overwrite: true);
+            }
+
+            // Start the new process before closing to ensure it launches
+            // The new process will use the updated exe file
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = localCurrentFile,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            Log.Information($"Update installed using direct file move. Relaunching application.");
+            // Close the current application - the new instance has already started
+            // The .delete file will be cleaned up on next startup
+            Application.Current.MainWindow?.Close();
+            return Task.FromResult(true);
         }
-
-        // Start the new process before closing to ensure it launches
-        // The new process will use the updated exe file
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        catch (Exception ex)
         {
-            FileName = localCurrentFile,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        });
+            Log.Error(ex, "Failed to install update using direct file move.");
 
-        Log.Information($"Update installed using direct file move. Relaunching application.");
-        // Close the current application - the new instance has already started
-        Application.Current.MainWindow?.Close();
-        return Task.FromResult(true);
+            // Try to restore the original exe if it's missing (critical for recovery)
+            try
+            {
+                if (!File.Exists(localCurrentFile) && File.Exists(localDeleteFile))
+                {
+                    File.Move(localDeleteFile, localCurrentFile, overwrite: true);
+                    Log.Information($"Restored original executable from .delete file after update failure.");
+                }
+            }
+            catch (Exception restoreEx)
+            {
+                Log.Warning(restoreEx, $"Failed to restore original executable from .delete file: '{localDeleteFile}'");
+            }
+
+            // Clean up .stage file on error (non-critical, will be cleaned up on startup if this fails)
+            try
+            {
+                if (File.Exists(localStageFile))
+                {
+                    File.Delete(localStageFile);
+                }
+            }
+            catch
+            {
+                // Ignore - will be cleaned up on startup
+            }
+
+            throw;
+        }
     }
 
     /// <summary>

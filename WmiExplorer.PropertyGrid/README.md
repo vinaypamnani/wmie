@@ -90,4 +90,4 @@ xmlns:pg="clr-namespace:WmiExplorer.PropertyGrid;assembly=WmiExplorer.PropertyGr
 
 ## License
 
-MIT
+See [LICENSE](../LICENSE) file for details.

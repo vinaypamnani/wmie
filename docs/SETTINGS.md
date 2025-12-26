@@ -6,7 +6,6 @@ Information about application settings, data storage, and caching strategies.
 
 - [Application Data Storage](#application-data-storage)
 - [Caching Strategy](#caching-strategy)
-- [Status Indicator Colors](#status-indicator-colors)
 
 ## Application Data Storage
 
@@ -17,7 +16,7 @@ The following files are stored in this directory:
 - **`settings.json`**: General application settings (connection preferences, window position, etc.)
 - **`themes.json`**: Theme configuration and accent colors
 - **`Cache.db`**: SQLite database containing cached WMI class metadata (expires after 7 days). The cached data is used for auto-completion in **Query** and **Watcher** tabs.
-- **`WmiExplorer.log`**: Application log file (daily rolling, kept for 7 days)
+- **`WmiExplorer.log`**: Application log file (daily rolling, retains up to 7 files representing 7 days of logs)
 
 ## Caching Strategy
 
@@ -28,7 +27,8 @@ The application uses a multi-tier caching strategy to improve performance.
 ### Persistent Cache (Disk)
 
 - **`Cache.db`**: SQLite database storing WMI class metadata (namespaces, classes, property names and types)
-- Cache entries expire after 7 days and are automatically pruned after 45 days
+- Cache entries expire after a configurable duration (default: 7 days) and are automatically pruned after a configurable interval (default: 45 days)
+- Expiration and prune intervals can be configured via `CacheExpirationDays` and `CachePruneIntervalDays` settings in `settings.json`
 - Used for auto-completion in Query and Watcher tabs
 
 ### In-Memory Caches
@@ -44,18 +44,9 @@ The application uses a multi-tier caching strategy to improve performance.
 - Once instances are loaded for a class, they are cached in memory. **Single-clicking** the class will display the cached instances (indicated by a green status indicator).
 - **Double-clicking** always reloads data from WMI, refreshing the cache with the latest information.
 
-For more information about navigation and caching behavior, see [Usage Guide](USAGE.md).
+For more information about navigation and caching behavior, see the [Exploring WMI](README.md#exploring-wmi) section in the main README.
 
-## Status Indicator Colors
+## Configuration Manager Settings
 
-The circular status indicator in the status bar uses the following colors to represent application state:
-
-- **Green**: Ready or Success state
-- **Blue**: Busy state (operation in progress, with pulsing animation)
-- **Orange**: Warning state
-- **Tan/Beige**: Partial Success state.
-  - For Namespaces, indicates that Namespace metadata is loaded, but Classes are not.
-  - For Classes, indicates that Class metadata is loaded, but Instances are not.
-- **Red**: Error state
-- **Gray**: Unknown state
+Configuration Manager (ConfigMgr) settings have been moved to the [Configuration Manager Support](CONFIGMGR.md#configuration-manager-settings) documentation page for better organization. All ConfigMgr-related documentation, including settings, is now consolidated in one place.
 

@@ -75,6 +75,68 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Gets the cache expiration time as a TimeSpan.
+    /// </summary>
+    public TimeSpan CacheExpiration
+    {
+        get
+        {
+            var days = CacheExpirationDays;
+            // Ensure we never return an invalid TimeSpan (defensive check)
+            if (days <= 0)
+                return TimeSpan.FromDays(7.0);
+            return TimeSpan.FromDays(days);
+        }
+    }
+
+    [Setting(7.0)]
+    public double CacheExpirationDays
+    {
+        get => GetValue<double>();
+        set
+        {
+            // Validate: must be positive
+            if (value <= 0)
+            {
+                Log.Warning("Invalid CacheExpirationDays value '{Value}' - must be positive. Using default 7.0", value);
+                value = 7.0;
+            }
+            SetValue(value);
+        }
+    }
+
+    /// <summary>
+    /// Gets the cache prune interval as a TimeSpan.
+    /// </summary>
+    public TimeSpan CachePruneInterval
+    {
+        get
+        {
+            var days = CachePruneIntervalDays;
+            // Ensure we never return an invalid TimeSpan (defensive check)
+            if (days <= 0)
+                return TimeSpan.FromDays(45.0);
+            return TimeSpan.FromDays(days);
+        }
+    }
+
+    [Setting(45.0)]
+    public double CachePruneIntervalDays
+    {
+        get => GetValue<double>();
+        set
+        {
+            // Validate: must be positive
+            if (value <= 0)
+            {
+                Log.Warning("Invalid CachePruneIntervalDays value '{Value}' - must be positive. Using default 45.0", value);
+                value = 45.0;
+            }
+            SetValue(value);
+        }
+    }
+
     [Setting(WmiClassEnumerationFlags.None)]
     public WmiClassEnumerationFlags ClassEnumerationFilter
     {
@@ -215,6 +277,8 @@ public class SettingsService : ISettingsService, INotifyPropertyChanged
                 return jsonValue.GetInt32();
             if (targetType == typeof(double))
                 return jsonValue.GetDouble();
+            if (targetType == typeof(TimeSpan))
+                return TimeSpan.FromDays(jsonValue.GetDouble());
             if (targetType.IsEnum)
                 return Enum.ToObject(targetType, jsonValue.GetInt32());
 

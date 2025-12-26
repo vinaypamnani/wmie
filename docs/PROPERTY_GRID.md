@@ -31,8 +31,9 @@ To edit instance properties:
 2. Select **Edit Properties...**
 3. This opens a separate dialog where you can modify writable properties
 4. The option is only available if the class has writable properties
+5. After saving changes, the Property Grid automatically refreshes to show the updated values
 
-> **Note**: The Property Grid itself is read-only. Editing must be done through the dedicated Edit Properties dialog.
+> **Note**: The Property Grid itself is read-only and does not allow direct editing. All editing must be done through the dedicated Edit Properties dialog. The Property Grid automatically updates to reflect changes after you save them.
 
 ## Supported Data Types
 
