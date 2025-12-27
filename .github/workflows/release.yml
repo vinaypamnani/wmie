@@ -93,7 +93,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: ${{ steps.version.outputs.version }}
-          generate_release_notes: false
+          generate_release_notes: true
           make_latest: true
           body: |
           
