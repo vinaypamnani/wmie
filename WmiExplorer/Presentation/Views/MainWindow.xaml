@@ -14,7 +14,7 @@
         Background="{DynamicResource PrimaryBackgroundBrush}"
         BorderBrush="{DynamicResource BorderBrush}"
         Foreground="{DynamicResource PrimaryForegroundBrush}"
-        Icon="/Resources/AppIcon.ico"
+        Icon="/Resources/WmiExplorer.ico"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
     <!--  Debug Mode KeyBinding  -->
