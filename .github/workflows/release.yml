@@ -108,21 +108,22 @@ jobs:
             -ContentType "application/json"
 
           $generatedNotes = $response.body
-          # Escape newlines for GitHub Actions output
-          $generatedNotes = $generatedNotes -replace "`r`n", "`n" -replace "`n", "%0A"
-          echo "notes=$generatedNotes" >> $env:GITHUB_OUTPUT
+          # Normalize line endings
+          $generatedNotes = $generatedNotes -replace "`r`n", "`n"
+
+          # Write to file for reliable multiline handling
+          $generatedNotes | Out-File -FilePath "release-notes-generated.txt" -Encoding utf8 -NoNewline
 
       - name: Combine release notes
         id: combined-notes
         shell: pwsh
         run: |
-          $generatedNotes = "${{ steps.release-notes.outputs.notes }}" -replace "%0A", "`n"
+          $generatedNotes = Get-Content -Path "release-notes-generated.txt" -Raw
           $downloadsSection = "`n`n## Downloads`n`n- **WmiExplorer**: Framework-dependent single file deployment (Requires .NET runtime installed)`n- **Standalone**: Self-contained single file deployment (Does not require .NET runtime installed)"
 
           $combinedBody = $generatedNotes + $downloadsSection
-          # Escape for GitHub Actions output
-          $combinedBody = $combinedBody -replace "`r`n", "`n" -replace "`n", "%0A"
-          echo "body=$combinedBody" >> $env:GITHUB_OUTPUT
+          # Write combined body to file
+          $combinedBody | Out-File -FilePath "release-notes-body.txt" -Encoding utf8 -NoNewline
 
       - name: Create or update release
         id: release
@@ -132,7 +133,7 @@ jobs:
           name: ${{ steps.version.outputs.version }}
           generate_release_notes: false
           make_latest: true
-          body: ${{ steps.combined-notes.outputs.body }}
+          body_path: release-notes-body.txt
 
           files: |
             WmiExplorer-${{ steps.version.outputs.version }}.zip
