@@ -209,7 +209,17 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
 
         if (possibleValues != null && possibleValues.Count > 0)
         {
-            var valueStr = rawValue.ToString();
+            string? valueStr;
+            try
+            {
+                valueStr = rawValue.ToString();
+            }
+            catch (Exception ex)
+            {
+                // Log error converting value to string but continue with hex formatting
+                Log.Warning(ex, "Failed to convert value to string for property '{PropertyName}' in enhanced value lookup: {ErrorMessage}", _propertyData.Name, ex.Message);
+                valueStr = null;
+            }
             if (string.IsNullOrEmpty(valueStr))
                 return null;
             var allKeys = possibleValues.AllKeys;
@@ -353,7 +363,17 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         if (_allowExpansion)
             return _propertyData;
 
-        var rawValue = _wmiProperty.Value;
+        object? rawValue;
+        try
+        {
+            rawValue = _wmiProperty.Value;
+        }
+        catch (Exception ex)
+        {
+            // Log error accessing property value but continue with null
+            Log.Warning(ex, "Failed to access value for property '{PropertyName}': {ErrorMessage}. Returning null.", _propertyData.Name, ex.Message);
+            return null;
+        }
 
         // Handle Reference type properties with string values - convert to ManagementObject
         if (IsReference && _propertyGridContext?.IsReadOnly == true && rawValue is string pathString && !string.IsNullOrEmpty(pathString))
@@ -390,15 +410,32 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
 
         if (_propertyGridContext?.IsReadOnly == true && _propertyData.Type == CimType.DateTime && rawValue is string s && !string.IsNullOrEmpty(s))
         {
-            var dt = ManagementDateTimeConverter.ToDateTime(s);
-            return $"{dt:G} [{s}]";
+            try
+            {
+                var dt = ManagementDateTimeConverter.ToDateTime(s);
+                return $"{dt:G} [{s}]";
+            }
+            catch (Exception ex)
+            {
+                // Log warning for invalid DateTime values but continue with raw string
+                Log.Warning(ex, "Failed to convert WMI DateTime string '{DateTimeString}' to DateTime for property '{PropertyName}': {ErrorMessage}. Displaying raw value.", s, _propertyData.Name, ex.Message);
+                return s;
+            }
         }
         // Only compute enhanced value if the property grid is read-only
         if (_propertyGridContext?.IsReadOnly == true)
         {
-            var enhancedValue = GetEnhancedValue(rawValue);
-            if (enhancedValue != null)
-                return enhancedValue;
+            try
+            {
+                var enhancedValue = GetEnhancedValue(rawValue);
+                if (enhancedValue != null)
+                    return enhancedValue;
+            }
+            catch (Exception ex)
+            {
+                // Log error computing enhanced value but continue with raw value
+                Log.Warning(ex, "Failed to compute enhanced value for property '{PropertyName}': {ErrorMessage}. Using raw value.", _propertyData.Name, ex.Message);
+            }
         }
         return rawValue;
     }
