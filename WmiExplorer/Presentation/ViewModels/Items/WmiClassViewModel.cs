@@ -47,6 +47,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private WmiInstanceViewModel? _selectedInstance;
 
     private readonly SelectionManager _selectionManager;
+    private readonly ISettingsService? _settingsService;
 
     [ObservableProperty]
     private ObservableCollection<WmiMethod>? _staticMethods;
@@ -60,13 +61,15 @@ public partial class WmiClassViewModel : MessagingViewModelBase
               IWmiService wmiService,
               IMessengerService messengerService,
               IApplicationService applicationService,
-              SelectionManager selectionManager) : base(messengerService)
+              SelectionManager selectionManager,
+              ISettingsService? settingsService = null) : base(messengerService)
     {
         _wmiClass = wmiClass;
         _wmiService = wmiService;
         _applicationService = applicationService;
         _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
         _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+        _settingsService = settingsService;
 
         // Subscribe to ItemStatus property changes to notify Tooltip changes
         ItemStatus.PropertyChanged += (s, e) =>
@@ -154,7 +157,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
            IWmiService wmiService,
            IMessengerService messengerService,
            IApplicationService applicationService,
-           SelectionManager selectionManager)
+           SelectionManager selectionManager,
+           ISettingsService? settingsService = null)
     {
         var viewModels = new ObservableCollection<WmiClassViewModel>();
 
@@ -166,7 +170,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 wmiService,
                 messengerService,
                 applicationService,
-                selectionManager));
+                selectionManager,
+                settingsService));
         }
 
         return viewModels;
@@ -629,7 +634,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             {
                 var wmiProperties = properties
                     .Cast<System.Management.PropertyData>()
-                    .Select(property => new WmiProperty(property, _wmiClass.ActualClass))
+                    .Select(property => new WmiProperty(property, _wmiClass.ActualClass, _settingsService))
                     .ToList();
                 foreach (var wmiProperty in wmiProperties)
                 {

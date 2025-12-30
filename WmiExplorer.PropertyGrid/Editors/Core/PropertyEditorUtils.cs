@@ -152,6 +152,26 @@ public static class PropertyEditorUtils
         => EditorInfrastructure.IsIntegerType(propertyType);
 
     /// <summary>
+    /// Determines whether a property should be treated as read-only.
+    /// Key properties are always read-only regardless of the AllowEditingReadOnlyProperties setting.
+    /// Other read-only properties respect the AllowEditingReadOnlyProperties setting.
+    /// </summary>
+    /// <param name="propertyItem">The property item to check</param>
+    /// <returns>True if the property should be treated as read-only, false otherwise</returns>
+    public static bool ShouldTreatAsReadOnly(PropertyHierarchyItem propertyItem)
+    {
+        if (propertyItem == null)
+            return false;
+
+        // Key properties should always remain read-only regardless of the AllowEditingReadOnlyProperties setting
+        if (propertyItem.IsKey)
+            return true;
+
+        // For other read-only properties, allow editing if AllowEditingReadOnlyProperties is enabled
+        return propertyItem.IsReadOnly && !(propertyItem.FilterOptions?.AllowEditingReadOnlyProperties ?? false);
+    }
+
+    /// <summary>
     /// Shows integer validation error state on a TextBox (backward compatibility)
     /// </summary>
     public static void ShowIntegerValidationError(TextBox textBox, string errorMessage)

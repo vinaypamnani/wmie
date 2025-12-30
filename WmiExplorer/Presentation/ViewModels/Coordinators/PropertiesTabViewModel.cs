@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.ComponentModel;
 using WmiExplorer.Common.Base;
+using WmiExplorer.Common.Messages;
 using WmiExplorer.Models;
 using WmiExplorer.Presentation.ViewModels.Helpers;
 using WmiExplorer.Presentation.ViewModels.Items;
@@ -37,6 +38,10 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     {
         // Initialize tab status with messenger service
         _tabStatus = new TabStatus("WMI Properties");
+
+        // Subscribe to setting changes that affect IsReadOnly property
+        StrongSubscribe<SettingChangedMessage>(HandleSettingChanged);
+        StrongSubscribe<SettingChangedMessage<bool>>(HandleSettingChangedBool);
     }
 
     /// <summary>
@@ -153,6 +158,43 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
 
         // Update help text based on class selection
         UpdateHelpText();
+    }
+
+    /// <summary>
+    /// Handles setting change messages to refresh the properties view when read-only settings change
+    /// </summary>
+    private void HandleSettingChanged(SettingChangedMessage message)
+    {
+        // Refresh the view when read-only determination settings change
+        // The setting name matches the property name in SettingsService
+        if (message.SettingName == "TreatDynamicProviderAsWritable" ||
+            message.SettingName == "TreatReadQualifierAsReadOnly")
+        {
+            RefreshPropertiesView();
+        }
+    }
+
+    /// <summary>
+    /// Handles generic bool setting change messages to refresh the properties view when read-only settings change
+    /// </summary>
+    private void HandleSettingChangedBool(SettingChangedMessage<bool> message)
+    {
+        // Refresh the view when read-only determination settings change
+        // The setting name matches the property name in SettingsService
+        if (message.SettingName == "TreatDynamicProviderAsWritable" ||
+            message.SettingName == "TreatReadQualifierAsReadOnly")
+        {
+            RefreshPropertiesView();
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the properties collection view to update IsReadOnly values
+    /// </summary>
+    private void RefreshPropertiesView()
+    {
+        // Refresh the collection view to force IsReadOnly property to be re-evaluated
+        _propertyFilterHelper?.CollectionView?.Refresh();
     }
 
     /// <summary>

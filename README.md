@@ -15,7 +15,7 @@ A modern Windows desktop application for exploring and managing Windows Manageme
 - **Event Watcher**: Monitor WMI events in real-time - see [Monitoring WMI Events](#monitoring-wmi-events)
 - **Search**: Search for classes, properties, and methods across namespaces - see [Searching WMI](#searching-wmi)
 - **Script Generator**: Generate PowerShell scripts for WMI operations (classes, instances, methods) - see [Generating PowerShell Scripts](#generating-powershell-scripts)
-- **Property Grid**: Detailed property editor with support for WMI-specific types - see [Property Grid](docs/PROPERTY_GRID.md)
+- **Property Grid**: Detailed property editor with support for WMI-specific types - see [Property Grid](#property-grid)
 - **Logging**: Built-in logging with configurable log levels - see [Viewing Logs](#viewing-logs)
 - **Theme Support**: Dark and Light themes with customizable accent colors - see [Menu Options](#menu-options)
 - **Auto-updates**: Check for updates from GitHub releases - see [Menu Options](#menu-options)
@@ -131,7 +131,30 @@ Long-running operations can be cancelled to stop enumeration and view partial re
 3. Use the filter/search box to find specific instances
 4. Click on an instance to view its properties in the Property Grid (right panel)
 
-For more information about the Property Grid, see [Property Grid](docs/PROPERTY_GRID.md).
+### Property Grid
+
+The Property Grid (right panel) displays detailed information about selected items. **The Property Grid is read-only** - it shows property values but does not allow direct editing.
+
+**What It Displays:**
+
+The Property Grid shows different information depending on what is selected:
+
+- **WMI Classes**: Shows class qualifiers, properties, and methods
+- **WMI Instances**: Shows all properties with their current values
+- **WMI Properties**: Shows property qualifiers, type, and value
+- **WMI Methods**: Shows method parameters and return types
+- **Event Watchers**: Shows watcher configuration and status
+
+**Supported Data Types:**
+
+The Property Grid supports displaying:
+
+- Standard data types (string, int, bool, etc.)
+- Arrays and collections
+- WMI-specific types (CIM types, datetime, etc.)
+- Custom property editors for complex types
+
+The Property Grid uses specialized editors for WMI-specific types to provide a better user experience when viewing complex data structures.
 
 ### Managing WMI Instances
 
@@ -143,15 +166,36 @@ Create, edit, and delete WMI instances directly from the application:
 2. Navigate to the **Instances** sub-tab
 3. **Right-click** on an instance
 4. Select **Edit Properties...** from the context menu
-   - This option is only available if the class has writable properties
-   - If the class has no writable properties, the option will be disabled
+   - This option is always available for instances
 5. In the **Property Editor Dialog**:
-   - View and edit writable properties of the instance
+   - View and edit properties of the instance
    - Properties are displayed with their types, descriptions, and current values
    - Required properties are marked and must be filled in
-   - Read-only properties are displayed but cannot be modified
+   - Read-only properties are hidden by default in writable mode
+   - **Edit Read-Only Properties**: Enable this toggle (shown in red when enabled) to show and attempt editing read-only properties
+     - **Warning**: WMI providers may or may not support editing read-only properties - behavior depends on provider implementation
+     - Key properties remain read-only regardless of this setting
+     - When enabled, read-only properties become visible and editable (subject to provider support)
+     - When disabled, read-only properties are hidden
 6. Click **OK** to save your changes
 7. The instance will be updated in WMI and refreshed in the application
+
+**Read-Only Property Determination:**
+
+**Important Note**: WMI does not provide a single, reliable read-only indicator. The WMI specification lacks a definitive "read-only" qualifier, and many properties don't explicitly set the `Write` qualifier. This makes determining writeability challenging and often requires interpretation of multiple qualifiers and provider behavior.
+
+The application determines if a property is read-only using a multi-step evaluation process based on WMI qualifiers following the [WMI standard qualifiers specification](https://learn.microsoft.com/en-us/windows/win32/wmisdk/standard-qualifiers). The logic uses the following precedence:
+
+- **Key properties** are always read-only (cannot be changed) - highest priority
+- **Write qualifier**: If present, `Write=true` means writeable, `Write=false` means read-only. However, many properties don't have this qualifier explicitly set.
+- **WriteAtUpdate qualifier**: If `WriteAtUpdate=true`, the property is writeable during instance updates
+- **Dynamic/Provider heuristic** (configurable): If `TreatDynamicProviderAsWritable` setting is enabled, properties in classes with both `Dynamic` and `Provider` qualifiers are treated as writable. By default, this setting is disabled (per WMI specification, class-level qualifiers don't determine property writeability). This heuristic exists because some providers may allow writing to dynamic properties even without explicit qualifiers.
+- **Read qualifier** (configurable, checked last): If `TreatReadQualifierAsReadOnly` setting is enabled, properties with `read=true` are considered read-only. By default, this setting is disabled. The read qualifier indicates readability, not writeability, so it's checked last.
+- **Default**: If no write-related qualifiers are present, properties default to read-only (per WMI spec where Write defaults to FALSE)
+
+**Why Configurable Settings?** Because WMI lacks a reliable read-only indicator, different providers may behave differently. The configurable settings allow you to adjust the behavior based on your specific use case or provider requirements. The default behavior follows the WMI specification strictly, but you can enable additional heuristics if needed for compatibility with specific providers.
+
+**Note**: The Property Grid itself is read-only and does not allow direct editing. All editing must be done through the dedicated Edit Properties dialog. The Property Grid automatically updates to reflect changes after you save them.
 
 #### Creating Instances
 
@@ -181,7 +225,7 @@ Create, edit, and delete WMI instances directly from the application:
 > **Warning**: Deleting instances is permanent and cannot be undone. Make sure you want to delete the instance before confirming.
 
 **Availability:**
-- **Editing**: The **Edit Properties...** menu option is only enabled for classes that have writable properties
+- **Editing**: The **Edit Properties...** menu option is always available for instances. Use the "Allow Editing Read-Only Properties" toggle in the Property Editor Dialog to attempt editing read-only properties (with the understanding that WMI providers may or may not support this)
 - **Creating**: The **Create instance** option is always available in the context menu. If the class doesn't support instance creation, an error message will be displayed when attempting to create the instance
 - **Deleting**: The **Delete Instance...** option is always available. If the instance cannot be deleted (e.g., protected by the WMI provider), an error message will be displayed when attempting to delete
 
@@ -398,7 +442,6 @@ Generate PowerShell scripts for WMI operations directly from the application:
 Additional documentation is available in the [`docs/`](docs/) folder:
 
 - **[Command-Line Options](docs/COMMAND_LINE.md)** - Detailed command-line argument reference
-- **[Property Grid](docs/PROPERTY_GRID.md)** - Property Grid features and capabilities
 - **[Settings and Caching](docs/SETTINGS.md)** - Application settings, data storage, and caching strategy
 - **[Configuration Manager Support](docs/CONFIGMGR.md)** - ConfigMgr/SCCM namespace support and client actions
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions

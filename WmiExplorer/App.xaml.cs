@@ -96,7 +96,8 @@ public partial class App : Application
         }
 
         // Register Base WMI providers for PropertyGrid using the new generic method
-        ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(), new WmiPropertyValueConverter());
+        // Register WMI property type provider with settings service injection
+        ProviderModule.RegisterProvider(new WmiPropertyTypeProvider(settingsService), new WmiPropertyValueConverter());
 
         // Register WMI-specific property editor as singleton for proper disposal
         var wmiPropertyEditor = ServiceProvider.GetRequiredService<WmiPropertyEditor>();

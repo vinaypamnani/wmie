@@ -130,6 +130,10 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="ReadOnlyQualifierIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE72E;" />
+    </DataTemplate>
+
     <!--  Connection icons  -->
 
     <DataTemplate x:Key="ConnectionOptionsIconTemplate">

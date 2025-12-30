@@ -19,8 +19,9 @@ public class SmsProviderNamespaceViewModel : WmiNamespaceViewModel
         SettingsManager settingsManager,
         ICacheService cacheService,
         SelectionManager selectionManager,
-        WmiNamespaceViewModel? parentNamespaceViewModel = null)
-        : base(wmiNamespace, wmiService, messengerService, applicationService, settingsManager, cacheService, selectionManager, parentNamespaceViewModel)
+        WmiNamespaceViewModel? parentNamespaceViewModel = null,
+        ISettingsService? settingsService = null)
+        : base(wmiNamespace, wmiService, messengerService, applicationService, settingsManager, cacheService, selectionManager, parentNamespaceViewModel, settingsService)
     {
     }
 

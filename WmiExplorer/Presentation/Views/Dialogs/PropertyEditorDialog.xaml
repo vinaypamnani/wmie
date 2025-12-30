@@ -77,7 +77,7 @@
                                  ShowWmiOptions="False"
                                  UseCardStyleEditor="True">
                     <pg:PropertyGrid.FilterOptions>
-                        <pg:PropertyFilterOptions IncludeNullValues="True" IncludeReadOnlyProperties="False" IncludeSystemProperties="True" />
+                        <pg:PropertyFilterOptions IncludeNullValues="True" IncludeSystemProperties="True" AllowEditingReadOnlyProperties="False" />
                     </pg:PropertyGrid.FilterOptions>
                 </pg:PropertyGrid>
             </Border>

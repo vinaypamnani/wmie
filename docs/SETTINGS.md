@@ -46,6 +46,24 @@ The application uses a multi-tier caching strategy to improve performance.
 
 For more information about navigation and caching behavior, see the [Exploring WMI](README.md#exploring-wmi) section in the main README.
 
+## WMI Property Read-Only Settings
+
+The following settings control how the application determines if WMI properties are read-only:
+
+### `TreatDynamicProviderAsWritable`
+
+- **Type**: `bool`
+- **Default**: `false`
+- **Description**: Controls whether properties in dynamic classes with providers should be treated as writable. When enabled, properties in classes with both `Dynamic` and `Provider` qualifiers will be treated as writable. When disabled (default), only property-level qualifiers determine writeability, which aligns with the WMI specification.
+
+### `TreatReadQualifierAsReadOnly`
+
+- **Type**: `bool`
+- **Default**: `false`
+- **Description**: Controls whether properties with the `read` qualifier should be considered read-only. When enabled, properties with `read=true` will be considered read-only. When disabled (default), the `read` qualifier is ignored for writeability determination, as it only indicates readability, not writeability.
+
+These settings can be configured in the `settings.json` file. For more information about how read-only properties are determined, see the [Read-Only Property Determination](README.md#read-only-property-determination) section in the main README.
+
 ## Configuration Manager Settings
 
 Configuration Manager (ConfigMgr) settings have been moved to the [Configuration Manager Support](CONFIGMGR.md#configuration-manager-settings) documentation page for better organization. All ConfigMgr-related documentation, including settings, is now consolidated in one place.

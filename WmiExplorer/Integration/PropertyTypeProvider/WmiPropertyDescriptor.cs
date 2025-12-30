@@ -3,6 +3,7 @@ using System.Management;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
 
@@ -12,6 +13,7 @@ namespace WmiExplorer.Integration.PropertyTypeProvider;
 public class WmiPropertyDescriptor : IPropertyDescriptor
 {
     private readonly bool _allowExpansion;
+    private ManagementObject? _cachedReferenceObject;
     private readonly string _category;
     private readonly object? _context;
     private readonly bool _forceEditable;
@@ -19,9 +21,8 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     private readonly IPropertyGridContext? _propertyGridContext;
     private readonly ManagementBaseObject _source;
     private readonly WmiProperty _wmiProperty;
-    private ManagementObject? _cachedReferenceObject;
 
-    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
+    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false, ISettingsService? settingsService = null)
     {
         _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
         _source = source;
@@ -46,12 +47,12 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         {
             // Ignore errors, parentClass will be null
         }
-        _wmiProperty = new WmiProperty(_propertyData, parentClass);
+        _wmiProperty = new WmiProperty(_propertyData, parentClass, settingsService);
     }
 
     // New constructor for explicit context
-    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, object? context, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
-        : this(propertyData, source, category, allowExpansion, propertyGridContext, forceEditable)
+    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, object? context, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false, ISettingsService? settingsService = null)
+        : this(propertyData, source, category, allowExpansion, propertyGridContext, forceEditable, settingsService)
     {
         _context = context;
     }
@@ -65,6 +66,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public bool IsReference => _propertyData.Type == CimType.Reference;
     public string Name => _wmiProperty.Name;
     public PropertyData PropertyData => _propertyData;
+
     public Type? PropertyType
     {
         get
@@ -79,6 +81,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             return GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
         }
     }
+
     public object Source => _source;
     public object? Value => GetValue();
     public WmiProperty WmiProperty => _wmiProperty;
