@@ -89,9 +89,73 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Property Name" />
                 <DataGridTextColumn Width="Auto" Binding="{Binding Type}" Header="Type" />
-                <DataGridTextColumn Width="Auto" Binding="{Binding IsLazy, Mode=OneWay}" Header="IsLazy" />
-                <DataGridTextColumn Width="Auto" Binding="{Binding IsReadOnly, Mode=OneWay}" Header="IsReadOnly" />
-                <DataGridTextColumn Width="Auto" Binding="{Binding HasValueMap, Mode=OneWay}" Header="HasValueMap" />
+
+                <!--  IsLazy Column with Icon  -->
+                <DataGridTemplateColumn Width="Auto" Header="IsLazy" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource BooleanFalseIconTemplate}" />
+                                        <Setter Property="ToolTip" Value="IsLazy: False" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsLazy}" Value="True">
+                                                <Setter Property="ContentTemplate" Value="{StaticResource BooleanTrueIconTemplate}" />
+                                                <Setter Property="ToolTip" Value="IsLazy: True" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!--  IsReadOnly Column with Icon  -->
+                <DataGridTemplateColumn Width="Auto" Header="IsReadOnly" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource BooleanFalseIconTemplate}" />
+                                        <Setter Property="ToolTip" Value="IsReadOnly: False" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                                <Setter Property="ContentTemplate" Value="{StaticResource BooleanTrueIconTemplate}" />
+                                                <Setter Property="ToolTip" Value="IsReadOnly: True" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!--  HasValueMap Column with Icon  -->
+                <DataGridTemplateColumn Width="Auto" Header="HasValueMap" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource BooleanFalseIconTemplate}" />
+                                        <Setter Property="ToolTip" Value="HasValueMap: False" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasValueMap}" Value="True">
+                                                <Setter Property="ContentTemplate" Value="{StaticResource BooleanTrueIconTemplate}" />
+                                                <Setter Property="ToolTip" Value="HasValueMap: True" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
                 <DataGridTextColumn Width="Auto" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
             </DataGrid.Columns>
         </DataGrid>
