@@ -178,6 +178,33 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     }
 
     /// <summary>
+    /// Ensures that properties and methods are loaded for this class.
+    /// This is called before operations that require properties/methods to be available,
+    /// such as when tab ViewModels need to display properties/methods.
+    /// </summary>
+    public void EnsurePropertiesAndMethodsLoaded()
+    {
+        if (_methods == null || _properties == null)
+        {
+            // Load methods for this class
+            if (_methods == null)
+                LoadMethods();
+
+            // Load properties for this class
+            if (_properties == null)
+                LoadProperties();
+
+            // Set the status to PartialSuccess if it's still Unknown
+            // This ensures the circular icon changes color when properties/methods are loaded
+            if (ItemStatus.LoadState == LoadState.Unknown)
+            {
+                SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Properties.Count} properties and {Methods.Count} methods for {ClassName}. Double click to load instances.");
+                Log.Information("Loaded {PropertyCount} properties and {MethodCount} methods for class {ClassName}", Properties.Count, Methods.Count, ClassName);
+            }
+        }
+    }
+
+    /// <summary>
     /// Removes a WmiInstanceViewModel from the _instances collection and updates the view.
     /// </summary>
     public void RemoveInstance(WmiInstanceViewModel instance)
@@ -487,8 +514,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         if (ItemStatus.LoadState == LoadState.Loading)
             return;
 
-        Log.Debug("Loading instances for class {ClassName}", ClassName);
-
         // Create a new CTS for this operation
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
@@ -588,7 +613,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadMethods()
     {
-        // Log.Debug("Loading methods for class: {ClassName}", ClassName);
         _methods = new ObservableCollection<WmiMethod>();
         StaticMethods = new ObservableCollection<WmiMethod>();
 
@@ -623,7 +647,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadProperties()
     {
-        // Log.Debug("Loading properties for class: {ClassName}", ClassName);
         _properties = new ObservableCollection<WmiProperty>();
         try
         {
@@ -678,24 +701,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             try
             {
                 _isUpdatingSelection = true;
-
-                if (_methods == null || _properties == null)
-                {
-                    // Load methods for this class
-                    if (_methods == null)
-                        LoadMethods();
-
-                    // Load properties for this class
-                    if (_properties == null)
-                        LoadProperties();
-
-                    if (ItemStatus.LoadState == LoadState.Unknown)
-                    {
-                        // Set the status to partial success
-                        SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Properties.Count} properties and {Methods.Count} methods for {ClassName}. Double click to load instances.");
-                        Log.Information("Loaded {PropertyCount} properties and {MethodCount} methods for class {ClassName}", Properties.Count, Methods.Count, ClassName);
-                    }
-                }
+                EnsurePropertiesAndMethodsLoaded();
             }
             finally
             {

@@ -92,6 +92,34 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Handles setting change messages to refresh the properties view when read-only settings change
+    /// </summary>
+    private void HandleSettingChanged(SettingChangedMessage message)
+    {
+        // Refresh the view when read-only determination settings change
+        // The setting name matches the property name in SettingsService
+        if (message.SettingName == "TreatDynamicProviderAsWritable" ||
+            message.SettingName == "TreatReadQualifierAsReadOnly")
+        {
+            RefreshPropertiesView();
+        }
+    }
+
+    /// <summary>
+    /// Handles generic bool setting change messages to refresh the properties view when read-only settings change
+    /// </summary>
+    private void HandleSettingChangedBool(SettingChangedMessage<bool> message)
+    {
+        // Refresh the view when read-only determination settings change
+        // The setting name matches the property name in SettingsService
+        if (message.SettingName == "TreatDynamicProviderAsWritable" ||
+            message.SettingName == "TreatReadQualifierAsReadOnly")
+        {
+            RefreshPropertiesView();
+        }
+    }
+
+    /// <summary>
     /// Called when the PropertyFilterText changes
     /// </summary>
     partial void OnPropertyFilterTextChanged(string value)
@@ -126,6 +154,15 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
     }
 
     /// <summary>
+    /// Refreshes the properties collection view to update IsReadOnly values
+    /// </summary>
+    private void RefreshPropertiesView()
+    {
+        // Refresh the collection view to force IsReadOnly property to be re-evaluated
+        _propertyFilterHelper?.CollectionView?.Refresh();
+    }
+
+    /// <summary>
     /// Update the filtered properties based on the provided class selection
     /// </summary>
     private void UpdateFilteredProperties(WmiClassViewModel? selectedClass)
@@ -137,10 +174,15 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
         _propertyFilterHelper?.Dispose();
         _propertyFilterHelper = null;
 
-        // Create new filter helper if we have properties
-        if (selectedClass?.Properties != null)
+        if (selectedClass != null)
         {
+            // CRITICAL: Ensure properties are loaded before accessing them.
+            // When SelectedClass is set via ListView binding, OnSelectedClassChanged may be called
+            // before OnIsSelectedChanged completes loading properties/methods.
+            selectedClass.EnsurePropertiesAndMethodsLoaded();
 
+            // Properties is guaranteed to be non-null after EnsurePropertiesAndMethodsLoaded()
+            // (it will be an empty collection if there are no properties, but not null)
             _propertyFilterHelper = new FilterHelper<WmiProperty>(
                 selectedClass.Properties,
                 PropertyFilterPredicate
@@ -158,43 +200,6 @@ public partial class PropertiesTabViewModel : SelectionAwareViewModelBase
 
         // Update help text based on class selection
         UpdateHelpText();
-    }
-
-    /// <summary>
-    /// Handles setting change messages to refresh the properties view when read-only settings change
-    /// </summary>
-    private void HandleSettingChanged(SettingChangedMessage message)
-    {
-        // Refresh the view when read-only determination settings change
-        // The setting name matches the property name in SettingsService
-        if (message.SettingName == "TreatDynamicProviderAsWritable" ||
-            message.SettingName == "TreatReadQualifierAsReadOnly")
-        {
-            RefreshPropertiesView();
-        }
-    }
-
-    /// <summary>
-    /// Handles generic bool setting change messages to refresh the properties view when read-only settings change
-    /// </summary>
-    private void HandleSettingChangedBool(SettingChangedMessage<bool> message)
-    {
-        // Refresh the view when read-only determination settings change
-        // The setting name matches the property name in SettingsService
-        if (message.SettingName == "TreatDynamicProviderAsWritable" ||
-            message.SettingName == "TreatReadQualifierAsReadOnly")
-        {
-            RefreshPropertiesView();
-        }
-    }
-
-    /// <summary>
-    /// Refreshes the properties collection view to update IsReadOnly values
-    /// </summary>
-    private void RefreshPropertiesView()
-    {
-        // Refresh the collection view to force IsReadOnly property to be re-evaluated
-        _propertyFilterHelper?.CollectionView?.Refresh();
     }
 
     /// <summary>
