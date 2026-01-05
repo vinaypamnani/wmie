@@ -21,6 +21,7 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
     private readonly ICacheService _cacheService;
     private readonly CancellationTokenSource _cts = new();
     private readonly SettingsManager _settingsManager;
+    private readonly ISettingsService? _settingsService;
     private readonly IWmiService _wmiService;
 
     public NamespacesViewModel(
@@ -29,12 +30,14 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
               IWmiService wmiService,
               IApplicationService applicationService,
               ICacheService cacheService,
-              SelectionManager selectionManager) : base(messengerService, selectionManager)
+              SelectionManager selectionManager,
+              ISettingsService? settingsService = null) : base(messengerService, selectionManager)
     {
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _wmiService = wmiService ?? throw new ArgumentNullException(nameof(wmiService));
         _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _settingsService = settingsService;
 
         // Subscribe to messages
         StrongSubscribe<JumpToClassMessage>(message => JumpToClassCommand.Execute(message));
@@ -120,7 +123,8 @@ public partial class NamespacesViewModel : SelectionAwareViewModelBase
                 _settingsManager,
                 _cacheService,
                 SelectionManager,
-                _cts.Token);
+                _cts.Token,
+                _settingsService);
 
             // Load initial children
             await rootViewModel.ExpandAsync();

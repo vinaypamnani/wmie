@@ -176,9 +176,15 @@ public partial class MethodsTabViewModel : SelectionAwareViewModelBase
         _methodFilterHelper?.Dispose();
         _methodFilterHelper = null;
 
-        // Create new filter helper if we have methods
-        if (selectedClass?.Methods != null)
+        if (selectedClass != null)
         {
+            // CRITICAL: Ensure methods are loaded before accessing them.
+            // When SelectedClass is set via ListView binding, OnSelectedClassChanged may be called
+            // before OnIsSelectedChanged completes loading properties/methods.
+            selectedClass.EnsurePropertiesAndMethodsLoaded();
+
+            // Methods is guaranteed to be non-null after EnsurePropertiesAndMethodsLoaded()
+            // (it will be an empty collection if there are no methods, but not null)
             _methodFilterHelper = new FilterHelper<WmiMethod>(
                 selectedClass.Methods,
                 MethodFilterPredicate

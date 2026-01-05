@@ -233,6 +233,12 @@ public class CardPropertyEditor : PropertyEditor
     /// </summary>
     private UIElement GetEditorContent(PropertyHierarchyItem propertyItem)
     {
+        // Check if property should be treated as read-only first
+        if (PropertyEditorUtils.ShouldTreatAsReadOnly(propertyItem))
+        {
+            return PropertyEditorUtils.CreateReadOnlyEditor(propertyItem);
+        }
+
         // First, try to find a specialized editor using the same logic as base PropertyEditor
         var specializedEditor = PropertyEditorRegistry.Instance.GetEditor(propertyItem);
         if (specializedEditor != null && specializedEditor != this)

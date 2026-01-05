@@ -50,7 +50,6 @@
                         <!--  ShowOptions checkboxes - Using FilterOptions for cleaner property management  -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Visibility="{Binding ShowOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                             <CheckBox Margin="0,0,0,0" Content="Show Null Values" IsChecked="{Binding FilterOptions.IncludeNullValues, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
-                            <CheckBox Margin="4,0,0,0" Content="Show Read-Only Properties" IsChecked="{Binding FilterOptions.IncludeReadOnlyProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                         </StackPanel>
 
                         <!--  Column Width Slider  -->
@@ -81,6 +80,29 @@
                     <!--  Second row: ShowWmiOptions checkboxes  -->
                     <StackPanel Margin="0,4,0,0" Orientation="Horizontal" Visibility="{Binding ShowWmiOptions, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}}">
                         <CheckBox Margin="0" Content="Show System Properties" IsChecked="{Binding FilterOptions.IncludeSystemProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                    </StackPanel>
+
+                    <!--  Third row: Allow editing read-only properties (only visible when PropertyGrid is writable)  -->
+                    <StackPanel Margin="0,4,0,0" Orientation="Horizontal" Visibility="{Binding IsPropertyGridReadOnly, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanNotToVisibilityConverter}}">
+                        <CheckBox Margin="0"
+                                  IsChecked="{Binding FilterOptions.AllowEditingReadOnlyProperties, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                  ToolTip="Allow editing properties marked as read-only based on WMI qualifiers. NOTE: WMI provider may or may not support editing these properties. Use with caution.">
+                            <CheckBox.Content>
+                                <TextBlock>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Edit read-only properties" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=CheckBox}}" Value="True">
+                                                    <Setter Property="Foreground" Value="Red" />
+                                                    <Setter Property="Text" Value="Edit read-only properties. Use with caution." />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </CheckBox.Content>
+                        </CheckBox>
                     </StackPanel>
 
                 </StackPanel>

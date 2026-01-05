@@ -107,8 +107,8 @@ public partial class PropertyHierarchyItem : ObservableObject
     {
         PropertyDescriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
 
-        // Use provided filter options or create default
-        filterOptions ??= PropertyFilterOptions.DefaultObjectOptions;
+        // Use provided filter options or create default (use WMI defaults for consistency with PropertyGrid)
+        filterOptions ??= PropertyFilterOptions.DefaultWmiOptions;
         _filterOptions = filterOptions;
 
         // Initialize from property descriptor
@@ -140,6 +140,11 @@ public partial class PropertyHierarchyItem : ObservableObject
     public ObservableCollection<PropertyHierarchyItem> Children { get; } = new ObservableCollection<PropertyHierarchyItem>();
 
     /// <summary>
+    /// Gets the filter options associated with this property hierarchy item.
+    /// </summary>
+    public PropertyFilterOptions FilterOptions => _filterOptions;
+
+    /// <summary>
     /// Gets the formatted value as a string.
     /// </summary>
     public string FormattedValue
@@ -148,7 +153,7 @@ public partial class PropertyHierarchyItem : ObservableObject
         {
             if (Value == DependencyProperty.UnsetValue)
                 return string.Empty;
-                
+
             var valueType = Value?.GetType() ?? typeof(object);
             var converter = PropertyTypeProviderRegistry.Instance.GetConverter(valueType);
             if (converter == null)
@@ -238,7 +243,8 @@ public partial class PropertyHierarchyItem : ObservableObject
             }
 
             // Filter child descriptors based on filter options
-            childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly, cd.IsKey)).ToList();
+            // Use the IsPropertyGridReadOnly value stored in filterOptions
+            childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly, cd.IsKey, filterOptions.IsPropertyGridReadOnly)).ToList();
 
             foreach (var descriptor in childDescriptors)
             {
@@ -249,7 +255,8 @@ public partial class PropertyHierarchyItem : ObservableObject
                     var grandChildren = registry.GetChildItems(descriptor.Value, descriptor.Name ?? string.Empty, descriptor.Category ?? string.Empty);
 
                     // Filter grandchildren based on filter options
-                    grandChildren = grandChildren.Where(gc => filterOptions.ShouldIncludeProperty(gc.Name, gc.Value, gc.IsReadOnly, gc.IsKey)).ToList();
+                    // Use the IsPropertyGridReadOnly value stored in filterOptions
+                    grandChildren = grandChildren.Where(gc => filterOptions.ShouldIncludeProperty(gc.Name, gc.Value, gc.IsReadOnly, gc.IsKey, filterOptions.IsPropertyGridReadOnly)).ToList();
 
                     foreach (var grandChild in grandChildren)
                     {

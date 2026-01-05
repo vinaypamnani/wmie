@@ -4,6 +4,7 @@ using System.Reflection;
 using WmiExplorer.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
 using WmiExplorer.PropertyGrid.Providers;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
 
@@ -12,8 +13,11 @@ namespace WmiExplorer.Integration.PropertyTypeProvider;
 /// </summary>
 public class WmiPropertyTypeProvider : IPropertyTypeProvider
 {
-    public WmiPropertyTypeProvider()
+    private readonly ISettingsService? _settingsService;
+
+    public WmiPropertyTypeProvider(ISettingsService? settingsService = null)
     {
+        _settingsService = settingsService;
     }
 
     /// <summary>
@@ -114,7 +118,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
             bool isTemplate = IsTemplateObject(managementObject);
             foreach (PropertyData property in managementObject.Properties)
             {
-                yield return new WmiPropertyDescriptor(property, managementObject, "Properties", false, propertyGridContext, isTemplate); // forceEditable: true for template/parameter objects
+                yield return new WmiPropertyDescriptor(property, managementObject, "Properties", false, propertyGridContext, isTemplate, _settingsService); // forceEditable: true for template/parameter objects
             }
             yield break;
         }
@@ -124,7 +128,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         {
             foreach (PropertyData property in baseObject.Properties)
             {
-                yield return new WmiPropertyDescriptor(property, baseObject, "Properties", false, propertyGridContext, true);
+                yield return new WmiPropertyDescriptor(property, baseObject, "Properties", false, propertyGridContext, true, _settingsService);
             }
             yield break;
         }
@@ -234,7 +238,7 @@ public class WmiPropertyTypeProvider : IPropertyTypeProvider
         {
             source = new ManagementClass();
         }
-        return new WmiPropertyDescriptor(property, (ManagementBaseObject)source, category, context, allowExpansion, propertyGridContext, forceEditable);
+        return new WmiPropertyDescriptor(property, (ManagementBaseObject)source, category, context, allowExpansion, propertyGridContext, forceEditable, _settingsService);
     }
 
     /// <summary>

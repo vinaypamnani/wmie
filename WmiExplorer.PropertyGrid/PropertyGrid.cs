@@ -74,7 +74,7 @@ public partial class PropertyGrid : Control, IPropertyGridContext
             nameof(IsPropertyGridReadOnly),
             typeof(bool),
             typeof(PropertyGrid),
-            new PropertyMetadata(true));
+            new PropertyMetadata(true, OnIsPropertyGridReadOnlyChanged));
 
     /// <summary>
     /// The width of the name column.
@@ -416,6 +416,8 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         if (FilterOptions != null)
         {
             FilterOptions.PropertyChanged += OnFilterOptionsPropertyChanged;
+            // Sync IsPropertyGridReadOnly to FilterOptions on load
+            FilterOptions.IsPropertyGridReadOnly = IsPropertyGridReadOnly;
         }
 
         LoadProperties();
@@ -526,7 +528,8 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         // If the item is expandable and has no children, load them
         if (item.HasItems && item.Children.Count == 0)
         {
-            item.LoadChildren(PropertyFilterOptions.DefaultObjectOptions);
+            // Use the PropertyGrid's FilterOptions to maintain consistency
+            item.LoadChildren(FilterOptions);
         }
         // Recursively load children for each child
         foreach (var child in item.Children)
@@ -587,7 +590,7 @@ public partial class PropertyGrid : Control, IPropertyGridContext
 
             // Filter properties based on current filter options
             var filterOptions = FilterOptions;
-            descriptors = descriptors.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly, p.IsKey)).ToList();
+            descriptors = descriptors.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly, p.IsKey, IsPropertyGridReadOnly)).ToList();
 
             var categoryGroups = descriptors
                 .GroupBy(p => string.IsNullOrEmpty(p.Category) ? _defaultCategory : p.Category)
@@ -601,9 +604,9 @@ public partial class PropertyGrid : Control, IPropertyGridContext
             {
                 string categoryName = category.Key;
                 var categoryItem = new PropertyCategoryItem(categoryName);
-                rootItems.Add(categoryItem);                // Only filter out nulls if IncludeNullValues is false
+                rootItems.Add(categoryItem);
+                // Properties are already filtered above, so we can use the category items directly
                 IEnumerable<Abstractions.IPropertyDescriptor> filteredProperties = category;
-                filteredProperties = filteredProperties.Where(p => filterOptions.ShouldIncludeProperty(p.Name, p.Value, p.IsReadOnly, p.IsKey));
 
                 // Sort properties: IsKey properties first, then alphabetically by DisplayName
                 var filteredList = filteredProperties
@@ -619,7 +622,7 @@ public partial class PropertyGrid : Control, IPropertyGridContext
                         // Promote children: add child properties directly to the parent category
                         var childDescriptors = PropertyTypeProviderRegistry.Instance.GetChildItems(descriptor.Value, descriptor.Name, descriptor.Category);
                         // Filter childDescriptors based on filter options
-                        childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly, cd.IsKey)).ToList();
+                        childDescriptors = childDescriptors.Where(cd => filterOptions.ShouldIncludeProperty(cd.Name, cd.Value, cd.IsReadOnly, cd.IsKey, IsPropertyGridReadOnly)).ToList();
 
                         foreach (var childDesc in childDescriptors)
                         {
@@ -683,6 +686,8 @@ public partial class PropertyGrid : Control, IPropertyGridContext
             if (e.NewValue is PropertyFilterOptions newOptions)
             {
                 newOptions.PropertyChanged += grid.OnFilterOptionsPropertyChanged;
+                // Sync IsPropertyGridReadOnly to FilterOptions
+                newOptions.IsPropertyGridReadOnly = grid.IsPropertyGridReadOnly;
             }
 
             grid.LoadProperties();
@@ -718,6 +723,19 @@ public partial class PropertyGrid : Control, IPropertyGridContext
         if (e.OriginalSource is TextBox tb && tb.IsReadOnly)
         {
             tb.SelectAll();
+        }
+    }
+
+    private static void OnIsPropertyGridReadOnlyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is PropertyGrid grid)
+        {
+            // Sync IsPropertyGridReadOnly to FilterOptions
+            if (grid.FilterOptions != null)
+            {
+                grid.FilterOptions.IsPropertyGridReadOnly = grid.IsPropertyGridReadOnly;
+            }
+            grid.LoadProperties();
         }
     }
 

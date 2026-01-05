@@ -45,13 +45,8 @@
                                     </MenuItem.Icon>
                                     <MenuItem.Style>
                                         <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
-                                            <Setter Property="ToolTip" Value="Edit the writable properties of this instance." />
+                                            <Setter Property="ToolTip" Value="Edit the properties of this instance. Note: WMI providers may or may not support editing read-only properties." />
                                             <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ParentClass.HasWriteProperty}" Value="False">
-                                                    <Setter Property="ToolTip" Value="Editing is not available for this instance. This class has no writable properties." />
-                                                </DataTrigger>
-                                            </Style.Triggers>
                                         </Style>
                                     </MenuItem.Style>
                                 </MenuItem>

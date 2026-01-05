@@ -57,6 +57,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
 
     private readonly SelectionManager _selectionManager;
     private readonly SettingsManager _settingsManager;
+    private readonly ISettingsService? _settingsService;
 
     /// <summary>
     /// Gets the count of system classes (class names starting with "__") in this namespace.
@@ -78,7 +79,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
            SettingsManager settingsManager,
            ICacheService cacheService,
            SelectionManager selectionManager,
-           WmiNamespaceViewModel? parentNamespaceViewModel = null) : base(messengerService)
+           WmiNamespaceViewModel? parentNamespaceViewModel = null,
+           ISettingsService? settingsService = null) : base(messengerService)
     {
         // All dependencies are required for correct operation and messaging.
         _wmiNamespace = wmiNamespace ?? throw new ArgumentNullException(nameof(wmiNamespace));
@@ -87,6 +89,7 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         _settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
         _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+        _settingsService = settingsService;
 
         // Subscribe to ItemStatus property changes to notify Tooltip changes
         ItemStatus.PropertyChanged += (s, e) =>
@@ -193,7 +196,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
            SettingsManager settingsManager,
            ICacheService cacheService,
            SelectionManager selectionManager,
-           WmiNamespaceViewModel? parentNamespaceViewModel = null)
+           WmiNamespaceViewModel? parentNamespaceViewModel = null,
+           ISettingsService? settingsService = null)
     {
         if (mboCollection == null)
             throw new ArgumentNullException(nameof(mboCollection));
@@ -219,7 +223,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                     settingsManager,
                     cacheService,
                     selectionManager,
-                    parentNamespaceViewModel);
+                    parentNamespaceViewModel,
+                    settingsService);
             }
             else if (ConfigMgr.SmsProviderNamespaceViewModel.IsSmsProviderNamespacePath(wmiNamespace.RelativePath))
             {
@@ -231,7 +236,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                     settingsManager,
                     cacheService,
                     selectionManager,
-                    parentNamespaceViewModel);
+                    parentNamespaceViewModel,
+                    settingsService);
             }
             else
             {
@@ -243,7 +249,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                     settingsManager,
                     cacheService,
                     selectionManager,
-                    parentNamespaceViewModel);
+                    parentNamespaceViewModel,
+                    settingsService);
             }
 
             if (mo.Scope?.Path != null)
@@ -264,7 +271,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
         SettingsManager settingsManager,
         ICacheService cacheService,
         SelectionManager selectionManager,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        ISettingsService? settingsService = null)
     {
         if (string.IsNullOrEmpty(namespacePath))
             throw new ArgumentException("Namespace path cannot be empty", nameof(namespacePath));
@@ -282,7 +290,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 applicationService,
                 settingsManager,
                 cacheService,
-                selectionManager);
+                selectionManager,
+                null,
+                settingsService);
         }
         else if (ConfigMgr.SmsProviderNamespaceViewModel.IsSmsProviderNamespacePath(rootNamespace.RelativePath))
         {
@@ -293,7 +303,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 applicationService,
                 settingsManager,
                 cacheService,
-                selectionManager);
+                selectionManager,
+                null,
+                settingsService);
         }
         else
         {
@@ -304,7 +316,9 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 applicationService,
                 settingsManager,
                 cacheService,
-                selectionManager);
+                selectionManager,
+                null,
+                settingsService);
         }
 
         if (rootMbo?.Scope?.Path != null)
@@ -347,7 +361,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _settingsManager,
                 _cacheService,
                 _selectionManager,
-                this);
+                this,
+                _settingsService);
 
             var sortedChildViewModels = new ObservableCollection<WmiNamespaceViewModel>(
                 childViewModels.OrderBy(vm => vm.Name)
@@ -424,7 +439,8 @@ public partial class WmiNamespaceViewModel : MessagingViewModelBase
                 _wmiService,
                 _messengerService,
                 _applicationService,
-                _selectionManager);
+                _selectionManager,
+                _settingsService);
 
             // Use RunOnUIThreadAsync for asynchronous UI updates to avoid hanging
             await RunOnUIThreadAsync(() =>

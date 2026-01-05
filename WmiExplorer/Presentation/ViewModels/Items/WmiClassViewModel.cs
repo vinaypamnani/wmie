@@ -47,6 +47,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     private WmiInstanceViewModel? _selectedInstance;
 
     private readonly SelectionManager _selectionManager;
+    private readonly ISettingsService? _settingsService;
 
     [ObservableProperty]
     private ObservableCollection<WmiMethod>? _staticMethods;
@@ -60,13 +61,15 @@ public partial class WmiClassViewModel : MessagingViewModelBase
               IWmiService wmiService,
               IMessengerService messengerService,
               IApplicationService applicationService,
-              SelectionManager selectionManager) : base(messengerService)
+              SelectionManager selectionManager,
+              ISettingsService? settingsService = null) : base(messengerService)
     {
         _wmiClass = wmiClass;
         _wmiService = wmiService;
         _applicationService = applicationService;
         _parentNamespaceViewModel = parentNamespaceViewModel ?? throw new ArgumentNullException(nameof(parentNamespaceViewModel));
         _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
+        _settingsService = settingsService;
 
         // Subscribe to ItemStatus property changes to notify Tooltip changes
         ItemStatus.PropertyChanged += (s, e) =>
@@ -154,7 +157,8 @@ public partial class WmiClassViewModel : MessagingViewModelBase
            IWmiService wmiService,
            IMessengerService messengerService,
            IApplicationService applicationService,
-           SelectionManager selectionManager)
+           SelectionManager selectionManager,
+           ISettingsService? settingsService = null)
     {
         var viewModels = new ObservableCollection<WmiClassViewModel>();
 
@@ -166,10 +170,38 @@ public partial class WmiClassViewModel : MessagingViewModelBase
                 wmiService,
                 messengerService,
                 applicationService,
-                selectionManager));
+                selectionManager,
+                settingsService));
         }
 
         return viewModels;
+    }
+
+    /// <summary>
+    /// Ensures that properties and methods are loaded for this class.
+    /// This is called before operations that require properties/methods to be available,
+    /// such as when tab ViewModels need to display properties/methods.
+    /// </summary>
+    public void EnsurePropertiesAndMethodsLoaded()
+    {
+        if (_methods == null || _properties == null)
+        {
+            // Load methods for this class
+            if (_methods == null)
+                LoadMethods();
+
+            // Load properties for this class
+            if (_properties == null)
+                LoadProperties();
+
+            // Set the status to PartialSuccess if it's still Unknown
+            // This ensures the circular icon changes color when properties/methods are loaded
+            if (ItemStatus.LoadState == LoadState.Unknown)
+            {
+                SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Properties.Count} properties and {Methods.Count} methods for {ClassName}. Double click to load instances.");
+                Log.Information("Loaded {PropertyCount} properties and {MethodCount} methods for class {ClassName}", Properties.Count, Methods.Count, ClassName);
+            }
+        }
     }
 
     /// <summary>
@@ -482,8 +514,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
         if (ItemStatus.LoadState == LoadState.Loading)
             return;
 
-        Log.Debug("Loading instances for class {ClassName}", ClassName);
-
         // Create a new CTS for this operation
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
@@ -583,7 +613,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadMethods()
     {
-        // Log.Debug("Loading methods for class: {ClassName}", ClassName);
         _methods = new ObservableCollection<WmiMethod>();
         StaticMethods = new ObservableCollection<WmiMethod>();
 
@@ -618,7 +647,6 @@ public partial class WmiClassViewModel : MessagingViewModelBase
     /// </summary>
     private void LoadProperties()
     {
-        // Log.Debug("Loading properties for class: {ClassName}", ClassName);
         _properties = new ObservableCollection<WmiProperty>();
         try
         {
@@ -629,7 +657,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             {
                 var wmiProperties = properties
                     .Cast<System.Management.PropertyData>()
-                    .Select(property => new WmiProperty(property, _wmiClass.ActualClass))
+                    .Select(property => new WmiProperty(property, _wmiClass.ActualClass, _settingsService))
                     .ToList();
                 foreach (var wmiProperty in wmiProperties)
                 {
@@ -673,24 +701,7 @@ public partial class WmiClassViewModel : MessagingViewModelBase
             try
             {
                 _isUpdatingSelection = true;
-
-                if (_methods == null || _properties == null)
-                {
-                    // Load methods for this class
-                    if (_methods == null)
-                        LoadMethods();
-
-                    // Load properties for this class
-                    if (_properties == null)
-                        LoadProperties();
-
-                    if (ItemStatus.LoadState == LoadState.Unknown)
-                    {
-                        // Set the status to partial success
-                        SetStatusAndPublish(ItemStatus, LoadState.PartialSuccess, $"Loaded {Properties.Count} properties and {Methods.Count} methods for {ClassName}. Double click to load instances.");
-                        Log.Information("Loaded {PropertyCount} properties and {MethodCount} methods for class {ClassName}", Properties.Count, Methods.Count, ClassName);
-                    }
-                }
+                EnsurePropertiesAndMethodsLoaded();
             }
             finally
             {

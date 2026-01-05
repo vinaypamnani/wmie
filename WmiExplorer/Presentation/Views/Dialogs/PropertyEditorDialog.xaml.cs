@@ -42,4 +42,9 @@ public partial class PropertyEditorDialog : Window
 
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+    }
 }

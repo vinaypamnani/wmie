@@ -64,11 +64,8 @@ public class PropertyEditor : ContentControl, IPropertyEditor
     /// </summary>
     protected UIElement CreateCoreEditor(PropertyHierarchyItem propertyItem)
     {
-        // Handle read-only properties
-        if (propertyItem.IsReadOnly)
-        {
-            return PropertyEditorUtils.CreateReadOnlyEditor(propertyItem);
-        }
+        // Note: Read-only check is now handled in UpdateEditor before calling specialized editors
+        // This ensures consistent behavior across all editors
 
         var propertyType = propertyItem.PropertyType;
 
@@ -149,6 +146,13 @@ public class PropertyEditor : ContentControl, IPropertyEditor
         if (propertyItem == null)
         {
             Content = null;
+            return;
+        }
+
+        // Check if property should be treated as read-only first
+        if (PropertyEditorUtils.ShouldTreatAsReadOnly(propertyItem))
+        {
+            Content = PropertyEditorUtils.CreateReadOnlyEditor(propertyItem);
             return;
         }
 

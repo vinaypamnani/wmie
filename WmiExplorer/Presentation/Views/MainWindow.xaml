@@ -74,6 +74,23 @@
                         <ContentControl ContentTemplate="{StaticResource ColorOffIconTemplate}" />
                     </MenuItem.Icon>
                 </MenuItem>
+                <Separator Style="{StaticResource ModernSeparatorStyle}" />
+                <MenuItem Header="Treat Dynamic/Provider Classes as Writable"
+                          IsCheckable="True"
+                          IsChecked="{Binding SettingsManager.TreatDynamicProviderAsWritable, Mode=TwoWay}"
+                          ToolTip="When enabled, properties in classes with both Dynamic and Provider qualifiers are treated as writable. By default, only property-level qualifiers determine writeability (per WMI specification).">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource ReadOnlyQualifierIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Treat Read Qualifier as Read-Only"
+                          IsCheckable="True"
+                          IsChecked="{Binding SettingsManager.TreatReadQualifierAsReadOnly, Mode=TwoWay}"
+                          ToolTip="When enabled, properties with read=true qualifier are considered read-only. By default, the read qualifier is ignored for writeability determination (it only indicates readability, not writeability).">
+                    <MenuItem.Icon>
+                        <ContentControl ContentTemplate="{StaticResource ReadOnlyQualifierIconTemplate}" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="_Start">

@@ -64,8 +64,51 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Width="Auto" Binding="{Binding Name}" Header="Name" />
-                    <DataGridTextColumn Width="Auto" Binding="{Binding IsStatic, Mode=OneWay}" Header="Is Static" />
-                    <DataGridTextColumn Width="Auto" Binding="{Binding HasValueMap, Mode=OneWay}" Header="Has Value Map" />
+
+                    <!--  IsStatic Column with Icon  -->
+                    <DataGridTemplateColumn Width="Auto" Header="Is Static" CanUserResize="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ContentControl.Style>
+                                        <Style TargetType="ContentControl">
+                                            <Setter Property="ContentTemplate" Value="{StaticResource BooleanFalseIconTemplate}" />
+                                            <Setter Property="ToolTip" Value="Is Static: False" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsStatic}" Value="True">
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource BooleanTrueIconTemplate}" />
+                                                    <Setter Property="ToolTip" Value="Is Static: True" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ContentControl.Style>
+                                </ContentControl>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!--  HasValueMap Column with Icon  -->
+                    <DataGridTemplateColumn Width="Auto" Header="Has Value Map" CanUserResize="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ContentControl.Style>
+                                        <Style TargetType="ContentControl">
+                                            <Setter Property="ContentTemplate" Value="{StaticResource BooleanFalseIconTemplate}" />
+                                            <Setter Property="ToolTip" Value="Has Value Map: False" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasValueMap}" Value="True">
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource BooleanTrueIconTemplate}" />
+                                                    <Setter Property="ToolTip" Value="Has Value Map: True" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ContentControl.Style>
+                                </ContentControl>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
                     <DataGridTextColumn Width="Auto" Binding="{Binding Description, Converter={StaticResource NewLineToSpaceConverter}}" Header="Description" />
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>

@@ -145,6 +145,21 @@ public partial class SelectionManager : ObservableObject
         _previousSelectionsByType[selectedType] = selectedObject;
     }
 
+    /// <summary>
+    /// Handles PropertyChanged events from SelectedNamespace to propagate SelectedClass changes.
+    /// When SelectedNamespace.SelectedClass changes (e.g., via ListView binding), we need to
+    /// manually fire PropertyChanged for SelectionManager.SelectedClass since it's a computed property.
+    /// </summary>
+    private void OnSelectedNamespacePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(WmiNamespaceViewModel.SelectedClass))
+        {
+            // Manually fire PropertyChanged for SelectionManager.SelectedClass
+            // This ensures that SelectionAwareViewModelBase.OnSelectionManagerPropertyChanged is called
+            OnPropertyChanged(nameof(SelectedClass));
+        }
+    }
+
     private void PublishSelectionChanged()
     {
         _messengerService.Send(new SelectionChangedMessage(this));
@@ -188,10 +203,22 @@ public partial class SelectionManager : ObservableObject
                 // Direct namespace selection
                 if (SelectedNamespace != namespaceVm)
                 {
+                    // Unsubscribe from previous namespace's PropertyChanged
+                    if (SelectedNamespace != null)
+                    {
+                        SelectedNamespace.PropertyChanged -= OnSelectedNamespacePropertyChanged;
+                    }
+
                     // Raise PropertyChanging event before changing the selection
                     PreviousNamespace = SelectedNamespace;
                     OnPropertyChanging(nameof(SelectedNamespace));
                     SelectedNamespace = namespaceVm;
+
+                    // Subscribe to new namespace's PropertyChanged to watch for SelectedClass changes
+                    if (SelectedNamespace != null)
+                    {
+                        SelectedNamespace.PropertyChanged += OnSelectedNamespacePropertyChanged;
+                    }
                 }
                 break;
 

@@ -8,14 +8,23 @@ namespace WmiExplorer.PropertyGrid;
 /// </summary>
 public partial class PropertyFilterOptions : ObservableObject
 {
+    /// <summary>
+    /// Whether to allow editing read-only properties. When enabled, read-only properties can be edited,
+    /// but WMI providers may or may not support editing these properties.
+    /// </summary>
+    [ObservableProperty]
+    private bool _allowEditingReadOnlyProperties = false;
+
     [ObservableProperty]
     private bool _includeNullValues = false;
 
     [ObservableProperty]
-    private bool _includeReadOnlyProperties = true;
-
-    [ObservableProperty]
     private bool _includeSystemProperties = true;
+
+    /// <summary>
+    /// Whether the PropertyGrid is in read-only mode. This affects how read-only properties are filtered.
+    /// </summary>
+    private bool _isPropertyGridReadOnly = true;
 
     /// <summary>
     /// Creates a new instance with default filter options.
@@ -28,30 +37,41 @@ public partial class PropertyFilterOptions : ObservableObject
     /// Creates a new instance with specified filter options.
     /// </summary>
     /// <param name="includeNullValues">Whether to include properties with null values</param>
-    /// <param name="includeReadOnlyProperties">Whether to include read-only properties</param>
     /// <param name="includeSystemProperties">Whether to include system properties</param>
-    public PropertyFilterOptions(bool includeNullValues, bool includeReadOnlyProperties, bool includeSystemProperties)
+    /// <param name="allowEditingReadOnlyProperties">Whether to allow editing read-only properties (also controls visibility in writable mode)</param>
+    /// <param name="isPropertyGridReadOnly">Whether the PropertyGrid is in read-only mode (defaults to true)</param>
+    public PropertyFilterOptions(bool includeNullValues, bool includeSystemProperties, bool allowEditingReadOnlyProperties = false, bool isPropertyGridReadOnly = true)
     {
         _includeNullValues = includeNullValues;
-        _includeReadOnlyProperties = includeReadOnlyProperties;
         _includeSystemProperties = includeSystemProperties;
+        _allowEditingReadOnlyProperties = allowEditingReadOnlyProperties;
+        _isPropertyGridReadOnly = isPropertyGridReadOnly;
     }
 
     /// <summary>
     /// Gets the default filter options for general object properties.
+    /// Note: PropertyGrid uses DefaultWmiOptions by default. This option is available for non-WMI scenarios.
     /// </summary>
     public static PropertyFilterOptions DefaultObjectOptions => new PropertyFilterOptions(
         includeNullValues: true,
-        includeReadOnlyProperties: true,
         includeSystemProperties: false);
 
     /// <summary>
     /// Gets the default filter options for WMI properties.
+    /// This is the standard default used by PropertyGrid.
     /// </summary>
     public static PropertyFilterOptions DefaultWmiOptions => new PropertyFilterOptions(
         includeNullValues: false,
-        includeReadOnlyProperties: true,
         includeSystemProperties: true);
+
+    /// <summary>
+    /// Gets or sets whether the PropertyGrid is in read-only mode.
+    /// </summary>
+    public bool IsPropertyGridReadOnly
+    {
+        get => _isPropertyGridReadOnly;
+        set => SetProperty(ref _isPropertyGridReadOnly, value);
+    }
 
     /// <summary>
     /// Creates a deep copy of this PropertyFilterOptions instance.
@@ -59,7 +79,7 @@ public partial class PropertyFilterOptions : ObservableObject
     /// <returns>A new PropertyFilterOptions instance with the same values</returns>
     public PropertyFilterOptions Clone()
     {
-        return new PropertyFilterOptions(IncludeNullValues, IncludeReadOnlyProperties, IncludeSystemProperties);
+        return new PropertyFilterOptions(IncludeNullValues, IncludeSystemProperties, AllowEditingReadOnlyProperties, IsPropertyGridReadOnly);
     }
 
     /// <summary>
@@ -71,8 +91,9 @@ public partial class PropertyFilterOptions : ObservableObject
         if (ReferenceEquals(this, other)) return true;
 
         return IncludeNullValues == other.IncludeNullValues &&
-               IncludeReadOnlyProperties == other.IncludeReadOnlyProperties &&
-               IncludeSystemProperties == other.IncludeSystemProperties;
+               IncludeSystemProperties == other.IncludeSystemProperties &&
+               AllowEditingReadOnlyProperties == other.AllowEditingReadOnlyProperties &&
+               IsPropertyGridReadOnly == other.IsPropertyGridReadOnly;
     }
 
     /// <summary>
@@ -80,7 +101,7 @@ public partial class PropertyFilterOptions : ObservableObject
     /// </summary>
     public override int GetHashCode()
     {
-        return HashCode.Combine(IncludeNullValues, IncludeReadOnlyProperties, IncludeSystemProperties);
+        return HashCode.Combine(IncludeNullValues, IncludeSystemProperties, AllowEditingReadOnlyProperties, IsPropertyGridReadOnly);
     }
 
     /// <summary>
@@ -90,8 +111,9 @@ public partial class PropertyFilterOptions : ObservableObject
     /// <param name="propertyValue">The value of the property</param>
     /// <param name="isReadOnly">Whether the property is read-only</param>
     /// <param name="isKey">Whether the property is a key property (optional, defaults to false)</param>
+    /// <param name="isPropertyGridReadOnly">Whether the PropertyGrid is read-only (optional, defaults to the stored IsPropertyGridReadOnly value)</param>
     /// <returns>True if the property should be included, false otherwise</returns>
-    public bool ShouldIncludeProperty(string? propertyName, object? propertyValue, bool isReadOnly, bool isKey = false)
+    public bool ShouldIncludeProperty(string? propertyName, object? propertyValue, bool isReadOnly, bool isKey = false, bool? isPropertyGridReadOnly = null)
     {
         // Filter out null values if not included
         if (!IncludeNullValues && propertyValue == null)
@@ -101,9 +123,13 @@ public partial class PropertyFilterOptions : ObservableObject
         if (isKey)
             return true;
 
-        // Filter out read-only properties if not included
-        if (!IncludeReadOnlyProperties && isReadOnly)
-            return false;
+        // Use provided parameter or fall back to stored value (defaults to true for read-only mode)
+        bool currentIsPropertyGridReadOnly = isPropertyGridReadOnly ?? IsPropertyGridReadOnly;
+
+        // In writable mode (currentIsPropertyGridReadOnly = false): use AllowEditingReadOnlyProperties to control visibility
+        // In read-only mode (currentIsPropertyGridReadOnly = true): always show read-only properties
+        if (!currentIsPropertyGridReadOnly && !AllowEditingReadOnlyProperties && isReadOnly)
+            return false; // Hide in writable mode when editing is disabled
 
         // Filter out system properties (starting with "__") if not included
         if (!IncludeSystemProperties && propertyName?.StartsWith("__") == true)

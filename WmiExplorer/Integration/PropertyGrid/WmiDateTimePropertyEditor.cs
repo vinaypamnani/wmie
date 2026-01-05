@@ -27,7 +27,8 @@ public class WmiDateTimePropertyEditor : WmiPropertyEditorBase
             null,
             ValidateWmiDateTime
         );
-        textBox.IsReadOnly = wmiDescriptor.IsReadOnly;
+        // Note: Read-only check is now handled in PropertyEditor.UpdateEditor before calling specialized editors
+        // No need to set IsReadOnly here as the property editor system handles it
         return textBox;
     }
 

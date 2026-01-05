@@ -106,4 +106,16 @@ public partial class SettingsManager : ObservableObject
         get => _settingsService.ShowSystemClasses;
         set => _settingsService.ShowSystemClasses = value;
     }
+
+    public bool TreatDynamicProviderAsWritable
+    {
+        get => _settingsService.TreatDynamicProviderAsWritable;
+        set => _settingsService.TreatDynamicProviderAsWritable = value;
+    }
+
+    public bool TreatReadQualifierAsReadOnly
+    {
+        get => _settingsService.TreatReadQualifierAsReadOnly;
+        set => _settingsService.TreatReadQualifierAsReadOnly = value;
+    }
 }

@@ -3,6 +3,7 @@ using System.Management;
 using WmiExplorer.Common.Logging;
 using WmiExplorer.Models;
 using WmiExplorer.PropertyGrid.Abstractions;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Integration.PropertyTypeProvider;
 
@@ -12,6 +13,7 @@ namespace WmiExplorer.Integration.PropertyTypeProvider;
 public class WmiPropertyDescriptor : IPropertyDescriptor
 {
     private readonly bool _allowExpansion;
+    private ManagementObject? _cachedReferenceObject;
     private readonly string _category;
     private readonly object? _context;
     private readonly bool _forceEditable;
@@ -19,9 +21,8 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     private readonly IPropertyGridContext? _propertyGridContext;
     private readonly ManagementBaseObject _source;
     private readonly WmiProperty _wmiProperty;
-    private ManagementObject? _cachedReferenceObject;
 
-    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
+    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false, ISettingsService? settingsService = null)
     {
         _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
         _source = source;
@@ -46,12 +47,12 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         {
             // Ignore errors, parentClass will be null
         }
-        _wmiProperty = new WmiProperty(_propertyData, parentClass);
+        _wmiProperty = new WmiProperty(_propertyData, parentClass, settingsService);
     }
 
     // New constructor for explicit context
-    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, object? context, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false)
-        : this(propertyData, source, category, allowExpansion, propertyGridContext, forceEditable)
+    public WmiPropertyDescriptor(PropertyData propertyData, ManagementBaseObject source, string category, object? context, bool allowExpansion = false, IPropertyGridContext? propertyGridContext = null, bool forceEditable = false, ISettingsService? settingsService = null)
+        : this(propertyData, source, category, allowExpansion, propertyGridContext, forceEditable, settingsService)
     {
         _context = context;
     }
@@ -65,6 +66,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
     public bool IsReference => _propertyData.Type == CimType.Reference;
     public string Name => _wmiProperty.Name;
     public PropertyData PropertyData => _propertyData;
+
     public Type? PropertyType
     {
         get
@@ -79,6 +81,7 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
             return GetTypeForCimType(_propertyData.Type, _propertyData.IsArray);
         }
     }
+
     public object Source => _source;
     public object? Value => GetValue();
     public WmiProperty WmiProperty => _wmiProperty;
@@ -209,7 +212,17 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
 
         if (possibleValues != null && possibleValues.Count > 0)
         {
-            var valueStr = rawValue.ToString();
+            string? valueStr;
+            try
+            {
+                valueStr = rawValue.ToString();
+            }
+            catch (Exception ex)
+            {
+                // Log error converting value to string but continue with hex formatting
+                Log.Warning(ex, "Failed to convert value to string for property '{PropertyName}' in enhanced value lookup: {ErrorMessage}", _propertyData.Name, ex.Message);
+                valueStr = null;
+            }
             if (string.IsNullOrEmpty(valueStr))
                 return null;
             var allKeys = possibleValues.AllKeys;
@@ -353,7 +366,17 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
         if (_allowExpansion)
             return _propertyData;
 
-        var rawValue = _wmiProperty.Value;
+        object? rawValue;
+        try
+        {
+            rawValue = _wmiProperty.Value;
+        }
+        catch (Exception ex)
+        {
+            // Log error accessing property value but continue with null
+            Log.Warning(ex, "Failed to access value for property '{PropertyName}': {ErrorMessage}. Returning null.", _propertyData.Name, ex.Message);
+            return null;
+        }
 
         // Handle Reference type properties with string values - convert to ManagementObject
         if (IsReference && _propertyGridContext?.IsReadOnly == true && rawValue is string pathString && !string.IsNullOrEmpty(pathString))
@@ -390,15 +413,32 @@ public class WmiPropertyDescriptor : IPropertyDescriptor
 
         if (_propertyGridContext?.IsReadOnly == true && _propertyData.Type == CimType.DateTime && rawValue is string s && !string.IsNullOrEmpty(s))
         {
-            var dt = ManagementDateTimeConverter.ToDateTime(s);
-            return $"{dt:G} [{s}]";
+            try
+            {
+                var dt = ManagementDateTimeConverter.ToDateTime(s);
+                return $"{dt:G} [{s}]";
+            }
+            catch (Exception ex)
+            {
+                // Log warning for invalid DateTime values but continue with raw string
+                Log.Warning(ex, "Failed to convert WMI DateTime string '{DateTimeString}' to DateTime for property '{PropertyName}': {ErrorMessage}. Displaying raw value.", s, _propertyData.Name, ex.Message);
+                return s;
+            }
         }
         // Only compute enhanced value if the property grid is read-only
         if (_propertyGridContext?.IsReadOnly == true)
         {
-            var enhancedValue = GetEnhancedValue(rawValue);
-            if (enhancedValue != null)
-                return enhancedValue;
+            try
+            {
+                var enhancedValue = GetEnhancedValue(rawValue);
+                if (enhancedValue != null)
+                    return enhancedValue;
+            }
+            catch (Exception ex)
+            {
+                // Log error computing enhanced value but continue with raw value
+                Log.Warning(ex, "Failed to compute enhanced value for property '{PropertyName}': {ErrorMessage}. Using raw value.", _propertyData.Name, ex.Message);
+            }
         }
         return rawValue;
     }

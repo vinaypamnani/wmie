@@ -130,6 +130,10 @@
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE895;" />
     </DataTemplate>
 
+    <DataTemplate x:Key="ReadOnlyQualifierIconTemplate">
+        <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE72E;" />
+    </DataTemplate>
+
     <!--  Connection icons  -->
 
     <DataTemplate x:Key="ConnectionOptionsIconTemplate">
@@ -250,6 +254,28 @@
 
     <DataTemplate x:Key="ScriptIconTemplate">
         <TextBlock Style="{StaticResource IconTextBlockStyle}" Text="&#xE9D9;" />
+    </DataTemplate>
+
+    <!--  Small boolean indicator icons for DataGrid (12px to avoid affecting row height)  -->
+
+    <!--  Checkmark icon for True values  -->
+    <DataTemplate x:Key="BooleanTrueIconTemplate">
+        <TextBlock FontSize="12"
+                   Foreground="{DynamicResource BaseGreenBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   Text="&#xE73E;" />
+    </DataTemplate>
+
+    <!--  X icon for False values  -->
+    <DataTemplate x:Key="BooleanFalseIconTemplate">
+        <TextBlock FontSize="12"
+                   Foreground="{DynamicResource BaseRedBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                   Text="&#xE711;" />
     </DataTemplate>
 
 </ResourceDictionary>

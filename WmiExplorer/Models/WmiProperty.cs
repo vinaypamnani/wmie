@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Management;
 using WmiExplorer.Common.Helpers;
 using WmiExplorer.PropertyGrid;
+using WmiExplorer.Services;
 
 namespace WmiExplorer.Models;
 
@@ -17,11 +18,13 @@ public class WmiProperty
     private readonly ManagementClass? _parentClass;
     private bool _possibleValuesComputed;
     private readonly PropertyData _propertyData;
+    private readonly ISettingsService? _settingsService;
 
-    public WmiProperty(PropertyData propertyData, ManagementClass? parentClass = null)
+    public WmiProperty(PropertyData propertyData, ManagementClass? parentClass = null, ISettingsService? settingsService = null)
     {
         _propertyData = propertyData ?? throw new ArgumentNullException(nameof(propertyData));
         _parentClass = parentClass;
+        _settingsService = settingsService;
     }
 
     [Browsable(false)]
@@ -125,34 +128,62 @@ public class WmiProperty
 
     /// <summary>
     /// Indicates whether this property is read-only, based on WMI qualifiers.
+    /// Follows WMI standard qualifiers specification: https://learn.microsoft.com/en-us/windows/win32/wmisdk/standard-qualifiers
+    ///
+    /// Logic precedence:
+    /// 1. Key properties are always read-only (highest priority)
+    /// 2. Check explicit Write qualifier (highest precedence for writeability)
+    /// 3. If Write qualifier absent, check WriteAtUpdate qualifier
+    /// 4. If TreatDynamicProviderAsWritable setting enabled, apply Dynamic/Provider heuristic
+    /// 5. If TreatReadQualifierAsReadOnly setting enabled, check read qualifier (last, as it indicates readability, not writeability)
+    /// 6. Default to read-only per WMI spec (Write defaults to FALSE)
+    ///
+    /// NOTE: Dynamic/Provider class-level qualifiers are configurable via setting.
+    /// By default, they are NOT checked because they don't determine property writeability
+    /// per WMI specification - only property-level qualifiers matter.
     /// </summary>
-
     [Category("Advanced")]
     public bool IsReadOnly
     {
         get
         {
-            // Use GetQualifierFromClassOrInstance for all qualifier checks
+            // 1. Key properties are always read-only (highest priority)
             var isKey = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "key") is bool keyBool && keyBool;
             if (isKey)
-                return true; // keys are always read-only
-
-            var writeQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "write");
-            if (writeQualifier is bool writeBool)
-                return !writeBool;
-
-            var readQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "read");
-            if (readQualifier is bool readBool && readBool)
                 return true;
 
-            var isDynamic = GetQualifierFromClass(_parentClass, "dynamic") is bool dynamicBool && dynamicBool;
-            var hasProvider = GetQualifierFromClass(_parentClass, "provider") != null;
+            // 2. Check Write qualifier - this explicitly indicates writeability
+            // Write=true means writeable, Write=false means read-only
+            var writeQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "write");
+            if (writeQualifier is bool writeBool)
+                return !writeBool; // If write=true, not read-only; if write=false, read-only
 
-            // Special case for dynamic/provider-backed properties with Provider
-            if (isDynamic && hasProvider)
-                return false; // treat as writable
+            // 3. If Write qualifier absent, check WriteAtUpdate qualifier
+            // Check WriteAtUpdate qualifier - indicates property is writeable at instance update
+            var writeAtUpdateQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "WriteAtUpdate");
+            if (writeAtUpdateQualifier is bool writeAtUpdateBool && writeAtUpdateBool)
+                return false; // Property is writeable at update, so not read-only
 
-            // Default: read-only
+            // 4. If TreatDynamicProviderAsWritable setting enabled, apply Dynamic/Provider heuristic
+            if (_settingsService?.TreatDynamicProviderAsWritable == true)
+            {
+                // Special case for dynamic/provider-backed properties with Provider
+                // https://learn.microsoft.com/en-us/windows/win32/wmisdk/dynamic-qualifier
+                var isDynamic = GetQualifierFromClass(_parentClass, "dynamic") is bool dynamicBool && dynamicBool;
+                var hasProvider = GetQualifierFromClass(_parentClass, "provider") != null;
+                if (isDynamic && hasProvider)
+                    return false; // treat as writable when setting is enabled
+            }
+
+            // 5. If TreatReadQualifierAsReadOnly setting enabled, check read qualifier (last, as it indicates readability, not writeability)
+            if (_settingsService?.TreatReadQualifierAsReadOnly == true)
+            {
+                var readQualifier = GetQualifierFromClassOrInstance(_propertyData, _parentClass, "read");
+                if (readQualifier is bool readBool && readBool)
+                    return true; // Property has read=true, treat as read-only when setting is enabled
+            }
+
+            // 6. Default: read-only (since Write qualifier defaults to FALSE per WMI spec)
             return true;
         }
     }
